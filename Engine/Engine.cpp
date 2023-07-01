@@ -15,3 +15,15 @@ Engine::~Engine()
 {
 	std::cout << "Engine destroying" << std::endl;
 }
+
+void
+Engine::Update()
+{
+	std::cout << "Engine update" << std::endl;
+}
+
+bool
+Engine::ShouldShutdown()
+{
+	return m_shouldShutdown;
+}
