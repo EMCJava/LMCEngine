@@ -32,4 +32,11 @@ private:
 	bool m_ShouldShutdown = false;
 
 	Window *m_MainWindow = nullptr;
+
+	/*
+	 *
+	 * Global instance of the engine
+	 *
+	 * */
+	static Engine *g_Engine;
 };

@@ -8,8 +8,16 @@
 
 #include <iostream>
 
+Engine *Engine::g_Engine = nullptr;
+
 Engine::Engine()
 {
+	if (g_Engine != nullptr)
+	{
+		throw std::runtime_error("There is already a Engine instance!");
+	}
+
+	g_Engine = this;
 	std::cout << "Engine initializing" << std::endl;
 	InitializeEnvironment();
 
