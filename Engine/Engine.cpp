@@ -17,7 +17,6 @@ Engine::Engine()
 		throw std::runtime_error("There is already a Engine instance!");
 	}
 
-	g_Engine = this;
 	std::cout << "Engine initializing" << std::endl;
 	InitializeEnvironment();
 
@@ -28,6 +27,7 @@ Engine::Engine()
 	}
 
 	m_MainWindow->SetSwapInterval(1);
+	g_Engine = this;
 }
 
 Engine::~Engine()
