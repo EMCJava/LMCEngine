@@ -1,0 +1,1 @@
+add_library(Engine.lib Engine.hpp Engine.cpp)

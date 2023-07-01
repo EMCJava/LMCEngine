@@ -1,8 +1,10 @@
 #include <iostream>
 
+#include <Engine/Engine.hpp>
+
 int
 main()
 {
-	std::cout << "Hello, World!" << std::endl;
+	Engine engine;
 	return 0;
 }
