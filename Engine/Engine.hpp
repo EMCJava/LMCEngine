@@ -2,6 +2,8 @@
 // Created by loyus on 7/1/2023.
 //
 
+#include <Engine/Core/Window/Window.hpp>
+
 #pragma once
 
 class Engine
@@ -27,5 +29,7 @@ public:
 	ShouldShutdown();
 
 private:
-	bool m_shouldShutdown = false;
+	bool m_ShouldShutdown = false;
+
+	Window *m_MainWindow = nullptr;
 };
