@@ -58,5 +58,7 @@ private:
 	bool m_Fullscreen;
 	std::string m_Title;
 
-	class GLFWwindow *m_Window = nullptr;
+	struct GLFWwindow *m_Window = nullptr;
+	struct GladGLContext *m_GLContext = nullptr;
+	struct ImGuiContext *m_ImGuiContext = nullptr;
 };
