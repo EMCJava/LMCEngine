@@ -5,9 +5,12 @@
 #include "GLFWWindow.hpp"
 
 #include <imgui.h>
+
 // #define GLFW_INCLUDE_NONE
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
+
+#include <spdlog/spdlog.h>
 
 #include <Engine/Core/File/OSFile.hpp>
 
@@ -106,7 +109,14 @@ Window::Update()
 		{
 			if (ImGui::MenuItem("Open project"))
 			{
-				std::cout << "Open project: " << OSFile::PickFile("lmce") << std::endl;
+				spdlog::info("Open project");
+				const auto Path = OSFile::PickFile("lmce");
+				if (Path.empty()) {
+					spdlog::info("Operation cancelled");
+				}
+				else {
+					spdlog::info("Open project: {}", Path);
+				}
 			}
 
 			ImGui::Separator();

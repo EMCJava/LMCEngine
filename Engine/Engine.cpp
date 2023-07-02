@@ -4,6 +4,8 @@
 
 #include "Engine.hpp"
 
+#include <spdlog/spdlog.h>
+
 #include <Engine/Core/Environment/Environment.hpp>
 #include <Engine/Core/Window/WindowPool.hpp>
 
@@ -18,7 +20,7 @@ Engine::Engine()
 		throw std::runtime_error("There is already a Engine instance!");
 	}
 
-	std::cout << "Engine initializing" << std::endl;
+	spdlog::info("Engine initializing");
 	InitializeEnvironment();
 
 	m_MainWindowPool = new WindowPool;
@@ -30,7 +32,7 @@ Engine::Engine()
 
 Engine::~Engine()
 {
-	std::cout << "Engine destroying" << std::endl;
+	spdlog::info("Engine destroying");
 
 	delete m_MainWindowPool;
 	m_MainWindowPool = nullptr;
