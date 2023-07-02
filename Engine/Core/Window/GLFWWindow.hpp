@@ -51,7 +51,10 @@ public:
 	 *
 	 * */
 	bool
-	WindowShouldClose();
+	WindowShouldClose() const;
+
+	struct GLFWwindow *
+	GetWindowHandle() const;
 
 private:
 	int m_Width, m_Height;

@@ -5,6 +5,7 @@
 #include "Engine.hpp"
 
 #include <Engine/Core/Environment/Environment.hpp>
+#include <Engine/Core/Window/WindowPool.hpp>
 
 #include <iostream>
 
@@ -20,13 +21,11 @@ Engine::Engine()
 	std::cout << "Engine initializing" << std::endl;
 	InitializeEnvironment();
 
-	m_MainWindow = new Window(640, 480, "LMCEngine");
-	if (m_MainWindow == nullptr)
-	{
-		throw std::runtime_error("Failed to allocate window");
-	}
+	m_MainWindowPool = new WindowPool;
 
-	m_MainWindow->SetSwapInterval(1);
+	m_MainWindowPool->CreateWindow(640, 480, "LMCEngine1");
+	m_MainWindowPool->CreateWindow(640, 480, "LMCEngine2");
+
 	g_Engine = this;
 }
 
@@ -34,7 +33,8 @@ Engine::~Engine()
 {
 	std::cout << "Engine destroying" << std::endl;
 
-	delete m_MainWindow;
+	delete m_MainWindowPool;
+	m_MainWindowPool = nullptr;
 
 	ShutdownEnvironment();
 }
@@ -42,8 +42,9 @@ Engine::~Engine()
 void
 Engine::Update()
 {
-	m_MainWindow->Update();
-	m_ShouldShutdown |= m_MainWindow->WindowShouldClose();
+	m_MainWindowPool->Update();
+
+	m_ShouldShutdown |= m_MainWindowPool->AllShouldClose();
 }
 
 bool
