@@ -11,5 +11,10 @@ class EditorWindow : public Window
 public:
 	using Window::Window;
 
+	/*
+	 *
+	 * Render the editor layout
+	 *
+	 * */
 	void Update() override;
 };

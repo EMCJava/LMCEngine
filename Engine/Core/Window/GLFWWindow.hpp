@@ -66,6 +66,11 @@ public:
 	bool
 	WindowShouldClose() const;
 
+	/*
+	 *
+	 * Getter
+	 *
+	 * */
 	struct GLFWwindow *
 	GetWindowHandle() const;
 
