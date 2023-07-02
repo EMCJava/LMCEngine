@@ -67,7 +67,7 @@ Engine::Engine()
 	ImGui_ImplOpenGL3_Init();
 
 	m_MainWindowPool = new WindowPool;
-	m_MainWindowPool->CreateWindow<GameWindow>(1280, 720, "Game Viewer");
+	// m_MainWindowPool->CreateWindow<GameWindow>(1280, 720, "Game Viewer");
 
 	g_Engine = this;
 }

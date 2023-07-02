@@ -56,4 +56,13 @@ FetchContent_GetProperties(spdlog)
 if (NOT spdlog_POPULATED)
     FetchContent_Populate(spdlog)
     add_subdirectory(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR})
-endif()
+endif ()
+
+## -------------- json --------------
+FetchContent_Declare(
+        json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        GIT_TAG develop
+)
+
+FetchContent_MakeAvailable(json)

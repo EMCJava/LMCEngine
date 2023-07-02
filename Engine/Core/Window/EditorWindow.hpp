@@ -11,10 +11,16 @@ class EditorWindow : public Window
 public:
 	using Window::Window;
 
+	~EditorWindow();
+
 	/*
 	 *
 	 * Render the editor layout
 	 *
 	 * */
-	void Update() override;
+	void
+	Update() override;
+
+private:
+	class Project *m_ActiveProject = nullptr;
 };

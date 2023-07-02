@@ -5,12 +5,25 @@
 #include "EditorWindow.hpp"
 
 #include <imgui.h>
+
 // #define GLFW_INCLUDE_NONE
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
+
 #include <spdlog/spdlog.h>
 
+#include <nlohmann/json.hpp>
+
 #include <Engine/Core/File/OSFile.hpp>
+#include <Engine/Core/Project/Project.hpp>
+
+#include <fstream>
+
+EditorWindow::~EditorWindow()
+{
+	delete m_ActiveProject;
+	m_ActiveProject = nullptr;
+}
 
 void
 EditorWindow::Update()
@@ -33,12 +46,14 @@ EditorWindow::Update()
 			if (ImGui::MenuItem("Open project"))
 			{
 				spdlog::info("Open project");
-				const auto Path = OSFile::PickFile("lmce");
-				if (Path.empty()) {
+				const auto ProjectPath = OSFile::PickFile("lmce");
+				if (ProjectPath.empty()) {
 					spdlog::info("Operation cancelled");
 				}
 				else {
-					spdlog::info("Open project: {}", Path);
+					delete m_ActiveProject;
+					m_ActiveProject = new Project;
+					m_ActiveProject->LoadProject(ProjectPath);
 				}
 			}
 
