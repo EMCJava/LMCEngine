@@ -4,6 +4,8 @@
 
 #pragma once
 
+using PrimoryWindow = class EditorWindow;
+
 class Engine
 {
 public:
@@ -29,7 +31,10 @@ public:
 private:
 	bool m_ShouldShutdown = false;
 
+	PrimoryWindow *m_MainWindow = nullptr;
 	class WindowPool *m_MainWindowPool = nullptr;
+
+	struct ImGuiContext* m_ImGuiContext = nullptr;
 
 	/*
 	 *

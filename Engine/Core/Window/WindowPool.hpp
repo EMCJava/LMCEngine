@@ -13,19 +13,25 @@ public:
 	WindowPool() = default;
 	~WindowPool();
 
-	class Window *
+	template<typename WindowTy>
+	WindowTy *
 	CreateWindow(int Width, int Height, const char *Title, bool Fullscreen = false, bool Create = true);
 
-	class Window *
+	template<typename WindowTy>
+	WindowTy *
 	CreateWindowFullscreen(const char *Title, bool Create = true);
+
+	std::pair<int, int>
+	GetPrimaryMonitorMode() const;
 
 	void
 	Update();
 
 	bool
-	PrimaryShouldClose() const;
+	ShouldClose() const;
 
 private:
-	struct ImGuiContext *m_ImGuiContext = nullptr;
 	std::vector<class Window *> m_Windows;
 };
+
+#include "WindowPool.inl"

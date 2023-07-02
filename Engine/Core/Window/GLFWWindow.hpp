@@ -38,8 +38,8 @@ public:
 	 * The main loop of the window, polling events etc.
 	 *
 	 * */
-	void
-	Update();
+	virtual void
+	Update() = 0;
 
 	/*
      *
@@ -69,7 +69,7 @@ public:
 	struct GLFWwindow *
 	GetWindowHandle() const;
 
-private:
+protected:
 	int m_Width, m_Height;
 	bool m_Fullscreen;
 	std::string m_Title;
