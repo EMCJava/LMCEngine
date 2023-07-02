@@ -26,3 +26,20 @@ target_link_libraries(imgui.demo.lib PRIVATE imgui.lib)
 ## -------------- GLAD --------------
 add_library(glad.lib glad/gl.h glad/gl.c)
 target_include_directories(glad.lib PRIVATE .)
+
+## -------------- nativefiledialog --------------
+FetchContent_Declare(
+        nativefiledialog
+        GIT_REPOSITORY https://github.com/mlabbe/nativefiledialog.git
+        GIT_TAG master
+)
+
+FetchContent_MakeAvailable(nativefiledialog)
+
+file(GLOB nativefiledialog_source
+        ${nativefiledialog_SOURCE_DIR}/src/nfd_common.c
+        ${nativefiledialog_SOURCE_DIR}/src/nfd_win.cpp
+        )
+
+add_library(nativefiledialog.lib STATIC ${nativefiledialog_source})
+target_include_directories(nativefiledialog.lib PUBLIC ${nativefiledialog_SOURCE_DIR}/src/include)

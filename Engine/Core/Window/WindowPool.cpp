@@ -76,6 +76,7 @@ WindowPool::CreateWindow(int Width, int Height, const char *Title, bool Fullscre
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 	}
 	io.IniFilename = nullptr;
+	ImGui::LoadIniSettingsFromDisk("imgui.ini");
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
@@ -110,8 +111,6 @@ WindowPool::Update()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-
-	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
 	for (size_t i = 0; i < m_Windows.size(); i++)
 	{

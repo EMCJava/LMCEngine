@@ -5,12 +5,14 @@
 #include "GLFWWindow.hpp"
 
 #include <imgui.h>
-
 // #define GLFW_INCLUDE_NONE
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
+#include <Engine/Core/File/OSFile.hpp>
+
 #include <stdexcept>
+#include <iostream>
 
 void
 InitializeWindowEnvironment()
@@ -95,26 +97,48 @@ Window::Update()
 
 	MakeContextCurrent();
 
+	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 	ImGui::ShowDemoWindow();
 
+	if (ImGui::BeginMainMenuBar())
 	{
-		static float f = 0.0f;
-		static int counter = 0;
+		if (ImGui::BeginMenu("File"))
+		{
+			if (ImGui::MenuItem("Open project"))
+			{
+				std::cout << "Open project: " << OSFile::PickFile("lmce") << std::endl;
+			}
 
-		ImGui::Begin((std::to_string((uint64_t)this) + "Hello, world!").c_str());// Create a window called "Hello, world!" and append into it.
+			ImGui::Separator();
+			if (ImGui::MenuItem("Close", "Alt+F4"))
+			{
+				glfwSetWindowShouldClose(m_Window, GL_TRUE);
+			}
 
-		ImGui::Text("This is some useful text.");// Display some text (you can use a format strings too)
+			ImGui::EndMenu();
+		}
 
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-		ImGui::ColorEdit3("clear color", (float *)&clear_color);// Edit 3 floats representing a color
+		ImGui::EndMainMenuBar();
+	}
 
-		if (ImGui::Button("Button"))// Buttons return true when clicked (most widgets return true when edited/activated)
-			counter++;
-		ImGui::SameLine();
-		ImGui::Text("counter = %d", counter);
+	{
+		ImGui::Begin("Hierarchy");
+
+		ImGui::End();
+	}
+
+	{
+		ImGui::Begin("Console");
+		ImGui::ColorEdit3("clear color", (float *)&clear_color);
 
 		const auto &io = ImGui::GetIO();
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+		ImGui::End();
+	}
+
+	{
+		ImGui::Begin("Details");
+
 		ImGui::End();
 	}
 
