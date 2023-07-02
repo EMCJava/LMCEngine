@@ -44,7 +44,7 @@ Engine::Update()
 {
 	m_MainWindowPool->Update();
 
-	m_ShouldShutdown |= m_MainWindowPool->AllShouldClose();
+	m_ShouldShutdown |= m_MainWindowPool->PrimaryShouldClose();
 }
 
 bool

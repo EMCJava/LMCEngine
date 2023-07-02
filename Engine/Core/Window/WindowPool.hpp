@@ -20,7 +20,7 @@ public:
 	Update();
 
 	bool
-	AllShouldClose() const;
+	PrimaryShouldClose() const;
 
 private:
 	struct ImGuiContext *m_ImGuiContext = nullptr;

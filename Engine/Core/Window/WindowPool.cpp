@@ -48,7 +48,7 @@ WindowPool::CreateWindow(int Width, int Height, const char *Title, bool Fullscre
 		throw std::runtime_error("Failed to allocate window");
 	}
 
-	NewWindow->SetSwapInterval(1);
+	NewWindow->SetSwapInterval(0);
 	m_Windows.push_back(NewWindow);
 
 	if (!FirstWindow)
@@ -58,7 +58,7 @@ WindowPool::CreateWindow(int Width, int Height, const char *Title, bool Fullscre
 
 	/*
 	 *
-	 * Initialize GLAD
+	 * Initialize GLAD & ImGui
 	 *
 	 * */
 
@@ -99,9 +99,14 @@ WindowPool::Update()
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	for (auto Window: m_Windows)
+	for (size_t i = 0; i < m_Windows.size(); i++)
 	{
-		Window->Update();
+		m_Windows[i]->Update();
+		if (i != 0 && m_Windows[i]->WindowShouldClose()) [[unlikely]]
+		{
+			delete m_Windows[i];
+			m_Windows.erase(m_Windows.begin() + i--);
+		}
 	}
 
 	m_Windows.front()->MakeContextCurrent();
@@ -123,7 +128,7 @@ WindowPool::Update()
 }
 
 bool
-WindowPool::AllShouldClose() const
+WindowPool::PrimaryShouldClose() const
 {
-	return std::all_of(m_Windows.begin(), m_Windows.end(), [](const Window *window) { return window->WindowShouldClose(); });
+	return m_Windows.empty() || m_Windows.front()->WindowShouldClose();
 }
