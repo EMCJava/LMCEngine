@@ -40,6 +40,21 @@ Window::Window(int Width, int Height, const char *Title, bool Fullscreen, bool C
 	}
 }
 
+Window::Window(const char *Title, bool Create)
+{
+	const auto *VideoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+	m_Width = VideoMode->width;
+	m_Height = VideoMode->height;
+	m_Title = Title;
+	m_Fullscreen = true;
+
+	if (Create)
+	{
+		CreateWindow();
+	}
+}
+
 Window::~Window()
 {
 	if (m_Window != nullptr)
@@ -79,6 +94,9 @@ Window::Update()
 	static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 	MakeContextCurrent();
+
+	ImGui::ShowDemoWindow();
+
 	{
 		static float f = 0.0f;
 		static int counter = 0;

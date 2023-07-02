@@ -16,6 +16,9 @@ public:
 	class Window *
 	CreateWindow(int Width, int Height, const char *Title, bool Fullscreen = false, bool Create = true);
 
+	class Window *
+	CreateWindowFullscreen(const char *Title, bool Create = true);
+
 	void
 	Update();
 

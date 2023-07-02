@@ -18,7 +18,10 @@ file(GLOB imgui_source
 add_library(imgui.lib STATIC ${imgui_source})
 target_include_directories(imgui.lib PUBLIC ${imgui_SOURCE_DIR})
 
+add_library(imgui.demo.lib STATIC ${imgui_SOURCE_DIR}/imgui_demo.cpp)
+
 target_link_libraries(imgui.lib glfw)
+target_link_libraries(imgui.demo.lib PRIVATE imgui.lib)
 
 ## -------------- GLAD --------------
 add_library(glad.lib glad/gl.h glad/gl.c)

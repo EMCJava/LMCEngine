@@ -23,8 +23,7 @@ Engine::Engine()
 
 	m_MainWindowPool = new WindowPool;
 
-	m_MainWindowPool->CreateWindow(640, 480, "LMCEngine1");
-	m_MainWindowPool->CreateWindow(640, 480, "LMCEngine2");
+	m_MainWindowPool->CreateWindowFullscreen("LMCEngine");
 
 	g_Engine = this;
 }

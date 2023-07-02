@@ -48,7 +48,7 @@ WindowPool::CreateWindow(int Width, int Height, const char *Title, bool Fullscre
 		throw std::runtime_error("Failed to allocate window");
 	}
 
-	NewWindow->SetSwapInterval(0);
+	NewWindow->SetSwapInterval(1);
 	m_Windows.push_back(NewWindow);
 
 	if (!FirstWindow)
@@ -69,7 +69,12 @@ WindowPool::CreateWindow(int Width, int Height, const char *Title, bool Fullscre
 	m_ImGuiContext = ImGui::CreateContext();
 	ImGuiIO &io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;// Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigDockingWithShift = true;
+	if (!Fullscreen)
+	{
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	}
 	io.IniFilename = nullptr;
 
 	// Setup Dear ImGui style
@@ -81,6 +86,13 @@ WindowPool::CreateWindow(int Width, int Height, const char *Title, bool Fullscre
 	ImGui_ImplOpenGL3_Init();
 
 	return NewWindow;
+}
+
+Window *
+WindowPool::CreateWindowFullscreen(const char *Title, bool Create)
+{
+	const auto *VideoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+	return CreateWindow(VideoMode->width, VideoMode->height, Title, true, Create);
 }
 
 void
@@ -98,6 +110,8 @@ WindowPool::Update()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+
+	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
 	for (size_t i = 0; i < m_Windows.size(); i++)
 	{

@@ -9,7 +9,20 @@
 class Window
 {
 public:
+	/*
+	 *
+	 * Create a normal window.
+	 *
+	 * */
 	Window(int Width, int Height, const char *Title, bool Fullscreen = false, bool Create = true);
+
+	/*
+	 *
+	 * Create a fullscreen window, with full resolution.
+	 *
+	 * */
+	Window(const char *Title, bool Create = true);
+
 	~Window();
 
 	/*
