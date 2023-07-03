@@ -15,11 +15,11 @@
 #include <spdlog/spdlog.h>
 
 #include <Engine/Core/Environment/Environment.hpp>
+#include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
 #include <Engine/Core/Window/EditorWindow.hpp>
 #include <Engine/Core/Window/GameWindow.hpp>
 #include <Engine/Core/Window/WindowPool.hpp>
-
-#include <iostream>
+#include <Engine/Core/Project/Project.hpp>
 
 Engine *Engine::g_Engine = nullptr;
 
@@ -45,26 +45,7 @@ Engine::Engine()
 	[[maybe_unused]] int version = gladLoaderLoadGL();
 
 	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	m_ImGuiContext = ImGui::CreateContext();
-	ImGuiIO &io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;// Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	io.ConfigDockingWithShift = true;
-	if (!Fullscreen)
-	{
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-	}
-	io.IniFilename = nullptr;
-	ImGui::LoadIniSettingsFromDisk("imgui.ini");
-
-	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsLight();
-
-	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(m_MainWindow->GetWindowHandle(), true);
-	ImGui_ImplOpenGL3_Init();
+	CreateImGuiContext();
 
 	m_MainWindowPool = new WindowPool;
 	// m_MainWindowPool->CreateWindow<GameWindow>(1280, 720, "Game Viewer");
@@ -104,8 +85,14 @@ Engine::Update()
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	m_MainWindow->Update();
-	m_MainWindowPool->Update();
+	try {
+		m_MainWindow->Update();
+		m_MainWindowPool->Update();
+	}
+	catch (const ImGuiContextInvalid &e) {
+		CreateImGuiContext();
+		return;
+	}
 
 	m_MainWindow->MakeContextCurrent();
 
@@ -128,4 +115,60 @@ bool
 Engine::ShouldShutdown()
 {
 	return m_ShouldShutdown;
+}
+
+void
+Engine::CreateImGuiContext()
+{
+	IMGUI_CHECKVERSION();
+	if (m_ImGuiContext != nullptr)
+	{
+		DestroyImGuiContext();
+	}
+	m_ImGuiContext = ImGui::CreateContext();
+	ImGui::SetCurrentContext(m_ImGuiContext);
+	ImGuiIO &io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;// Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigDockingWithShift = true;
+	if (!m_MainWindow->IsFullscreen())
+	{
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	}
+	io.IniFilename = nullptr;
+
+	std::string ConfigLayout;
+	auto *Project = m_MainWindow->GetProject();
+	if (Project != nullptr)
+	{
+		ConfigLayout = Project->GetConfig().editor_layout_path;
+		if (!ConfigLayout.empty())
+		{
+			spdlog::info("Loading layout: {}", ConfigLayout);
+		}
+	}
+
+	if (!ConfigLayout.empty()) {
+		ImGui::LoadIniSettingsFromDisk(ConfigLayout.c_str());
+	}
+	else {
+		ImGui::LoadIniSettingsFromMemory(DefaultEditorImGuiLayout, strlen(DefaultEditorImGuiLayout));
+	}
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsLight();
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(m_MainWindow->GetWindowHandle(), true);
+	ImGui_ImplOpenGL3_Init();
+}
+
+void
+Engine::DestroyImGuiContext()
+{
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext(m_ImGuiContext);
+	m_ImGuiContext = nullptr;
 }

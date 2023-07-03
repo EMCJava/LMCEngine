@@ -16,8 +16,21 @@
 
 #include <Engine/Core/File/OSFile.hpp>
 #include <Engine/Core/Project/Project.hpp>
+#include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
 
 #include <fstream>
+
+EditorWindow::EditorWindow(int Width, int Height, const char *Title, bool Fullscreen, bool Create)
+    : Window(Width, Height, Title, Fullscreen, Create)
+{
+	m_ActiveProject = new Project;
+}
+
+EditorWindow::EditorWindow(const char *Title, bool Create)
+    : Window(Title, Create)
+{
+	m_ActiveProject = new Project;
+}
 
 EditorWindow::~EditorWindow()
 {
@@ -66,6 +79,37 @@ EditorWindow::Update()
 			ImGui::EndMenu();
 		}
 
+		if (ImGui::BeginMenu("View"))
+		{
+			if (ImGui::BeginMenu("Layout"))
+			{
+				auto &ImGuiIO = ImGui::GetIO();
+				if (ImGui::MenuItem("Save Layout", nullptr, false, ImGuiIO.WantSaveIniSettings))
+				{
+					const auto SaveLocation = OSFile::SaveFile("ini");
+					if (!SaveLocation.empty())
+					{
+						ImGui::SaveIniSettingsToDisk(SaveLocation.c_str());
+						ImGuiIO.WantSaveIniSettings = false;
+					}
+				}
+
+				if (ImGui::MenuItem("Load Layout"))
+				{
+					const auto LoadLocation = OSFile::PickFile("ini");
+					if (!LoadLocation.empty())
+					{
+						m_ActiveProject->GetConfig().editor_layout_path = LoadLocation;
+						throw ImGuiContextInvalid{};
+					}
+				}
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMenu();
+		}
+
 		ImGui::EndMainMenuBar();
 	}
 
@@ -89,4 +133,10 @@ EditorWindow::Update()
 
 		ImGui::End();
 	}
+}
+
+Project *
+EditorWindow::GetProject() const
+{
+	return m_ActiveProject;
 }

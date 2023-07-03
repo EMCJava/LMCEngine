@@ -7,6 +7,7 @@
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 
+#include <filesystem>
 #include <fstream>
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ProjectConfig, project_name)
@@ -32,6 +33,14 @@ Project::LoadProject(const std::string &ProjectFilePath)
 	m_Config = nlohmann::json::parse(ifs);
 
 	spdlog::info("Project name: {}", m_Config.project_name);
+
+	std::filesystem::path Path(ProjectFilePath);
+
+	const auto EditorLayoutPath = Path / "/Editor/layout.ini";
+	if (std::filesystem::exists(EditorLayoutPath))
+	{
+		m_Config.editor_layout_path = EditorLayoutPath.string();
+	}
 }
 
 Project::~Project()

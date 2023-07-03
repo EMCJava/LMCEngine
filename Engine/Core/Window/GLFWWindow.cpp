@@ -108,3 +108,9 @@ Window::GetWindowHandle() const
 {
 	return m_Window;
 }
+
+bool
+Window::IsFullscreen() const
+{
+	return m_Fullscreen;
+}

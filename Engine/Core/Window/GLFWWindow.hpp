@@ -74,6 +74,9 @@ public:
 	struct GLFWwindow *
 	GetWindowHandle() const;
 
+	bool
+	IsFullscreen() const;
+
 protected:
 	int m_Width, m_Height;
 	bool m_Fullscreen;

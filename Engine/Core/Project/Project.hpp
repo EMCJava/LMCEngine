@@ -7,13 +7,13 @@
 #include <string>
 
 struct ProjectConfig {
-	std::string project_name;
+	std::string project_name = "Placeholder Project";
+	std::string editor_layout_path;
 };
 
 class Project
 {
 public:
-
 	Project() = default;
 	~Project();
 

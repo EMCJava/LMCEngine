@@ -12,4 +12,7 @@ namespace OSFile
 std::string
 PickFile(const char *filter);
 
+std::string
+SaveFile(const char *filter);
+
 };// namespace OSFile

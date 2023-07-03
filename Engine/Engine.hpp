@@ -38,6 +38,14 @@ private:
 
 	/*
 	 *
+	 * Should only be call after m_MainWindow has been initialized
+	 *
+	 * */
+	void CreateImGuiContext();
+	void DestroyImGuiContext();
+
+	/*
+	 *
 	 * Global instance of the engine
 	 *
 	 * */
