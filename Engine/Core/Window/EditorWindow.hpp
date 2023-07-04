@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Window.hpp"
+#include "Engine/Core/Concept/Concept.hpp"
 
 class EditorWindow : public Window
 {
@@ -35,6 +36,13 @@ public:
 
 	class Project *
 	GetProject() const;
+
+	/*
+	 *
+	 * Root concept in the screen
+	 *
+	 * */
+	Concept RootConcept;
 
 private:
 	class Project *m_ActiveProject = nullptr;

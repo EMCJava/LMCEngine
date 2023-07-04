@@ -1,0 +1,1 @@
+add_library(Concept.lib Concept.hpp Concept.cpp)
