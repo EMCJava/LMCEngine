@@ -21,7 +21,6 @@ class Concept
 	std::vector<std::unique_ptr<Concept>> m_SubConcepts;
 
 public:
-
 	template<class ConceptType, typename... Args>
 	void
 	AddConcept(Args &&...params);
@@ -41,11 +40,6 @@ public:
 	template<class ConceptType>
 	void
 	GetConcepts(std::vector<ConceptType *> &Out);
-};
-
-class ConceptA : public Concept
-{
-	DECLARE_CONCEPT(ConceptA, Concept)
 };
 
 template<class ConceptType, typename... Args>
@@ -74,11 +68,6 @@ template<class ConceptType>
 bool
 Concept::RemoveConcept()
 {
-	if (m_SubConcepts.empty())
-	{
-		return false;
-	}
-
 	for (size_t i = 0; i < m_SubConcepts.size(); ++i)
 	{
 		if (m_SubConcepts[i]->CanCast<ConceptType>())
@@ -109,20 +98,8 @@ template<class ConceptType>
 int
 Concept::RemoveConcepts()
 {
-	if (m_SubConcepts.empty())
-	{
-		return 0;
-	}
-
-	int numRemoved = 0;
-	for (size_t i = 0; i < m_SubConcepts.size(); ++i)
-	{
-		if (m_SubConcepts[i]->CanCast<ConceptType>())
-		{
-			m_SubConcepts.erase(m_SubConcepts.begin() + i--);
-			++numRemoved;
-		}
-	}
-
-	return numRemoved;
+	return std::erase_if(m_SubConcepts.begin(), m_SubConcepts.end(),
+	                     [](auto &SubConcept) {
+		                     return SubConcept->template CanCast<ConceptType>();
+	                     });
 }
