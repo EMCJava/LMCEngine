@@ -21,6 +21,9 @@ class Concept
 	std::vector<std::unique_ptr<Concept>> m_SubConcepts;
 
 public:
+	Concept() = default;
+	virtual ~Concept() = default;
+
 	template<class ConceptType, typename... Args>
 	void
 	AddConcept(Args &&...params);
