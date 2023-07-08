@@ -37,13 +37,14 @@ public:
 	class Project *
 	GetProject() const;
 
+private:
+
 	/*
 	 *
 	 * Root concept in the screen
 	 *
 	 * */
-	Concept RootConcept;
+	std::unique_ptr<Concept> RootConcept;
 
-private:
 	class Project *m_ActiveProject = nullptr;
 };

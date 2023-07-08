@@ -24,6 +24,19 @@ public:
 	Concept() = default;
 	virtual ~Concept() = default;
 
+	/*
+	 *
+	 * Apply the concept to environment, serve the same function as update
+	 *
+	 * */
+	void Apply();
+
+	/*
+	 *
+	 * Operations to sub concepts
+	 *
+	 * */
+
 	template<class ConceptType, typename... Args>
 	void
 	AddConcept(Args &&...params);
