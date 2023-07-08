@@ -8,6 +8,7 @@
 
 struct ProjectConfig {
 	std::string project_name = "Placeholder Project";
+	std::string root_concept;
 	std::string editor_layout_path;
 };
 
@@ -20,9 +21,13 @@ public:
 	void
 	LoadProject(const std::string &ProjectFilePath);
 
+	void
+	SaveProject();
+
 	ProjectConfig &
 	GetConfig();
 
 private:
 	ProjectConfig m_Config;
+	std::string m_ProjectFilePath;
 };

@@ -10,7 +10,7 @@
 #include <filesystem>
 #include <fstream>
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ProjectConfig, project_name)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ProjectConfig, project_name, root_concept)
 
 ProjectConfig &
 Project::GetConfig()
@@ -21,7 +21,8 @@ Project::GetConfig()
 void
 Project::LoadProject(const std::string &ProjectFilePath)
 {
-	spdlog::info("Open project: {}", ProjectFilePath);
+	m_ProjectFilePath = "";
+	spdlog::info("Reset project, Open project: [{}]", ProjectFilePath);
 
 	if (!ProjectFilePath.ends_with(".lmce"))
 	{
@@ -34,13 +35,38 @@ Project::LoadProject(const std::string &ProjectFilePath)
 
 	spdlog::info("Project name: {}", m_Config.project_name);
 
-	std::filesystem::path Path(ProjectFilePath);
-
-	const auto EditorLayoutPath = Path / "/Editor/layout.ini";
-	if (std::filesystem::exists(EditorLayoutPath))
+	if (m_Config.editor_layout_path.empty())
 	{
-		m_Config.editor_layout_path = EditorLayoutPath.string();
+		std::filesystem::path Path(ProjectFilePath);
+
+		const auto EditorLayoutPath = Path / "/Editor/layout.ini";
+		if (std::filesystem::exists(EditorLayoutPath))
+		{
+			m_Config.editor_layout_path = EditorLayoutPath.string();
+		}
 	}
+
+	m_ProjectFilePath = ProjectFilePath;
+}
+
+void
+Project::SaveProject()
+{
+	if (m_ProjectFilePath.empty())
+	{
+		spdlog::warn("Project path empty, unable to save project");
+		return;
+	}
+
+	std::ofstream ofs(m_ProjectFilePath);
+
+	if (!ofs)
+	{
+		spdlog::error("Unable to open project path: [{}]", m_ProjectFilePath);
+		return;
+	}
+
+	ofs << nlohmann::json{m_Config}[0].dump(4);
 }
 
 Project::~Project()

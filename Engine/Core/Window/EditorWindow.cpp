@@ -54,6 +54,12 @@ EditorWindow::Update()
 				}
 			}
 
+			if (ImGui::MenuItem("Save project"))
+			{
+				spdlog::info("Save project");
+				Engine::GetEngine()->GetProject()->SaveProject();
+			}
+
 			ImGui::Separator();
 			if (ImGui::MenuItem("Close", "Alt+F4"))
 			{
