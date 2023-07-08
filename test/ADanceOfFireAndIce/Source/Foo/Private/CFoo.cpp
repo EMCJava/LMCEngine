@@ -4,7 +4,21 @@
 
 #include "CFoo.hpp"
 
+#include <Engine/Core/Core.hpp>
+
 #include <spdlog/spdlog.h>
+
+LMC_API CFoo *
+mem_alloc()
+{
+	return new CFoo();
+}
+
+LMC_API void
+mem_free(CFoo *ptr)
+{
+	delete ptr;
+}
 
 void
 CFoo::Apply()
