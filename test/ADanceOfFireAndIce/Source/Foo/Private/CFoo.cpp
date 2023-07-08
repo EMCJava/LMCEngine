@@ -8,20 +8,30 @@
 
 #include <spdlog/spdlog.h>
 
-LMC_API CFoo *
+LMC_API void *
 mem_alloc()
 {
 	return new CFoo();
 }
 
 LMC_API void
-mem_free(CFoo *ptr)
+mem_free(void *ptr)
 {
-	delete ptr;
+	delete (CFoo *)ptr;
+}
+
+CFoo::CFoo()
+{
+	spdlog::info("CFoo concept constructor called");
+}
+
+CFoo::~CFoo()
+{
+	spdlog::info("CFoo concept destructor called");
 }
 
 void
 CFoo::Apply()
 {
-	spdlog::info("CFoo concept Apple() called");
+	spdlog::info("CFoo concept Apply() called");
 }

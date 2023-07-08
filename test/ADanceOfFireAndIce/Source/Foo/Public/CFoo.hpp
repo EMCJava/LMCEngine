@@ -10,6 +10,10 @@ class CFoo : public Concept
 {
 	DECLARE_CONCEPT(Concept)
 
+public:
+	CFoo();
+	~CFoo() override;
+
 	void
 	Apply() override;
 };

@@ -3,7 +3,7 @@ project(ADanceOfFireAndIce)
 
 set(CMAKE_CXX_STANDARD 23)
 
-set(EditorBuild false)
+set(EditorBuild true)
 
 if (${EditorBuild})
     add_compile_definitions(LMC_API_EXPORTS)
@@ -30,5 +30,4 @@ add_subdirectory(Source)
 add_executable(ADanceOfFireAndIce main.cpp)
 
 target_link_libraries(ADanceOfFireAndIce Engine.lib)
-target_link_libraries(ADanceOfFireAndIce Foo.CFoo.lib)
 target_link_libraries(ADanceOfFireAndIce DynamicLibrary.lib)
