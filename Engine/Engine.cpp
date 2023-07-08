@@ -50,12 +50,22 @@ Engine::Engine()
 	m_MainWindowPool = new WindowPool;
 	// m_MainWindowPool->CreateWindow<GameWindow>(1280, 720, "Game Viewer");
 
+	/*
+	 *
+	 * Engine
+	 *
+	 * */
+	m_ActiveProject = new Project;
+
 	g_Engine = this;
 }
 
 Engine::~Engine()
 {
 	spdlog::info("Engine destroying");
+
+	delete m_ActiveProject;
+	m_ActiveProject = nullptr;
 
 	delete m_MainWindow;
 	m_MainWindow = nullptr;
@@ -138,16 +148,15 @@ Engine::CreateImGuiContext()
 	io.IniFilename = nullptr;
 
 	std::string ConfigLayout;
-	auto *Project = m_MainWindow->GetProject();
-	if (Project != nullptr)
+	if (m_ActiveProject != nullptr)
 	{
-		ConfigLayout = Project->GetConfig().editor_layout_path;
+		ConfigLayout = m_ActiveProject->GetConfig().editor_layout_path;
 		if (!ConfigLayout.empty())
 		{
 			spdlog::info("Loading layout: {}", ConfigLayout);
 		}
 	}
-
+	
 	if (!ConfigLayout.empty()) {
 		ImGui::LoadIniSettingsFromDisk(ConfigLayout.c_str());
 	}
@@ -171,4 +180,17 @@ Engine::DestroyImGuiContext()
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext(m_ImGuiContext);
 	m_ImGuiContext = nullptr;
+}
+
+Engine *
+Engine::GetEngine()
+{
+	assert(g_Engine != nullptr);
+	return g_Engine;
+}
+
+Project *
+Engine::GetProject() const
+{
+	return m_ActiveProject;
 }

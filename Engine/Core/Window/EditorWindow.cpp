@@ -14,29 +14,10 @@
 
 #include <nlohmann/json.hpp>
 
+#include <Engine/Engine.hpp>
 #include <Engine/Core/File/OSFile.hpp>
 #include <Engine/Core/Project/Project.hpp>
 #include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
-
-#include <fstream>
-
-EditorWindow::EditorWindow(int Width, int Height, const char *Title, bool Fullscreen, bool Create)
-    : Window(Width, Height, Title, Fullscreen, Create)
-{
-	m_ActiveProject = new Project;
-}
-
-EditorWindow::EditorWindow(const char *Title, bool Create)
-    : Window(Title, Create)
-{
-	m_ActiveProject = new Project;
-}
-
-EditorWindow::~EditorWindow()
-{
-	delete m_ActiveProject;
-	m_ActiveProject = nullptr;
-}
 
 void
 EditorWindow::Update()
@@ -69,9 +50,7 @@ EditorWindow::Update()
 					spdlog::info("Operation cancelled");
 				}
 				else {
-					delete m_ActiveProject;
-					m_ActiveProject = new Project;
-					m_ActiveProject->LoadProject(ProjectPath);
+					Engine::GetEngine()->GetProject()->LoadProject(ProjectPath);
 				}
 			}
 
@@ -104,7 +83,7 @@ EditorWindow::Update()
 					const auto LoadLocation = OSFile::PickFile("ini");
 					if (!LoadLocation.empty())
 					{
-						m_ActiveProject->GetConfig().editor_layout_path = LoadLocation;
+						Engine::GetEngine()->GetProject()->GetConfig().editor_layout_path = LoadLocation;
 						throw ImGuiContextInvalid{};
 					}
 				}
@@ -138,10 +117,4 @@ EditorWindow::Update()
 
 		ImGui::End();
 	}
-}
-
-Project *
-EditorWindow::GetProject() const
-{
-	return m_ActiveProject;
 }
