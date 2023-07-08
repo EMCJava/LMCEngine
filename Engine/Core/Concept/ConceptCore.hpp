@@ -52,7 +52,7 @@ private:
 #define DECLARE_CONCEPT_SWITCH(_1, _2, NAME, ...) NAME
 #define DECLARE_CONCEPT(...) DECLARE_CONCEPT_SWITCH(__VA_ARGS__, DECLARE_CONCEPT_INHERITED, DECLARE_CONCEPT_BASE)(__VA_ARGS__)
 
-#define DEFINE_CONCEPT(class_name) \
+#define DEFINE_CONCEPT(class_name, ...) \
 	DEF_CHECK_ID(class_name)
 
 template<typename Ty>
