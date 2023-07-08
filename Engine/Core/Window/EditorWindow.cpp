@@ -46,10 +46,12 @@ EditorWindow::Update()
 			{
 				spdlog::info("Open project");
 				const auto ProjectPath = OSFile::PickFile("lmce");
-				if (ProjectPath.empty()) {
+				if (ProjectPath.empty())
+				{
 					spdlog::info("Operation cancelled");
 				}
-				else {
+				else
+				{
 					Engine::GetEngine()->GetProject()->LoadProject(ProjectPath);
 				}
 			}

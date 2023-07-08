@@ -8,12 +8,15 @@ main()
 {
 	Engine engine;
 
-	try {
-		while (!engine.ShouldShutdown()) {
+	try
+	{
+		while (!engine.ShouldShutdown())
+		{
 			engine.Update();
 		}
 	}
-	catch (std::exception &e) {
+	catch (std::exception &e)
+	{
 		std::cerr << "Uncaught exception: " << e.what() << std::endl;
 	}
 

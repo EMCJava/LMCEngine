@@ -11,11 +11,11 @@
 #include <stdint.h>
 
 #if !defined(NDEBUG) && !defined(LMC_API_EXPORTS)
-#define DEC_CHECK_ID static const IDCollisionsChecker<Concept> __IDCollisionsChecker;
-#define DEF_CHECK_ID(class_name) inline const IDCollisionsChecker<Concept> class_name::__IDCollisionsChecker{class_name::TypeID};
+#	define DEC_CHECK_ID static const IDCollisionsChecker<Concept> __IDCollisionsChecker;
+#	define DEF_CHECK_ID(class_name) inline const IDCollisionsChecker<Concept> class_name::__IDCollisionsChecker{class_name::TypeID};
 #else
-#define DEC_CHECK_ID
-#define DEF_CHECK_ID(class_name)
+#	define DEC_CHECK_ID
+#	define DEF_CHECK_ID(class_name)
 #endif
 
 #define DECLARE_CONCEPT_BASE(class_name)                        \
@@ -41,7 +41,8 @@ public:                                                          \
 	static consteval bool                                        \
 	CanCast()                                                    \
 	{                                                            \
-		if (TypeID == ConceptType::TypeID) {                     \
+		if (TypeID == ConceptType::TypeID)                       \
+		{                                                        \
 			return true;                                         \
 		}                                                        \
 		return parent_class_name::CanCast<ConceptType>();        \

@@ -13,16 +13,19 @@ OSFile::PickFile(const char *filter)
 	nfdchar_t *outPath = nullptr;
 	nfdresult_t result = NFD_OpenDialog(filter, nullptr, &outPath);
 
-	if (result == NFD_OKAY) {
+	if (result == NFD_OKAY)
+	{
 		std::string path(outPath);
 		free(outPath);
 
 		return path;
 	}
-	else if (result == NFD_CANCEL) {
+	else if (result == NFD_CANCEL)
+	{
 		return "";
 	}
-	else {
+	else
+	{
 		throw std::runtime_error(std::string("OSFile::PickFile error: ") + NFD_GetError());
 	}
 }
@@ -33,16 +36,19 @@ OSFile::SaveFile(const char *filter)
 	nfdchar_t *outPath = nullptr;
 	nfdresult_t result = NFD_SaveDialog(filter, nullptr, &outPath);
 
-	if (result == NFD_OKAY) {
+	if (result == NFD_OKAY)
+	{
 		std::string path(outPath);
 		free(outPath);
 
 		return path;
 	}
-	else if (result == NFD_CANCEL) {
+	else if (result == NFD_CANCEL)
+	{
 		return "";
 	}
-	else {
+	else
+	{
 		throw std::runtime_error(std::string("OSFile::PickFile error: ") + NFD_GetError());
 	}
 }

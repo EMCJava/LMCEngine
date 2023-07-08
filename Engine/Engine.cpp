@@ -95,11 +95,13 @@ Engine::Update()
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	try {
+	try
+	{
 		m_MainWindow->Update();
 		m_MainWindowPool->Update();
 	}
-	catch (const ImGuiContextInvalid &e) {
+	catch (const ImGuiContextInvalid &e)
+	{
 		CreateImGuiContext();
 		return;
 	}
@@ -156,11 +158,13 @@ Engine::CreateImGuiContext()
 			spdlog::info("Loading layout: {}", ConfigLayout);
 		}
 	}
-	
-	if (!ConfigLayout.empty()) {
+
+	if (!ConfigLayout.empty())
+	{
 		ImGui::LoadIniSettingsFromDisk(ConfigLayout.c_str());
 	}
-	else {
+	else
+	{
 		ImGui::LoadIniSettingsFromMemory(DefaultEditorImGuiLayout, strlen(DefaultEditorImGuiLayout));
 	}
 
