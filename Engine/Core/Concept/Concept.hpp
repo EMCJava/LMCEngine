@@ -29,7 +29,7 @@ public:
 	 * Apply the concept to environment, serve the same function as update
 	 *
 	 * */
-	void Apply();
+	virtual void Apply() = 0;
 
 	/*
 	 *
