@@ -55,6 +55,8 @@ FetchContent_Declare(
 FetchContent_GetProperties(spdlog)
 if (NOT spdlog_POPULATED)
     FetchContent_Populate(spdlog)
+    message("adding")
+    message(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR})
     add_subdirectory(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR})
 endif ()
 

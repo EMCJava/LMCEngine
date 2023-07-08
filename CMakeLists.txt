@@ -3,13 +3,10 @@ project(LMCEngine)
 
 set(CMAKE_CXX_STANDARD 23)
 
-find_package(glfw3 REQUIRED)
+set(ENGINE_ROOT .)
 
-include_directories(.)
-include_directories(Library)
-
-add_subdirectory(Library)
-add_subdirectory(Engine)
+include_directories(${ENGINE_ROOT})
+add_subdirectory(${ENGINE_ROOT}/Engine)
 
 add_executable(LMCEngine main.cpp)
 
