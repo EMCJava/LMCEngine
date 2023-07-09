@@ -137,6 +137,12 @@ DynamicLibrary::MakeDLLCopy()
 		std::error_code OperationError;
 		if (!fs::copy_file(m_DLLPath, m_DLLTmpPath, fs::copy_options::update_existing, OperationError))
 		{
+			// Success, but not overwriting
+			if ((long)__std_win_error::_Success == OperationError.value())
+			{
+				return true;
+			}
+
 			spdlog::error("DynamicLibrary::MakeDLLCopy: Not copying file, {}", OperationError.message());
 			if (retry_left >= 1 && (long)__std_win_error::_Sharing_violation == OperationError.value())
 			{
