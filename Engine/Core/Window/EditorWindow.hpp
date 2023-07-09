@@ -19,12 +19,4 @@ public:
 	 * */
 	void
 	Update() override;
-
-private:
-	/*
-	 *
-	 * Root concept in the screen
-	 *
-	 * */
-	std::unique_ptr<Concept> RootConcept;
 };

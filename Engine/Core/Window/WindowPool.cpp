@@ -21,7 +21,7 @@ WindowPool::~WindowPool()
 void
 WindowPool::Update()
 {
-	if (m_Windows.empty()) [[unlikely]]
+	if (m_Windows.empty())
 	{
 		return;
 	}

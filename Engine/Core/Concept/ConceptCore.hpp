@@ -7,8 +7,8 @@
 #include <Engine/Core/Algorithm/StringAlgorithm.hpp>
 
 #include <set>
-#include <assert.h>
-#include <stdint.h>
+#include <cassert>
+#include <cstdint>
 
 #if !defined(NDEBUG) && !defined(LMC_API_EXPORTS)
 #	define DEC_CHECK_ID static const IDCollisionsChecker<Concept> __IDCollisionsChecker;

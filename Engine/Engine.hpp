@@ -4,10 +4,20 @@
 
 #pragma once
 
+#include <string>
+
 using PrimoryWindow = class EditorWindow;
 
 class Engine
 {
+	/*
+	 *
+	 * Engine's render job
+	 *
+	 * */
+	void
+	Render();
+
 public:
 	Engine();
 	~Engine();
@@ -30,6 +40,15 @@ public:
 
 	static Engine *
 	GetEngine();
+
+	/*
+	 *
+	 * Load project, this has to be called from engine
+	 * because it will initialize the concept
+	 *
+	 * */
+	void
+	LoadProject(const std::string &Path);
 
 	/*
 	 *
@@ -56,6 +75,13 @@ private:
 	CreateImGuiContext();
 	void
 	DestroyImGuiContext();
+
+	/*
+	 *
+	 * Root concept in the screen
+	 *
+	 * */
+	class DynamicConcept *m_RootConcept = nullptr;
 
 	/*
 	 *

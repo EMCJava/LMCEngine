@@ -6,29 +6,13 @@
 
 #include <thread>
 
-#include <filesystem>
 #include <exception>
 #include <iostream>
+#include <format>
 
 int
 main()
 {
-
-	DynamicConcept DConcept;
-	DConcept.Load(R"(.\build\debug\Source\Foo.CFoo.lib.dll)", true);
-
-	for (int i = 0; i < 10; i++)
-	{
-		DConcept->Apply();
-		if (DConcept.ShouldReload())
-		{
-			DConcept.Reload();
-		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-	}
-
-	return 0;
-
 	Engine engine;
 	engine.GetProject()->LoadProject("ADanceOfFireAndIce.lmce");
 

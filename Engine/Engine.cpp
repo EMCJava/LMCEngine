@@ -14,12 +14,15 @@
 
 #include <spdlog/spdlog.h>
 
-#include <Engine/Core/Environment/Environment.hpp>
 #include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
+#include <Engine/Core/Environment/Environment.hpp>
+#include <Engine/Core/Runtime/DynamicLibrary/DynamicConcept.hpp>
 #include <Engine/Core/Window/EditorWindow.hpp>
 #include <Engine/Core/Window/GameWindow.hpp>
 #include <Engine/Core/Window/WindowPool.hpp>
 #include <Engine/Core/Project/Project.hpp>
+
+#include <format>
 
 Engine *Engine::g_Engine = nullptr;
 
@@ -64,6 +67,9 @@ Engine::~Engine()
 {
 	spdlog::info("Engine destroying");
 
+	delete m_RootConcept;
+	m_RootConcept = nullptr;
+
 	delete m_ActiveProject;
 	m_ActiveProject = nullptr;
 
@@ -86,6 +92,27 @@ Engine::~Engine()
 
 void
 Engine::Update()
+{
+	if (m_RootConcept != nullptr)
+	{
+		auto &RootConcept = *m_RootConcept;
+
+		if (RootConcept.ShouldReload())
+		{
+			spdlog::info("RootConcept changes detected, hot reloading");
+			RootConcept.Reload();
+		}
+
+		RootConcept->Apply();
+	}
+
+	Render();
+
+	m_ShouldShutdown |= m_MainWindow->WindowShouldClose();
+}
+
+void
+Engine::Render()
 {
 	m_MainWindow->MakeContextCurrent();
 
@@ -119,8 +146,6 @@ Engine::Update()
 	}
 
 	glfwSwapBuffers(m_MainWindow->GetWindowHandle());
-
-	m_ShouldShutdown |= m_MainWindow->WindowShouldClose();
 }
 
 bool
@@ -191,6 +216,32 @@ Engine::GetEngine()
 {
 	assert(g_Engine != nullptr);
 	return g_Engine;
+}
+
+void
+Engine::LoadProject(const std::string &Path)
+{
+	if (m_RootConcept != nullptr)
+	{
+		delete m_RootConcept;
+		m_RootConcept = nullptr;
+	}
+
+	m_ActiveProject->LoadProject(Path);
+
+	const auto &RootConcepts = m_ActiveProject->GetConfig().root_concept;
+
+	if (!RootConcepts.empty())
+	{
+		spdlog::info("Loading root concepts: {}", RootConcepts);
+
+		m_RootConcept = new DynamicConcept;
+		m_RootConcept->Load(std::format(SHARED_BINARY_PATH_FORMAT, RootConcepts), true);
+	}
+	else
+	{
+		spdlog::info("No root concepts specified");
+	}
 }
 
 Project *
