@@ -9,6 +9,13 @@
 struct ProjectConfig {
 	std::string project_name = "Placeholder Project";
 	std::string root_concept;
+
+	/*
+	 *
+	 * Values set in runtime
+	 *
+	 * */
+	std::string shared_library_path_format;
 	std::string editor_layout_path;
 };
 

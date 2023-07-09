@@ -31,9 +31,12 @@ Project::LoadProject(const std::string &ProjectFilePath)
 	}
 
 	std::ifstream ifs(ProjectFilePath);
-	m_Config = nlohmann::json::parse(ifs);
+	const auto JSONConfig = nlohmann::json::parse(ifs);
+	m_Config = JSONConfig;
 
 	spdlog::info("Project name: {}", m_Config.project_name);
+
+	m_Config.shared_library_path_format = JSONConfig["shared_library_path_" CMAKE_BUILD_TYPE "_format"];
 
 	if (m_Config.editor_layout_path.empty())
 	{

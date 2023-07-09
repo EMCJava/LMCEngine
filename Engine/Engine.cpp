@@ -22,7 +22,7 @@
 #include <Engine/Core/Window/WindowPool.hpp>
 #include <Engine/Core/Project/Project.hpp>
 
-#include <format>
+#include <regex>
 
 Engine *Engine::g_Engine = nullptr;
 
@@ -236,7 +236,9 @@ Engine::LoadProject(const std::string &Path)
 		spdlog::info("Loading root concepts: {}", RootConcepts);
 
 		m_RootConcept = new DynamicConcept;
-		m_RootConcept->Load(std::format(SHARED_BINARY_PATH_FORMAT, RootConcepts), true);
+		const auto DLLPath = std::regex_replace(m_ActiveProject->GetConfig().shared_library_path_format, std::regex("\\{\\}"), RootConcepts);
+
+		m_RootConcept->Load(DLLPath, true);
 	}
 	else
 	{
