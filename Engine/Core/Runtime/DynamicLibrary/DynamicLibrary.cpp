@@ -64,7 +64,7 @@ DynamicLibrary::~DynamicLibrary()
 }
 
 bool
-DynamicLibrary::Load(const std::string &Path)
+DynamicLibrary::Load(const std::string_view &Path)
 {
 	if (!fs::exists(Path))
 	{

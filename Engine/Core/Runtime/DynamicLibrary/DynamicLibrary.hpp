@@ -20,7 +20,7 @@ public:
 	~DynamicLibrary();
 
 	bool
-	Load(const std::string &Path);
+	Load(const std::string_view &Path);
 
 	void
 	Unload();
