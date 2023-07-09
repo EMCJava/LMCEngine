@@ -14,7 +14,7 @@ int
 main()
 {
 	Engine engine;
-	engine.GetProject()->LoadProject("ADanceOfFireAndIce.lmce");
+	engine.LoadProject("ADanceOfFireAndIce.lmce");
 
 	try
 	{

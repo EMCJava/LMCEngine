@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <Engine/Core/Core.hpp>
 #include <Engine/Core/Algorithm/StringAlgorithm.hpp>
 
 #include <set>
@@ -53,8 +54,27 @@ private:
 #define DECLARE_CONCEPT_SWITCH(_1, _2, NAME, ...) NAME
 #define DECLARE_CONCEPT(...) DECLARE_CONCEPT_SWITCH(__VA_ARGS__, DECLARE_CONCEPT_INHERITED, DECLARE_CONCEPT_BASE)(__VA_ARGS__)
 
-#define DEFINE_CONCEPT(class_name, ...) \
+#ifdef LMC_API_EXPORTS
+#	define DEFINE_CONCEPT_MEM_ALLOC(class_name, ...) \
+		LMC_API void *mem_alloc()                     \
+		{                                             \
+			return new class_name;                    \
+		}                                             \
+                                                      \
+		LMC_API void mem_free(void *ptr)              \
+		{                                             \
+			delete (class_name *)ptr;                 \
+		}
+#else
+#	define DEFINE_CONCEPT_MEM_ALLOC(class_name, ...)
+#endif
+
+#define DEFINE_CONCEPT_PURE(class_name, ...) \
 	DEF_CHECK_ID(class_name)
+
+#define DEFINE_CONCEPT(class_name, ...)          \
+	DEFINE_CONCEPT_PURE(class_name, __VA_ARGS__) \
+	DEFINE_CONCEPT_MEM_ALLOC(class_name, __VA_ARGS__)
 
 template<typename Ty>
 struct IDCollisionsChecker {

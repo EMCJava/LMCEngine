@@ -4,21 +4,9 @@
 
 #include "CFoo.hpp"
 
-#include <Engine/Core/Core.hpp>
-
 #include <spdlog/spdlog.h>
 
-LMC_API void *
-mem_alloc()
-{
-	return new CFoo();
-}
-
-LMC_API void
-mem_free(void *ptr)
-{
-	delete (CFoo *)ptr;
-}
+DEFINE_CONCEPT(CFoo, Concept)
 
 CFoo::CFoo()
 {

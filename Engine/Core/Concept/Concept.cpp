@@ -4,4 +4,4 @@
 
 #include "Concept.hpp"
 
-DEFINE_CONCEPT(Concept)
+DEFINE_CONCEPT_PURE(Concept)

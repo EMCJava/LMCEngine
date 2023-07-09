@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 inline constexpr uint64_t
 HashString(auto &&Str)

@@ -17,5 +17,3 @@ public:
 	void
 	Apply() override;
 };
-
-DEFINE_CONCEPT(CFoo, Concept)
