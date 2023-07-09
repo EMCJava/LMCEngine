@@ -23,6 +23,7 @@
 public:                                                         \
 	static constexpr uint64_t TypeID = HashString(#class_name); \
 	DEC_CHECK_ID                                                \
+	virtual void SetEngineContext(class Engine *EngineContext); \
 public:                                                         \
 	template<typename ConceptType>                              \
 	static consteval bool                                       \
@@ -37,6 +38,8 @@ private:
 public:                                                          \
 	static constexpr uint64_t TypeID = HashString(#class_name);  \
 	DEC_CHECK_ID                                                 \
+	virtual void SetEngineContext(class Engine *EngineContext);  \
+                                                                 \
 public:                                                          \
 	template<typename ConceptType>                               \
 	static consteval bool                                        \
@@ -69,8 +72,12 @@ private:
 #	define DEFINE_CONCEPT_MEM_ALLOC(class_name, ...)
 #endif
 
-#define DEFINE_CONCEPT_PURE(class_name, ...) \
-	DEF_CHECK_ID(class_name)
+#define DEFINE_CONCEPT_PURE(class_name, ...)                 \
+	DEF_CHECK_ID(class_name)                                 \
+	void class_name::SetEngineContext(Engine *EngineContext) \
+	{                                                        \
+		Engine::SetEngine(EngineContext);                    \
+	}
 
 #define DEFINE_CONCEPT(class_name, ...)          \
 	DEFINE_CONCEPT_PURE(class_name, __VA_ARGS__) \

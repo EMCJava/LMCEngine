@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <chrono>
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #	define LMC_WIN
 #elif defined(linux) || defined(__linux) || defined(__linux__)
@@ -41,3 +43,11 @@
 #endif
 
 #define LMC_GVariable(name) __G_##name##_
+
+/*
+ *
+ * Type defines
+ *
+ * */
+using FloatTy = float;
+using TimerTy = std::chrono::high_resolution_clock;

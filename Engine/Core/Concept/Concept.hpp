@@ -37,7 +37,6 @@ public:
 	 * Operations to sub concepts
 	 *
 	 * */
-
 	template<class ConceptType, typename... Args>
 	void
 	AddConcept(Args &&...params);

@@ -93,6 +93,8 @@ Engine::~Engine()
 void
 Engine::Update()
 {
+	m_CurrentUpdateTime = TimerTy::now();
+
 	if (m_RootConcept != nullptr)
 	{
 		auto &RootConcept = *m_RootConcept;
@@ -100,7 +102,15 @@ Engine::Update()
 		if (RootConcept.ShouldReload())
 		{
 			spdlog::info("RootConcept changes detected, hot reloading");
-			RootConcept.Reload();
+			RootConcept.Reload(true);
+
+			/*
+			 *
+			 * Make sure the library can access the same memory space
+			 *
+			 * */
+			RootConcept->SetEngineContext(this);
+			ResetTimer();
 		}
 
 		RootConcept->Apply();
@@ -109,6 +119,7 @@ Engine::Update()
 	Render();
 
 	m_ShouldShutdown |= m_MainWindow->WindowShouldClose();
+	m_LastUpdateTime = m_CurrentUpdateTime;
 }
 
 void
@@ -229,16 +240,24 @@ Engine::LoadProject(const std::string &Path)
 
 	m_ActiveProject->LoadProject(Path);
 
-	const auto &RootConcepts = m_ActiveProject->GetConfig().root_concept;
+	const auto &RootConcept = m_ActiveProject->GetConfig().root_concept;
 
-	if (!RootConcepts.empty())
+	if (!RootConcept.empty())
 	{
-		spdlog::info("Loading root concepts: {}", RootConcepts);
+		spdlog::info("Loading root concepts: {}", RootConcept);
 
 		m_RootConcept = new DynamicConcept;
-		const auto DLLPath = std::regex_replace(m_ActiveProject->GetConfig().shared_library_path_format, std::regex("\\{\\}"), RootConcepts);
+		const auto DLLPath = std::regex_replace(m_ActiveProject->GetConfig().shared_library_path_format, std::regex("\\{\\}"), RootConcept);
 
 		m_RootConcept->Load(DLLPath, true);
+
+		/*
+		 *
+		 * Make sure the library can access the same memory space
+		 *
+		 * */
+		(*m_RootConcept)->SetEngineContext(this);
+		ResetTimer();
 	}
 	else
 	{
@@ -250,4 +269,25 @@ Project *
 Engine::GetProject() const
 {
 	return m_ActiveProject;
+}
+
+void
+Engine::SetEngine(Engine *EngineContext)
+{
+	spdlog::warn("Setting engine context manually");
+	g_Engine = EngineContext;
+}
+
+void
+Engine::ResetTimer()
+{
+	m_FirstUpdateTime = m_LastUpdateTime = TimerTy::now();
+}
+
+FloatTy
+Engine::GetDeltaSecond() const
+{
+	typedef std::chrono::duration<FloatTy> fsec;
+	const fsec fs = m_CurrentUpdateTime - m_LastUpdateTime;
+	return fs.count();
 }

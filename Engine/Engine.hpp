@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <Engine/Core/Core.hpp>
+
 #include <string>
 
 using PrimoryWindow = class EditorWindow;
@@ -38,9 +40,6 @@ public:
 	bool
 	ShouldShutdown();
 
-	static Engine *
-	GetEngine();
-
 	/*
 	 *
 	 * Load project, this has to be called from engine
@@ -58,12 +57,54 @@ public:
 	class Project *
 	GetProject() const;
 
+	static Engine *
+	GetEngine();
+
+	/*
+	 *
+	 * Set the global engine context
+	 * This can be useful when dynamic libraries are used
+	 *
+	 * */
+	static void
+	SetEngine(Engine *EngineContext);
+
+	/*
+	 *
+	 * Time related
+	 *
+	 * */
+	void
+	ResetTimer();
+
+	FloatTy
+	GetDeltaSecond() const;
+
 private:
 	bool m_ShouldShutdown = false;
 
+	/*
+	 *
+	 * Time related
+	 *
+	 * */
+	TimerTy::time_point m_FirstUpdateTime;
+	TimerTy::time_point m_LastUpdateTime;
+	TimerTy::time_point m_CurrentUpdateTime;
+
+	/*
+	 *
+	 * Windows
+	 *
+	 * */
 	PrimoryWindow *m_MainWindow = nullptr;
 	class WindowPool *m_MainWindowPool = nullptr;
 
+	/*
+	 *
+	 * ImGui
+	 *
+	 * */
 	struct ImGuiContext *m_ImGuiContext = nullptr;
 
 	/*

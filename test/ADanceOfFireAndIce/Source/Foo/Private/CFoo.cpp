@@ -4,6 +4,8 @@
 
 #include "CFoo.hpp"
 
+#include <Engine/Engine.hpp>
+
 #include <spdlog/spdlog.h>
 
 DEFINE_CONCEPT(CFoo, Concept)
@@ -21,5 +23,5 @@ CFoo::~CFoo()
 void
 CFoo::Apply()
 {
-	spdlog::info("CFoo concept Apply() called");
+	spdlog::info("CFoo concept Apply() called, DeltaTime: {}", Engine::GetEngine()->GetDeltaSecond());
 }

@@ -7,6 +7,9 @@ declare_library(
         SRCS
         Foo/Private/CFoo.cpp
 
+        P_DEPS
+        Engine.lib
+
         DEPS
         Concept.lib
         spdlog::spdlog
