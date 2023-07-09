@@ -2,7 +2,7 @@
 
 #include <Engine/Core/Concept/Concept.hpp>
 #include <Engine/Core/Project/Project.hpp>
-#include <Engine/Core/Runtime/DynamicLibrary/DynamicLibrary.hpp>
+#include <Engine/Core/Runtime/DynamicLibrary/DynamicConcept.hpp>
 
 #include <thread>
 
@@ -14,30 +14,18 @@ int
 main()
 {
 
-	DynamicLibrary Lib;
-	assert(Lib.Load(R"(.\build\debug\Source\Foo.CFoo.lib.dll)"));
-	auto *mem_alloc = Lib.LoadSymbolAs<void *(*)()>("mem_alloc");
-	auto *mem_free = Lib.LoadSymbolAs<void (*)(void *)>("mem_free");
+	DynamicConcept DConcept;
+	DConcept.Load(R"(.\build\debug\Source\Foo.CFoo.lib.dll)", true);
 
-	Lib.ShouldReload();
-
-	auto *c = (Concept *)mem_alloc();
-	for (int i = 0; i < 10000000; i++)
+	for (int i = 0; i < 10; i++)
 	{
-		c->Apply();
-		std::cout << Lib.ShouldReload() << std::endl;
-		if (Lib.ShouldReload())
+		DConcept->Apply();
+		if (DConcept.ShouldReload())
 		{
-			mem_free(c);
-			Lib.Reload();
-
-			mem_alloc = Lib.LoadSymbolAs<void *(*)()>("mem_alloc");
-			mem_free = Lib.LoadSymbolAs<void (*)(void *)>("mem_free");
-			c = (Concept *)mem_alloc();
+			DConcept.Reload();
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
-	mem_free(c);
 
 	return 0;
 

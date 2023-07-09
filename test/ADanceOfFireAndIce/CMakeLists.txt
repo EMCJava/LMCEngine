@@ -30,4 +30,4 @@ add_subdirectory(Source)
 add_executable(ADanceOfFireAndIce main.cpp)
 
 target_link_libraries(ADanceOfFireAndIce Engine.lib)
-target_link_libraries(ADanceOfFireAndIce DynamicLibrary.lib)
+target_link_libraries(ADanceOfFireAndIce DynamicConcept.lib)
