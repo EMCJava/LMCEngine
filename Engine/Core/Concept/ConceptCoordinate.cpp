@@ -16,8 +16,8 @@ ConceptCoordinate::GetCoordinate() const -> const Coordinate &
 	return m_Coordinate;
 }
 
-ConceptCoordinate::Coordinate &
-ConceptCoordinate::GetCoordinate()
+auto
+ConceptCoordinate::GetCoordinate() -> Coordinate &
 {
 	return m_Coordinate;
 }
