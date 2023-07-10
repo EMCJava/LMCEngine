@@ -30,7 +30,7 @@ public:
 	 *
 	 * */
 	template<class ConceptType, typename... Args>
-	void
+	ConceptType *
 	AddConcept(Args &&...params);
 
 	template<class ConceptType>
@@ -51,21 +51,21 @@ public:
 };
 
 template<class ConceptType, typename... Args>
-void
+ConceptType *
 Concept::AddConcept(Args &&...params)
 {
-	m_SubConcepts.emplace_back(std::make_unique<ConceptType>(std::forward<Args>(params)...));
+	return (ConceptType *)(m_SubConcepts.emplace_back(std::make_unique<ConceptType>(std::forward<Args>(params)...)).get());
 }
 
 template<class ConceptType>
 ConceptType *
 Concept::GetConcept()
 {
-	for (auto &Concept: m_SubConcepts)
+	for (const auto &Concept: m_SubConcepts)
 	{
-		if (Concept->CanCast<ConceptType>())
+		if (Concept->CanCastV(ConceptType::TypeID))
 		{
-			return (ConceptType *)this;
+			return (ConceptType *)Concept.get();
 		}
 	}
 
@@ -78,7 +78,7 @@ Concept::RemoveConcept()
 {
 	for (size_t i = 0; i < m_SubConcepts.size(); ++i)
 	{
-		if (m_SubConcepts[i]->CanCast<ConceptType>())
+		if (m_SubConcepts[i]->CanCastV(ConceptType::TypeID))
 		{
 			m_SubConcepts.erase(m_SubConcepts.begin() + i);
 			return true;
@@ -93,11 +93,11 @@ void
 Concept::GetConcepts(std::vector<ConceptType *> &Out)
 {
 	Out.clear();
-	for (auto &&Concept: m_SubConcepts)
+	for (const auto &Concept: m_SubConcepts)
 	{
-		if (Concept->CanCast<ConceptType>())
+		if (Concept->CanCastV(ConceptType::TypeID))
 		{
-			Out.emplace_back((ConceptType *)this);
+			Out.emplace_back((ConceptType *)Concept.get());
 		}
 	}
 }
