@@ -11,6 +11,6 @@ declare_library(
         Engine.lib
 
         DEPS
-        Concept.lib
+        ConceptApplicable.lib
         spdlog::spdlog
 )

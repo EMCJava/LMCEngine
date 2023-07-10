@@ -24,6 +24,7 @@ public:                                                         \
 	static constexpr uint64_t TypeID = HashString(#class_name); \
 	DEC_CHECK_ID                                                \
 	virtual void SetEngineContext(class Engine *EngineContext); \
+                                                                \
 public:                                                         \
 	template<typename ConceptType>                              \
 	static consteval bool                                       \
@@ -34,24 +35,24 @@ public:                                                         \
                                                                 \
 private:
 
-#define DECLARE_CONCEPT_INHERITED(class_name, parent_class_name) \
-public:                                                          \
-	static constexpr uint64_t TypeID = HashString(#class_name);  \
-	DEC_CHECK_ID                                                 \
-	virtual void SetEngineContext(class Engine *EngineContext);  \
-                                                                 \
-public:                                                          \
-	template<typename ConceptType>                               \
-	static consteval bool                                        \
-	CanCast()                                                    \
-	{                                                            \
-		if (TypeID == ConceptType::TypeID)                       \
-		{                                                        \
-			return true;                                         \
-		}                                                        \
-		return parent_class_name::CanCast<ConceptType>();        \
-	}                                                            \
-                                                                 \
+#define DECLARE_CONCEPT_INHERITED(class_name, parent_class_name)         \
+public:                                                                  \
+	static constexpr uint64_t TypeID = HashString(#class_name);          \
+	DEC_CHECK_ID                                                         \
+	virtual void SetEngineContext(class Engine *EngineContext) override; \
+                                                                         \
+public:                                                                  \
+	template<typename ConceptType>                                       \
+	static consteval bool                                                \
+	CanCast()                                                            \
+	{                                                                    \
+		if (TypeID == ConceptType::TypeID)                               \
+		{                                                                \
+			return true;                                                 \
+		}                                                                \
+		return parent_class_name::CanCast<ConceptType>();                \
+	}                                                                    \
+                                                                         \
 private:
 
 #define DECLARE_CONCEPT_SWITCH(_1, _2, NAME, ...) NAME

@@ -53,6 +53,13 @@ public:
 		return m_Concept;
 	}
 
+	template<typename Ty>
+	Ty *
+	As()
+	{
+		return static_cast<Ty *>(m_Concept);
+	}
+
 private:
 	void *(*m_Allocator)() = nullptr;
 	void (*m_DeAllocator)(void *) = nullptr;

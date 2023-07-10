@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <Engine/Core/Concept/Concept.hpp>
+#include <Engine/Core/Concept/ConceptApplicable.hpp>
 
-class CFoo : public Concept
+class CFoo : public ConceptApplicable
 {
 	DECLARE_CONCEPT(Concept)
 

@@ -21,6 +21,7 @@
 #include <Engine/Core/Window/GameWindow.hpp>
 #include <Engine/Core/Window/WindowPool.hpp>
 #include <Engine/Core/Project/Project.hpp>
+#include <Engine/Core/Concept/ConceptApplicable.hpp>
 
 #include <regex>
 
@@ -120,7 +121,7 @@ Engine::Update()
 			ResetTimer();
 		}
 
-		RootConcept->Apply();
+		RootConcept.As<ConceptApplicable>()->Apply();
 	}
 
 	Render();

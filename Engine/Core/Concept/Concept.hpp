@@ -26,14 +26,6 @@ public:
 
 	/*
 	 *
-	 * Apply the concept to environment, serve the same function as update
-	 *
-	 * */
-	virtual void
-	Apply() = 0;
-
-	/*
-	 *
 	 * Operations to sub concepts
 	 *
 	 * */
