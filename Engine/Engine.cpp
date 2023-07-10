@@ -22,6 +22,7 @@
 #include <Engine/Core/Window/WindowPool.hpp>
 #include <Engine/Core/Project/Project.hpp>
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
+#include <Engine/Core/Concept/ConceptCoordinate.hpp>
 
 #include <regex>
 
@@ -120,6 +121,9 @@ Engine::Update()
 			RootConcept->SetEngineContext(this);
 			ResetTimer();
 		}
+
+		auto *const Coordinate = RootConcept.As<ConceptApplicable>()->GetConcept<ConceptCoordinate>();
+		Coordinate->GetCoordinate().X += 1;
 
 		RootConcept.As<ConceptApplicable>()->Apply();
 	}

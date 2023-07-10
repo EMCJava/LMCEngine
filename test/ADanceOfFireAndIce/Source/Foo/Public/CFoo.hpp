@@ -8,7 +8,7 @@
 
 class CFoo : public ConceptApplicable
 {
-	DECLARE_CONCEPT(Concept)
+	DECLARE_CONCEPT(CFoo, ConceptApplicable)
 
 public:
 	CFoo();

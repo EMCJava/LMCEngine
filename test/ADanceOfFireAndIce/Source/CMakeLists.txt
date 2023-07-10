@@ -12,5 +12,6 @@ declare_library(
 
         DEPS
         ConceptApplicable.lib
+        ConceptCoordinate.lib
         spdlog::spdlog
 )

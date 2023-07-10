@@ -5,6 +5,7 @@
 #include "CFoo.hpp"
 
 #include <Engine/Engine.hpp>
+#include <Engine/Core/Concept/ConceptCoordinate.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -13,6 +14,8 @@ DEFINE_CONCEPT(CFoo, Concept)
 CFoo::CFoo()
 {
 	spdlog::info("CFoo concept constructor called");
+
+	AddConcept<ConceptCoordinate>()->GetCoordinate();
 }
 
 CFoo::~CFoo()
@@ -23,5 +26,7 @@ CFoo::~CFoo()
 void
 CFoo::Apply()
 {
-	spdlog::info("CFoo concept Apply() called, DeltaTime: {}", Engine::GetEngine()->GetDeltaSecond());
+	spdlog::info("CFoo concept Apply() called, DeltaTime: {}, Coordinate: {}",
+	             Engine::GetEngine()->GetDeltaSecond(),
+	             GetConcept<ConceptCoordinate>()->GetCoordinate());
 }

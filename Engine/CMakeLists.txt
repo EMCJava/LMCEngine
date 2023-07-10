@@ -7,4 +7,16 @@ add_subdirectory(Core)
 
 add_library(Engine.lib Engine.hpp Engine.cpp)
 
-target_link_libraries(Engine.lib Environment.lib WindowPool.lib EditorWindow.lib GameWindow.lib spdlog::spdlog glad.lib glfw imgui.lib DynamicConcept.lib Concept.lib)
+target_link_libraries(Engine.lib
+        Environment.lib
+        WindowPool.lib
+        EditorWindow.lib
+        GameWindow.lib
+        spdlog::spdlog
+        glad.lib
+        glfw
+        imgui.lib
+        DynamicConcept.lib
+        ConceptCoordinate.lib
+        ConceptApplicable.lib
+        )
