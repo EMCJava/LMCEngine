@@ -95,6 +95,13 @@ Engine::Update()
 {
 	m_CurrentUpdateTime = TimerTy::now();
 
+	{
+		// Setup m_DeltaSecond
+		typedef std::chrono::duration<FloatTy> fsec;
+		const fsec fs = m_CurrentUpdateTime - m_LastUpdateTime;
+		m_DeltaSecond = fs.count();
+	}
+
 	if (m_RootConcept != nullptr)
 	{
 		auto &RootConcept = *m_RootConcept;
@@ -287,7 +294,5 @@ Engine::ResetTimer()
 FloatTy
 Engine::GetDeltaSecond() const
 {
-	typedef std::chrono::duration<FloatTy> fsec;
-	const fsec fs = m_CurrentUpdateTime - m_LastUpdateTime;
-	return fs.count();
+	return m_DeltaSecond;
 }

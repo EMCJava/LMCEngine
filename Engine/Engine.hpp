@@ -91,6 +91,8 @@ private:
 	TimerTy::time_point m_FirstUpdateTime;
 	TimerTy::time_point m_LastUpdateTime;
 	TimerTy::time_point m_CurrentUpdateTime;
+	// This will be set at the start of the update loop
+	FloatTy m_DeltaSecond = 0.0f;
 
 	/*
 	 *
