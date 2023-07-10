@@ -28,10 +28,25 @@ public:                                                         \
 public:                                                         \
 	template<typename ConceptType>                              \
 	static consteval bool                                       \
-	CanCast()                                                   \
+	CanCastS()                                                  \
 	{                                                           \
 		return TypeID == ConceptType::TypeID;                   \
 	}                                                           \
+                                                                \
+	template<uint64_t ConceptID>                                \
+	static consteval bool                                       \
+	CanCastS()                                                  \
+	{                                                           \
+		return TypeID == ConceptID;                             \
+	}                                                           \
+                                                                \
+	static constexpr bool                                       \
+	CanCastS(uint64_t ID)                                       \
+	{                                                           \
+		return TypeID == ID;                                    \
+	}                                                           \
+                                                                \
+	virtual bool CanCastV(decltype(TypeID) ID);                 \
                                                                 \
 private:
 
@@ -44,14 +59,37 @@ public:                                                                  \
 public:                                                                  \
 	template<typename ConceptType>                                       \
 	static consteval bool                                                \
-	CanCast()                                                            \
+	CanCastS()                                                           \
 	{                                                                    \
 		if (TypeID == ConceptType::TypeID)                               \
 		{                                                                \
 			return true;                                                 \
 		}                                                                \
-		return parent_class_name::CanCast<ConceptType>();                \
+		return parent_class_name::CanCastS<ConceptType>();               \
 	}                                                                    \
+                                                                         \
+	template<uint64_t ConceptID>                                         \
+	static consteval bool                                                \
+	CanCastS()                                                           \
+	{                                                                    \
+		if (TypeID == ConceptID)                                         \
+		{                                                                \
+			return true;                                                 \
+		}                                                                \
+		return parent_class_name::CanCastS<ConceptID>();                 \
+	}                                                                    \
+                                                                         \
+	static constexpr bool                                                \
+	CanCastS(uint64_t ID)                                                \
+	{                                                                    \
+		if (TypeID == ID)                                                \
+		{                                                                \
+			return true;                                                 \
+		}                                                                \
+		return parent_class_name::CanCastS(ID);                          \
+	}                                                                    \
+                                                                         \
+	virtual bool CanCastV(decltype(TypeID) ID) override;                 \
                                                                          \
 private:
 
@@ -78,6 +116,16 @@ private:
 	void class_name::SetEngineContext(Engine *EngineContext) \
 	{                                                        \
 		Engine::SetEngine(EngineContext);                    \
+	}                                                        \
+	bool                                                     \
+	class_name::CanCastV(uint64_t ID)                        \
+	{                                                        \
+		if (TypeID == ID)                                    \
+		{                                                    \
+			return true;                                     \
+		}                                                    \
+                                                             \
+		return class_name::CanCastS(ID);                     \
 	}
 
 #define DEFINE_CONCEPT(class_name, ...)          \
