@@ -122,7 +122,7 @@ Engine::Update()
 			ResetTimer();
 		}
 
-		auto *const Coordinate = RootConcept.As<ConceptApplicable>()->GetConcept<ConceptCoordinate>();
+		auto *const Coordinate = RootConcept->GetConcept<ConceptCoordinate>();
 		Coordinate->GetCoordinate().X += 1;
 
 		RootConcept.As<ConceptApplicable>()->Apply();
