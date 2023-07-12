@@ -4,7 +4,7 @@
 
 #include "DynamicConcept.hpp"
 
-#include <cassert>
+#include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
 DynamicConcept::~DynamicConcept()
 {
@@ -85,7 +85,7 @@ DynamicConcept::DeAllocateConcept()
 {
 	if (m_Concept != nullptr)
 	{
-		assert(m_DeAllocator != nullptr);
+		REQUIRED(m_DeAllocator != nullptr);
 		m_DeAllocator(m_Concept);
 	}
 

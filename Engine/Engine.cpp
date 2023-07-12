@@ -23,6 +23,7 @@
 #include <Engine/Core/Project/Project.hpp>
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
 #include <Engine/Core/Concept/ConceptCoordinate.hpp>
+#include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
 #include <regex>
 
@@ -243,7 +244,8 @@ Engine::DestroyImGuiContext()
 Engine *
 Engine::GetEngine()
 {
-	assert(g_Engine != nullptr);
+	/* Putting REQUIRE here could greatly impact performance */
+	TEST(g_Engine != nullptr);
 	return g_Engine;
 }
 

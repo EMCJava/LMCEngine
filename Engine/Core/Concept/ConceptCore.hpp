@@ -6,9 +6,9 @@
 
 #include <Engine/Core/Core.hpp>
 #include <Engine/Core/Algorithm/StringAlgorithm.hpp>
+#include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
 #include <set>
-#include <cassert>
 #include <cstdint>
 
 #if !defined(NDEBUG) && !defined(LMC_API_EXPORTS)
@@ -137,7 +137,7 @@ struct IDCollisionsChecker {
 	static std::set<uint64_t> id_set;
 	explicit IDCollisionsChecker(uint64_t id)
 	{
-		assert(id_set.count(id) == 0 && "ID already in exist");
+		REQUIRED(id_set.count(id) == 0 && "ID already in exist");
 		id_set.insert(id);
 	}
 };
