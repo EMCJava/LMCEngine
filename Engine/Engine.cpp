@@ -104,6 +104,17 @@ Engine::Update()
 		m_DeltaSecond = fs.count();
 	}
 
+	UpdateRootConcept();
+
+	Render();
+
+	m_ShouldShutdown |= m_MainWindow->WindowShouldClose();
+	m_LastUpdateTime = m_CurrentUpdateTime;
+}
+
+void
+Engine::UpdateRootConcept()
+{
 	if (m_RootConcept != nullptr)
 	{
 		auto &RootConcept = *m_RootConcept;
@@ -127,11 +138,6 @@ Engine::Update()
 
 		RootConcept.As<ConceptApplicable>()->Apply();
 	}
-
-	Render();
-
-	m_ShouldShutdown |= m_MainWindow->WindowShouldClose();
-	m_LastUpdateTime = m_CurrentUpdateTime;
 }
 
 void

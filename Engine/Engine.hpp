@@ -27,10 +27,19 @@ public:
 	/*
 	 *
 	 * Engine's main update loop
+	 * This will also invoke UpdateRootConcept
 	 *
 	 * */
 	void
 	Update();
+
+	/*
+	 *
+	 * Engine's main update loop
+	 *
+	 * */
+	void
+	UpdateRootConcept();
 
 	/*
 	 *
