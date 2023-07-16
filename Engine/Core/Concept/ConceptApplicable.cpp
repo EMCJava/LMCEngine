@@ -4,6 +4,4 @@
 
 #include "ConceptApplicable.hpp"
 
-#include <Engine/Engine.hpp>
-
-DEFINE_CONCEPT_PURE(ConceptApplicable, Concept)
+DEFINE_CONCEPT(ConceptApplicable, Concept)

@@ -4,10 +4,6 @@
 
 #include "ConceptCoordinate.hpp"
 
-#include <Engine/Engine.hpp>
-
-#include <spdlog/spdlog.h>
-
 DEFINE_CONCEPT(ConceptCoordinate, Concept)
 
 auto

@@ -8,7 +8,7 @@
 
 class ConceptApplicable : public Concept
 {
-	DECLARE_CONCEPT(ConceptUpdatable, Concept)
+	DECLARE_CONCEPT(ConceptApplicable, Concept)
 
 public:
 	/*

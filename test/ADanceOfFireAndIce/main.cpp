@@ -8,13 +8,11 @@
 
 #include <exception>
 #include <iostream>
-#include <format>
 
 int
 main()
 {
 	Engine engine;
-	engine.LoadProject("ADanceOfFireAndIce.lmce");
 
 	try
 	{

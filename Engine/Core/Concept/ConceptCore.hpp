@@ -6,6 +6,7 @@
 
 #include <Engine/Core/Core.hpp>
 #include <Engine/Core/Algorithm/StringAlgorithm.hpp>
+#include <Engine/Core/Algorithm/ConstexprAlg.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
 #include <set>
@@ -19,11 +20,16 @@
 #	define DEF_CHECK_ID(class_name)
 #endif
 
+/*
+ *
+ * Switch case of DECLARE_CONCEPT, in-cast of standalone concept
+ *
+ * */
 #define DECLARE_CONCEPT_BASE(class_name)                        \
 public:                                                         \
 	static constexpr uint64_t TypeID = HashString(#class_name); \
+	using ParentSet = ConstexprContainer<TypeID>;               \
 	DEC_CHECK_ID                                                \
-	virtual void SetEngineContext(class Engine *EngineContext); \
                                                                 \
 public:                                                         \
 	template<typename ConceptType>                              \
@@ -41,7 +47,7 @@ public:                                                         \
 	}                                                           \
                                                                 \
 	static constexpr bool                                       \
-	CanCastS(uint64_t ID)                                       \
+	CanCastSID(uint64_t ID)                                     \
 	{                                                           \
 		return TypeID == ID;                                    \
 	}                                                           \
@@ -50,87 +56,122 @@ public:                                                         \
                                                                 \
 private:
 
-#define DECLARE_CONCEPT_INHERITED(class_name, parent_class_name)         \
-public:                                                                  \
-	static constexpr uint64_t TypeID = HashString(#class_name);          \
-	DEC_CHECK_ID                                                         \
-	virtual void SetEngineContext(class Engine *EngineContext) override; \
-                                                                         \
-public:                                                                  \
-	template<typename ConceptType>                                       \
-	static consteval bool                                                \
-	CanCastS()                                                           \
-	{                                                                    \
-		if (TypeID == ConceptType::TypeID)                               \
-		{                                                                \
-			return true;                                                 \
-		}                                                                \
-		return parent_class_name::CanCastS<ConceptType>();               \
-	}                                                                    \
-                                                                         \
-	template<uint64_t ConceptID>                                         \
-	static consteval bool                                                \
-	CanCastS()                                                           \
-	{                                                                    \
-		if (TypeID == ConceptID)                                         \
-		{                                                                \
-			return true;                                                 \
-		}                                                                \
-		return parent_class_name::CanCastS<ConceptID>();                 \
-	}                                                                    \
-                                                                         \
-	static constexpr bool                                                \
-	CanCastS(uint64_t ID)                                                \
-	{                                                                    \
-		if (TypeID == ID)                                                \
-		{                                                                \
-			return true;                                                 \
-		}                                                                \
-		return parent_class_name::CanCastS(ID);                          \
-	}                                                                    \
-                                                                         \
-	virtual bool CanCastV(decltype(TypeID) ID) override;                 \
-                                                                         \
+/*
+ *
+ * Switch case of DECLARE_CONCEPT, in-cast of inheritance
+ *
+ * */
+#define DECLARE_CONCEPT_INHERITED(class_name, parent_class_name)                                         \
+public:                                                                                                  \
+	static constexpr uint64_t TypeID = HashString(#class_name);                                          \
+	using ParentSet = CombineContainers<ConstexprContainer<TypeID>, parent_class_name::ParentSet>::type; \
+	DEC_CHECK_ID                                                                                         \
+                                                                                                         \
+public:                                                                                                  \
+	template<typename ConceptType>                                                                       \
+	static consteval bool                                                                                \
+	CanCastS()                                                                                           \
+	{                                                                                                    \
+		if (TypeID == ConceptType::TypeID)                                                               \
+		{                                                                                                \
+			return true;                                                                                 \
+		}                                                                                                \
+		return parent_class_name::CanCastS<ConceptType>();                                               \
+	}                                                                                                    \
+                                                                                                         \
+	template<uint64_t ConceptID>                                                                         \
+	static consteval bool                                                                                \
+	CanCastS()                                                                                           \
+	{                                                                                                    \
+		if (TypeID == ConceptID)                                                                         \
+		{                                                                                                \
+			return true;                                                                                 \
+		}                                                                                                \
+		return parent_class_name::CanCastS<ConceptID>();                                                 \
+	}                                                                                                    \
+                                                                                                         \
+	static bool                                                                                          \
+	CanCastSID(uint64_t ID)                                                                              \
+	{                                                                                                    \
+		if (TypeID == ID)                                                                                \
+		{                                                                                                \
+			return true;                                                                                 \
+		}                                                                                                \
+		return ParentSet::Contain(ID);                                                                   \
+	}                                                                                                    \
+                                                                                                         \
+	virtual bool CanCastV(decltype(TypeID) ID) override;                                                 \
+                                                                                                         \
 private:
 
 #define DECLARE_CONCEPT_SWITCH(_1, _2, NAME, ...) NAME
-#define DECLARE_CONCEPT(...) DECLARE_CONCEPT_SWITCH(__VA_ARGS__, DECLARE_CONCEPT_INHERITED, DECLARE_CONCEPT_BASE)(__VA_ARGS__)
+
+#define MSVC_BUG(MACRO, ARGS) MACRO ARGS// name to remind that bug fix is due to MSVC :-), I hate you very much :-))))))
+#define DECLARE_CONCEPT(...) MSVC_BUG(DECLARE_CONCEPT_SWITCH(__VA_ARGS__, DECLARE_CONCEPT_INHERITED, DECLARE_CONCEPT_BASE), (__VA_ARGS__))
 
 #ifdef LMC_API_EXPORTS
-#	define DEFINE_CONCEPT_MEM_ALLOC(class_name, ...) \
-		LMC_API void *mem_alloc()                     \
-		{                                             \
-			return new class_name;                    \
-		}                                             \
-                                                      \
-		LMC_API void mem_free(void *ptr)              \
-		{                                             \
-			delete (class_name *)ptr;                 \
+/*
+ *
+ * This is used per dynamic library to allocate a concept for that library.
+ *
+ * */
+#	define MEM_ALLOC_CONCEPT(class_name, ...) \
+		LMC_API void *mem_alloc()              \
+		{                                      \
+			return new class_name;             \
+		}                                      \
+                                               \
+		LMC_API void mem_free(void *ptr)       \
+		{                                      \
+			delete (class_name *)ptr;          \
 		}
 #else
-#	define DEFINE_CONCEPT_MEM_ALLOC(class_name, ...)
+/*
+ *
+ * This is used per dynamic library to allocate a concept for that library.
+ * Non-engine build, expand to empty
+ *
+ * */
+#	define MEM_ALLOC_CONCEPT(class_name, ...)
 #endif
 
-#define DEFINE_CONCEPT_PURE(class_name, ...)                 \
-	DEF_CHECK_ID(class_name)                                 \
-	void class_name::SetEngineContext(Engine *EngineContext) \
-	{                                                        \
-		Engine::SetEngine(EngineContext);                    \
-	}                                                        \
-	bool                                                     \
-	class_name::CanCastV(uint64_t ID)                        \
-	{                                                        \
-		if (TypeID == ID)                                    \
-		{                                                    \
-			return true;                                     \
-		}                                                    \
-                                                             \
-		return class_name::CanCastS(ID);                     \
+/*
+ *
+ * Most basic concepts definition, a virtual CanCast calling a constexpr static CanCast.
+ *
+ * */
+#define DEFINE_CONCEPT(class_name, ...) \
+	DEF_CHECK_ID(class_name)            \
+                                        \
+	bool                                \
+	class_name::CanCastV(uint64_t ID)   \
+	{                                   \
+		return ParentSet::Contain(ID);  \
 	}
 
-#define DEFINE_CONCEPT(class_name, ...)          \
-	DEFINE_CONCEPT_PURE(class_name, __VA_ARGS__) \
-	DEFINE_CONCEPT_MEM_ALLOC(class_name, __VA_ARGS__)
+/*
+ *
+ * Most basic concepts definition + memory allocation
+ * Usually used for concepts that need to be hot loaded
+ * This can be used to replace DEFINE_CONCEPT_MA_SE to avoid redefinition of SetEngineContext
+ *
+ * */
+#define DEFINE_CONCEPT_MA(class_name, ...)  \
+	DEFINE_CONCEPT(class_name, __VA_ARGS__) \
+	MEM_ALLOC_CONCEPT(class_name, __VA_ARGS__)
+
+/*
+ *
+ * Most basic concepts definition + memory allocation + global engine context set
+ * Usually used for concepts that need to be hot loaded
+ *
+ * */
+#define DEFINE_CONCEPT_MA_SE(class_name, ...)            \
+	DEFINE_CONCEPT_MA(class_name, __VA_ARGS__)           \
+	LMC_API void SetEngineContext(Engine *EngineContext) \
+	{                                                    \
+		Engine::SetEngine(EngineContext);                \
+	}
 
 template<typename Ty>
 struct IDCollisionsChecker {
