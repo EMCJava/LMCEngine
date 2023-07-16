@@ -164,6 +164,10 @@ Engine::UpdateRootConcept()
 	}
 }
 
+// One instance of engine, so it's probably ok
+std::pair<float, float> g_PreviousViewPortDimensions{};
+std::vector<ConceptRenderable *> g_ConceptRenderables{};
+
 void
 Engine::Render()
 {
@@ -208,24 +212,31 @@ Engine::Render()
 	 * */
 	if (m_RootConcept != nullptr)
 	{
-		auto *RenderableConcept = (*m_RootConcept)->GetConcept<ConceptRenderable>();
-		if (RenderableConcept != nullptr)
+		(*m_RootConcept)->GetConcepts<ConceptRenderable>(g_ConceptRenderables);
+		if (!g_ConceptRenderables.empty())
 		{
 			// we rescale the framebuffer to the actual window size here and reset the glViewport
-			static std::pair<float, float> PreviousViewPortDimensions{};// One instance of engine, so it's probably ok
 			const auto MainViewPortDimensions = m_MainWindow->GetHowReloadWindowDimensions();
 			m_GLContext->Viewport(0, 0, MainViewPortDimensions.first, MainViewPortDimensions.second);
 
 			m_HRFrameBuffer->BindFrameBuffer();
-			if (PreviousViewPortDimensions != MainViewPortDimensions)
+			if (g_PreviousViewPortDimensions != MainViewPortDimensions)
 			{
 				m_HRFrameBuffer->RescaleFrameBuffer(MainViewPortDimensions.first, MainViewPortDimensions.second);
 			}
 
-			RenderableConcept->Render();
+			/*
+			 *
+			 * Render every registered ConceptRenderable
+			 *
+			 * */
+			std::for_each(g_ConceptRenderables.begin(), g_ConceptRenderables.end(), [&](const auto &item) {
+				item->Render();
+			});
+
 			m_HRFrameBuffer->UnBindFrameBuffer();
 
-			PreviousViewPortDimensions = MainViewPortDimensions;
+			g_PreviousViewPortDimensions = MainViewPortDimensions;
 		}
 	}
 
