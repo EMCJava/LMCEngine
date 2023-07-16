@@ -4,6 +4,9 @@
 
 #pragma once
 
-class SpriteSquare
+#include "Sprite.hpp"
+
+class SpriteSquare : public Sprite
 {
+	DECLARE_CONCEPT(SpriteSquare, Sprite)
 };
