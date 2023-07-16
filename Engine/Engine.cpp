@@ -22,6 +22,7 @@
 #include <Engine/Core/Window/GameWindow.hpp>
 #include <Engine/Core/Window/WindowPool.hpp>
 #include <Engine/Core/Project/Project.hpp>
+#include <Engine/Core/Concept/ConceptSetFetchCache.hpp>
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
 #include <Engine/Core/Concept/ConceptCoordinate.hpp>
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
@@ -166,7 +167,7 @@ Engine::UpdateRootConcept()
 
 // One instance of engine, so it's probably ok
 std::pair<float, float> g_PreviousViewPortDimensions{};
-std::vector<ConceptRenderable *> g_ConceptRenderables{};
+ConceptSetFetchCache<ConceptRenderable> g_ConceptRenderables{};
 
 void
 Engine::Render()
@@ -213,7 +214,7 @@ Engine::Render()
 	if (m_RootConcept != nullptr)
 	{
 		(*m_RootConcept)->GetConcepts<ConceptRenderable>(g_ConceptRenderables);
-		if (!g_ConceptRenderables.empty())
+		if (g_ConceptRenderables.NotEmpty())
 		{
 			// we rescale the framebuffer to the actual window size here and reset the glViewport
 			const auto MainViewPortDimensions = m_MainWindow->GetHowReloadWindowDimensions();
@@ -230,7 +231,7 @@ Engine::Render()
 			 * Render every registered ConceptRenderable
 			 *
 			 * */
-			std::for_each(g_ConceptRenderables.begin(), g_ConceptRenderables.end(), [&](const auto &item) {
+			g_ConceptRenderables.ForEach([](ConceptRenderable *item) {
 				item->Render();
 			});
 

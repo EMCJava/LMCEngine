@@ -1,3 +1,4 @@
+add_subdirectory(Math)
 add_subdirectory(File)
 add_subdirectory(Concept)
 add_subdirectory(Graphic)

@@ -19,6 +19,7 @@ target_link_libraries(Engine.lib
         DynamicConcept.lib
         ConceptCoordinate.lib
         ConceptApplicable.lib
-        ConceptRenderable.lib
         HotReloadFrameBuffer.lib
+        ConceptRenderable.lib
+        ConceptSetFetchCache.lib
         )

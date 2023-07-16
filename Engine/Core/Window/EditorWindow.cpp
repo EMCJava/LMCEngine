@@ -152,7 +152,7 @@ EditorWindow::Update()
 		m_HotReloadWindowWidth = WindowDimensions.x;
 		m_HotReloadWindowHeight = WindowDimensions.y;
 
-		ImGui::Image((void *)m_PreviousFrameTextureID,
+		ImGui::Image(reinterpret_cast<void *>(m_PreviousFrameTextureID),
 		             ImVec2(m_HotReloadWindowWidth, m_HotReloadWindowHeight),
 		             ImVec2(0, 1),
 		             ImVec2(1, 0));
