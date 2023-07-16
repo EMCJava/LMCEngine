@@ -9,6 +9,7 @@
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
+#include <Engine/Core/Graphic/Shader/Shader.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -30,54 +31,6 @@ class Sprite : public ConceptRenderable
 	                                   "{\n"
 	                                   "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 	                                   "}\n\0";
-
-	void
-	SetupShader()
-	{
-		const auto *gl = Engine::GetEngine()->GetGLContext();
-		GL_CHECK(Engine::GetEngine()->MakeMainWindowCurrentContext())
-
-		// build and compile our shader program
-		// ------------------------------------
-		// vertex shader
-		unsigned int vertexShader = gl->CreateShader(GL_VERTEX_SHADER);
-		gl->ShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
-		gl->CompileShader(vertexShader);
-		// check for shader compile errors
-		int success;
-		char infoLog[512];
-		gl->GetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-		if (!success)
-		{
-			gl->GetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-			spdlog::error("ERROR::SHADER::VERTEX::COMPILATION_FAILED {}", infoLog);
-		}
-		// fragment shader
-		unsigned int fragmentShader = gl->CreateShader(GL_FRAGMENT_SHADER);
-		gl->ShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
-		gl->CompileShader(fragmentShader);
-		// check for shader compile errors
-		gl->GetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-		if (!success)
-		{
-			gl->GetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-			spdlog::error("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED {}", infoLog);
-		}
-		// link shaders
-		m_ShaderProgram = gl->CreateProgram();
-		gl->AttachShader(m_ShaderProgram, vertexShader);
-		gl->AttachShader(m_ShaderProgram, fragmentShader);
-		gl->LinkProgram(m_ShaderProgram);
-		// check for linking errors
-		gl->GetProgramiv(m_ShaderProgram, GL_LINK_STATUS, &success);
-		if (!success)
-		{
-			gl->GetProgramInfoLog(m_ShaderProgram, 512, nullptr, infoLog);
-			spdlog::error("ERROR::SHADER::PROGRAM::LINKING_FAILED {}", infoLog);
-		}
-		gl->DeleteShader(vertexShader);
-		gl->DeleteShader(fragmentShader);
-	}
 
 	void
 	SetupRenderBuffer()
@@ -117,7 +70,7 @@ class Sprite : public ConceptRenderable
 public:
 	Sprite()
 	{
-		SetupShader();
+		m_Shader.Load(vertexShaderSource, fragmentShaderSource);
 		SetupRenderBuffer();
 	}
 
@@ -129,9 +82,8 @@ public:
 		gl->DeleteVertexArrays(1, &m_VAO);
 		gl->DeleteBuffers(1, &m_VBO);
 		gl->DeleteBuffers(1, &m_EBO);
-		gl->DeleteProgram(m_ShaderProgram);
 
-		m_VAO = m_VBO = m_EBO = m_ShaderProgram = 0;
+		m_VAO = m_VBO = m_EBO = 0;
 	}
 
 	void
@@ -139,14 +91,15 @@ public:
 	{
 		const auto *gl = Engine::GetEngine()->GetGLContext();
 
-		GL_CHECK(gl->UseProgram(m_ShaderProgram))
+		m_Shader.Bind();
 		GL_CHECK(gl->BindVertexArray(m_VAO))
 		GL_CHECK(gl->BindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO))
 		GL_CHECK(gl->DrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr))
 	}
 
 private:
-	uint32_t m_VAO{}, m_VBO{}, m_EBO{}, m_ShaderProgram{};
+	Shader m_Shader;
+	uint32_t m_VAO{}, m_VBO{}, m_EBO{};
 };
 DEFINE_CONCEPT(Sprite, ConceptRenderable)
 

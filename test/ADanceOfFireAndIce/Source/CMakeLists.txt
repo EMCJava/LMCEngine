@@ -11,6 +11,7 @@ declare_library(
         Engine.lib
         ConceptRenderable.lib
         glad.lib
+        Shader.lib
 
         DEPS
         ConceptApplicable.lib
