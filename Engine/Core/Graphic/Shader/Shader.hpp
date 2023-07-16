@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <string>
 #include <cstdint>
 
 class Shader
@@ -14,6 +15,9 @@ public:
 
 	void
 	Load(const char *Vertex, const char *Fragment);
+
+	void
+	LoadFromFile(std::string_view VertexPath, std::string_view FragmentPath);
 
 	void
 	Bind() const;

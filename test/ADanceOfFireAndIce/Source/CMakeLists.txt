@@ -12,6 +12,7 @@ declare_library(
         ConceptRenderable.lib
         glad.lib
         Shader.lib
+        SpriteSquare.lib
 
         DEPS
         ConceptApplicable.lib

@@ -4,4 +4,36 @@
 
 #include "Sprite.hpp"
 
+#include <Engine/Engine.hpp>
+#include <Engine/Core/Graphic/API/GraphicAPI.hpp>
+
+#include <spdlog/spdlog.h>
+
 DEFINE_CONCEPT(Sprite, ConceptRenderable)
+
+Sprite::~Sprite()
+{
+	const auto *gl = Engine::GetEngine()->GetGLContext();
+	GL_CHECK(Engine::GetEngine()->MakeMainWindowCurrentContext())
+
+	GL_CHECK(gl->DeleteVertexArrays(1, &m_VAO));
+	GL_CHECK(gl->DeleteBuffers(1, &m_VBO));
+	GL_CHECK(gl->DeleteBuffers(1, &m_EBO));
+
+	m_VAO = m_VBO = m_EBO = 0;
+}
+
+void
+Sprite::Render()
+{
+	if (m_Shader != nullptr)
+	{
+		m_Shader->Bind();
+	}
+}
+
+void
+Sprite::SetShader(const std::shared_ptr<Shader> &shader)
+{
+	m_Shader = shader;
+}

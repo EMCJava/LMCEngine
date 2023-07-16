@@ -9,4 +9,9 @@
 class SpriteSquare : public Sprite
 {
 	DECLARE_CONCEPT(SpriteSquare, Sprite)
+public:
+	SpriteSquare();
+
+	virtual void
+	Render();
 };

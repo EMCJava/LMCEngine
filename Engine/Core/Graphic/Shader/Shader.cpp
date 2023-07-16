@@ -9,6 +9,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <fstream>
+
 void
 Shader::Load(const char *Vertex, const char *Fragment)
 {
@@ -64,8 +66,11 @@ Shader::Load(const char *Vertex, const char *Fragment)
 void
 Shader::Bind() const
 {
-	const auto *gl = Engine::GetEngine()->GetGLContext();
-	GL_CHECK(gl->UseProgram(m_ProgramID))
+	if (m_ProgramID != 0)
+	{
+		const auto *gl = Engine::GetEngine()->GetGLContext();
+		GL_CHECK(gl->UseProgram(m_ProgramID))
+	}
 }
 
 Shader::~Shader()
@@ -77,4 +82,16 @@ Shader::~Shader()
 		GL_CHECK(gl->DeleteProgram(m_ProgramID))
 		m_ProgramID = 0;
 	}
+}
+
+void
+Shader::LoadFromFile(std::string_view VertexPath, std::string_view FragmentPath)
+{
+	std::ifstream VertexShaderFile;
+	std::ifstream FragmentShaderFile;
+
+	std::string VertexShaderFileContent{std::istreambuf_iterator<char>(VertexShaderFile), std::istreambuf_iterator<char>()};
+	std::string FragmentShaderFileContent{std::istreambuf_iterator<char>(FragmentShaderFile), std::istreambuf_iterator<char>()};
+
+	Load(VertexShaderFileContent.c_str(), FragmentShaderFileContent.c_str());
 }
