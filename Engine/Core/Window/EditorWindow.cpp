@@ -12,26 +12,29 @@
 
 #include <spdlog/spdlog.h>
 
-#include <nlohmann/json.hpp>
-
 #include <Engine/Engine.hpp>
 #include <Engine/Core/File/OSFile.hpp>
 #include <Engine/Core/Project/Project.hpp>
 #include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
 
+#include <filesystem>
+
 void
 EditorWindow::Update()
 {
 	MakeContextCurrent();
+	const auto *gl = Engine::GetEngine()->GetGLContext();
 
-	static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-	glViewport(0, 0, m_Width, m_Height);
-	glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-	glClear(GL_COLOR_BUFFER_BIT);
+	gl->Viewport(0, 0, m_Width, m_Height);
+	gl->ClearColor(0, 0, 0, 0);
+	gl->Clear(GL_COLOR_BUFFER_BIT);
 
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-	ImGui::ShowDemoWindow();
+
+	if (m_ShowImGuiDemoWindow)
+	{
+		ImGui::ShowDemoWindow();
+	}
 
 	if (ImGui::BeginMainMenuBar())
 	{
@@ -48,6 +51,14 @@ EditorWindow::Update()
 				else
 				{
 					Engine::GetEngine()->LoadProject(ProjectPath);
+
+					// Load preset layout, need to do it here for the exception to be thrown
+					const auto LayoutPath = std::filesystem::path{ProjectPath}.parent_path() / "Editor/layout.ini";
+					if (std::filesystem::exists(LayoutPath))
+					{
+						Engine::GetEngine()->GetProject()->GetConfig().editor_layout_path = LayoutPath.string();
+						throw ImGuiContextInvalid{};
+					}
 				}
 			}
 
@@ -73,7 +84,14 @@ EditorWindow::Update()
 				auto &ImGuiIO = ImGui::GetIO();
 				if (ImGui::MenuItem("Save Layout", nullptr, false, ImGuiIO.WantSaveIniSettings))
 				{
-					const auto SaveLocation = OSFile::SaveFile("ini");
+					const auto &DefaultPathStr = Engine::GetEngine()->GetProject()->GetConfig().editor_layout_path;
+					const char *DefaultPath = nullptr;
+					if (!DefaultPathStr.empty())
+					{
+						DefaultPath = DefaultPathStr.c_str();
+					}
+
+					const auto SaveLocation = OSFile::SaveFile("ini", DefaultPath);
 					if (!SaveLocation.empty())
 					{
 						ImGui::SaveIniSettingsToDisk(SaveLocation.c_str());
@@ -94,6 +112,9 @@ EditorWindow::Update()
 				ImGui::EndMenu();
 			}
 
+			ImGui::Separator();
+			ImGui::MenuItem("ImGui Demo Window", nullptr, &m_ShowImGuiDemoWindow);
+
 			ImGui::EndMenu();
 		}
 
@@ -108,7 +129,6 @@ EditorWindow::Update()
 
 	{
 		ImGui::Begin("Console");
-		ImGui::ColorEdit3("clear color", (float *)&clear_color);
 
 		const auto &io = ImGui::GetIO();
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
@@ -120,4 +140,37 @@ EditorWindow::Update()
 
 		ImGui::End();
 	}
+
+	{
+		ImGui::Begin("Main viewport");
+
+		// Using a Child allow to fill all the space of the window.
+		// It also alows customization
+		ImGui::BeginChild("Render");
+
+		const auto WindowDimensions = ImGui::GetContentRegionAvail();
+		m_HotReloadWindowWidth = WindowDimensions.x;
+		m_HotReloadWindowHeight = WindowDimensions.y;
+
+		ImGui::Image((void *)m_PreviousFrameTextureID,
+		             ImVec2(m_HotReloadWindowWidth, m_HotReloadWindowHeight),
+		             ImVec2(0, 1),
+		             ImVec2(1, 0));
+
+		ImGui::EndChild();
+
+		ImGui::End();
+	}
+}
+
+std::pair<float, float>
+EditorWindow::GetHowReloadWindowDimensions() const
+{
+	return {m_HotReloadWindowWidth, m_HotReloadWindowHeight};
+}
+
+void
+EditorWindow::SetPreviousFrameTexture(uint32_t TextureID)
+{
+	m_PreviousFrameTextureID = TextureID;
 }

@@ -38,8 +38,18 @@ public:
 		return reinterpret_cast<Ty>(LoadSymbol(Name));
 	}
 
+	template<typename Ty>
+	void
+	LoadSymbolAs(const std::string &Name, Ty &ptr)
+	{
+		ptr = reinterpret_cast<Ty>(LoadSymbol(Name));
+	}
+
 	bool
 	ShouldReload() const;
+
+	void
+	SetEngineContext(class Engine *ptr);
 
 private:
 	/*
@@ -76,6 +86,8 @@ private:
 	 *
 	 * */
 	std::string m_DLLLoadPath;
+
+	void (*m_SetEngineContext)(class Engine *) = nullptr;
 
 	void *m_DLLHandle = nullptr;
 	bool m_MakeCopyOnLoad = true;

@@ -114,3 +114,9 @@ Window::IsFullscreen() const
 {
 	return m_Fullscreen;
 }
+
+std::pair<int, int>
+Window::GetDimensions() const
+{
+	return {m_Width, m_Height};
+}

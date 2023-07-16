@@ -77,6 +77,14 @@ public:
 	bool
 	IsFullscreen() const;
 
+	/*
+	 *
+	 * Get windows dimensions(width & height).
+	 *
+	 * */
+	std::pair<int, int>
+	GetDimensions() const;
+
 protected:
 	int m_Width, m_Height;
 	bool m_Fullscreen;

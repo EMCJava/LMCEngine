@@ -25,7 +25,7 @@ target_link_libraries(imgui.demo.lib PRIVATE imgui.lib)
 
 ## -------------- GLAD --------------
 add_library(glad.lib glad/gl.h glad/gl.c)
-target_include_directories(glad.lib PRIVATE .)
+target_include_directories(glad.lib PUBLIC .)
 
 ## -------------- nativefiledialog --------------
 FetchContent_Declare(

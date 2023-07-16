@@ -14,6 +14,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <Engine/Core/Graphic/HotReloadFrameBuffer/HotReloadFrameBuffer.hpp>
 #include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
 #include <Engine/Core/Environment/Environment.hpp>
 #include <Engine/Core/Runtime/DynamicLibrary/DynamicConcept.hpp>
@@ -23,6 +24,7 @@
 #include <Engine/Core/Project/Project.hpp>
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
 #include <Engine/Core/Concept/ConceptCoordinate.hpp>
+#include <Engine/Core/Concept/ConceptRenderable.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
 #include <regex>
@@ -39,7 +41,6 @@ Engine::Engine()
 	spdlog::info("Engine initializing");
 	InitializeEnvironment();
 
-	bool Fullscreen = false;
 	m_MainWindow = new EditorWindow(1280, 720, "LMCEngine");
 
 	/*
@@ -47,14 +48,15 @@ Engine::Engine()
 	 * Initialize GLAD & ImGui
 	 *
 	 * */
-
-	[[maybe_unused]] int version = gladLoaderLoadGL();
+	m_GLContext = new GladGLContext;
+	[[maybe_unused]] int version = gladLoadGLContext(m_GLContext, glfwGetProcAddress);
 
 	// Setup Dear ImGui context
 	CreateImGuiContext();
 
 	m_MainWindowPool = new WindowPool;
-	// m_MainWindowPool->CreateWindow<GameWindow>(1280, 720, "Game Viewer");
+
+	m_HRFrameBuffer = new HotReloadFrameBuffer;
 
 	/*
 	 *
@@ -64,6 +66,15 @@ Engine::Engine()
 	m_ActiveProject = new Project;
 
 	g_Engine = this;
+
+	/*
+	 *
+	 * The following code depends on engine context
+	 *
+	 * */
+
+	const auto WindowDimensions = m_MainWindow->GetDimensions();
+	m_HRFrameBuffer->CreateFrameBuffer(WindowDimensions.first, WindowDimensions.second);
 }
 
 Engine::~Engine()
@@ -76,8 +87,11 @@ Engine::~Engine()
 	delete m_ActiveProject;
 	m_ActiveProject = nullptr;
 
-	delete m_MainWindow;
-	m_MainWindow = nullptr;
+	delete m_HRFrameBuffer;
+	m_HRFrameBuffer = nullptr;
+
+	delete m_MainWindowPool;
+	m_MainWindowPool = nullptr;
 
 	if (m_ImGuiContext != nullptr)
 	{
@@ -87,8 +101,16 @@ Engine::~Engine()
 		m_ImGuiContext = nullptr;
 	}
 
-	delete m_MainWindowPool;
-	m_MainWindowPool = nullptr;
+	if (m_GLContext != nullptr)
+	{
+		gladLoaderUnloadGLContext(m_GLContext);
+
+		delete m_GLContext;
+		m_GLContext = nullptr;
+	}
+
+	delete m_MainWindow;
+	m_MainWindow = nullptr;
 
 	ShutdownEnvironment();
 }
@@ -130,7 +152,8 @@ Engine::UpdateRootConcept()
 			 * Make sure the library can access the same memory space
 			 *
 			 * */
-			RootConcept->SetEngineContext(this);
+			RootConcept.SetEngineContext(this);
+			RootConcept.AllocateConcept();
 			ResetTimer();
 		}
 
@@ -154,7 +177,10 @@ Engine::Render()
 
 	try
 	{
+		// For main viewport
+		m_MainWindow->SetPreviousFrameTexture(m_HRFrameBuffer->GetTextureID());
 		m_MainWindow->Update();
+
 		m_MainWindowPool->Update();
 	}
 	catch (const ImGuiContextInvalid &e)
@@ -173,6 +199,34 @@ Engine::Render()
 	{
 		ImGui::UpdatePlatformWindows();
 		ImGui::RenderPlatformWindowsDefault();
+	}
+
+	/*
+	 *
+	 * User render
+	 *
+	 * */
+	if (m_RootConcept != nullptr)
+	{
+		auto *RenderableConcept = (*m_RootConcept)->GetConcept<ConceptRenderable>();
+		if (RenderableConcept != nullptr)
+		{
+			// we rescale the framebuffer to the actual window size here and reset the glViewport
+			static std::pair<float, float> PreviousViewPortDimensions{};// One instance of engine, so it's probably ok
+			const auto MainViewPortDimensions = m_MainWindow->GetHowReloadWindowDimensions();
+			m_GLContext->Viewport(0, 0, MainViewPortDimensions.first, MainViewPortDimensions.second);
+
+			m_HRFrameBuffer->BindFrameBuffer();
+			if (PreviousViewPortDimensions != MainViewPortDimensions)
+			{
+				m_HRFrameBuffer->RescaleFrameBuffer(MainViewPortDimensions.first, MainViewPortDimensions.second);
+			}
+
+			RenderableConcept->Render();
+			m_HRFrameBuffer->UnBindFrameBuffer();
+
+			PreviousViewPortDimensions = MainViewPortDimensions;
+		}
 	}
 
 	glfwSwapBuffers(m_MainWindow->GetWindowHandle());
@@ -269,14 +323,15 @@ Engine::LoadProject(const std::string &Path)
 		m_RootConcept = new DynamicConcept;
 		const auto DLLPath = std::regex_replace(m_ActiveProject->GetConfig().shared_library_path_format, std::regex("\\{\\}"), RootConcept);
 
-		m_RootConcept->Load(DLLPath, true);
+		m_RootConcept->Load(DLLPath, false);
 
 		/*
 		 *
 		 * Make sure the library can access the same memory space
 		 *
 		 * */
-		(*m_RootConcept)->SetEngineContext(this);
+		m_RootConcept->SetEngineContext(this);
+		m_RootConcept->AllocateConcept();
 		ResetTimer();
 	}
 	else
@@ -289,6 +344,12 @@ Project *
 Engine::GetProject() const
 {
 	return m_ActiveProject;
+}
+
+struct GladGLContext *
+Engine::GetGLContext()
+{
+	return m_GLContext;
 }
 
 void
@@ -308,4 +369,11 @@ FloatTy
 Engine::GetDeltaSecond() const
 {
 	return m_DeltaSecond;
+}
+
+void
+Engine::MakeMainWindowCurrentContext()
+{
+	TEST(m_MainWindow != nullptr)
+	m_MainWindow->MakeContextCurrent();
 }

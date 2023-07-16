@@ -4,15 +4,18 @@
 
 #include "GameWindow.hpp"
 
+#include <Engine/Engine.hpp>
+
 #include <glad/gl.h>
-#include <GLFW/glfw3.h>
 
 void
 GameWindow::Update()
 {
 	MakeContextCurrent();
 
-	glViewport(0, 0, m_Width, m_Height);
-	glClearColor(1, 1, 1, 1);
-	glClear(GL_COLOR_BUFFER_BIT);
+	const auto *gl = Engine::GetEngine()->GetGLContext();
+
+	gl->Viewport(0, 0, m_Width, m_Height);
+	gl->ClearColor(1, 1, 1, 1);
+	gl->Clear(GL_COLOR_BUFFER_BIT);
 }

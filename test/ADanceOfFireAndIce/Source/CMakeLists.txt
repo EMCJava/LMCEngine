@@ -9,6 +9,8 @@ declare_library(
 
         P_DEPS
         Engine.lib
+        ConceptRenderable.lib
+        glad.lib
 
         DEPS
         ConceptApplicable.lib

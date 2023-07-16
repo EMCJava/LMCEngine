@@ -10,9 +10,9 @@ namespace OSFile
 {
 
 std::string
-PickFile(const char *filter);
+PickFile(const char *filter, const char *default_path = nullptr);
 
 std::string
-SaveFile(const char *filter);
+SaveFile(const char *filter, const char *default_path = nullptr);
 
 };// namespace OSFile

@@ -8,10 +8,10 @@
 #include <stdexcept>
 
 std::string
-OSFile::PickFile(const char *filter)
+OSFile::PickFile(const char *filter, const char *default_path)
 {
 	nfdchar_t *outPath = nullptr;
-	nfdresult_t result = NFD_OpenDialog(filter, nullptr, &outPath);
+	nfdresult_t result = NFD_OpenDialog(filter, default_path, &outPath);
 
 	if (result == NFD_OKAY)
 	{
@@ -31,10 +31,10 @@ OSFile::PickFile(const char *filter)
 }
 
 std::string
-OSFile::SaveFile(const char *filter)
+OSFile::SaveFile(const char *filter, const char *default_path)
 {
 	nfdchar_t *outPath = nullptr;
-	nfdresult_t result = NFD_SaveDialog(filter, nullptr, &outPath);
+	nfdresult_t result = NFD_SaveDialog(filter, default_path, &outPath);
 
 	if (result == NFD_OKAY)
 	{

@@ -5,6 +5,7 @@
 #include "DynamicLibrary.hpp"
 
 #include <Engine/Core/Core.hpp>
+#include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -14,6 +15,13 @@
 #	include <windows.h>
 #else
 #	error not implemented yet
+#endif
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#	define COPY_FILE_SUCCESS 0L
+#	define SHARING_VIOLATION 32L
+#elif
+#	error Error code for window only
 #endif
 
 namespace
@@ -79,17 +87,18 @@ DynamicLibrary::Load(const std::string_view &Path)
 	}
 
 	m_DLLHandle = LoadLibrary(m_DLLLoadPath.c_str());
-
 	if (m_DLLHandle == nullptr)
 	{
 		PrintSysCallError("DynamicLibrary::Load: Can't open and load dynamic library");
-	}
-	else
-	{
-		m_DLLModifiedTime = fs::last_write_time(m_DLLPath);
+		return false;
 	}
 
-	return m_DLLHandle != nullptr;
+	m_DLLModifiedTime = fs::last_write_time(m_DLLPath);
+
+	LoadSymbolAs("SetEngineContext", m_SetEngineContext);
+	REQUIRED(m_SetEngineContext != nullptr);
+
+	return true;
 }
 
 void
@@ -103,6 +112,7 @@ DynamicLibrary::Unload()
 		}
 
 		m_DLLHandle = nullptr;
+		m_SetEngineContext = nullptr;
 	}
 }
 
@@ -138,13 +148,13 @@ DynamicLibrary::MakeDLLCopy()
 		if (!fs::copy_file(m_DLLPath, m_DLLTmpPath, fs::copy_options::update_existing, OperationError))
 		{
 			// Success, but not overwriting
-			if ((long)__std_win_error::_Success == OperationError.value())
+			if (COPY_FILE_SUCCESS == OperationError.value())
 			{
 				return true;
 			}
 
 			spdlog::error("DynamicLibrary::MakeDLLCopy: Not copying file, {}", OperationError.message());
-			if (retry_left >= 1 && (long)__std_win_error::_Sharing_violation == OperationError.value())
+			if (retry_left >= 1 && SHARING_VIOLATION == OperationError.value())
 			{
 				spdlog::error("DynamicLibrary::MakeDLLCopy: File accessing by another process, retry remaining #{}", retry_left);
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -172,7 +182,7 @@ DynamicLibrary::MakeDLLCopy()
 			if (!fs::remove(DLLFileDebugInfo, OperationError))
 			{
 				spdlog::error("DynamicLibrary::MakeDLLCopy: Failed to remove debug info, further hot reloading may fail, {}", OperationError.message());
-				if (retry_left >= 1 && (long)__std_win_error::_Sharing_violation == OperationError.value())
+				if (retry_left >= 1 && SHARING_VIOLATION == OperationError.value())
 				{
 					spdlog::error("DynamicLibrary::MakeDLLCopy: File accessing by another process, retry remaining #{}", retry_left);
 					std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -224,4 +234,10 @@ DynamicLibrary::RemoveDLLCopy()
 			m_DLLDependencies.clear();
 		}
 	}
+}
+
+void
+DynamicLibrary::SetEngineContext(class Engine *ptr)
+{
+	m_SetEngineContext(ptr);
 }

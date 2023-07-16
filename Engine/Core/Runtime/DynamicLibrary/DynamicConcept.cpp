@@ -64,8 +64,8 @@ DynamicConcept::Reload(bool ReAllocate)
 bool
 DynamicConcept::LoadFunctions()
 {
-	m_Allocator = LoadSymbolAs<void *(*)()>("mem_alloc");
-	m_DeAllocator = LoadSymbolAs<void (*)(void *)>("mem_free");
+	LoadSymbolAs("mem_alloc", m_Allocator);
+	LoadSymbolAs("mem_free", m_DeAllocator);
 
 	return m_Allocator != nullptr && m_DeAllocator != nullptr;
 }

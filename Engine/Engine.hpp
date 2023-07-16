@@ -66,6 +66,9 @@ public:
 	class Project *
 	GetProject() const;
 
+	struct GladGLContext *
+	GetGLContext();
+
 	static Engine *
 	GetEngine();
 
@@ -88,6 +91,14 @@ public:
 
 	FloatTy
 	GetDeltaSecond() const;
+
+	/*
+	 *
+	 * Used fot how reloaded library to load context correctly
+	 *
+	 * */
+	void
+	MakeMainWindowCurrentContext();
 
 private:
 	bool m_ShouldShutdown = false;
@@ -113,6 +124,13 @@ private:
 
 	/*
 	 *
+	 * Glad / GL
+	 *
+	 * */
+	struct GladGLContext *m_GLContext = nullptr;
+
+	/*
+	 *
 	 * ImGui
 	 *
 	 * */
@@ -134,6 +152,13 @@ private:
 	 *
 	 * */
 	class DynamicConcept *m_RootConcept = nullptr;
+
+	/*
+	 *
+	 * For root concept to render inside a ImGui window
+	 *
+	 * */
+	class HotReloadFrameBuffer *m_HRFrameBuffer = nullptr;
 
 	/*
 	 *
