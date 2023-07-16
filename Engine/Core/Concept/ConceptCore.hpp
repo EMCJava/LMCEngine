@@ -137,7 +137,7 @@ private:
 
 /*
  *
- * Most basic concepts definition, a virtual CanCast calling a constexpr static CanCast.
+ * Most basic concepts definition, a virtual function checking static parent set
  *
  * */
 #define DEFINE_CONCEPT(class_name, ...) \
