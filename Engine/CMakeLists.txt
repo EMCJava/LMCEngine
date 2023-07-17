@@ -1,5 +1,3 @@
-find_package(glfw3 REQUIRED)
-
 add_subdirectory(Library)
 include_directories(Library)
 

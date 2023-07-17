@@ -100,6 +100,14 @@ public:
 	void
 	MakeMainWindowCurrentContext();
 
+	/*
+	 *
+	 * Main window related
+	 *
+	 * */
+	std::pair<int, int>
+	GetMainWindowViewPortDimensions() const;
+
 private:
 	bool m_ShouldShutdown = false;
 
@@ -113,6 +121,13 @@ private:
 	TimerTy::time_point m_CurrentUpdateTime;
 	// This will be set at the start of the update loop
 	FloatTy m_DeltaSecond = 0.0f;
+
+	/*
+	 *
+	 *
+	 *
+	 * */
+	std::pair<float, float> m_MainViewPortDimensions{};
 
 	/*
 	 *

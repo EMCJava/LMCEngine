@@ -11,17 +11,42 @@
 
 DEFINE_CONCEPT(SpriteSquare, Sprite)
 
-SpriteSquare::SpriteSquare()
+SpriteSquare::SpriteSquare(int Width, int Height) : m_Width(Width), m_Height(Height)
+{
+	SetupSprite();
+}
+
+void
+SpriteSquare::Render()
+{
+	Sprite::Render();
+
+	const auto *gl = Engine::GetEngine()->GetGLContext();
+
+	GL_CHECK(gl->BindVertexArray(m_VAO))
+	GL_CHECK(gl->BindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO))
+	GL_CHECK(gl->DrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr))
+}
+
+void
+SpriteSquare::SetupSprite()
 {
 	const auto *gl = Engine::GetEngine()->GetGLContext();
 	GL_CHECK(Engine::GetEngine()->MakeMainWindowCurrentContext())
 
 	float vertices[] = {
-	    0.5f, 0.5f, 0.0f,  // top right
-	    0.5f, -0.5f, 0.0f, // bottom right
-	    -0.5f, -0.5f, 0.0f,// bottom left
-	    -0.5f, 0.5f, 0.0f  // top left
+	    1.f, 1.f, 0.f,// top right
+	    1.f, 0.f, 0.f,// bottom right
+	    0.f, 0.f, 0.f,// bottom left
+	    0.f, 1.f, 0.f // top left
 	};
+
+	for (int i = 0; i < std::size(vertices); i += 3)
+	{
+		vertices[i + 0] *= m_Width;
+		vertices[i + 1] *= m_Height;
+	}
+
 	unsigned int indices[] = {
 	    // note that we start from 0!
 	    0, 1, 3,// first triangle
@@ -43,16 +68,4 @@ SpriteSquare::SpriteSquare()
 	GL_CHECK(gl->GenBuffers(1, &m_EBO))
 	GL_CHECK(gl->BindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO))
 	GL_CHECK(gl->BufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW))
-}
-
-void
-SpriteSquare::Render()
-{
-	Sprite::Render();
-
-	const auto *gl = Engine::GetEngine()->GetGLContext();
-
-	GL_CHECK(gl->BindVertexArray(m_VAO))
-	GL_CHECK(gl->BindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO))
-	GL_CHECK(gl->DrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr))
 }

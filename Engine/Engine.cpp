@@ -166,7 +166,6 @@ Engine::UpdateRootConcept()
 }
 
 // One instance of engine, so it's probably ok
-std::pair<float, float> g_PreviousViewPortDimensions{};
 ConceptSetFetchCache<ConceptRenderable> g_ConceptRenderables{};
 
 void
@@ -221,7 +220,7 @@ Engine::Render()
 			m_GLContext->Viewport(0, 0, MainViewPortDimensions.first, MainViewPortDimensions.second);
 
 			m_HRFrameBuffer->BindFrameBuffer();
-			if (g_PreviousViewPortDimensions != MainViewPortDimensions)
+			if (m_MainViewPortDimensions != MainViewPortDimensions)
 			{
 				m_HRFrameBuffer->RescaleFrameBuffer(MainViewPortDimensions.first, MainViewPortDimensions.second);
 			}
@@ -237,7 +236,7 @@ Engine::Render()
 
 			m_HRFrameBuffer->UnBindFrameBuffer();
 
-			g_PreviousViewPortDimensions = MainViewPortDimensions;
+			m_MainViewPortDimensions = MainViewPortDimensions;
 		}
 	}
 
@@ -388,4 +387,10 @@ Engine::MakeMainWindowCurrentContext()
 {
 	TEST(m_MainWindow != nullptr)
 	m_MainWindow->MakeContextCurrent();
+}
+
+std::pair<int, int>
+Engine::GetMainWindowViewPortDimensions() const
+{
+	return m_MainViewPortDimensions;
 }

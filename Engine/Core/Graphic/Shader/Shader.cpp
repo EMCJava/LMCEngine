@@ -32,6 +32,7 @@ Shader::Load(const char *Vertex, const char *Fragment)
 	{
 		gl->GetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
 		spdlog::error("ERROR::SHADER::VERTEX::COMPILATION_FAILED {}", infoLog);
+		abort();
 	}
 
 	// fragment shader
@@ -45,6 +46,7 @@ Shader::Load(const char *Vertex, const char *Fragment)
 	{
 		gl->GetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
 		spdlog::error("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED {}", infoLog);
+		abort();
 	}
 
 	// link shaders
@@ -58,6 +60,7 @@ Shader::Load(const char *Vertex, const char *Fragment)
 	{
 		gl->GetProgramInfoLog(m_ProgramID, 512, nullptr, infoLog);
 		spdlog::error("ERROR::SHADER::PROGRAM::LINKING_FAILED {}", infoLog);
+		abort();
 	}
 	gl->DeleteShader(vertexShader);
 	gl->DeleteShader(fragmentShader);
@@ -94,4 +97,18 @@ Shader::LoadFromFile(std::string_view VertexPath, std::string_view FragmentPath)
 	std::string FragmentShaderFileContent{std::istreambuf_iterator<char>(FragmentShaderFile), std::istreambuf_iterator<char>()};
 
 	Load(VertexShaderFileContent.c_str(), FragmentShaderFileContent.c_str());
+}
+
+int
+Shader::GetUniformLocation(const std::string &Name) const
+{
+	const auto *gl = Engine::GetEngine()->GetGLContext();
+	return gl->GetUniformLocation(m_ProgramID, Name.c_str());
+}
+
+void
+Shader::SetMat4(const std::string &Name, const glm::mat4 &mat) const
+{
+	const auto *gl = Engine::GetEngine()->GetGLContext();
+	gl->UniformMatrix4fv(GetUniformLocation(Name), 1, GL_FALSE, &mat[0][0]);
 }

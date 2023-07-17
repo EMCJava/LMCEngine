@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include <string>
 #include <cstdint>
 
@@ -22,7 +24,16 @@ public:
 	void
 	Bind() const;
 
-private:
+	/*
+	 *
+	 * Shader operations
+	 *
+	 * */
+	int
+	GetUniformLocation(const std::string &Name) const;
 
+	void SetMat4(const std::string &Name, const glm::mat4 &mat) const;
+
+private:
 	uint32_t m_ProgramID = 0;
 };

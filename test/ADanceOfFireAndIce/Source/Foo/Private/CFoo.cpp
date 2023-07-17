@@ -18,9 +18,10 @@ DEFINE_CONCEPT_MA_SE(CFoo, Concept)
 
 const char *vertexShaderSource = "#version 330 core\n"
                                  "layout (location = 0) in vec3 aPos;\n"
+                                 "uniform mat4 projectionMatrix;\n"
                                  "void main()\n"
                                  "{\n"
-                                 "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+                                 "   gl_Position = projectionMatrix * vec4(aPos, 1.0);\n"
                                  "}\0";
 const char *fragmentShaderSource = "#version 330 core\n"
                                    "out vec4 FragColor;\n"
@@ -37,7 +38,7 @@ CFoo::CFoo()
 
 	auto S = std::make_shared<Shader>();
 	S->Load(vertexShaderSource, fragmentShaderSource);
-	AddConcept<SpriteSquare>()->SetShader(S);
+	AddConcept<SpriteSquare>(100, 100)->SetShader(S);
 
 	spdlog::info("CFoo concept constructor returned");
 }

@@ -7,6 +7,10 @@
 #include <Engine/Engine.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <spdlog/spdlog.h>
 
 DEFINE_CONCEPT(Sprite, ConceptRenderable)
@@ -28,7 +32,15 @@ Sprite::Render()
 {
 	if (m_Shader != nullptr)
 	{
+		const auto Dimensions = Engine::GetEngine()->GetMainWindowViewPortDimensions();
+
 		m_Shader->Bind();
+		glm::mat4 Projection = glm::ortho(0.f,
+		                                  static_cast<float>(Dimensions.first),
+		                                  0.f,
+		                                  static_cast<float>(Dimensions.second),
+		                                  -1.f, 1.f);
+		m_Shader->SetMat4("projectionMatrix", Projection);
 	}
 }
 

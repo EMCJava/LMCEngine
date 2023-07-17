@@ -9,9 +9,16 @@
 class SpriteSquare : public Sprite
 {
 	DECLARE_CONCEPT(SpriteSquare, Sprite)
+
 public:
-	SpriteSquare();
+	SpriteSquare(int Width, int Height);
 
 	virtual void
 	Render();
+
+	virtual void
+	SetupSprite();
+
+private:
+	int m_Width = 0, m_Height = 0;
 };
