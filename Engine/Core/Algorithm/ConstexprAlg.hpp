@@ -13,10 +13,43 @@ struct ConstexprContainer {
 	}
 };
 
-template<typename Container1, typename Container2>
+template<typename... Containers>
 struct CombineContainers;
 
-template<auto... A, auto... B>
-struct CombineContainers<ConstexprContainer<A...>, ConstexprContainer<B...>> {
-	using type = ConstexprContainer<A..., B...>;
+template<auto... A>
+struct CombineContainers<ConstexprContainer<A...>> {
+	using type = ConstexprContainer<A...>;
+};
+
+template<auto... A, auto... B, typename... Rest>
+struct CombineContainers<ConstexprContainer<A...>, ConstexprContainer<B...>, Rest...> {
+	using type = typename CombineContainers<ConstexprContainer<A..., B...>, Rest...>::type;
+};
+
+template<template<typename> typename ValueWrapper, template<typename> typename SetWrapper, typename... Containers>
+struct CombineContainersWrap;
+
+template<template<typename> typename ValueWrapper, template<typename> typename SetWrapper>
+struct CombineContainersWrap<ValueWrapper, SetWrapper> {
+	using type = ConstexprContainer<>;
+};
+
+template<template<typename> typename ValueWrapper, template<typename> typename SetWrapper, typename A>
+struct CombineContainersWrap<ValueWrapper, SetWrapper, A> {
+	using type = CombineContainers<ConstexprContainer<ValueWrapper<A>::Value>, typename SetWrapper<A>::Container>::type;
+};
+
+template<template<typename> typename ValueWrapper, template<typename> typename SetWrapper, typename A, typename B, typename... Rest>
+struct CombineContainersWrap<ValueWrapper, SetWrapper, A, B, Rest...> {
+	using type = typename CombineContainers<
+	    typename CombineContainersWrap<ValueWrapper, SetWrapper, A>::type,
+	    typename CombineContainersWrap<ValueWrapper, SetWrapper, B, Rest...>::type>::type;
+};
+
+template<template<typename> typename ValueWrapper, template<typename> typename SetWrapper, typename... Containers>
+struct CombineContainersWrapExcludeFirst;
+
+template<template<typename> typename ValueWrapper, template<typename> typename SetWrapper, typename A, typename B, typename... Rest>
+struct CombineContainersWrapExcludeFirst<ValueWrapper, SetWrapper, A, B, Rest...> {
+	using type = typename CombineContainers<ConstexprContainer<ValueWrapper<A>::Value>, typename CombineContainersWrap<ValueWrapper, SetWrapper, B, Rest...>::type>::type;
 };

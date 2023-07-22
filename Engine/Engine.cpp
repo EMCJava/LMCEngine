@@ -15,6 +15,7 @@
 #include <spdlog/spdlog.h>
 
 #include <Engine/Core/Graphic/HotReloadFrameBuffer/HotReloadFrameBuffer.hpp>
+#include <Engine/Core/Graphic/Sprites/SpriteSquare.hpp>
 #include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
 #include <Engine/Core/Environment/Environment.hpp>
 #include <Engine/Core/Runtime/DynamicLibrary/DynamicConcept.hpp>
@@ -24,7 +25,7 @@
 #include <Engine/Core/Project/Project.hpp>
 #include <Engine/Core/Concept/ConceptSetFetchCache.hpp>
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
-#include <Engine/Core/Concept/ConceptCoordinate.hpp>
+#include <Engine/Core/Concept/PureConceptCoordinate.hpp>
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
@@ -158,8 +159,8 @@ Engine::UpdateRootConcept()
 			ResetTimer();
 		}
 
-		auto *const Coordinate = RootConcept->GetConcept<ConceptCoordinate>();
-		Coordinate->GetCoordinate().X += 1;
+		auto *const Renderable = RootConcept->GetConcept<Sprite>();
+		Renderable->GetCoordinate().X += 1;
 
 		RootConcept.As<ConceptApplicable>()->Apply();
 	}

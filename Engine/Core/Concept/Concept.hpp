@@ -23,7 +23,6 @@ class Concept
 
 public:
 	Concept();
-	virtual ~Concept() = default;
 
 	/*
 	 *

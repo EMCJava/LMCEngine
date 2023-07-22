@@ -4,18 +4,18 @@
 
 #pragma once
 
+#include <Engine/Core/Concept/PureConceptCoordinate.hpp>
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 
 #include <memory>
 
-class Sprite : public ConceptRenderable
+class Sprite : public ConceptRenderable, public PureConceptCoordinate
 {
 	DECLARE_CONCEPT(Sprite, ConceptRenderable)
 
 public:
 	Sprite() = default;
-	~Sprite();
 
 	void
 	Render() override;

@@ -1,1 +1,2 @@
+add_subdirectory(Assertion)
 add_subdirectory(DynamicLibrary)

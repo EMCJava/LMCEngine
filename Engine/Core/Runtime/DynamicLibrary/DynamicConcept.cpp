@@ -87,7 +87,6 @@ DynamicConcept::DeAllocateConcept()
 	{
 		REQUIRED(m_DeAllocator != nullptr);
 		m_DeAllocator(m_Concept);
+		m_Concept = nullptr;
 	}
-
-	m_Concept = nullptr;
 }

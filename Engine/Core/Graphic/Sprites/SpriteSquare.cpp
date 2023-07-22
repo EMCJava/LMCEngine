@@ -9,7 +9,7 @@
 
 #include <spdlog/spdlog.h>
 
-DEFINE_CONCEPT(SpriteSquare, Sprite)
+DEFINE_CONCEPT_DS(SpriteSquare, Sprite)
 
 SpriteSquare::SpriteSquare(int Width, int Height) : m_Width(Width), m_Height(Height)
 {

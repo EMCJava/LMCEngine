@@ -4,4 +4,4 @@
 
 #include "ConceptRenderable.hpp"
 
-DEFINE_CONCEPT(ConceptRenderable, Concept)
+DEFINE_CONCEPT_DS(ConceptRenderable, Concept)

@@ -1,6 +1,6 @@
 add_library(Concept.lib Concept.hpp Concept.cpp)
 add_library(ConceptApplicable.lib ConceptApplicable.hpp ConceptApplicable.cpp)
-add_library(ConceptCoordinate.lib ConceptCoordinate.hpp ConceptCoordinate.cpp)
+add_library(ConceptCoordinate.lib PureConceptCoordinate.hpp PureConceptCoordinate.cpp)
 add_library(ConceptRenderable.lib ConceptRenderable.hpp ConceptRenderable.cpp)
 add_library(ConceptSetFetchCache.lib ConceptSetFetchCache.hpp ConceptFetchCache.cpp)
 

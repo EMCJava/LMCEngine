@@ -12,7 +12,6 @@ class CFoo : public ConceptApplicable
 
 public:
 	CFoo();
-	~CFoo() override;
 
 	void
 	Apply() override;

@@ -35,11 +35,7 @@ Sprite::Render()
 		const auto Dimensions = Engine::GetEngine()->GetMainWindowViewPortDimensions();
 
 		m_Shader->Bind();
-		glm::mat4 Projection = glm::ortho(0.f,
-		                                  static_cast<float>(Dimensions.first),
-		                                  0.f,
-		                                  static_cast<float>(Dimensions.second),
-		                                  -1.f, 1.f);
+		glm::mat4 Projection = glm::ortho<float>(0, Dimensions.first, 0, Dimensions.second, -1, 1);
 		m_Shader->SetMat4("projectionMatrix", Projection);
 	}
 }

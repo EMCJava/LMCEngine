@@ -6,12 +6,10 @@
 
 #include "Concept.hpp"
 
-// #include <spdlog/spdlog.h>
 #include <spdlog/fmt/fmt.h>
 
-class ConceptCoordinate : public Concept
+class PureConceptCoordinate
 {
-	DECLARE_CONCEPT(ConceptCoordinate, Concept)
 public:
 	struct Coordinate {
 		FloatTy X = 0, Y = 0, Z = 0;
@@ -28,9 +26,9 @@ private:
 };
 
 template<>
-struct fmt::formatter<ConceptCoordinate::Coordinate> : fmt::formatter<std::string> {
+struct fmt::formatter<PureConceptCoordinate::Coordinate> : fmt::formatter<std::string> {
 	static auto
-	format(const ConceptCoordinate::Coordinate &C, format_context &ctx) -> decltype(ctx.out())
+	format(const PureConceptCoordinate::Coordinate &C, format_context &ctx) -> decltype(ctx.out())
 	{
 		return fmt::format_to(ctx.out(), "[Coordinate X={} Y={} Z={}]", C.X, C.Y, C.Z);
 	}

@@ -5,7 +5,7 @@
 #include "CFoo.hpp"
 
 #include <Engine/Engine.hpp>
-#include <Engine/Core/Concept/ConceptCoordinate.hpp>
+#include <Engine/Core/Concept/PureConceptCoordinate.hpp>
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
@@ -34,8 +34,6 @@ CFoo::CFoo()
 {
 	spdlog::info("CFoo concept constructor called");
 
-	AddConcept<ConceptCoordinate>()->GetCoordinate();
-
 	auto S = std::make_shared<Shader>();
 	S->Load(vertexShaderSource, fragmentShaderSource);
 	AddConcept<SpriteSquare>(100, 100)->SetShader(S);
@@ -51,7 +49,7 @@ CFoo::~CFoo()
 void
 CFoo::Apply()
 {
-	//	spdlog::info("CFoo concept Apply() called, DeltaTime: {}, Coordinate: {}",
-	//	             Engine::GetEngine()->GetDeltaSecond(),
-	//	             GetConcept<ConceptCoordinate>()->GetCoordinate());
+	spdlog::info("DeltaTime: {}, Coordinate: {}",
+	             Engine::GetEngine()->GetDeltaSecond(),
+	             GetConcept<Sprite>()->GetCoordinate());
 }
