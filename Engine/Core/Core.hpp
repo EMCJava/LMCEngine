@@ -6,10 +6,39 @@
 
 #include <chrono>
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+//define something for Windows (32-bit and 64-bit, this part is common)
 #	define LMC_WIN
-#elif defined(linux) || defined(__linux) || defined(__linux__)
+#	ifdef _WIN64
+//define something for Windows (64-bit only)
+#	else
+//define something for Windows (32-bit only)
+#	endif
+#elif __APPLE__
+#	include <TargetConditionals.h>
+#	if TARGET_IPHONE_SIMULATOR
+// iOS, tvOS, or watchOS Simulator
+#	elif TARGET_OS_MACCATALYST
+// Mac's Catalyst (ports iOS API into Mac, like UIKit).
+#	elif TARGET_OS_IPHONE
+// iOS, tvOS, or watchOS device
+#	elif TARGET_OS_MAC
+#		define LMC_APPLE
+#	else
+#		error "Unknown Apple platform"
+#	endif
+#elif __ANDROID__
+// Below __linux__ check should be enough to handle Android,
+// but something may be unique to Android.
+#elif __linux__
+// linux
 #	define LMC_LINUX
+#elif __unix__// all unices not caught above
+// Unix
+#elif defined(_POSIX_VERSION)
+// POSIX
+#else
+#	error "Unknown compiler"
 #endif
 
 #if defined(LMC_WIN)
@@ -36,9 +65,15 @@
 #	endif
 #elif defined(LMC_LINUX)
 #	ifdef __cplusplus
-#		define MY_API extern "C" inline
+#		define LMC_API extern "C" inline
 #	else
-#		define MY_API inline
+#		define LMC_API inline
+#	endif
+#elif defined(LMC_APPLE)
+#	ifdef __cplusplus
+#		define LMC_API extern "C" __attribute__((visibility("default")))
+#	else
+#		define LMC_API
 #	endif
 #endif
 

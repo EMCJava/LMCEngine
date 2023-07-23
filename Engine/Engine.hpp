@@ -187,5 +187,5 @@ private:
 	 * Global instance of the engine
 	 *
 	 * */
-	static Engine *g_Engine;
+	inline static Engine *g_Engine = nullptr;
 };

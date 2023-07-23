@@ -36,7 +36,7 @@ struct CombineContainersWrap<ValueWrapper, SetWrapper> {
 
 template<template<typename> typename ValueWrapper, template<typename> typename SetWrapper, typename A>
 struct CombineContainersWrap<ValueWrapper, SetWrapper, A> {
-	using type = CombineContainers<ConstexprContainer<ValueWrapper<A>::Value>, typename SetWrapper<A>::Container>::type;
+	using type = typename CombineContainers<ConstexprContainer<ValueWrapper<A>::Value>, typename SetWrapper<A>::Container>::type;
 };
 
 template<template<typename> typename ValueWrapper, template<typename> typename SetWrapper, typename A, typename B, typename... Rest>

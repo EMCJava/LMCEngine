@@ -52,13 +52,23 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(nativefiledialog)
 
-file(GLOB nativefiledialog_source
-        ${nativefiledialog_SOURCE_DIR}/src/nfd_common.c
-        ${nativefiledialog_SOURCE_DIR}/src/nfd_win.cpp
-        )
+if(WIN32)
+    file(GLOB nativefiledialog_source
+            ${nativefiledialog_SOURCE_DIR}/src/nfd_common.c
+            ${nativefiledialog_SOURCE_DIR}/src/nfd_win.cpp
+            )
+elseif(APPLE)
+    file(GLOB nativefiledialog_source
+            ${nativefiledialog_SOURCE_DIR}/src/nfd_common.c
+            ${nativefiledialog_SOURCE_DIR}/src/nfd_cocoa.m
+            )
+elseif(UNIX)
+    message(FATAL_ERROR Not yet tested on linux platform)
+endif()
 
 add_library(nativefiledialog.lib STATIC ${nativefiledialog_source})
 target_include_directories(nativefiledialog.lib PUBLIC ${nativefiledialog_SOURCE_DIR}/src/include)
+target_link_libraries(nativefiledialog.lib "-framework AppKit")
 
 
 ## -------------- spdlog --------------

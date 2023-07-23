@@ -4,9 +4,19 @@
 
 #include "GLFWWindow.hpp"
 
+#include <Engine/Core/Core.hpp>
+
 #include <GLFW/glfw3.h>
 
+#include <spdlog/spdlog.h>
+
 #include <stdexcept>
+
+static void
+glfw_error_callback(int error, const char *description)
+{
+	spdlog::error("Error: {}", description);
+}
 
 void
 InitializeWindowEnvironment()
@@ -15,6 +25,8 @@ InitializeWindowEnvironment()
 	{
 		throw std::runtime_error("Failed to initialize GLFW");
 	}
+
+	glfwSetErrorCallback(glfw_error_callback);
 }
 
 void
@@ -63,8 +75,14 @@ Window::~Window()
 void
 Window::CreateWindow()
 {
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+#ifdef LMC_APPLE
+	/* We need to explicitly ask for a 3.3 context on OS X */
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif
+
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	if (m_Fullscreen)

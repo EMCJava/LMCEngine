@@ -31,7 +31,9 @@
 
 #include <regex>
 
-Engine *Engine::g_Engine = nullptr;
+// For some reason, the following initialization will create multiple static variable for different translation unit on MAC
+// So now we are using inline in header file instead
+// Engine *Engine::g_Engine = nullptr;
 
 Engine::Engine()
 {

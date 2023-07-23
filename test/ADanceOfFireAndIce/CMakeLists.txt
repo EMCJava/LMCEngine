@@ -16,8 +16,9 @@ include(functions)
 include(defines)
 
 ## ---------- Shared source (Hot reload) setting ----------
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 file(RELATIVE_PATH RELATIVE_BINARY_DIR ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-set(SHARED_BINARY_PATH_FORMAT "${RELATIVE_BINARY_DIR}/Source/{}.lib${CMAKE_SHARED_LIBRARY_SUFFIX}")
+set(SHARED_BINARY_PATH_FORMAT "${RELATIVE_BINARY_DIR}/Source/${CMAKE_SHARED_LIBRARY_PREFIX}{}.lib${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
 ## Write hot reload config in the project config file
 file(READ ${GAME_CONFIG_PATH} project_config_data)

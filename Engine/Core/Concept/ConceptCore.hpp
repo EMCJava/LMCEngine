@@ -20,7 +20,7 @@
 
 template<typename C>
 struct ConceptParentSetWrapper {
-	using Container = C::ParentSet;
+	using Container = typename C::ParentSet;
 };
 
 template<typename C>
