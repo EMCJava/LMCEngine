@@ -16,7 +16,7 @@ public:
 	virtual void
 	Render();
 
-	virtual void
+	void
 	SetupSprite();
 
 private:
