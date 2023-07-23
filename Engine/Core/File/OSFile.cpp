@@ -4,14 +4,13 @@
 
 #include "OSFile.hpp"
 
-#include <nfd.h>
 #include <stdexcept>
 
 std::string
-OSFile::PickFile(const char *filter, const char *default_path)
+OSFile::PickFile(const std::vector<nfdfilteritem_t>& filter, const char *default_path)
 {
 	nfdchar_t *outPath = nullptr;
-	nfdresult_t result = NFD_OpenDialog(filter, default_path, &outPath);
+	nfdresult_t result = NFD::OpenDialog(outPath, filter.data(), filter.size(), default_path);
 
 	if (result == NFD_OKAY)
 	{
@@ -31,10 +30,10 @@ OSFile::PickFile(const char *filter, const char *default_path)
 }
 
 std::string
-OSFile::SaveFile(const char *filter, const char *default_path)
+OSFile::SaveFile(const std::vector<nfdfilteritem_t>& filter, const char *default_path)
 {
 	nfdchar_t *outPath = nullptr;
-	nfdresult_t result = NFD_SaveDialog(filter, default_path, &outPath);
+	nfdresult_t result = NFD::OpenDialog(outPath, filter.data(), filter.size(), default_path);
 
 	if (result == NFD_OKAY)
 	{

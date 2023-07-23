@@ -46,30 +46,15 @@ target_include_directories(glad.lib PUBLIC .)
 ## -------------- nativefiledialog --------------
 FetchContent_Declare(
         nativefiledialog
-        GIT_REPOSITORY https://github.com/mlabbe/nativefiledialog.git
+        GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
         GIT_TAG master
 )
 
 FetchContent_MakeAvailable(nativefiledialog)
 
-if(WIN32)
-    file(GLOB nativefiledialog_source
-            ${nativefiledialog_SOURCE_DIR}/src/nfd_common.c
-            ${nativefiledialog_SOURCE_DIR}/src/nfd_win.cpp
-            )
-elseif(APPLE)
-    file(GLOB nativefiledialog_source
-            ${nativefiledialog_SOURCE_DIR}/src/nfd_common.c
-            ${nativefiledialog_SOURCE_DIR}/src/nfd_cocoa.m
-            )
-elseif(UNIX)
-    message(FATAL_ERROR Not yet tested on linux platform)
+if(APPLE)
+    target_link_libraries(nfd PRIVATE "-framework AppKit" "-framework UniformTypeIdentifiers")
 endif()
-
-add_library(nativefiledialog.lib STATIC ${nativefiledialog_source})
-target_include_directories(nativefiledialog.lib PUBLIC ${nativefiledialog_SOURCE_DIR}/src/include)
-target_link_libraries(nativefiledialog.lib "-framework AppKit")
-
 
 ## -------------- spdlog --------------
 FetchContent_Declare(

@@ -43,7 +43,7 @@ EditorWindow::Update()
 			if (ImGui::MenuItem("Open project"))
 			{
 				spdlog::info("Open project");
-				const auto ProjectPath = OSFile::PickFile("lmce");
+				const auto ProjectPath = OSFile::PickFile({{"LMCEngine project file", "lmce"}});
 				if (ProjectPath.empty())
 				{
 					spdlog::info("Operation cancelled");
@@ -91,7 +91,7 @@ EditorWindow::Update()
 						DefaultPath = DefaultPathStr.c_str();
 					}
 
-					const auto SaveLocation = OSFile::SaveFile("ini", DefaultPath);
+					const auto SaveLocation = OSFile::SaveFile({{"Layout init file", "ini"}}, DefaultPath);
 					if (!SaveLocation.empty())
 					{
 						ImGui::SaveIniSettingsToDisk(SaveLocation.c_str());
@@ -101,7 +101,7 @@ EditorWindow::Update()
 
 				if (ImGui::MenuItem("Load Layout"))
 				{
-					const auto LoadLocation = OSFile::PickFile("ini");
+					const auto LoadLocation = OSFile::PickFile({{"Layout init file", "ini"}});
 					if (!LoadLocation.empty())
 					{
 						Engine::GetEngine()->GetProject()->GetConfig().editor_layout_path = LoadLocation;
