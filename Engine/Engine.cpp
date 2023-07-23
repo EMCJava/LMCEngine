@@ -149,7 +149,7 @@ Engine::UpdateRootConcept()
 		if (RootConcept.ShouldReload())
 		{
 			spdlog::info("RootConcept changes detected, hot reloading");
-			RootConcept.Reload(true);
+			RootConcept.Reload(false);
 
 			/*
 			 *
