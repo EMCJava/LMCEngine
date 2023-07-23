@@ -12,6 +12,8 @@
 
 #include <dlfcn.h>
 
+#define SHARING_VIOLATION EBUSY
+
 namespace
 {
 namespace fs = std::filesystem;
@@ -131,23 +133,14 @@ DynamicLibrary::MakeDLLCopy()
 				return true;
 			}
 
-			spdlog::error("DynamicLibrary::MakeDLLCopy: Not copying file, {}", OperationError.message());
-			spdlog::error("Error code is {}", OperationError.value());
-			spdlog::error("Error code is {}", OperationError.value());
-			spdlog::error("Error code is {}", OperationError.value());
-			spdlog::error("Error code is {}", OperationError.value());
-			spdlog::error("Error code is {}", OperationError.value());
-			spdlog::error("Error code is {}", OperationError.value());
-			spdlog::error("Error code is {}", OperationError.value());
-			spdlog::error("Error code is {}", OperationError.value());
-			spdlog::error("Error code is {}", OperationError.value());
-//			if (retry_left >= 1 && SHARING_VIOLATION == OperationError.value())
-//			{
-//				spdlog::error("DynamicLibrary::MakeDLLCopy: File accessing by another process, retry remaining #{}", retry_left);
-//				std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//				retry_left--;
-//				return false;
-//			}
+			spdlog::error("DynamicLibrary::MakeDLLCopy: Not copying file, {}({})", OperationError.message(), OperationError.value());
+			if (retry_left >= 1 && SHARING_VIOLATION == OperationError.value())
+			{
+				spdlog::error("DynamicLibrary::MakeDLLCopy: File accessing by another process, retry remaining #{}", retry_left);
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				retry_left--;
+				return false;
+			}
 
 			// Gave up
 		}
@@ -168,23 +161,14 @@ DynamicLibrary::MakeDLLCopy()
 			std::error_code OperationError;
 			if (!fs::remove(DLLFileDebugInfo, OperationError))
 			{
-				spdlog::error("DynamicLibrary::MakeDLLCopy: Failed to remove debug info, further hot reloading may fail, {}", OperationError.message());
-				spdlog::error("Error code is {}", OperationError.value());
-				spdlog::error("Error code is {}", OperationError.value());
-				spdlog::error("Error code is {}", OperationError.value());
-				spdlog::error("Error code is {}", OperationError.value());
-				spdlog::error("Error code is {}", OperationError.value());
-				spdlog::error("Error code is {}", OperationError.value());
-				spdlog::error("Error code is {}", OperationError.value());
-				spdlog::error("Error code is {}", OperationError.value());
-				spdlog::error("Error code is {}", OperationError.value());
-//				if (retry_left >= 1 && SHARING_VIOLATION == OperationError.value())
-//				{
-//					spdlog::error("DynamicLibrary::MakeDLLCopy: File accessing by another process, retry remaining #{}", retry_left);
-//					std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//					retry_left--;
-//					return false;
-//				}
+				spdlog::error("DynamicLibrary::MakeDLLCopy: Failed to remove debug info, further hot reloading may fail, {}({})", OperationError.message(), OperationError.value());
+				if (retry_left >= 1 && SHARING_VIOLATION == OperationError.value())
+				{
+					spdlog::error("DynamicLibrary::MakeDLLCopy: File accessing by another process, retry remaining #{}", retry_left);
+					std::this_thread::sleep_for(std::chrono::milliseconds(100));
+					retry_left--;
+					return false;
+				}
 
 				// Gave up
 			}
