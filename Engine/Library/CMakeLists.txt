@@ -79,6 +79,24 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(json)
 
+## -------------- stb --------------
+FetchContent_Declare(
+        stb
+        GIT_REPOSITORY https://github.com/nothings/stb.git
+        GIT_TAG master
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+)
+
+FetchContent_GetProperties(stb)
+if(NOT stb_POPULATED)
+    FetchContent_Populate(stb)
+endif()
+
+add_library(stb INTERFACE)
+target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
+target_compile_definitions(stb INTERFACE STB_IMAGE_IMPLEMENTATION)
+
 ## -------------- glm --------------
 FetchContent_Declare(
         glm

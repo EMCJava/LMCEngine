@@ -13,12 +13,12 @@ class SpriteSquare : public Sprite
 public:
 	SpriteSquare(int Width, int Height);
 
-	virtual void
-	Render();
+	void
+	Render() override;
 
 	void
-	SetupSprite();
+	SetupSprite() override;
 
-private:
+protected:
 	int m_Width = 0, m_Height = 0;
 };

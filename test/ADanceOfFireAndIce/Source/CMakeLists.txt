@@ -13,6 +13,7 @@ declare_library(
         glad.lib
         Shader.lib
         SpriteSquare.lib
+        SpriteSquareTexture.lib
 
         DEPS
         ConceptApplicable.lib
