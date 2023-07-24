@@ -56,9 +56,9 @@ CFoo::CFoo()
 
 	auto S = std::make_shared<Shader>();
 	S->Load(vertexTextureShaderSource, fragmentTextureShaderSource);
-	auto *Sp = AddConcept<SpriteSquareTexture>(100, 100);
+	auto *Sp = AddConcept<SpriteSquareTexture>(192 * 3, 108 * 3);
 	Sp->SetShader(S);
-	Sp->SetTexturePath("/Users/lys/Documents/Wallpapers/cat_minimal.jpg");
+	Sp->SetTexturePath("Access/Texture/cat_minimal.jpg");
 	Sp->SetupSprite();
 
 	spdlog::info("CFoo concept constructor returned");
