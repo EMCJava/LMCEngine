@@ -220,8 +220,6 @@ Engine::Render()
 		{
 			// we rescale the framebuffer to the actual window size here and reset the glViewport
 			const auto MainViewPortDimensions = m_MainWindow->GetHowReloadWindowDimensions();
-			m_GLContext->Viewport(0, 0, MainViewPortDimensions.first, MainViewPortDimensions.second);
-
 			m_HRFrameBuffer->BindFrameBuffer();
 			if (m_MainViewPortDimensions != MainViewPortDimensions)
 			{
@@ -233,6 +231,10 @@ Engine::Render()
 			 * Render every registered ConceptRenderable
 			 *
 			 * */
+			m_GLContext->Viewport(0, 0, MainViewPortDimensions.first, MainViewPortDimensions.second);
+			m_GLContext->ClearColor(0, 0, 0, 0);
+			m_GLContext->Clear(GL_COLOR_BUFFER_BIT);
+
 			g_ConceptRenderables.ForEach([](ConceptRenderable *item) {
 				item->Render();
 			});

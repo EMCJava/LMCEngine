@@ -35,8 +35,12 @@ Sprite::Render()
 		const auto Dimensions = Engine::GetEngine()->GetMainWindowViewPortDimensions();
 
 		m_Shader->Bind();
-		glm::mat4 Projection = glm::ortho<float>(0, Dimensions.first, 0, Dimensions.second, -1, 1);
+		auto Projection = glm::ortho<float>(0, Dimensions.first, 0, Dimensions.second, -1, 1);
 		m_Shader->SetMat4("projectionMatrix", Projection);
+
+		auto Model = glm::translate(glm::mat4(1), glm::vec3(m_Coordinate.X, m_Coordinate.Y, 0));
+		m_Shader->SetMat4("modelMatrix", Model);
+
 	}
 }
 

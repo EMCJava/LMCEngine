@@ -17,28 +17,15 @@
 
 DEFINE_CONCEPT_MA_SE(CFoo, Concept)
 
-const char *vertexShaderSource = "#version 330 core\n"
-                                 "layout (location = 0) in vec3 aPos;\n"
-                                 "uniform mat4 projectionMatrix;\n"
-                                 "void main()\n"
-                                 "{\n"
-                                 "   gl_Position = projectionMatrix * vec4(aPos, 1.0);\n"
-                                 "}\0";
-const char *fragmentShaderSource = "#version 330 core\n"
-                                   "out vec4 FragColor;\n"
-                                   "void main()\n"
-                                   "{\n"
-                                   "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-                                   "}\n\0";
-
 const char *vertexTextureShaderSource = "#version 330 core\n"
                                         "layout (location = 0) in vec3 aPos;\n"
                                         "layout (location = 1) in vec2 aTexCoord;\n"
                                         "out vec2 TexCoord;\n"
                                         "uniform mat4 projectionMatrix;\n"
+                                        "uniform mat4 modelMatrix;\n"
                                         "void main()\n"
                                         "{\n"
-                                        "   gl_Position = projectionMatrix * vec4(aPos, 1.0);\n"
+                                        "   gl_Position = projectionMatrix * modelMatrix * vec4(aPos, 1.0);\n"
                                         "   TexCoord = aTexCoord;\n"
                                         "}\0";
 const char *fragmentTextureShaderSource = "#version 330 core\n"

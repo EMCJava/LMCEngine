@@ -21,7 +21,7 @@ public:
 	Coordinate &
 	GetCoordinate();
 
-private:
+protected:
 	Coordinate m_Coordinate{};
 };
 
