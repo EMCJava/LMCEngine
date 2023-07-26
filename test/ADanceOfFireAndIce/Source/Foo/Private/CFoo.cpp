@@ -41,12 +41,23 @@ CFoo::CFoo()
 {
 	spdlog::info("CFoo concept constructor called");
 
-	auto S = std::make_shared<Shader>();
-	S->Load(vertexTextureShaderSource, fragmentTextureShaderSource);
-	auto *Sp = AddConcept<SpriteSquareTexture>(192 * 3, 108 * 3);
-	Sp->SetShader(S);
-	Sp->SetTexturePath("Access/Texture/cat_minimal.jpg");
-	Sp->SetupSprite();
+	auto S1 = std::make_shared<Shader>();
+	S1->Load(vertexTextureShaderSource, fragmentTextureShaderSource);
+	auto *Sp1 = AddConcept<SpriteSquareTexture>(192 * 3, 108 * 3);
+	Sp1->GetCoordinate().X = 192 * 1.5;
+	Sp1->GetCoordinate().Y = -108 * 1.5 - 50;
+	Sp1->SetShader(S1);
+	Sp1->SetTexturePath("Access/Texture/cat_minimal.jpg");
+	Sp1->SetupSprite();
+
+	auto S2 = std::make_shared<Shader>();
+	S2->Load(vertexTextureShaderSource, fragmentTextureShaderSource);
+	auto *Sp2 = AddConcept<SpriteSquareTexture>(192 * 3, 108 * 3);
+	Sp1->GetCoordinate().X = 192 * 1.5;
+	Sp2->GetCoordinate().Y = 108 * 1.5 + 50;
+	Sp2->SetShader(S2);
+	Sp2->SetTexturePath("Access/Texture/cat_minimal.jpg");
+	Sp2->SetupSprite();
 
 	spdlog::info("CFoo concept constructor returned");
 }
@@ -59,7 +70,10 @@ CFoo::~CFoo()
 void
 CFoo::Apply()
 {
-	GetConcept<Sprite>()->GetCoordinate().X += Engine::GetEngine()->GetDeltaSecond();
+	std::vector<Sprite*> Sps;
+	GetConcepts(Sps);
+	Sps[0]->GetCoordinate().X += Engine::GetEngine()->GetDeltaSecond();
+	Sps[1]->GetCoordinate().X -= Engine::GetEngine()->GetDeltaSecond();
 
 	spdlog::info("DeltaTime: {}, Coordinate: {}",
 	             Engine::GetEngine()->GetDeltaSecond(),
