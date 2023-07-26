@@ -161,9 +161,6 @@ Engine::UpdateRootConcept()
 			ResetTimer();
 		}
 
-		auto *const Renderable = RootConcept->GetConcept<Sprite>();
-		Renderable->GetCoordinate().X += 1;
-
 		RootConcept.As<ConceptApplicable>()->Apply();
 	}
 }

@@ -59,6 +59,8 @@ CFoo::~CFoo()
 void
 CFoo::Apply()
 {
+	GetConcept<Sprite>()->GetCoordinate().X += Engine::GetEngine()->GetDeltaSecond();
+
 	spdlog::info("DeltaTime: {}, Coordinate: {}",
 	             Engine::GetEngine()->GetDeltaSecond(),
 	             GetConcept<Sprite>()->GetCoordinate());
