@@ -2,6 +2,6 @@
 
 #ifdef LMC_WIN
 #	include "DynamicLibraryImpl/DynamicLibraryWin.inl"
-#elifdef LMC_APPLE // Should be working also on linux platform, not yet tried
+#elif defined(LMC_APPLE) // Should be working also on linux platform, not yet tried
 #	include "DynamicLibraryImpl/DynamicLibraryAPPLE.inl"
 #endif
