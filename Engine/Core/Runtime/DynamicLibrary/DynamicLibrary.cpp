@@ -15,12 +15,14 @@ static_assert(false, "Platform not defined");
 #	include <windows.h>
 #	define SHARING_VIOLATION 32L
 #elif defined(LMC_APPLE)// Should be working also on linux platform, not yet tried
+#	include <dlfcn.h>
 #	define SHARING_VIOLATION EBUSY
 #endif
 
 #include <spdlog/spdlog.h>
 
 #include <filesystem>
+#include <algorithm>
 
 namespace
 {
