@@ -7,6 +7,7 @@
 #include <nfd.hpp>
 
 #include <string>
+#include <vector>
 
 namespace OSFile
 {

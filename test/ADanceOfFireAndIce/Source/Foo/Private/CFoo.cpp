@@ -41,8 +41,11 @@ CFoo::CFoo()
 {
 	spdlog::info("CFoo concept constructor called");
 
+	auto SProgram = std::make_shared<ShaderProgram>();
+	SProgram->Load(vertexTextureShaderSource, fragmentTextureShaderSource);
+
 	auto S1 = std::make_shared<Shader>();
-	S1->Load(vertexTextureShaderSource, fragmentTextureShaderSource);
+	S1->SetProgram(SProgram);
 	auto *Sp1 = AddConcept<SpriteSquareTexture>(192 * 3, 108 * 3);
 	Sp1->GetCoordinate().X = 192 * 1.5;
 	Sp1->GetCoordinate().Y = -108 * 1.5 - 50;
@@ -51,7 +54,7 @@ CFoo::CFoo()
 	Sp1->SetupSprite();
 
 	auto S2 = std::make_shared<Shader>();
-	S2->Load(vertexTextureShaderSource, fragmentTextureShaderSource);
+	S2->SetProgram(SProgram);
 	auto *Sp2 = AddConcept<SpriteSquareTexture>(192 * 3, 108 * 3);
 	Sp1->GetCoordinate().X = 192 * 1.5;
 	Sp2->GetCoordinate().Y = 108 * 1.5 + 50;

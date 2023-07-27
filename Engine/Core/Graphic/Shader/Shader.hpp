@@ -4,22 +4,18 @@
 
 #pragma once
 
+#include "ShaderProgram.hpp"
+
 #include <glm/glm.hpp>
 
 #include <string>
 #include <cstdint>
+#include <memory>
 
 class Shader
 {
 public:
 	Shader() = default;
-	~Shader();
-
-	void
-	Load(const char *Vertex, const char *Fragment);
-
-	void
-	LoadFromFile(std::string_view VertexPath, std::string_view FragmentPath);
 
 	void
 	Bind() const;
@@ -34,6 +30,8 @@ public:
 
 	void SetMat4(const std::string &Name, const glm::mat4 &mat) const;
 
+	void SetProgram(std::shared_ptr<ShaderProgram> & SProgram);
+
 private:
-	uint32_t m_ProgramID = 0;
+	std::shared_ptr<ShaderProgram> m_ShaderProgram;
 };

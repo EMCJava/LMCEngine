@@ -9,6 +9,7 @@
 #include <spdlog/spdlog.h>
 
 #include <filesystem>
+#include <algorithm>
 
 #include <dlfcn.h>
 
