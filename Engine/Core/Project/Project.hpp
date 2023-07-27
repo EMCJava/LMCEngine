@@ -31,8 +31,8 @@ public:
 	void
 	SaveProject();
 
-	ProjectConfig &
-	GetConfig();
+	auto
+	GetConfig() -> ProjectConfig &;
 
 private:
 	ProjectConfig m_Config;

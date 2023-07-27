@@ -12,8 +12,24 @@
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ProjectConfig, project_name, root_concept)
 
-ProjectConfig &
-Project::GetConfig()
+namespace
+{
+nlohmann::json
+ReadJsonFile(const std::filesystem::path &Path)
+{
+	if (!std::filesystem::exists(Path))
+	{
+		spdlog::error("Attempting to read json file that does not exist: {}", Path.string());
+		return {};
+	}
+
+	std::ifstream ifs(Path);
+	return nlohmann::json::parse(ifs);
+}
+}// namespace
+
+auto
+Project::GetConfig() -> ProjectConfig &
 {
 	return m_Config;
 }
@@ -30,19 +46,23 @@ Project::LoadProject(const std::string &ProjectFilePath)
 		return;
 	}
 
-	std::ifstream ifs(ProjectFilePath);
-	const auto JSONConfig = nlohmann::json::parse(ifs);
-	m_Config = JSONConfig;
+	m_Config = ReadJsonFile(ProjectFilePath);
 
 	spdlog::info("Project name: {}", m_Config.project_name);
+	std::filesystem::path ProjectPath(ProjectFilePath);
+	ProjectPath = ProjectPath.parent_path();
 
-	m_Config.shared_library_path_format = JSONConfig["shared_library_path_" CMAKE_BUILD_TYPE "_format"];
+	// Setup project path config
+	{
+		auto ProjectPathConfigFile = ProjectPath / "ProjectCache/ProjectPath.config";
+		auto ProjectPathConfig = ReadJsonFile(ProjectPathConfigFile);
+
+		m_Config.shared_library_path_format = ProjectPathConfig["shared_library_path_" CMAKE_BUILD_TYPE "_format"];
+	}
 
 	if (m_Config.editor_layout_path.empty())
 	{
-		std::filesystem::path Path(ProjectFilePath);
-
-		const auto EditorLayoutPath = Path / "/Editor/layout.ini";
+		const auto EditorLayoutPath = ProjectPath / "Editor/layout.ini";
 		if (std::filesystem::exists(EditorLayoutPath))
 		{
 			m_Config.editor_layout_path = EditorLayoutPath.string();

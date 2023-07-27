@@ -1,6 +1,4 @@
 {
-  "project_name" : "A Dance of Fire and Ice",
-  "root_concept" : "Foo.CFoo",
-  "shared_library_path_Debug_format" : "build/debug/Source/lib{}.lib.dylib",
-  "shared_library_path_Release_format" : "build/release/Source/lib{}.lib.dylib"
+  "project_name": "A Dance of Fire and Ice",
+  "root_concept": "Foo.CFoo"
 }
