@@ -126,24 +126,42 @@ target_include_directories(irrklang INTERFACE ${irrklang_SOURCE_DIR}/include)
 set_target_properties(irrklang PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${irrklang_SOURCE_DIR}/include)
 
 if (WIN32)
-    set_target_properties(irrklang PROPERTIES IMPORTED_IMPLIB ${irrklang_SOURCE_DIR}/lib/Winx64-visualStudio/irrKlang.lib)
+    set_target_properties(irrklang PROPERTIES IMPORTED_IMPLIB ${irrklang_SOURCE_DIR}/lib/Winx64-visualStudio/audio.base.lib)
     set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll)
 
     add_custom_target(
             populate_irrklang
             COMMAND ${CMAKE_COMMAND} -E copy_if_different ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll ${CMAKE_BINARY_DIR}/.
     )
-
-    add_library(irrklang.lib INTERFACE)
-    target_link_libraries(irrklang.lib INTERFACE irrklang)
-    add_dependencies(irrklang.lib populate_irrklang)
-
-    target_compile_definitions(irrklang.lib INTERFACE USE_IRRKLANG)
-
 elseif (APPLE)
-    message(FATAL_ERROR "Platform not tested")
+    # message(FATAL_ERROR "CMAKE_OSX_ARCHITECTURES ${CMAKE_OSX_ARCHITECTURES}")
+
+    EXECUTE_PROCESS(COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE)
+    if (${ARCHITECTURE} STREQUAL "arm64")
+        message("Not support for arm64 on apple")
+
+        set(no_irrklang)
+    else ()
+        set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/macosx-gcc/libirrklang.dylib)
+    endif ()
+
+    add_custom_target(populate_irrklang)
 elseif (UNIX)
     message(FATAL_ERROR "Platform not tested")
 else ()
     message(FATAL_ERROR "No supported platform was detected")
+endif ()
+
+add_library(audio.base.lib INTERFACE)
+
+if (NOT ${no_irrklang})
+
+    add_library(audio.base.lib INTERFACE)
+    target_link_libraries(audio.base.lib INTERFACE irrklang)
+    add_dependencies(audio.base.lib populate_irrklang)
+
+    target_compile_definitions(audio.base.lib INTERFACE USE_IRRKLANG)
+
+else ()
+    target_compile_definitions(audio.base.lib INTERFACE NO_AUDIO_ENGINE)
 endif ()
