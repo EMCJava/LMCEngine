@@ -20,6 +20,7 @@ target_link_libraries(Engine.lib
         HotReloadFrameBuffer.lib
         ConceptRenderable.lib
         ConceptSetFetchCache.lib
+        Audio.lib
 
         SpriteSquare.lib
         )

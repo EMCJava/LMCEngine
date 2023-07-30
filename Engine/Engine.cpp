@@ -20,14 +20,13 @@
 #include <Engine/Core/Environment/Environment.hpp>
 #include <Engine/Core/Runtime/DynamicLibrary/DynamicConcept.hpp>
 #include <Engine/Core/Window/EditorWindow.hpp>
-#include <Engine/Core/Window/GameWindow.hpp>
 #include <Engine/Core/Window/WindowPool.hpp>
 #include <Engine/Core/Project/Project.hpp>
 #include <Engine/Core/Concept/ConceptSetFetchCache.hpp>
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
-#include <Engine/Core/Concept/PureConceptCoordinate.hpp>
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
+#include <Engine/Core/Audio/AudioEngine.hpp>
 
 #include <regex>
 
@@ -44,6 +43,8 @@ Engine::Engine()
 
 	spdlog::info("Engine initializing");
 	InitializeEnvironment();
+
+	m_AudioEngine = new AudioEngine;
 
 	m_MainWindow = new EditorWindow(1280, 720, "LMCEngine");
 
@@ -115,6 +116,9 @@ Engine::~Engine()
 
 	delete m_MainWindow;
 	m_MainWindow = nullptr;
+
+	delete m_AudioEngine;
+	m_AudioEngine = nullptr;
 
 	ShutdownEnvironment();
 }
@@ -395,4 +399,10 @@ std::pair<int, int>
 Engine::GetMainWindowViewPortDimensions() const
 {
 	return m_MainViewPortDimensions;
+}
+
+AudioEngine *
+Engine::GetAudioEngine()
+{
+	return m_AudioEngine;
 }

@@ -12,6 +12,7 @@
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquare.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
+#include <Engine/Core/Audio/AudioEngine.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -61,6 +62,9 @@ CFoo::CFoo()
 	Sp2->SetShader(S2);
 	Sp2->SetTexturePath("Access/Texture/cat_minimal.jpg");
 	Sp2->SetupSprite();
+
+	auto* BGS = Engine::GetEngine()->GetAudioEngine()->CreateAudioHandle("Access/Audio/FD.ogg");
+	Engine::GetEngine()->GetAudioEngine()->PlayAudio(BGS);
 
 	spdlog::info("CFoo concept constructor returned");
 }

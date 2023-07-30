@@ -108,6 +108,14 @@ public:
 	std::pair<int, int>
 	GetMainWindowViewPortDimensions() const;
 
+	/*
+	 *
+	 * Audio related
+	 *
+	 * */
+	class AudioEngine *
+	GetAudioEngine();
+
 private:
 	bool m_ShouldShutdown = false;
 
@@ -160,6 +168,13 @@ private:
 	CreateImGuiContext();
 	void
 	DestroyImGuiContext();
+
+	/*
+	 *
+	 * Audio
+	 *
+	 * */
+	class AudioEngine *m_AudioEngine = nullptr;
 
 	/*
 	 *
