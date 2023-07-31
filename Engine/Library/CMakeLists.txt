@@ -125,8 +125,10 @@ add_library(irrklang SHARED IMPORTED GLOBAL)
 target_include_directories(irrklang INTERFACE ${irrklang_SOURCE_DIR}/include)
 set_target_properties(irrklang PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${irrklang_SOURCE_DIR}/include)
 
+set(no_irrklang FALSE)
+
 if (WIN32)
-    set_target_properties(irrklang PROPERTIES IMPORTED_IMPLIB ${irrklang_SOURCE_DIR}/lib/Winx64-visualStudio/audio.base.lib)
+    set_target_properties(irrklang PROPERTIES IMPORTED_IMPLIB ${irrklang_SOURCE_DIR}/lib/Winx64-visualStudio/irrKlang.lib)
     set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll)
 
     add_custom_target(
@@ -140,7 +142,7 @@ elseif (APPLE)
     if (${ARCHITECTURE} STREQUAL "arm64")
         message("Not support for arm64 on apple")
 
-        set(no_irrklang)
+        set(no_irrklang TRUE)
     else ()
         set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/macosx-gcc/libirrklang.dylib)
     endif ()
@@ -156,7 +158,6 @@ add_library(audio.base.lib INTERFACE)
 
 if (NOT ${no_irrklang})
 
-    add_library(audio.base.lib INTERFACE)
     target_link_libraries(audio.base.lib INTERFACE irrklang)
     add_dependencies(audio.base.lib populate_irrklang)
 
