@@ -27,6 +27,7 @@
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 #include <Engine/Core/Audio/AudioEngine.hpp>
+#include <Engine/Core/Input/UserInput.hpp>
 
 #include <regex>
 
@@ -34,381 +35,420 @@
 // So now we are using inline in header file instead
 // Engine *Engine::g_Engine = nullptr;
 
-Engine::Engine()
+void
+Engine::OnKeyboardInput( GLFWwindow* window, int key, int scancode, int action, int mods )
 {
-	if (g_Engine != nullptr)
-	{
-		throw std::runtime_error("There is already a Engine instance!");
-	}
+    (void) ( scancode, mods );
+    static const auto* EnginePtr = Engine::GetEngine( );
 
-	spdlog::info("Engine initializing");
-	InitializeEnvironment();
+    switch ( action )
+    {
+    case GLFW_PRESS:
+        if ( key == GLFW_KEY_F11 )
+        {
+            // RecreateWindow
+        }
+        break;
+    case GLFW_RELEASE:
+    case GLFW_REPEAT:
+    default:
 
-	m_AudioEngine = new AudioEngine;
+        break;
+    }
 
-	m_MainWindow = new EditorWindow(1280, 720, "LMCEngine");
-
-	/*
-	 *
-	 * Initialize GLAD & ImGui
-	 *
-	 * */
-	m_GLContext = new GladGLContext;
-	[[maybe_unused]] int version = gladLoadGLContext(m_GLContext, glfwGetProcAddress);
-
-	// Setup Dear ImGui context
-	CreateImGuiContext();
-
-	m_MainWindowPool = new WindowPool;
-
-	m_HRFrameBuffer = new HotReloadFrameBuffer;
-
-	/*
-	 *
-	 * Engine
-	 *
-	 * */
-	m_ActiveProject = new Project;
-
-	g_Engine = this;
-
-	/*
-	 *
-	 * The following code depends on engine context
-	 *
-	 * */
-
-	const auto WindowDimensions = m_MainWindow->GetDimensions();
-	m_HRFrameBuffer->CreateFrameBuffer(WindowDimensions.first, WindowDimensions.second);
+    if ( action != GLFW_REPEAT )
+    {
+        EnginePtr->m_UserInput->RegisterKeyUpdate( action == GLFW_PRESS, key );
+    }
 }
 
-Engine::~Engine()
+Engine::Engine( )
 {
-	spdlog::info("Engine destroying");
+    if ( g_Engine != nullptr )
+    {
+        throw std::runtime_error( "There is already a Engine instance!" );
+    }
 
-	delete m_RootConcept;
-	m_RootConcept = nullptr;
+    spdlog::info( "Engine initializing" );
+    InitializeEnvironment( );
 
-	delete m_ActiveProject;
-	m_ActiveProject = nullptr;
+    m_AudioEngine = new AudioEngine;
 
-	delete m_HRFrameBuffer;
-	m_HRFrameBuffer = nullptr;
+    m_MainWindow = new EditorWindow( 1280, 720, "LMCEngine" );
 
-	delete m_MainWindowPool;
-	m_MainWindowPool = nullptr;
+    m_UserInput = new UserInput( m_MainWindow->GetWindowHandle( ) );
 
-	if (m_ImGuiContext != nullptr)
-	{
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext(m_ImGuiContext);
-		m_ImGuiContext = nullptr;
-	}
+    glfwSetKeyCallback( m_MainWindow->GetWindowHandle( ), OnKeyboardInput );
 
-	if (m_GLContext != nullptr)
-	{
-		gladLoaderUnloadGLContext(m_GLContext);
+    /*
+     *
+     * Initialize GLAD & ImGui
+     *
+     * */
+    m_GLContext                  = new GladGLContext;
+    [[maybe_unused]] int version = gladLoadGLContext( m_GLContext, glfwGetProcAddress );
 
-		delete m_GLContext;
-		m_GLContext = nullptr;
-	}
+    // Setup Dear ImGui context
+    CreateImGuiContext( );
 
-	delete m_MainWindow;
-	m_MainWindow = nullptr;
+    m_MainWindowPool = new WindowPool;
 
-	delete m_AudioEngine;
-	m_AudioEngine = nullptr;
+    m_HRFrameBuffer = new HotReloadFrameBuffer;
 
-	ShutdownEnvironment();
+    /*
+     *
+     * Engine
+     *
+     * */
+    m_ActiveProject = new Project;
+
+    g_Engine = this;
+
+    /*
+     *
+     * The following code depends on engine context
+     *
+     * */
+
+    const auto WindowDimensions = m_MainWindow->GetDimensions( );
+    m_HRFrameBuffer->CreateFrameBuffer( WindowDimensions.first, WindowDimensions.second );
+}
+
+Engine::~Engine( )
+{
+    spdlog::info( "Engine destroying" );
+
+    delete m_RootConcept;
+    m_RootConcept = nullptr;
+
+    delete m_ActiveProject;
+    m_ActiveProject = nullptr;
+
+    delete m_HRFrameBuffer;
+    m_HRFrameBuffer = nullptr;
+
+    delete m_MainWindowPool;
+    m_MainWindowPool = nullptr;
+
+    if ( m_ImGuiContext != nullptr )
+    {
+        ImGui_ImplOpenGL3_Shutdown( );
+        ImGui_ImplGlfw_Shutdown( );
+        ImGui::DestroyContext( m_ImGuiContext );
+        m_ImGuiContext = nullptr;
+    }
+
+    if ( m_GLContext != nullptr )
+    {
+        gladLoaderUnloadGLContext( m_GLContext );
+
+        delete m_GLContext;
+        m_GLContext = nullptr;
+    }
+
+    delete m_UserInput;
+    m_UserInput = nullptr;
+
+    delete m_MainWindow;
+    m_MainWindow = nullptr;
+
+    delete m_AudioEngine;
+    m_AudioEngine = nullptr;
+
+    ShutdownEnvironment( );
 }
 
 void
-Engine::Update()
+Engine::Update( )
 {
-	m_CurrentUpdateTime = TimerTy::now();
+    m_CurrentUpdateTime = TimerTy::now( );
 
-	{
-		// Setup m_DeltaSecond
-		typedef std::chrono::duration<FloatTy> fsec;
-		const fsec fs = m_CurrentUpdateTime - m_LastUpdateTime;
-		m_DeltaSecond = fs.count();
-	}
+    {
+        // Setup m_DeltaSecond
+        typedef std::chrono::duration<FloatTy> fsec;
+        const fsec                             fs = m_CurrentUpdateTime - m_LastUpdateTime;
+        m_DeltaSecond                             = fs.count( );
+    }
 
-	UpdateRootConcept();
+    m_UserInput->Update( );
+    UpdateRootConcept( );
 
-	Render();
+    Render( );
 
-	m_ShouldShutdown |= m_MainWindow->WindowShouldClose();
-	m_LastUpdateTime = m_CurrentUpdateTime;
+    m_ShouldShutdown |= m_MainWindow->WindowShouldClose( );
+    m_LastUpdateTime = m_CurrentUpdateTime;
 }
 
 void
-Engine::UpdateRootConcept()
+Engine::UpdateRootConcept( )
 {
-	if (m_RootConcept != nullptr)
-	{
-		auto &RootConcept = *m_RootConcept;
+    if ( m_RootConcept != nullptr )
+    {
+        auto& RootConcept = *m_RootConcept;
 
-		if (RootConcept.ShouldReload())
-		{
-			spdlog::info("RootConcept changes detected, hot reloading");
-			RootConcept.Reload(false);
+        if ( RootConcept.ShouldReload( ) )
+        {
+            spdlog::info( "RootConcept changes detected, hot reloading" );
+            RootConcept.Reload( false );
 
-			/*
-			 *
-			 * Make sure the library can access the same memory space
-			 *
-			 * */
-			RootConcept.SetEngineContext(this);
-			RootConcept.AllocateConcept();
-			ResetTimer();
-		}
+            /*
+             *
+             * Make sure the library can access the same memory space
+             *
+             * */
+            RootConcept.SetEngineContext( this );
+            RootConcept.AllocateConcept( );
+            ResetTimer( );
+        }
 
-		RootConcept.As<ConceptApplicable>()->Apply();
-	}
+        RootConcept.As<ConceptApplicable>( )->Apply( );
+    }
 }
 
 // One instance of engine, so it's probably ok
-ConceptSetFetchCache<ConceptRenderable> g_ConceptRenderables{};
+ConceptSetFetchCache<ConceptRenderable> g_ConceptRenderables { };
 
 void
-Engine::Render()
+Engine::Render( )
 {
-	m_MainWindow->MakeContextCurrent();
+    m_MainWindow->MakeContextCurrent( );
 
-	glfwPollEvents();
+    glfwPollEvents( );
 
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
+    ImGui_ImplOpenGL3_NewFrame( );
+    ImGui_ImplGlfw_NewFrame( );
+    ImGui::NewFrame( );
 
-	try
-	{
-		// For main viewport
-		m_MainWindow->SetPreviousFrameTexture(m_HRFrameBuffer->GetTextureID());
-		m_MainWindow->Update();
+    try
+    {
+        // For main viewport
+        m_MainWindow->SetPreviousFrameTexture( m_HRFrameBuffer->GetTextureID( ) );
+        m_MainWindow->Update( );
 
-		m_MainWindowPool->Update();
-	}
-	catch (const ImGuiContextInvalid &e)
-	{
-		CreateImGuiContext();
-		return;
-	}
+        m_MainWindowPool->Update( );
+    }
+    catch ( const ImGuiContextInvalid& e )
+    {
+        CreateImGuiContext( );
+        return;
+    }
 
-	m_MainWindow->MakeContextCurrent();
+    m_MainWindow->MakeContextCurrent( );
 
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui::Render( );
+    ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData( ) );
 
-	// Update and Render additional Platform Windows
-	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		ImGui::UpdatePlatformWindows();
-		ImGui::RenderPlatformWindowsDefault();
-	}
+    // Update and Render additional Platform Windows
+    if ( ImGui::GetIO( ).ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
+    {
+        ImGui::UpdatePlatformWindows( );
+        ImGui::RenderPlatformWindowsDefault( );
+    }
 
-	/*
-	 *
-	 * User render
-	 *
-	 * */
-	if (m_RootConcept != nullptr)
-	{
-		(*m_RootConcept)->GetConcepts<ConceptRenderable>(g_ConceptRenderables);
-		if (g_ConceptRenderables.NotEmpty())
-		{
-			// we rescale the framebuffer to the actual window size here and reset the glViewport
-			const auto MainViewPortDimensions = m_MainWindow->GetHowReloadWindowDimensions();
-			m_HRFrameBuffer->BindFrameBuffer();
-			if (m_MainViewPortDimensions != MainViewPortDimensions)
-			{
-				m_HRFrameBuffer->RescaleFrameBuffer(MainViewPortDimensions.first, MainViewPortDimensions.second);
-			}
+    /*
+     *
+     * User render
+     *
+     * */
+    if ( m_RootConcept != nullptr )
+    {
+        ( *m_RootConcept )->GetConcepts<ConceptRenderable>( g_ConceptRenderables );
+        if ( g_ConceptRenderables.NotEmpty( ) )
+        {
+            // we rescale the framebuffer to the actual window size here and reset the glViewport
+            const auto MainViewPortDimensions = m_MainWindow->GetHowReloadWindowDimensions( );
+            m_HRFrameBuffer->BindFrameBuffer( );
+            if ( m_MainViewPortDimensions != MainViewPortDimensions )
+            {
+                m_HRFrameBuffer->RescaleFrameBuffer( MainViewPortDimensions.first, MainViewPortDimensions.second );
+            }
 
-			/*
-			 *
-			 * Render every registered ConceptRenderable
-			 *
-			 * */
-			m_GLContext->Viewport(0, 0, MainViewPortDimensions.first, MainViewPortDimensions.second);
-			m_GLContext->ClearColor(0, 0, 0, 0);
-			m_GLContext->Clear(GL_COLOR_BUFFER_BIT);
+            /*
+             *
+             * Render every registered ConceptRenderable
+             *
+             * */
+            m_GLContext->Viewport( 0, 0, MainViewPortDimensions.first, MainViewPortDimensions.second );
+            m_GLContext->ClearColor( 0, 0, 0, 0 );
+            m_GLContext->Clear( GL_COLOR_BUFFER_BIT );
 
-			g_ConceptRenderables.ForEach([](ConceptRenderable *item) {
-				item->Render();
-			});
+            g_ConceptRenderables.ForEach( []( ConceptRenderable* item ) {
+                item->Render( );
+            } );
 
-			m_HRFrameBuffer->UnBindFrameBuffer();
+            m_HRFrameBuffer->UnBindFrameBuffer( );
 
-			m_MainViewPortDimensions = MainViewPortDimensions;
-		}
-	}
+            m_MainViewPortDimensions = MainViewPortDimensions;
+        }
+    }
 
-	glfwSwapBuffers(m_MainWindow->GetWindowHandle());
+    glfwSwapBuffers( m_MainWindow->GetWindowHandle( ) );
 }
 
 bool
-Engine::ShouldShutdown()
+Engine::ShouldShutdown( )
 {
-	return m_ShouldShutdown;
+    return m_ShouldShutdown;
 }
 
 void
-Engine::CreateImGuiContext()
+Engine::CreateImGuiContext( )
 {
-	IMGUI_CHECKVERSION();
-	if (m_ImGuiContext != nullptr)
-	{
-		DestroyImGuiContext();
-	}
-	m_ImGuiContext = ImGui::CreateContext();
-	ImGui::SetCurrentContext(m_ImGuiContext);
-	ImGuiIO &io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;// Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	io.ConfigDockingWithShift = true;
-	if (!m_MainWindow->IsFullscreen())
-	{
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-	}
-	io.IniFilename = nullptr;
+    IMGUI_CHECKVERSION( );
+    if ( m_ImGuiContext != nullptr )
+    {
+        DestroyImGuiContext( );
+    }
+    m_ImGuiContext = ImGui::CreateContext( );
+    ImGui::SetCurrentContext( m_ImGuiContext );
+    ImGuiIO& io = ImGui::GetIO( );
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;   // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigDockingWithShift = true;
+    if ( !m_MainWindow->IsFullscreen( ) )
+    {
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    }
+    io.IniFilename = nullptr;
 
-	std::string ConfigLayout;
-	if (m_ActiveProject != nullptr)
-	{
-		ConfigLayout = m_ActiveProject->GetConfig().editor_layout_path;
-		if (!ConfigLayout.empty())
-		{
-			spdlog::info("Loading layout: {}", ConfigLayout);
-		}
-	}
+    std::string ConfigLayout;
+    if ( m_ActiveProject != nullptr )
+    {
+        ConfigLayout = m_ActiveProject->GetConfig( ).editor_layout_path;
+        if ( !ConfigLayout.empty( ) )
+        {
+            spdlog::info( "Loading layout: {}", ConfigLayout );
+        }
+    }
 
-	if (!ConfigLayout.empty())
-	{
-		ImGui::LoadIniSettingsFromDisk(ConfigLayout.c_str());
-	}
-	else
-	{
-		ImGui::LoadIniSettingsFromMemory(DefaultEditorImGuiLayout, strlen(DefaultEditorImGuiLayout));
-	}
+    if ( !ConfigLayout.empty( ) )
+    {
+        ImGui::LoadIniSettingsFromDisk( ConfigLayout.c_str( ) );
+    } else
+    {
+        ImGui::LoadIniSettingsFromMemory( DefaultEditorImGuiLayout, strlen( DefaultEditorImGuiLayout ) );
+    }
 
-	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsLight();
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark( );
+    // ImGui::StyleColorsLight();
 
-	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(m_MainWindow->GetWindowHandle(), true);
-	ImGui_ImplOpenGL3_Init();
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL( m_MainWindow->GetWindowHandle( ), true );
+    ImGui_ImplOpenGL3_Init( );
 }
 
 void
-Engine::DestroyImGuiContext()
+Engine::DestroyImGuiContext( )
 {
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext(m_ImGuiContext);
-	m_ImGuiContext = nullptr;
+    ImGui_ImplOpenGL3_Shutdown( );
+    ImGui_ImplGlfw_Shutdown( );
+    ImGui::DestroyContext( m_ImGuiContext );
+    m_ImGuiContext = nullptr;
 }
 
-Engine *
-Engine::GetEngine()
+Engine*
+Engine::GetEngine( )
 {
-	/* Putting REQUIRE here could greatly impact performance */
-	TEST(g_Engine != nullptr);
-	return g_Engine;
-}
-
-void
-Engine::LoadProject(const std::string &Path)
-{
-	if (m_RootConcept != nullptr)
-	{
-		delete m_RootConcept;
-		m_RootConcept = nullptr;
-	}
-
-	m_ActiveProject->LoadProject(Path);
-
-	const auto &RootConcept = m_ActiveProject->GetConfig().root_concept;
-
-	if (!RootConcept.empty())
-	{
-		spdlog::info("Loading root concepts: {}", RootConcept);
-
-		m_RootConcept = new DynamicConcept;
-		const auto DLLPath = std::regex_replace(m_ActiveProject->GetConfig().shared_library_path_format, std::regex("\\{\\}"), RootConcept);
-
-		m_RootConcept->Load(DLLPath, false);
-
-		/*
-		 *
-		 * Make sure the library can access the same memory space
-		 *
-		 * */
-		m_RootConcept->SetEngineContext(this);
-		m_RootConcept->AllocateConcept();
-		ResetTimer();
-	}
-	else
-	{
-		spdlog::info("No root concepts specified");
-	}
-}
-
-Project *
-Engine::GetProject() const
-{
-	return m_ActiveProject;
-}
-
-struct GladGLContext *
-Engine::GetGLContext()
-{
-	return m_GLContext;
+    /* Putting REQUIRE here could greatly impact performance */
+    TEST( g_Engine != nullptr );
+    return g_Engine;
 }
 
 void
-Engine::SetEngine(Engine *EngineContext)
+Engine::LoadProject( const std::string& Path )
 {
-	spdlog::warn("Setting engine context manually");
-	g_Engine = EngineContext;
+    if ( m_RootConcept != nullptr )
+    {
+        delete m_RootConcept;
+        m_RootConcept = nullptr;
+    }
+
+    m_ActiveProject->LoadProject( Path );
+
+    const auto& RootConcept = m_ActiveProject->GetConfig( ).root_concept;
+
+    if ( !RootConcept.empty( ) )
+    {
+        spdlog::info( "Loading root concepts: {}", RootConcept );
+
+        m_RootConcept      = new DynamicConcept;
+        const auto DLLPath = std::regex_replace( m_ActiveProject->GetConfig( ).shared_library_path_format, std::regex( "\\{\\}" ), RootConcept );
+
+        m_RootConcept->Load( DLLPath, false );
+
+        /*
+         *
+         * Make sure the library can access the same memory space
+         *
+         * */
+        m_RootConcept->SetEngineContext( this );
+        m_RootConcept->AllocateConcept( );
+        ResetTimer( );
+    } else
+    {
+        spdlog::info( "No root concepts specified" );
+    }
+}
+
+Project*
+Engine::GetProject( ) const
+{
+    return m_ActiveProject;
+}
+
+struct GladGLContext*
+Engine::GetGLContext( )
+{
+    return m_GLContext;
 }
 
 void
-Engine::ResetTimer()
+Engine::SetEngine( Engine* EngineContext )
 {
-	m_FirstUpdateTime = m_LastUpdateTime = TimerTy::now();
+    spdlog::warn( "Setting engine context manually" );
+    g_Engine = EngineContext;
+}
+
+void
+Engine::ResetTimer( )
+{
+    m_FirstUpdateTime = m_LastUpdateTime = TimerTy::now( );
 }
 
 FloatTy
-Engine::GetDeltaSecond() const
+Engine::GetDeltaSecond( ) const
 {
-	return m_DeltaSecond;
+    return m_DeltaSecond;
 }
 
 TimerTy::time_point
-Engine::GetCurrentTime() const
+Engine::GetCurrentTime( ) const
 {
-	return m_CurrentUpdateTime;
+    return m_CurrentUpdateTime;
 }
 
 void
-Engine::MakeMainWindowCurrentContext()
+Engine::MakeMainWindowCurrentContext( )
 {
-	TEST(m_MainWindow != nullptr)
-	m_MainWindow->MakeContextCurrent();
+    TEST( m_MainWindow != nullptr )
+    m_MainWindow->MakeContextCurrent( );
 }
 
 std::pair<int, int>
-Engine::GetMainWindowViewPortDimensions() const
+Engine::GetMainWindowViewPortDimensions( ) const
 {
-	return m_MainViewPortDimensions;
+    return m_MainViewPortDimensions;
 }
 
-AudioEngine *
-Engine::GetAudioEngine()
+AudioEngine*
+Engine::GetAudioEngine( )
 {
-	return m_AudioEngine;
+    return m_AudioEngine;
+}
+
+UserInput*
+Engine::GetUserInputHandle( )
+{
+    return m_UserInput;
 }

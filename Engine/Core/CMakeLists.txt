@@ -1,5 +1,6 @@
 add_subdirectory(Math)
 add_subdirectory(File)
+add_subdirectory(Input)
 add_subdirectory(Audio)
 add_subdirectory(Concept)
 add_subdirectory(Graphic)

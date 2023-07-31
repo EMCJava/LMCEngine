@@ -21,6 +21,7 @@ target_link_libraries(Engine.lib
         ConceptRenderable.lib
         ConceptSetFetchCache.lib
         Audio.lib
+        UserInput.lib
 
         SpriteSquare.lib
         )
