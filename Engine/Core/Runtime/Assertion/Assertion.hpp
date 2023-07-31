@@ -25,7 +25,7 @@
  * Test is for debug only, and not vital
  *
  * */
-#    define TEST( x ) ( (void) 0 )
+#    define TEST( x ) ( (void) 0 );
 
 #endif
 
