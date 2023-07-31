@@ -30,7 +30,7 @@ AudioEngine::CreateAudioHandle( std::string_view AudioPath )
 }
 
 SoundHandle
-AudioEngine::PlayAudio( AudioSourceHandle AudioHandle, bool TrackAudio )
+AudioEngine::PlayAudio( AudioSourceHandle AudioHandle, bool TrackAudio, bool PauseAtStart, bool Loop )
 {
     return nullptr;
 }

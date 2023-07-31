@@ -24,7 +24,7 @@ public:
      *
      * */
     SoundHandle
-    PlayAudio( AudioSourceHandle AudioHandle, bool TrackAudio = false );
+    PlayAudio( AudioSourceHandle AudioHandle, bool TrackAudio = false, bool PauseAtStart = false, bool Loop = false );
 
 private:
     static inline AudioEngine* g_AudioEngine = nullptr;

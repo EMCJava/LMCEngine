@@ -54,7 +54,7 @@ struct SoundHandleDestructor {
 };
 
 SoundHandle
-AudioEngine::PlayAudio( AudioSourceHandle AudioHandle, bool TrackAudio )
+AudioEngine::PlayAudio( AudioSourceHandle AudioHandle, bool TrackAudio, bool PauseAtStart, bool Loop )
 {
-    return SoundHandle { BackendInstance->play2D( AudioHandle, false, false, TrackAudio ), SoundHandleDestructor {} };
+    return SoundHandle { BackendInstance->play2D( AudioHandle, Loop, PauseAtStart, TrackAudio ), SoundHandleDestructor {} };
 }
