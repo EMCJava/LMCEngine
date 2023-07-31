@@ -29,7 +29,7 @@ AudioEngine::AudioEngine( )
 
 AudioEngine::~AudioEngine( )
 {
-    REQUIRED( g_AudioEngine != this )
+    REQUIRED( g_AudioEngine == this )
 
     BackendInstance->drop( );
     m_BackendInstance = nullptr;
