@@ -1,6 +1,6 @@
 BasedOnStyle: WebKit
 Language: Cpp
-SortIncludes: CaseSensitive
+SortIncludes: Never
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel: false
