@@ -6,13 +6,22 @@
 
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
 
+#include <Engine/Core/Audio/AudioEngine.hpp>
+
 class CFoo : public ConceptApplicable
 {
-	DECLARE_CONCEPT(CFoo, ConceptApplicable)
+    DECLARE_CONCEPT( CFoo, ConceptApplicable )
 
 public:
-	CFoo();
+    CFoo( );
 
-	void
-	Apply() override;
+    void
+    Apply( ) override;
+
+private:
+    SoundHandle m_DelayCheckingHandle;
+    SoundHandle m_MainAudioHandle;
+
+    bool    m_IsCheckingDeviceDelay = true;
+    int64_t m_UserDeviceOffsetMS { };
 };
