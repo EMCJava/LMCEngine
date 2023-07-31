@@ -6,13 +6,13 @@
 
 #include <random>
 
-DEFINE_CONCEPT_DS(Concept)
+DEFINE_CONCEPT_DS( Concept )
 
-Concept::Concept()
+Concept::Concept( )
 {
-	std::random_device rd;
-	std::mt19937_64 gen(rd());
-	std::uniform_int_distribution<uint64_t> dis;
+    std::random_device                      rd;
+    std::mt19937_64                         gen( rd( ) );
+    std::uniform_int_distribution<uint64_t> dis;
 
-	m_SubConceptsStateHash.SetSeed(std::array{dis(gen), dis(gen)});
+    m_SubConceptsStateHash.SetSeed( std::array { dis( gen ), dis( gen ) } );
 }

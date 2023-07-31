@@ -5,13 +5,13 @@
 #include "PureConceptCoordinate.hpp"
 
 auto
-PureConceptCoordinate::GetCoordinate() const -> const Coordinate &
+PureConceptCoordinate::GetCoordinate( ) const -> const Coordinate&
 {
-	return m_Coordinate;
+    return m_Coordinate;
 }
 
 auto
-PureConceptCoordinate::GetCoordinate() -> Coordinate &
+PureConceptCoordinate::GetCoordinate( ) -> Coordinate&
 {
-	return m_Coordinate;
+    return m_Coordinate;
 }

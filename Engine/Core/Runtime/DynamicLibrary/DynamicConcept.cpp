@@ -6,87 +6,87 @@
 
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
-DynamicConcept::~DynamicConcept()
+DynamicConcept::~DynamicConcept( )
 {
-	DeAllocateConcept();
+    DeAllocateConcept( );
 
-	m_Concept = nullptr;
-	m_DeAllocator = nullptr;
-	m_Allocator = nullptr;
+    m_Concept     = nullptr;
+    m_DeAllocator = nullptr;
+    m_Allocator   = nullptr;
 }
 
 bool
-DynamicConcept::Load(const std::string_view &Path, bool Allocate)
+DynamicConcept::Load( const std::string_view& Path, bool Allocate )
 {
-	bool result = DynamicLibrary::Load(Path);
-	if (!result)
-	{
-		return false;
-	}
+    bool result = DynamicLibrary::Load( Path );
+    if ( !result )
+    {
+        return false;
+    }
 
-	if (!LoadFunctions())
-	{
-		return false;
-	}
+    if ( !LoadFunctions( ) )
+    {
+        return false;
+    }
 
-	if (Allocate)
-	{
-		AllocateConcept();
-	}
+    if ( Allocate )
+    {
+        AllocateConcept( );
+    }
 
-	return true;
+    return true;
 }
 
 bool
-DynamicConcept::Reload(bool ReAllocate)
+DynamicConcept::Reload( bool ReAllocate )
 {
-	DeAllocateConcept();
+    DeAllocateConcept( );
 
-	bool result = DynamicLibrary::Reload();
-	if (!result)
-	{
-		return false;
-	}
+    bool result = DynamicLibrary::Reload( );
+    if ( !result )
+    {
+        return false;
+    }
 
-	if (!LoadFunctions())
-	{
-		return false;
-	}
+    if ( !LoadFunctions( ) )
+    {
+        return false;
+    }
 
-	if (ReAllocate)
-	{
-		AllocateConcept();
-	}
+    if ( ReAllocate )
+    {
+        AllocateConcept( );
+    }
 
-	return true;
+    return true;
 }
 
 bool
-DynamicConcept::LoadFunctions()
+DynamicConcept::LoadFunctions( )
 {
-	LoadSymbolAs("mem_alloc", m_Allocator);
-	LoadSymbolAs("mem_free", m_DeAllocator);
+    LoadSymbolAs( "mem_alloc", m_Allocator );
+    LoadSymbolAs( "mem_free", m_DeAllocator );
 
-	return m_Allocator != nullptr && m_DeAllocator != nullptr;
+    return m_Allocator != nullptr && m_DeAllocator != nullptr;
 }
 
 void
-DynamicConcept::AllocateConcept()
+DynamicConcept::AllocateConcept( )
 {
-	DeAllocateConcept();
-	if (m_Allocator != nullptr)
-	{
-		m_Concept = (class Concept *)m_Allocator();
-	}
+    DeAllocateConcept( );
+    if ( m_Allocator != nullptr )
+    {
+        m_Concept = (class Concept*) m_Allocator( );
+    }
 }
 
 void
-DynamicConcept::DeAllocateConcept()
+DynamicConcept::DeAllocateConcept( )
 {
-	if (m_Concept != nullptr)
-	{
-		REQUIRED(m_DeAllocator != nullptr);
-		m_DeAllocator(m_Concept);
-		m_Concept = nullptr;
-	}
+    if ( m_Concept != nullptr )
+    {
+        REQUIRED( m_DeAllocator != nullptr );
+        m_DeAllocator( m_Concept );
+        m_Concept = nullptr;
+    }
 }

@@ -10,47 +10,47 @@
 
 #include <algorithm>
 
-WindowPool::~WindowPool()
+WindowPool::~WindowPool( )
 {
-	for (auto &window: m_Windows)
-	{
-		delete window;
-	}
+    for ( auto& window : m_Windows )
+    {
+        delete window;
+    }
 }
 
 void
-WindowPool::Update()
+WindowPool::Update( )
 {
-	if (m_Windows.empty())
-	{
-		return;
-	}
+    if ( m_Windows.empty( ) )
+    {
+        return;
+    }
 
-	for (size_t i = 0; i < m_Windows.size(); i++)
-	{
-		m_Windows[i]->Update();
-		if (m_Windows[i]->WindowShouldClose()) [[unlikely]]
-		{
-			delete m_Windows[i];
-			m_Windows.erase(m_Windows.begin() + i--);
-		}
-	}
+    for ( size_t i = 0; i < m_Windows.size( ); i++ )
+    {
+        m_Windows[ i ]->Update( );
+        if ( m_Windows[ i ]->WindowShouldClose( ) ) [[unlikely]]
+        {
+            delete m_Windows[ i ];
+            m_Windows.erase( m_Windows.begin( ) + i-- );
+        }
+    }
 
-	for (auto Window: m_Windows)
-	{
-		glfwSwapBuffers(Window->GetWindowHandle());
-	}
+    for ( auto Window : m_Windows )
+    {
+        glfwSwapBuffers( Window->GetWindowHandle( ) );
+    }
 }
 
 bool
-WindowPool::ShouldClose() const
+WindowPool::ShouldClose( ) const
 {
-	return m_Windows.empty();
+    return m_Windows.empty( );
 }
 
 std::pair<int, int>
-WindowPool::GetPrimaryMonitorMode() const
+WindowPool::GetPrimaryMonitorMode( ) const
 {
-	const auto *VideoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-	return {VideoMode->width, VideoMode->height};
+    const auto* VideoMode = glfwGetVideoMode( glfwGetPrimaryMonitor( ) );
+    return { VideoMode->width, VideoMode->height };
 }

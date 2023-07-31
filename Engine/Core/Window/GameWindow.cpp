@@ -9,13 +9,13 @@
 #include <glad/gl.h>
 
 void
-GameWindow::Update()
+GameWindow::Update( )
 {
-	MakeContextCurrent();
+    MakeContextCurrent( );
 
-	const auto *gl = Engine::GetEngine()->GetGLContext();
+    const auto* gl = Engine::GetEngine( )->GetGLContext( );
 
-	gl->Viewport(0, 0, m_Width, m_Height);
-	gl->ClearColor(1, 1, 1, 1);
-	gl->Clear(GL_COLOR_BUFFER_BIT);
+    gl->Viewport( 0, 0, m_Width, m_Height );
+    gl->ClearColor( 1, 1, 1, 1 );
+    gl->Clear( GL_COLOR_BUFFER_BIT );
 }

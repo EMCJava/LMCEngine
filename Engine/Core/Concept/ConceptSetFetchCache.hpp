@@ -8,37 +8,37 @@
 
 #include <vector>
 
-template<typename Ty>
+template <typename Ty>
 class ConceptSetFetchCache
 {
 public:
-	void
-	ForEach(auto &&F);
+    void
+    ForEach( auto&& F );
 
-	bool
-	NotEmpty();
+    bool
+    NotEmpty( );
 
 private:
-	uint64_t m_CacheHash{};
+    uint64_t m_CacheHash { };
 
-	std::vector<Ty *> m_CachedConcepts{};
+    std::vector<Ty*> m_CachedConcepts { };
 
-	friend class Concept;
+    friend class Concept;
 };
 
-template<typename Ty>
+template <typename Ty>
 void
-ConceptSetFetchCache<Ty>::ForEach(auto &&F)
+ConceptSetFetchCache<Ty>::ForEach( auto&& F )
 {
-	for (Ty *C: m_CachedConcepts)
-	{
-		F(C);
-	}
+    for ( Ty* C : m_CachedConcepts )
+    {
+        F( C );
+    }
 }
 
-template<typename Ty>
+template <typename Ty>
 bool
-ConceptSetFetchCache<Ty>::NotEmpty()
+ConceptSetFetchCache<Ty>::NotEmpty( )
 {
-	return !m_CachedConcepts.empty();
+    return !m_CachedConcepts.empty( );
 }

@@ -9,21 +9,21 @@
 class ShaderProgram
 {
 public:
-	ShaderProgram() = default;
-	~ShaderProgram();
+    ShaderProgram( ) = default;
+    ~ShaderProgram( );
 
-	void
-	Load(const char *Vertex, const char *Fragment);
+    void
+    Load( const char* Vertex, const char* Fragment );
 
-	void
-	LoadFromFile(std::string_view VertexPath, std::string_view FragmentPath);
+    void
+    LoadFromFile( std::string_view VertexPath, std::string_view FragmentPath );
 
-	void
-	Bind() const;
+    void
+    Bind( ) const;
 
-	uint32_t
-	GetProgramID() const;
+    uint32_t
+    GetProgramID( ) const;
 
 protected:
-	uint32_t m_ProgramID = 0;
+    uint32_t m_ProgramID = 0;
 };

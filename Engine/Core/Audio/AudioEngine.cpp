@@ -5,7 +5,7 @@
 #include "AudioEngine.hpp"
 
 #ifdef USE_IRRKLANG
-#include "AudioEngineImpl/AudioEngine_irrKlang.inl"
-#elif defined(NO_AUDIO_ENGINE)
-#include "AudioEngineImpl/AudioEngineNone.inl"
+#    include "AudioEngineImpl/AudioEngine_irrKlang.inl"
+#elif defined( NO_AUDIO_ENGINE )
+#    include "AudioEngineImpl/AudioEngineNone.inl"
 #endif

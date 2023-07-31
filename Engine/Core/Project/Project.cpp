@@ -10,89 +10,89 @@
 #include <filesystem>
 #include <fstream>
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ProjectConfig, project_name, root_concept)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT( ProjectConfig, project_name, root_concept )
 
 namespace
 {
 nlohmann::json
-ReadJsonFile(const std::filesystem::path &Path)
+ReadJsonFile( const std::filesystem::path& Path )
 {
-	if (!std::filesystem::exists(Path))
-	{
-		spdlog::error("Attempting to read json file that does not exist: {}", Path.string());
-		return {};
-	}
+    if ( !std::filesystem::exists( Path ) )
+    {
+        spdlog::error( "Attempting to read json file that does not exist: {}", Path.string( ) );
+        return { };
+    }
 
-	std::ifstream ifs(Path);
-	return nlohmann::json::parse(ifs);
+    std::ifstream ifs( Path );
+    return nlohmann::json::parse( ifs );
 }
-}// namespace
+}   // namespace
 
 auto
-Project::GetConfig() -> ProjectConfig &
+Project::GetConfig( ) -> ProjectConfig&
 {
-	return m_Config;
+    return m_Config;
 }
 
 void
-Project::LoadProject(const std::string &ProjectFilePath)
+Project::LoadProject( const std::string& ProjectFilePath )
 {
-	m_ProjectFilePath = "";
-	spdlog::info("Reset project, Open project: [{}]", ProjectFilePath);
+    m_ProjectFilePath = "";
+    spdlog::info( "Reset project, Open project: [{}]", ProjectFilePath );
 
-	if (!ProjectFilePath.ends_with(".lmce"))
-	{
-		spdlog::warn("Unknown file extension: {}", ProjectFilePath);
-		return;
-	}
+    if ( !ProjectFilePath.ends_with( ".lmce" ) )
+    {
+        spdlog::warn( "Unknown file extension: {}", ProjectFilePath );
+        return;
+    }
 
-	m_Config = ReadJsonFile(ProjectFilePath);
+    m_Config = ReadJsonFile( ProjectFilePath );
 
-	spdlog::info("Project name: {}", m_Config.project_name);
-	std::filesystem::path ProjectPath(ProjectFilePath);
-	ProjectPath = ProjectPath.parent_path();
+    spdlog::info( "Project name: {}", m_Config.project_name );
+    std::filesystem::path ProjectPath( ProjectFilePath );
+    ProjectPath = ProjectPath.parent_path( );
 
-	// Setup project path config
-	{
-		auto ProjectPathConfigFile = ProjectPath / "ProjectCache/ProjectPath.config";
-		auto ProjectPathConfig = ReadJsonFile(ProjectPathConfigFile);
+    // Setup project path config
+    {
+        auto ProjectPathConfigFile = ProjectPath / "ProjectCache/ProjectPath.config";
+        auto ProjectPathConfig     = ReadJsonFile( ProjectPathConfigFile );
 
-		m_Config.shared_library_path_format = ProjectPathConfig["shared_library_path_" CMAKE_BUILD_TYPE "_format"];
-	}
+        m_Config.shared_library_path_format = ProjectPathConfig[ "shared_library_path_" CMAKE_BUILD_TYPE "_format" ];
+    }
 
-	if (m_Config.editor_layout_path.empty())
-	{
-		const auto EditorLayoutPath = ProjectPath / "Editor/layout.ini";
-		if (std::filesystem::exists(EditorLayoutPath))
-		{
-			m_Config.editor_layout_path = EditorLayoutPath.string();
-		}
-	}
+    if ( m_Config.editor_layout_path.empty( ) )
+    {
+        const auto EditorLayoutPath = ProjectPath / "Editor/layout.ini";
+        if ( std::filesystem::exists( EditorLayoutPath ) )
+        {
+            m_Config.editor_layout_path = EditorLayoutPath.string( );
+        }
+    }
 
-	m_ProjectFilePath = ProjectFilePath;
+    m_ProjectFilePath = ProjectFilePath;
 }
 
 void
-Project::SaveProject()
+Project::SaveProject( )
 {
-	if (m_ProjectFilePath.empty())
-	{
-		spdlog::warn("Project path empty, unable to save project");
-		return;
-	}
+    if ( m_ProjectFilePath.empty( ) )
+    {
+        spdlog::warn( "Project path empty, unable to save project" );
+        return;
+    }
 
-	std::ofstream ofs(m_ProjectFilePath);
+    std::ofstream ofs( m_ProjectFilePath );
 
-	if (!ofs)
-	{
-		spdlog::error("Unable to open project path: [{}]", m_ProjectFilePath);
-		return;
-	}
+    if ( !ofs )
+    {
+        spdlog::error( "Unable to open project path: [{}]", m_ProjectFilePath );
+        return;
+    }
 
-	ofs << nlohmann::json{m_Config}[0].dump(4);
+    ofs << nlohmann::json { m_Config }[ 0 ].dump( 4 );
 }
 
-Project::~Project()
+Project::~Project( )
 {
-	spdlog::info("Close project: {}", m_Config.project_name);
+    spdlog::info( "Close project: {}", m_Config.project_name );
 }

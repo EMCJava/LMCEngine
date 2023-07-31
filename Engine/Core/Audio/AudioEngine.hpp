@@ -11,28 +11,28 @@
 class AudioEngine
 {
 public:
-	AudioEngine();
-	~AudioEngine();
+    AudioEngine( );
+    ~AudioEngine( );
 
-	AudioSourceHandle
-	CreateAudioHandle(std::string_view AudioPath);
+    AudioSourceHandle
+    CreateAudioHandle( std::string_view AudioPath );
 
-	/*
-	 *
-	 * Play audio sound with a handle, avoid real-time loading
-	 * Is TrackAudio == true, returns A sound handle of this sound instance
-	 *
-	 * */
-	SoundHandle
-	PlayAudio(AudioSourceHandle AudioHandle, bool TrackAudio = false);
+    /*
+     *
+     * Play audio sound with a handle, avoid real-time loading
+     * Is TrackAudio == true, returns A sound handle of this sound instance
+     *
+     * */
+    SoundHandle
+    PlayAudio( AudioSourceHandle AudioHandle, bool TrackAudio = false );
 
 private:
-	static inline AudioEngine *g_AudioEngine = nullptr;
+    static inline AudioEngine* g_AudioEngine = nullptr;
 
-	/*
-	 *
-	 * The base engine of this class
-	 *
-	 * */
-	void *m_BackendInstance = nullptr;
+    /*
+     *
+     * The base engine of this class
+     *
+     * */
+    void* m_BackendInstance = nullptr;
 };

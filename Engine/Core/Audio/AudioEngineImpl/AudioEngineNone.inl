@@ -6,31 +6,31 @@
 
 #include <stdexcept>
 
-AudioEngine::AudioEngine()
+AudioEngine::AudioEngine( )
 {
-	if (g_AudioEngine != nullptr)
-	{
-		throw std::runtime_error("There is already a AudioEngine instance!");
-	}
+    if ( g_AudioEngine != nullptr )
+    {
+        throw std::runtime_error( "There is already a AudioEngine instance!" );
+    }
 
-	g_AudioEngine = this;
+    g_AudioEngine = this;
 }
 
-AudioEngine::~AudioEngine()
+AudioEngine::~AudioEngine( )
 {
 
-	m_BackendInstance = nullptr;
-	g_AudioEngine = nullptr;
+    m_BackendInstance = nullptr;
+    g_AudioEngine     = nullptr;
 }
 
 AudioSourceHandle
-AudioEngine::CreateAudioHandle(std::string_view AudioPath)
+AudioEngine::CreateAudioHandle( std::string_view AudioPath )
 {
-	return nullptr;
+    return nullptr;
 }
 
 SoundHandle
-AudioEngine::PlayAudio(AudioSourceHandle AudioHandle, bool TrackAudio)
+AudioEngine::PlayAudio( AudioSourceHandle AudioHandle, bool TrackAudio )
 {
-	return nullptr;
+    return nullptr;
 }

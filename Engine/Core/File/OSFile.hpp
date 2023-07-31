@@ -13,9 +13,9 @@ namespace OSFile
 {
 
 std::string
-PickFile(const std::vector<nfdfilteritem_t>& filter, const char *default_path = nullptr);
+PickFile( const std::vector<nfdfilteritem_t>& filter, const char* default_path = nullptr );
 
 std::string
-SaveFile(const std::vector<nfdfilteritem_t>& filter, const char *default_path = nullptr);
+SaveFile( const std::vector<nfdfilteritem_t>& filter, const char* default_path = nullptr );
 
-};// namespace OSFile
+};   // namespace OSFile

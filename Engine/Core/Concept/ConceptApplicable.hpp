@@ -8,14 +8,14 @@
 
 class ConceptApplicable : public Concept
 {
-	DECLARE_CONCEPT(ConceptApplicable, Concept)
+    DECLARE_CONCEPT( ConceptApplicable, Concept )
 
 public:
-	/*
-	 *
-	 * Apply the concept to environment, serve the same function as update
-	 *
-	 * */
-	virtual void
-	Apply() = 0;
+    /*
+     *
+     * Apply the concept to environment, serve the same function as update
+     *
+     * */
+    virtual void
+    Apply( ) = 0;
 };

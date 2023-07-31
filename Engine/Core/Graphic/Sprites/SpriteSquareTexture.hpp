@@ -8,21 +8,21 @@
 
 class SpriteSquareTexture : public SpriteSquare
 {
-	DECLARE_CONCEPT(SpriteSquareTexture, SpriteSquare)
+    DECLARE_CONCEPT( SpriteSquareTexture, SpriteSquare )
 
 public:
-	using SpriteSquare::SpriteSquare;
+    using SpriteSquare::SpriteSquare;
 
-	void
-	SetTexturePath(const std::string &TexturePath);
+    void
+    SetTexturePath( const std::string& TexturePath );
 
-	void
-	Render() override;
+    void
+    Render( ) override;
 
-	void
-	SetupSprite() override;
+    void
+    SetupSprite( ) override;
 
 protected:
-	uint32_t m_TextureID;
-	std::string m_TexturePath;
+    uint32_t    m_TextureID;
+    std::string m_TexturePath;
 };

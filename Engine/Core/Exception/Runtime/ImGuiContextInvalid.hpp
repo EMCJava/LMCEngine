@@ -13,5 +13,5 @@
  * */
 class ImGuiContextInvalid : public std::exception
 {
-	using std::exception::exception;
+    using std::exception::exception;
 };

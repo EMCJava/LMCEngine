@@ -7,13 +7,13 @@
 #include <Engine/Core/Window/Window.hpp>
 
 void
-InitializeEnvironment()
+InitializeEnvironment( )
 {
-	InitializeWindowEnvironment();
+    InitializeWindowEnvironment( );
 }
 
 void
-ShutdownEnvironment()
+ShutdownEnvironment( )
 {
-	ShutdownWindowEnvironment();
+    ShutdownWindowEnvironment( );
 }

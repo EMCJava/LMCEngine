@@ -8,17 +8,17 @@
 
 class SpriteSquare : public Sprite
 {
-	DECLARE_CONCEPT(SpriteSquare, Sprite)
+    DECLARE_CONCEPT( SpriteSquare, Sprite )
 
 public:
-	SpriteSquare(int Width, int Height);
+    SpriteSquare( int Width, int Height );
 
-	void
-	Render() override;
+    void
+    Render( ) override;
 
-	void
-	SetupSprite() override;
+    void
+    SetupSprite( ) override;
 
 protected:
-	int m_Width = 0, m_Height = 0;
+    int m_Width = 0, m_Height = 0;
 };

@@ -4,4 +4,4 @@
 
 #include "ConceptApplicable.hpp"
 
-DEFINE_CONCEPT_DS(ConceptApplicable, Concept)
+DEFINE_CONCEPT_DS( ConceptApplicable, Concept )

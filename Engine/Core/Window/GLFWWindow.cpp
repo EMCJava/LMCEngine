@@ -13,128 +13,127 @@
 #include <stdexcept>
 
 static void
-glfw_error_callback(int error, const char *description)
+glfw_error_callback( int error, const char* description )
 {
-	spdlog::error("Error: {}", description);
+    spdlog::error( "Error: {}", description );
 }
 
 void
-InitializeWindowEnvironment()
+InitializeWindowEnvironment( )
 {
-	if (GLFW_FALSE == glfwInit())
-	{
-		throw std::runtime_error("Failed to initialize GLFW");
-	}
+    if ( GLFW_FALSE == glfwInit( ) )
+    {
+        throw std::runtime_error( "Failed to initialize GLFW" );
+    }
 
-	glfwSetErrorCallback(glfw_error_callback);
+    glfwSetErrorCallback( glfw_error_callback );
 }
 
 void
-ShutdownWindowEnvironment()
+ShutdownWindowEnvironment( )
 {
-	glfwTerminate();
+    glfwTerminate( );
 }
 
-Window::Window(int Width, int Height, const char *Title, bool Fullscreen, bool Create)
+Window::Window( int Width, int Height, const char* Title, bool Fullscreen, bool Create )
 {
-	m_Width = Width;
-	m_Height = Height;
-	m_Title = Title;
-	m_Fullscreen = Fullscreen;
+    m_Width      = Width;
+    m_Height     = Height;
+    m_Title      = Title;
+    m_Fullscreen = Fullscreen;
 
-	if (Create)
-	{
-		CreateWindow();
-	}
+    if ( Create )
+    {
+        CreateWindow( );
+    }
 }
 
-Window::Window(const char *Title, bool Create)
+Window::Window( const char* Title, bool Create )
 {
-	const auto *VideoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    const auto* VideoMode = glfwGetVideoMode( glfwGetPrimaryMonitor( ) );
 
-	m_Width = VideoMode->width;
-	m_Height = VideoMode->height;
-	m_Title = Title;
-	m_Fullscreen = true;
+    m_Width      = VideoMode->width;
+    m_Height     = VideoMode->height;
+    m_Title      = Title;
+    m_Fullscreen = true;
 
-	if (Create)
-	{
-		CreateWindow();
-	}
+    if ( Create )
+    {
+        CreateWindow( );
+    }
 }
 
-Window::~Window()
+Window::~Window( )
 {
-	if (m_Window != nullptr)
-	{
-		glfwDestroyWindow(m_Window);
-		m_Window = nullptr;
-	}
+    if ( m_Window != nullptr )
+    {
+        glfwDestroyWindow( m_Window );
+        m_Window = nullptr;
+    }
 }
 
 void
-Window::CreateWindow()
+Window::CreateWindow( )
 {
 #ifdef LMC_APPLE
-	/* We need to explicitly ask for a 3.3 context on OS X */
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    /* We need to explicitly ask for a 3.3 context on OS X */
+    glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
+    glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 );
+    glfwWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE );
+    glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
 #endif
 
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint( GLFW_RESIZABLE, GL_FALSE );
 
-	if (m_Fullscreen)
-	{
-		m_Window = glfwCreateWindow(m_Width, m_Height, m_Title.c_str(), glfwGetPrimaryMonitor(), nullptr);
-	}
-	else
-	{
-		m_Window = glfwCreateWindow(m_Width, m_Height, m_Title.c_str(), nullptr, nullptr);
-	}
+    if ( m_Fullscreen )
+    {
+        m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str( ), glfwGetPrimaryMonitor( ), nullptr );
+    } else
+    {
+        m_Window = glfwCreateWindow( m_Width, m_Height, m_Title.c_str( ), nullptr, nullptr );
+    }
 
-	if (m_Window == nullptr)
-	{
-		throw std::runtime_error("Failed to create GLFW window");
-	}
+    if ( m_Window == nullptr )
+    {
+        throw std::runtime_error( "Failed to create GLFW window" );
+    }
 
-	MakeContextCurrent();
+    MakeContextCurrent( );
 }
 
 void
-Window::SetSwapInterval(int interval)
+Window::SetSwapInterval( int interval )
 {
-	MakeContextCurrent();
-	glfwSwapInterval(interval);
+    MakeContextCurrent( );
+    glfwSwapInterval( interval );
 }
 
 void
-Window::MakeContextCurrent()
+Window::MakeContextCurrent( )
 {
-	glfwMakeContextCurrent(m_Window);
+    glfwMakeContextCurrent( m_Window );
 }
 
 bool
-Window::WindowShouldClose() const
+Window::WindowShouldClose( ) const
 {
-	return glfwWindowShouldClose(m_Window);
+    return glfwWindowShouldClose( m_Window );
 }
 
-struct GLFWwindow *
-Window::GetWindowHandle() const
+struct GLFWwindow*
+Window::GetWindowHandle( ) const
 {
-	return m_Window;
+    return m_Window;
 }
 
 bool
-Window::IsFullscreen() const
+Window::IsFullscreen( ) const
 {
-	return m_Fullscreen;
+    return m_Fullscreen;
 }
 
 std::pair<int, int>
-Window::GetDimensions() const
+Window::GetDimensions( ) const
 {
-	return {m_Width, m_Height};
+    return { m_Width, m_Height };
 }

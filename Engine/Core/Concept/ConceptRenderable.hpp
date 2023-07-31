@@ -8,9 +8,9 @@
 
 class ConceptRenderable : public Concept
 {
-	DECLARE_CONCEPT(ConceptRenderable, Concept)
+    DECLARE_CONCEPT( ConceptRenderable, Concept )
 
 public:
-	virtual void
-	Render() = 0;
+    virtual void
+    Render( ) = 0;
 };

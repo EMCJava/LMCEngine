@@ -7,12 +7,12 @@
 #include <memory>
 
 #ifdef USE_IRRKLANG
-#	include <irrKlang.h>
+#    include <irrKlang.h>
 
-using SoundHandle = std::shared_ptr<irrklang::ISound>;
-using AudioSourceHandle = irrklang::ISoundSource *;
-#elif defined(NO_AUDIO_ENGINE)
+using SoundHandle       = std::shared_ptr<irrklang::ISound>;
+using AudioSourceHandle = irrklang::ISoundSource*;
+#elif defined( NO_AUDIO_ENGINE )
 
-using SoundHandle = void *;
-using AudioSourceHandle = void *;
+using SoundHandle       = void*;
+using AudioSourceHandle = void*;
 #endif

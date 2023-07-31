@@ -8,61 +8,61 @@
 
 class DynamicConcept : public DynamicLibrary
 {
-	bool
-	LoadFunctions();
+    bool
+    LoadFunctions( );
 
 public:
-	using DynamicLibrary::DynamicLibrary;
+    using DynamicLibrary::DynamicLibrary;
 
-	DynamicConcept(const std::string &Path);
-	~DynamicConcept();
+    DynamicConcept( const std::string& Path );
+    ~DynamicConcept( );
 
-	/*
-	 *
-	 * Load the dynamic library and obtain allocator + de-allocator
-	 * If Allocate == true, the allocator will be used to create new concept
-	 *
-	 * */
-	bool
-	Load(const std::string_view &Path, bool Allocate = true);
+    /*
+     *
+     * Load the dynamic library and obtain allocator + de-allocator
+     * If Allocate == true, the allocator will be used to create new concept
+     *
+     * */
+    bool
+    Load( const std::string_view& Path, bool Allocate = true );
 
-	/*
-	 *
-	 * Reload the dynamic library and obtain allocator + de-allocator
-	 * It will call DeAllocateConcept before reloading
-	 *
-	 * */
-	bool
-	Reload(bool ReAllocate = true);
+    /*
+     *
+     * Reload the dynamic library and obtain allocator + de-allocator
+     * It will call DeAllocateConcept before reloading
+     *
+     * */
+    bool
+    Reload( bool ReAllocate = true );
 
-	/*
-	 *
-	 * Allocate a new concept
-	 * It will call DeAllocateConcept before allocating
-	 *
-	 * */
-	void
-	AllocateConcept();
+    /*
+     *
+     * Allocate a new concept
+     * It will call DeAllocateConcept before allocating
+     *
+     * */
+    void
+    AllocateConcept( );
 
-	void
-	DeAllocateConcept();
+    void
+    DeAllocateConcept( );
 
-	class Concept *
-	operator->()
-	{
-		return m_Concept;
-	}
+    class Concept*
+    operator->( )
+    {
+        return m_Concept;
+    }
 
-	template<typename Ty>
-	Ty *
-	As()
-	{
-		return static_cast<Ty *>(m_Concept);
-	}
+    template <typename Ty>
+    Ty*
+    As( )
+    {
+        return static_cast<Ty*>( m_Concept );
+    }
 
 private:
-	void *(*m_Allocator)() = nullptr;
-	void (*m_DeAllocator)(void *) = nullptr;
+    void* ( *m_Allocator )( )        = nullptr;
+    void ( *m_DeAllocator )( void* ) = nullptr;
 
-	class Concept *m_Concept = nullptr;
+    class Concept* m_Concept = nullptr;
 };

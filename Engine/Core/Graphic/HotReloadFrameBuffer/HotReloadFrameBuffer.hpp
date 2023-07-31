@@ -15,25 +15,25 @@ class HotReloadFrameBuffer
 {
 
 public:
-	HotReloadFrameBuffer() = default;
-	~HotReloadFrameBuffer();
+    HotReloadFrameBuffer( ) = default;
+    ~HotReloadFrameBuffer( );
 
-	void
-	CreateFrameBuffer(float Width, float Height);
+    void
+    CreateFrameBuffer( float Width, float Height );
 
-	void
-	BindFrameBuffer() const;
+    void
+    BindFrameBuffer( ) const;
 
-	static void
-	UnBindFrameBuffer();
+    static void
+    UnBindFrameBuffer( );
 
-	void
-	RescaleFrameBuffer(float Width, float Height);
+    void
+    RescaleFrameBuffer( float Width, float Height );
 
-	uint32_t
-	GetTextureID() const;
+    uint32_t
+    GetTextureID( ) const;
 
 private:
-	uint32_t m_FBO{}, m_RBO{};
-	uint32_t m_TextureID{};
+    uint32_t m_FBO { }, m_RBO { };
+    uint32_t m_TextureID { };
 };

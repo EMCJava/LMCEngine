@@ -92,6 +92,9 @@ public:
 	FloatTy
 	GetDeltaSecond() const;
 
+	TimerTy::time_point
+	GetCurrentTime() const;
+
 	/*
 	 *
 	 * Used fot how reloaded library to load context correctly

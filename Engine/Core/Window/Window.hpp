@@ -5,9 +5,9 @@
 #pragma once
 
 void
-InitializeWindowEnvironment();
+InitializeWindowEnvironment( );
 
 void
-ShutdownWindowEnvironment();
+ShutdownWindowEnvironment( );
 
 #include "GLFWWindow.hpp"

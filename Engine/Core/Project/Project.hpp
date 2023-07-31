@@ -7,34 +7,34 @@
 #include <string>
 
 struct ProjectConfig {
-	std::string project_name = "Placeholder Project";
-	std::string root_concept;
+    std::string project_name = "Placeholder Project";
+    std::string root_concept;
 
-	/*
-	 *
-	 * Values set in runtime
-	 *
-	 * */
-	std::string shared_library_path_format;
-	std::string editor_layout_path;
+    /*
+     *
+     * Values set in runtime
+     *
+     * */
+    std::string shared_library_path_format;
+    std::string editor_layout_path;
 };
 
 class Project
 {
 public:
-	Project() = default;
-	~Project();
+    Project( ) = default;
+    ~Project( );
 
-	void
-	LoadProject(const std::string &ProjectFilePath);
+    void
+    LoadProject( const std::string& ProjectFilePath );
 
-	void
-	SaveProject();
+    void
+    SaveProject( );
 
-	auto
-	GetConfig() -> ProjectConfig &;
+    auto
+    GetConfig( ) -> ProjectConfig&;
 
 private:
-	ProjectConfig m_Config;
-	std::string m_ProjectFilePath;
+    ProjectConfig m_Config;
+    std::string   m_ProjectFilePath;
 };

@@ -9,8 +9,8 @@
 class GameWindow : public Window
 {
 public:
-	using Window::Window;
+    using Window::Window;
 
-	void
-	Update() override;
+    void
+    Update( ) override;
 };

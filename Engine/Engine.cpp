@@ -388,6 +388,12 @@ Engine::GetDeltaSecond() const
 	return m_DeltaSecond;
 }
 
+TimerTy::time_point
+Engine::GetCurrentTime() const
+{
+	return m_CurrentUpdateTime;
+}
+
 void
 Engine::MakeMainWindowCurrentContext()
 {

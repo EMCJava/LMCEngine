@@ -8,8 +8,8 @@
 
 #include <spdlog/spdlog.h>
 
-#include <filesystem>
 #include <algorithm>
+#include <filesystem>
 
 #include <dlfcn.h>
 
@@ -20,205 +20,205 @@ namespace
 namespace fs = std::filesystem;
 
 inline void
-PrintSysCallError(std::string_view message)
+PrintSysCallError( std::string_view message )
 {
-	std::string DLErrorString = dlerror();
+    std::string DLErrorString = dlerror( );
 
-	spdlog::error("{}: {}", message, DLErrorString);
+    spdlog::error( "{}: {}", message, DLErrorString );
 }
 
 void
-MakeSureOperation(auto &&Operation)
+MakeSureOperation( auto&& Operation )
 {
 
-	while (!Operation())
-		;
+    while ( !Operation( ) )
+        ;
 }
 
-}// namespace
+}   // namespace
 
-DynamicLibrary::DynamicLibrary(bool MakeCopyOnLoad)
+DynamicLibrary::DynamicLibrary( bool MakeCopyOnLoad )
 {
-	m_MakeCopyOnLoad = MakeCopyOnLoad;
+    m_MakeCopyOnLoad = MakeCopyOnLoad;
 }
 
-DynamicLibrary::~DynamicLibrary()
+DynamicLibrary::~DynamicLibrary( )
 {
-	Unload();
+    Unload( );
 
-	if (!m_DLLTmpPath.empty())
-	{
-		fs::remove(m_DLLTmpPath);
-	}
+    if ( !m_DLLTmpPath.empty( ) )
+    {
+        fs::remove( m_DLLTmpPath );
+    }
 }
 
 bool
-DynamicLibrary::Load(const std::string_view &Path)
+DynamicLibrary::Load( const std::string_view& Path )
 {
-	if (!fs::exists(Path))
-	{
-		spdlog::error("DynamicLibrary::Load: File {} does not exist", Path);
-	}
+    if ( !fs::exists( Path ) )
+    {
+        spdlog::error( "DynamicLibrary::Load: File {} does not exist", Path );
+    }
 
-	m_DLLLoadPath = m_DLLPath = Path;
+    m_DLLLoadPath = m_DLLPath = Path;
 
-	if (m_MakeCopyOnLoad)
-	{
-		MakeDLLCopy();
-	}
+    if ( m_MakeCopyOnLoad )
+    {
+        MakeDLLCopy( );
+    }
 
-	m_DLLHandle = dlopen(m_DLLLoadPath.c_str(), RTLD_LAZY);
-	if (m_DLLHandle == nullptr)
-	{
-		PrintSysCallError("DynamicLibrary::Load: Can't open and load dynamic library");
-		return false;
-	}
+    m_DLLHandle = dlopen( m_DLLLoadPath.c_str( ), RTLD_LAZY );
+    if ( m_DLLHandle == nullptr )
+    {
+        PrintSysCallError( "DynamicLibrary::Load: Can't open and load dynamic library" );
+        return false;
+    }
 
-	m_DLLModifiedTime = fs::last_write_time(m_DLLPath);
+    m_DLLModifiedTime = fs::last_write_time( m_DLLPath );
 
-	LoadSymbolAs("SetEngineContext", m_SetEngineContext);
-	REQUIRED(m_SetEngineContext != nullptr);
+    LoadSymbolAs( "SetEngineContext", m_SetEngineContext );
+    REQUIRED( m_SetEngineContext != nullptr );
 
-	return true;
+    return true;
 }
 
 void
-DynamicLibrary::Unload()
+DynamicLibrary::Unload( )
 {
-	if (m_DLLHandle != nullptr)
-	{
-		if (dlclose(m_DLLHandle))
-		{
-			PrintSysCallError("Failed to free dynamic library");
-		}
+    if ( m_DLLHandle != nullptr )
+    {
+        if ( dlclose( m_DLLHandle ) )
+        {
+            PrintSysCallError( "Failed to free dynamic library" );
+        }
 
-		m_DLLHandle = nullptr;
-		m_SetEngineContext = nullptr;
-	}
+        m_DLLHandle        = nullptr;
+        m_SetEngineContext = nullptr;
+    }
 }
 
 bool
-DynamicLibrary::Reload()
+DynamicLibrary::Reload( )
 {
-	Unload();
-	return Load(m_DLLPath);
+    Unload( );
+    return Load( m_DLLPath );
 }
 
-void *
-DynamicLibrary::LoadSymbol(const std::string &Name)
+void*
+DynamicLibrary::LoadSymbol( const std::string& Name )
 {
-	void *result = (void *)dlsym(m_DLLHandle, Name.c_str());
+    void* result = (void*) dlsym( m_DLLHandle, Name.c_str( ) );
 
-	if (result == nullptr)
-	{
-		PrintSysCallError("DynamicLibrary::Load: Can't load function");
-	}
+    if ( result == nullptr )
+    {
+        PrintSysCallError( "DynamicLibrary::Load: Can't load function" );
+    }
 
-	return result;
+    return result;
 }
 
 void
-DynamicLibrary::MakeDLLCopy()
+DynamicLibrary::MakeDLLCopy( )
 {
-	RemoveDLLCopy();
+    RemoveDLLCopy( );
 
-	m_DLLLoadPath = m_DLLTmpPath = m_DLLPath + ".tmp";
+    m_DLLLoadPath = m_DLLTmpPath = m_DLLPath + ".tmp";
 
-	MakeSureOperation([this, retry_left = 10]() mutable {
-		std::error_code OperationError;
-		if (!fs::copy_file(m_DLLPath, m_DLLTmpPath, fs::copy_options::update_existing, OperationError))
-		{
-			// Success, but not overwriting
-			if (!OperationError.value())
-			{
-				return true;
-			}
+    MakeSureOperation( [ this, retry_left = 10 ]( ) mutable {
+        std::error_code OperationError;
+        if ( !fs::copy_file( m_DLLPath, m_DLLTmpPath, fs::copy_options::update_existing, OperationError ) )
+        {
+            // Success, but not overwriting
+            if ( !OperationError.value( ) )
+            {
+                return true;
+            }
 
-			spdlog::error("DynamicLibrary::MakeDLLCopy: Not copying file, {}({})", OperationError.message(), OperationError.value());
-			if (retry_left >= 1 && SHARING_VIOLATION == OperationError.value())
-			{
-				spdlog::error("DynamicLibrary::MakeDLLCopy: File accessing by another process, retry remaining #{}", retry_left);
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
-				retry_left--;
-				return false;
-			}
+            spdlog::error( "DynamicLibrary::MakeDLLCopy: Not copying file, {}({})", OperationError.message( ), OperationError.value( ) );
+            if ( retry_left >= 1 && SHARING_VIOLATION == OperationError.value( ) )
+            {
+                spdlog::error( "DynamicLibrary::MakeDLLCopy: File accessing by another process, retry remaining #{}", retry_left );
+                std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
+                retry_left--;
+                return false;
+            }
 
-			// Gave up
-		}
+            // Gave up
+        }
 
-		return true;
-	});
+        return true;
+    } );
 
-	const std::filesystem::path DLLFilePath = m_DLLPath;
-	const auto &DLLFilename = DLLFilePath.stem();
-	const auto &DLLFileWithoutExtension = DLLFilePath.parent_path() / DLLFilename;
+    const std::filesystem::path DLLFilePath             = m_DLLPath;
+    const auto&                 DLLFilename             = DLLFilePath.stem( );
+    const auto&                 DLLFileWithoutExtension = DLLFilePath.parent_path( ) / DLLFilename;
 
-	const fs::path DLLFileDebugInfo = DLLFileWithoutExtension.string() + ".pdb";
+    const fs::path DLLFileDebugInfo = DLLFileWithoutExtension.string( ) + ".pdb";
 
-	if (fs::exists(DLLFileDebugInfo))
-	{
-		spdlog::info("DynamicLibrary::MakeDLLCopy: Removing debug info for hot-reloading: {}", DLLFileDebugInfo.string());
-		MakeSureOperation([&DLLFileDebugInfo, retry_left = 10]() mutable {
-			std::error_code OperationError;
-			if (!fs::remove(DLLFileDebugInfo, OperationError))
-			{
-				spdlog::error("DynamicLibrary::MakeDLLCopy: Failed to remove debug info, further hot reloading may fail, {}({})", OperationError.message(), OperationError.value());
-				if (retry_left >= 1 && SHARING_VIOLATION == OperationError.value())
-				{
-					spdlog::error("DynamicLibrary::MakeDLLCopy: File accessing by another process, retry remaining #{}", retry_left);
-					std::this_thread::sleep_for(std::chrono::milliseconds(100));
-					retry_left--;
-					return false;
-				}
+    if ( fs::exists( DLLFileDebugInfo ) )
+    {
+        spdlog::info( "DynamicLibrary::MakeDLLCopy: Removing debug info for hot-reloading: {}", DLLFileDebugInfo.string( ) );
+        MakeSureOperation( [ &DLLFileDebugInfo, retry_left = 10 ]( ) mutable {
+            std::error_code OperationError;
+            if ( !fs::remove( DLLFileDebugInfo, OperationError ) )
+            {
+                spdlog::error( "DynamicLibrary::MakeDLLCopy: Failed to remove debug info, further hot reloading may fail, {}({})", OperationError.message( ), OperationError.value( ) );
+                if ( retry_left >= 1 && SHARING_VIOLATION == OperationError.value( ) )
+                {
+                    spdlog::error( "DynamicLibrary::MakeDLLCopy: File accessing by another process, retry remaining #{}", retry_left );
+                    std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
+                    retry_left--;
+                    return false;
+                }
 
-				// Gave up
-			}
+                // Gave up
+            }
 
-			return true;
-		});
-	}
+            return true;
+        } );
+    }
 }
 
 bool
-DynamicLibrary::ShouldReload() const
+DynamicLibrary::ShouldReload( ) const
 {
-	try
-	{
-		const auto &NewDLLModifiedTime = fs::last_write_time(m_DLLPath);
-		return NewDLLModifiedTime != m_DLLModifiedTime;
-	}
-	catch (const fs::filesystem_error &e)
-	{
-		spdlog::error("DynamicLibrary::ShouldReload: {}", e.what());
-		return false;
-	}
+    try
+    {
+        const auto& NewDLLModifiedTime = fs::last_write_time( m_DLLPath );
+        return NewDLLModifiedTime != m_DLLModifiedTime;
+    }
+    catch ( const fs::filesystem_error& e )
+    {
+        spdlog::error( "DynamicLibrary::ShouldReload: {}", e.what( ) );
+        return false;
+    }
 }
 
 void
-DynamicLibrary::RemoveDLLCopy()
+DynamicLibrary::RemoveDLLCopy( )
 {
-	/*
-	 *
-	 * Existing copy, remove
-	 *
-	 * */
-	if (!m_DLLTmpPath.empty())
-	{
-		fs::remove(m_DLLTmpPath);
+    /*
+     *
+     * Existing copy, remove
+     *
+     * */
+    if ( !m_DLLTmpPath.empty( ) )
+    {
+        fs::remove( m_DLLTmpPath );
 
-		if (!m_DLLDependencies.empty())
-		{
-			std::for_each(m_DLLDependencies.begin(), m_DLLDependencies.end(), [](const auto &path) {
-				fs::remove(path);
-			});
+        if ( !m_DLLDependencies.empty( ) )
+        {
+            std::for_each( m_DLLDependencies.begin( ), m_DLLDependencies.end( ), []( const auto& path ) {
+                fs::remove( path );
+            } );
 
-			m_DLLDependencies.clear();
-		}
-	}
+            m_DLLDependencies.clear( );
+        }
+    }
 }
 
 void
-DynamicLibrary::SetEngineContext(class Engine *ptr)
+DynamicLibrary::SetEngineContext( class Engine* ptr )
 {
-	m_SetEngineContext(ptr);
+    m_SetEngineContext( ptr );
 }
