@@ -16,6 +16,7 @@ declare_library(
         SpriteSquareTexture.lib
         ShaderProgram.lib
         Audio.lib
+        PureConceptCamera.lib
 
         DEPS
         ConceptApplicable.lib

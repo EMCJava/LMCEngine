@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ConceptCore.hpp"
+#include "PureConcept.hpp"
 #include "ConceptSetFetchCache.hpp"
 
 #include <Engine/Core/Math/Random/FastRandom.hpp>
@@ -17,9 +18,9 @@
  * Virtual Concept system in this engine
  *
  * */
-class Concept
+class Concept : public PureConcept
 {
-    DECLARE_CONCEPT( Concept )
+    DECLARE_CONCEPT( Concept, PureConcept )
 
 public:
     Concept( );
@@ -54,8 +55,8 @@ public:
     GetConcepts( ConceptSetFetchCache<ConceptType>& Out );
 
 private:
-    std::vector<std::unique_ptr<Concept>> m_SubConcepts;
-    FastRandom                            m_SubConceptsStateHash;
+    std::vector<std::unique_ptr<PureConcept>> m_SubConcepts;
+    FastRandom                                m_SubConceptsStateHash;
 };
 
 template <class ConceptType, typename... Args>

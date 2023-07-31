@@ -16,6 +16,7 @@
 
 #include <Engine/Core/Graphic/HotReloadFrameBuffer/HotReloadFrameBuffer.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquare.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
 #include <Engine/Core/Environment/Environment.hpp>
 #include <Engine/Core/Runtime/DynamicLibrary/DynamicConcept.hpp>
@@ -207,6 +208,7 @@ Engine::UpdateRootConcept( )
 
 // One instance of engine, so it's probably ok
 ConceptSetFetchCache<ConceptRenderable> g_ConceptRenderables { };
+ConceptSetFetchCache<PureConceptCamera>            g_ConceptCameras { };
 
 void
 Engine::Render( )
@@ -260,6 +262,13 @@ Engine::Render( )
             m_HRFrameBuffer->BindFrameBuffer( );
             if ( m_MainViewPortDimensions != MainViewPortDimensions )
             {
+                m_MainViewPortDimensions = MainViewPortDimensions;
+
+                ( *m_RootConcept )->GetConcepts<PureConceptCamera>( g_ConceptCameras );
+                g_ConceptCameras.ForEach( [ &MainViewPortDimensions ]( PureConceptCamera* item ) {
+                    item->SetDimensions( MainViewPortDimensions.first, MainViewPortDimensions.second );
+                } );
+
                 m_HRFrameBuffer->RescaleFrameBuffer( MainViewPortDimensions.first, MainViewPortDimensions.second );
             }
 
@@ -277,8 +286,6 @@ Engine::Render( )
             } );
 
             m_HRFrameBuffer->UnBindFrameBuffer( );
-
-            m_MainViewPortDimensions = MainViewPortDimensions;
         }
     }
 

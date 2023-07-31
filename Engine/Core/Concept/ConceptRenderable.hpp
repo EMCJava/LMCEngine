@@ -13,4 +13,9 @@ class ConceptRenderable : public Concept
 public:
     virtual void
     Render( ) = 0;
+
+    void SetActiveCamera( class PureConceptCamera* ActiveCamera );
+
+protected:
+    class PureConceptCamera* m_ActiveCamera;
 };

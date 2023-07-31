@@ -1,10 +1,12 @@
+add_library(PureConcept.lib PureConcept.hpp PureConcept.cpp)
 add_library(Concept.lib Concept.hpp Concept.cpp)
 add_library(ConceptApplicable.lib ConceptApplicable.hpp ConceptApplicable.cpp)
 add_library(ConceptCoordinate.lib PureConceptCoordinate.hpp PureConceptCoordinate.cpp)
 add_library(ConceptRenderable.lib ConceptRenderable.hpp ConceptRenderable.cpp)
 add_library(ConceptSetFetchCache.lib ConceptSetFetchCache.hpp ConceptFetchCache.cpp)
 
-target_link_libraries(Concept.lib Engine.lib ConceptSetFetchCache.lib)
+target_link_libraries(PureConcept.lib Engine.lib)
+target_link_libraries(Concept.lib ConceptSetFetchCache.lib PureConcept.lib)
 target_link_libraries(ConceptApplicable.lib Concept.lib)
 target_link_libraries(ConceptCoordinate.lib Concept.lib)
 target_link_libraries(ConceptRenderable.lib Concept.lib)

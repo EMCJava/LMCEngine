@@ -4,12 +4,11 @@
 
 #include "Sprite.hpp"
 
+#include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 #include <Engine/Engine.hpp>
 
-#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -32,11 +31,11 @@ Sprite::Render( )
 {
     if ( m_Shader != nullptr )
     {
-        const auto Dimensions = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
-
         m_Shader->Bind( );
-        auto Projection = glm::ortho<float>( 0, Dimensions.first, 0, Dimensions.second, -1, 1 );
-        m_Shader->SetMat4( "projectionMatrix", Projection );
+        if ( m_ActiveCamera != nullptr )
+        {
+            m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
+        }
 
         auto Model = glm::translate( glm::mat4( 1 ), glm::vec3( m_Coordinate.X, m_Coordinate.Y, 0 ) );
         m_Shader->SetMat4( "modelMatrix", Model );

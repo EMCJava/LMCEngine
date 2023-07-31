@@ -5,3 +5,9 @@
 #include "ConceptRenderable.hpp"
 
 DEFINE_CONCEPT_DS( ConceptRenderable, Concept )
+
+void
+ConceptRenderable::SetActiveCamera( class PureConceptCamera* ActiveCamera )
+{
+    m_ActiveCamera = ActiveCamera;
+}

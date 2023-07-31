@@ -22,6 +22,7 @@ target_link_libraries(Engine.lib
         ConceptSetFetchCache.lib
         Audio.lib
         UserInput.lib
+        PureConceptCamera.lib
 
         SpriteSquare.lib
         )

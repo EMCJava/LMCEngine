@@ -6,7 +6,7 @@
 
 #include <random>
 
-DEFINE_CONCEPT_DS( Concept )
+DEFINE_CONCEPT_DS( Concept, PureConcept )
 
 Concept::Concept( )
 {

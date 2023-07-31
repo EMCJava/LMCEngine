@@ -13,12 +13,10 @@
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquare.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Input/UserInput.hpp>
 
 #include <spdlog/spdlog.h>
-
-#pragma Warning tempory only
-#include <GLFW/glfw3.h>
 
 DEFINE_CONCEPT_MA_SE( CFoo, Concept )
 
@@ -46,6 +44,11 @@ CFoo::CFoo( )
 {
     spdlog::info( "CFoo concept constructor called" );
 
+    auto*      MainCamera           = AddConcept<PureConceptCamera>( );
+    const auto MainWindowDimensions = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
+    spdlog::info( "MainWindowDimensions: ({}, {})", MainWindowDimensions.first, MainWindowDimensions.second);
+    MainCamera->SetDimensions( MainWindowDimensions.first, MainWindowDimensions.second );
+
     auto SProgram = std::make_shared<ShaderProgram>( );
     SProgram->Load( vertexTextureShaderSource, fragmentTextureShaderSource );
 
@@ -56,6 +59,7 @@ CFoo::CFoo( )
     Sp1->GetCoordinate( ).Y = -108 * 1.5 - 50;
     Sp1->SetShader( S1 );
     Sp1->SetTexturePath( "Access/Texture/cat_minimal.jpg" );
+    Sp1->SetActiveCamera( MainCamera );
     Sp1->SetupSprite( );
 
     auto S2 = std::make_shared<Shader>( );
@@ -65,6 +69,7 @@ CFoo::CFoo( )
     Sp2->GetCoordinate( ).Y = 108 * 1.5 + 50;
     Sp2->SetShader( S2 );
     Sp2->SetTexturePath( "Access/Texture/cat_minimal.jpg" );
+    Sp2->SetActiveCamera( MainCamera );
     Sp2->SetupSprite( );
 
     auto* DDC             = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Beats.ogg" );
