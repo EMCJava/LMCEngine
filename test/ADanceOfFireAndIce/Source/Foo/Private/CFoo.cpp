@@ -92,7 +92,7 @@ CFoo::Apply( )
     if ( m_IsCheckingDeviceDelay )
     {
         constexpr int64_t AudioDefaultOffset = 3000;
-        const int64_t     PlayPosition       = m_DelayCheckingHandle->getPlayPosition( );
+        const int64_t     PlayPosition       = m_DelayCheckingHandle.GetCurrentAudioOffset( );
         if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isPressed )
         {
             m_UserDeviceOffsetMS = PlayPosition - AudioDefaultOffset;
@@ -100,12 +100,12 @@ CFoo::Apply( )
         }
 
         // End of offset wizard
-        if ( PlayPosition == 0 && m_DelayCheckingHandle->isFinished( ) )
+        if ( PlayPosition == 0 && m_DelayCheckingHandle.IsAudioEnded( ) )
         {
             spdlog::info( "End of offset wizard, final offset: {}ms", m_UserDeviceOffsetMS );
             m_IsCheckingDeviceDelay = false;
 
-            m_MainAudioHandle->setIsPaused( false );
+            m_MainAudioHandle.Resume( );
         }
     }
 }

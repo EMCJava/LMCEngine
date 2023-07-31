@@ -9,10 +9,10 @@
 #ifdef USE_IRRKLANG
 #    include <irrKlang.h>
 
-using SoundHandle       = std::shared_ptr<irrklang::ISound>;
-using AudioSourceHandle = irrklang::ISoundSource*;
+using NativeSoundHandle       = std::shared_ptr<irrklang::ISound>;
+using NativeAudioSourceHandle = irrklang::ISoundSource*;
 #elif defined( NO_AUDIO_ENGINE )
 
-using SoundHandle       = void*;
-using AudioSourceHandle = void*;
+using NativeSoundHandle       = void*;
+using NativeAudioSourceHandle = void*;
 #endif

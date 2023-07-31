@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Audio.hpp"
+#include "AudioHandle.hpp"
 
 #include <string_view>
 
@@ -14,7 +15,7 @@ public:
     AudioEngine( );
     ~AudioEngine( );
 
-    AudioSourceHandle
+    NativeAudioSourceHandle
     CreateAudioHandle( std::string_view AudioPath );
 
     /*
@@ -23,8 +24,8 @@ public:
      * Is TrackAudio == true, returns A sound handle of this sound instance
      *
      * */
-    SoundHandle
-    PlayAudio( AudioSourceHandle AudioHandle, bool TrackAudio = false, bool PauseAtStart = false, bool Loop = false );
+    AudioHandle
+    PlayAudio( NativeAudioSourceHandle AudioHandle, bool TrackAudio = false, bool PauseAtStart = false, bool Loop = false );
 
 private:
     static inline AudioEngine* g_AudioEngine = nullptr;

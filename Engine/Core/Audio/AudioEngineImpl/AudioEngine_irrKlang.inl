@@ -13,7 +13,7 @@ using namespace irrklang;
 
 #include <stdexcept>
 
-#define BackendInstance ( (ISoundEngine*) m_BackendInstance )
+#define BackendInstance ( static_cast<ISoundEngine*>( m_BackendInstance ) )
 
 AudioEngine::AudioEngine( )
 {
@@ -37,13 +37,13 @@ AudioEngine::~AudioEngine( )
     g_AudioEngine = nullptr;
 }
 
-AudioSourceHandle
+NativeAudioSourceHandle
 AudioEngine::CreateAudioHandle( std::string_view AudioPath )
 {
     return BackendInstance->addSoundSourceFromFile( AudioPath.data( ) );
 }
 
-struct SoundHandleDestructor {
+struct NativeSoundHandleDestructor {
     void operator( )( irrklang::ISound* Ptr ) const
     {
         if ( Ptr != nullptr )
@@ -53,8 +53,8 @@ struct SoundHandleDestructor {
     }
 };
 
-SoundHandle
-AudioEngine::PlayAudio( AudioSourceHandle AudioHandle, bool TrackAudio, bool PauseAtStart, bool Loop )
+AudioHandle
+AudioEngine::PlayAudio( NativeAudioSourceHandle AudioHandle, bool TrackAudio, bool PauseAtStart, bool Loop )
 {
-    return SoundHandle { BackendInstance->play2D( AudioHandle, Loop, PauseAtStart, TrackAudio ), SoundHandleDestructor {} };
+    return NativeSoundHandle { BackendInstance->play2D( AudioHandle, Loop, PauseAtStart, TrackAudio ), NativeSoundHandleDestructor {} };
 }

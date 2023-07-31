@@ -19,8 +19,8 @@ public:
     Apply( ) override;
 
 private:
-    SoundHandle m_DelayCheckingHandle;
-    SoundHandle m_MainAudioHandle;
+    AudioHandle m_DelayCheckingHandle;
+    AudioHandle m_MainAudioHandle;
 
     bool    m_IsCheckingDeviceDelay = true;
     int64_t m_UserDeviceOffsetMS { };

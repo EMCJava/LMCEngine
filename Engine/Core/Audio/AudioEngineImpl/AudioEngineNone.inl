@@ -23,14 +23,14 @@ AudioEngine::~AudioEngine( )
     g_AudioEngine     = nullptr;
 }
 
-AudioSourceHandle
+NativeAudioSourceHandle
 AudioEngine::CreateAudioHandle( std::string_view AudioPath )
 {
     return nullptr;
 }
 
-SoundHandle
-AudioEngine::PlayAudio( AudioSourceHandle AudioHandle, bool TrackAudio, bool PauseAtStart, bool Loop )
+AudioHandle
+AudioEngine::PlayAudio( NativeAudioSourceHandle AudioHandle, bool TrackAudio, bool PauseAtStart, bool Loop )
 {
     return nullptr;
 }
