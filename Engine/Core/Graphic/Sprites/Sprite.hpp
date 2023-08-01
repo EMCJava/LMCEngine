@@ -5,13 +5,13 @@
 #pragma once
 
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
-#include <Engine/Core/Scene/Orientation/OrientationCoordinate.hpp>
+#include <Engine/Core/Scene/Orientation/Orientation.hpp>
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 
 #include <memory>
 
 class Sprite : public ConceptRenderable
-    , public OrientationCoordinate
+    , public Orientation
 {
     DECLARE_CONCEPT( Sprite, ConceptRenderable )
 

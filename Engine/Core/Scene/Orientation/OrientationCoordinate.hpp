@@ -33,3 +33,12 @@ struct fmt::formatter<OrientationCoordinate::Coordinate> : fmt::formatter<std::s
         return fmt::format_to( ctx.out( ), "[Coordinate X={} Y={} Z={}]", C.X, C.Y, C.Z );
     }
 };
+
+template <>
+struct fmt::formatter<OrientationCoordinate> : fmt::formatter<std::string> {
+    static auto
+    format( const OrientationCoordinate& OCoordinate, format_context& ctx ) -> decltype( ctx.out( ) )
+    {
+        return fmt::formatter<OrientationCoordinate::Coordinate>::format( OCoordinate.GetCoordinate( ), ctx );
+    }
+};
