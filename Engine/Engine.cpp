@@ -164,6 +164,9 @@ Engine::Update( )
 {
     m_CurrentUpdateTime = TimerTy::now( );
 
+    m_MainWindow->MakeContextCurrent( );
+    glfwPollEvents( );
+
     {
         // Setup m_DeltaSecond
         typedef std::chrono::duration<FloatTy> fsec;
@@ -213,9 +216,6 @@ ConceptSetFetchCache<PureConceptCamera>            g_ConceptCameras { };
 void
 Engine::Render( )
 {
-    m_MainWindow->MakeContextCurrent( );
-
-    glfwPollEvents( );
 
     ImGui_ImplOpenGL3_NewFrame( );
     ImGui_ImplGlfw_NewFrame( );
