@@ -58,6 +58,7 @@ CFoo::CFoo( )
     auto S1 = std::make_shared<Shader>( );
     S1->SetProgram( SProgram );
     auto* Sp1 = AddConcept<SpriteSquareTexture>( 512, 512 );
+    Sp1->SetRotationCenter( 512 / 2, 512 / 2 );
     Sp1->SetShader( S1 );
     Sp1->SetTexturePath( "Access/Texture/Tile/180.png" );
     Sp1->SetActiveCamera( MainCamera );
@@ -80,7 +81,9 @@ CFoo::~CFoo( )
 void
 CFoo::Apply( )
 {
-    GetConcept<Sprite>( )->GetCoordinate( ).X += Engine::GetEngine( )->GetDeltaSecond( );
+    auto* Sp = GetConcept<Sprite>( );
+    Sp->AlterCoordinate( Engine::GetEngine( )->GetDeltaSecond( ) );
+    Sp->AlterRotation( 0, 0, Engine ::GetEngine( )->GetDeltaSecond( ) * 10 );
 
     if ( m_IsCheckingDeviceDelay )
     {

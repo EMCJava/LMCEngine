@@ -8,8 +8,6 @@
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 #include <Engine/Engine.hpp>
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #include <spdlog/spdlog.h>
 
 DEFINE_CONCEPT( Sprite, ConceptRenderable )
@@ -37,8 +35,7 @@ Sprite::Render( )
             m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
         }
 
-        auto Model = glm::translate( glm::mat4( 1 ), glm::vec3( m_Coordinate.X, m_Coordinate.Y, 0 ) );
-        m_Shader->SetMat4( "modelMatrix", Model );
+        m_Shader->SetMat4( "modelMatrix", GetTranslationMatrix( ) * GetRotationMatrix( ) );
     }
 }
 

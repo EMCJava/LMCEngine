@@ -8,6 +8,8 @@
 
 #include <spdlog/fmt/fmt.h>
 
+#include <glm/glm.hpp>
+
 class OrientationCoordinate
 {
 public:
@@ -18,11 +20,23 @@ public:
     const Coordinate&
     GetCoordinate( ) const;
 
-    Coordinate&
-    GetCoordinate( );
+    const Coordinate&
+    AlterCoordinate( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0 );
+
+    /*
+     *
+     * Only allow user to modify the orientation using setter for a easier life to update the marrix
+     *
+     * */
+    const Coordinate&
+    SetCoordinate( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0 );
+
+    glm::mat4& GetTranslationMatrix( );
+    void       UpdateTranslationMatrix( );
 
 protected:
     Coordinate m_Coordinate { };
+    glm::mat4  m_TranslationMatrix { };
 };
 
 template <>
