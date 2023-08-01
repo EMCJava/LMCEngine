@@ -75,7 +75,21 @@ SpriteSquareTexture::SetupSprite( )
     unsigned char* data = stbi_load( m_TexturePath.c_str( ), &width, &height, &nrChannels, 0 );
     if ( data )
     {
-        gl->TexImage2D( GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data );
+        GLenum Format;
+        if ( nrChannels == 1 )
+        {
+            Format = GL_RED;
+        } else if ( nrChannels == 3 )
+        {
+            Format = GL_RGB;
+        } else if ( nrChannels == 4 )
+        {
+            Format = GL_RGBA;
+        }
+
+        spdlog::info( "Loaded texture {} with size {} x {} C {}", m_TexturePath, width, height, nrChannels );
+
+        gl->TexImage2D( GL_TEXTURE_2D, 0, Format, width, height, 0, Format, GL_UNSIGNED_BYTE, data );
         gl->GenerateMipmap( GL_TEXTURE_2D );
     } else
     {

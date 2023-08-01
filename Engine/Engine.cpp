@@ -211,7 +211,7 @@ Engine::UpdateRootConcept( )
 
 // One instance of engine, so it's probably ok
 ConceptSetFetchCache<ConceptRenderable> g_ConceptRenderables { };
-ConceptSetFetchCache<PureConceptCamera>            g_ConceptCameras { };
+ConceptSetFetchCache<PureConceptCamera> g_ConceptCameras { };
 
 void
 Engine::Render( )
@@ -278,8 +278,8 @@ Engine::Render( )
              *
              * */
             m_GLContext->Viewport( 0, 0, MainViewPortDimensions.first, MainViewPortDimensions.second );
-            m_GLContext->ClearColor( 0, 0, 0, 0 );
-            m_GLContext->Clear( GL_COLOR_BUFFER_BIT );
+            m_GLContext->ClearColor( 0.85f, 0.83f, 0.84f, 1.0f );
+            m_GLContext->Clear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
             g_ConceptRenderables.ForEach( []( ConceptRenderable* item ) {
                 item->Render( );

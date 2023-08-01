@@ -46,7 +46,7 @@ HotReloadFrameBuffer::CreateFrameBuffer( float Width, float Height )
     GL_CHECK( gl->BindTexture( GL_TEXTURE_2D, m_TextureID ) );
 
     spdlog::info( "Creating FrameBuffer: {}x{} of format GL_RGB", Width, Height );
-    GL_CHECK( gl->TexImage2D( GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr ) );
+    GL_CHECK( gl->TexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, Width, Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr ) );
     GL_CHECK( gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ) );
     GL_CHECK( gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ) );
     GL_CHECK( gl->FramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureID, 0 ) );
@@ -85,7 +85,7 @@ HotReloadFrameBuffer::RescaleFrameBuffer( float Width, float Height )
     GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
 
     GL_CHECK( gl->BindTexture( GL_TEXTURE_2D, m_TextureID ) );
-    GL_CHECK( gl->TexImage2D( GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr ) );
+    GL_CHECK( gl->TexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, Width, Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr ) );
     GL_CHECK( gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ) );
     GL_CHECK( gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ) );
     GL_CHECK( gl->FramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_TextureID, 0 ) );

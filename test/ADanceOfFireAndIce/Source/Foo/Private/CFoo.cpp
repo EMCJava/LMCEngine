@@ -37,7 +37,10 @@ const char* fragmentTextureShaderSource = "#version 330 core\n"
                                           "uniform sampler2D sample_texture;\n"
                                           "void main()\n"
                                           "{\n"
-                                          "   FragColor = mix(texture(sample_texture, TexCoord), vec4(1.0f, 0.5f, 0.2f, 1.0f), 0.2);\n"
+                                          "    vec4 texColor = texture(sample_texture, TexCoord);"
+                                          "   if(texColor.a < 0.1)"
+                                          "        discard;"
+                                          "   FragColor = texColor;\n"
                                           "}\n\0";
 
 CFoo::CFoo( )
@@ -46,7 +49,7 @@ CFoo::CFoo( )
 
     auto*      MainCamera           = AddConcept<PureConceptCamera>( );
     const auto MainWindowDimensions = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
-    spdlog::info( "MainWindowDimensions: ({}, {})", MainWindowDimensions.first, MainWindowDimensions.second);
+    spdlog::info( "MainWindowDimensions: ({}, {})", MainWindowDimensions.first, MainWindowDimensions.second );
     MainCamera->SetDimensions( MainWindowDimensions.first, MainWindowDimensions.second );
 
     auto SProgram = std::make_shared<ShaderProgram>( );
@@ -54,23 +57,11 @@ CFoo::CFoo( )
 
     auto S1 = std::make_shared<Shader>( );
     S1->SetProgram( SProgram );
-    auto* Sp1               = AddConcept<SpriteSquareTexture>( 192 * 3, 108 * 3 );
-    Sp1->GetCoordinate( ).X = 192 * 1.5;
-    Sp1->GetCoordinate( ).Y = -108 * 1.5 - 50;
+    auto* Sp1 = AddConcept<SpriteSquareTexture>( 512, 512 );
     Sp1->SetShader( S1 );
-    Sp1->SetTexturePath( "Access/Texture/cat_minimal.jpg" );
+    Sp1->SetTexturePath( "Access/Texture/Tile/180.png" );
     Sp1->SetActiveCamera( MainCamera );
     Sp1->SetupSprite( );
-
-    auto S2 = std::make_shared<Shader>( );
-    S2->SetProgram( SProgram );
-    auto* Sp2               = AddConcept<SpriteSquareTexture>( 192 * 3, 108 * 3 );
-    Sp1->GetCoordinate( ).X = 192 * 1.5;
-    Sp2->GetCoordinate( ).Y = 108 * 1.5 + 50;
-    Sp2->SetShader( S2 );
-    Sp2->SetTexturePath( "Access/Texture/cat_minimal.jpg" );
-    Sp2->SetActiveCamera( MainCamera );
-    Sp2->SetupSprite( );
 
     auto* DDC             = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Beats.ogg" );
     m_DelayCheckingHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( DDC, true );
@@ -89,10 +80,7 @@ CFoo::~CFoo( )
 void
 CFoo::Apply( )
 {
-    std::vector<Sprite*> Sps;
-    GetConcepts( Sps );
-    Sps[ 0 ]->GetCoordinate( ).X += Engine::GetEngine( )->GetDeltaSecond( );
-    Sps[ 1 ]->GetCoordinate( ).X -= Engine::GetEngine( )->GetDeltaSecond( );
+    GetConcept<Sprite>( )->GetCoordinate( ).X += Engine::GetEngine( )->GetDeltaSecond( );
 
     if ( m_IsCheckingDeviceDelay )
     {
