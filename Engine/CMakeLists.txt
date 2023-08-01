@@ -15,7 +15,7 @@ target_link_libraries(Engine.lib
         glfw
         imgui.lib
         DynamicConcept.lib
-        ConceptCoordinate.lib
+        OrientationCoordinate.lib
         ConceptApplicable.lib
         HotReloadFrameBuffer.lib
         ConceptRenderable.lib

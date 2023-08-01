@@ -1,0 +1,3 @@
+add_library(OrientationCoordinate.lib OrientationCoordinate.hpp OrientationCoordinate.cpp)
+
+target_link_libraries(OrientationCoordinate.lib spdlog::spdlog)

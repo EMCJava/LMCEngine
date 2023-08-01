@@ -5,7 +5,7 @@
 #include "CFoo.hpp"
 
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
-#include <Engine/Core/Concept/PureConceptCoordinate.hpp>
+#include <Engine/Core/Scene/Orientation/OrientationCoordinate.hpp>
 #include <Engine/Engine.hpp>
 
 #include <Engine/Core/Audio/AudioEngine.hpp>

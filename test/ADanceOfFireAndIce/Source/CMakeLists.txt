@@ -20,6 +20,6 @@ declare_library(
 
         DEPS
         ConceptApplicable.lib
-        ConceptCoordinate.lib
+        OrientationCoordinate.lib
         spdlog::spdlog
 )

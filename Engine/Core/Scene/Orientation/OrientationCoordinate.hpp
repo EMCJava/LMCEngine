@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "Concept.hpp"
+#include <Engine/Core/Core.hpp>
 
 #include <spdlog/fmt/fmt.h>
 
-class PureConceptCoordinate
+class OrientationCoordinate
 {
 public:
     struct Coordinate {
@@ -26,9 +26,9 @@ protected:
 };
 
 template <>
-struct fmt::formatter<PureConceptCoordinate::Coordinate> : fmt::formatter<std::string> {
+struct fmt::formatter<OrientationCoordinate::Coordinate> : fmt::formatter<std::string> {
     static auto
-    format( const PureConceptCoordinate::Coordinate& C, format_context& ctx ) -> decltype( ctx.out( ) )
+    format( const OrientationCoordinate::Coordinate& C, format_context& ctx ) -> decltype( ctx.out( ) )
     {
         return fmt::format_to( ctx.out( ), "[Coordinate X={} Y={} Z={}]", C.X, C.Y, C.Z );
     }
