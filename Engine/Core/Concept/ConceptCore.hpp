@@ -270,7 +270,8 @@ private:
  *
  * */
 #define DEFINE_CONCEPT_DS_MA_SE( class_name, ... )         \
-    DEFINE_CONCEPT_DS_MA( class_name, __VA_ARGS__ )        \
+    DEFINE_CONCEPT_DS( class_name, __VA_ARGS__ )           \
+    MEM_ALLOC_CONCEPT( class_name, __VA_ARGS__ )           \
     LMC_API void SetEngineContext( Engine* EngineContext ) \
     {                                                      \
         Engine::SetEngine( EngineContext );                \

@@ -18,7 +18,7 @@
 
 #include <spdlog/spdlog.h>
 
-DEFINE_CONCEPT_MA_SE( GameManager, Concept )
+DEFINE_CONCEPT_DS_MA_SE( GameManager, Concept )
 
 const char* vertexTextureShaderSource   = "#version 330 core\n"
                                           "layout (location = 0) in vec3 aPos;\n"
@@ -48,8 +48,8 @@ GameManager::GameManager( )
     spdlog::info( "GameManager concept constructor called" );
 
     auto* MainCamera = AddConcept<PureConceptCamera>( );
-    MainCamera->SetCoordinate( 170 * 2 * 1.5, 170 * 2 * 2);
-        MainCamera->SetScale( 1 / 3.f );
+    MainCamera->SetCoordinate( 170 * 2 * 1.5, 170 * 2 * 2 );
+    MainCamera->SetScale( 1 / 3.f );
     MainCamera->UpdateProjectionMatrix( );
 
 
@@ -100,11 +100,6 @@ GameManager::GameManager( )
     m_MainAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( MAC, true, true );
 
     spdlog::info( "GameManager concept constructor returned" );
-}
-
-GameManager::~GameManager( )
-{
-    spdlog::info( "GameManager concept destructor called" );
 }
 
 void
