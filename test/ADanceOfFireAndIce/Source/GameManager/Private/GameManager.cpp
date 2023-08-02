@@ -2,7 +2,7 @@
 // Created by samsa on 7/8/2023.
 //
 
-#include "CFoo.hpp"
+#include "GameManager.hpp"
 
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 #include <Engine/Core/Scene/Orientation/OrientationCoordinate.hpp>
@@ -18,7 +18,7 @@
 
 #include <spdlog/spdlog.h>
 
-DEFINE_CONCEPT_MA_SE( CFoo, Concept )
+DEFINE_CONCEPT_MA_SE( GameManager, Concept )
 
 const char* vertexTextureShaderSource   = "#version 330 core\n"
                                           "layout (location = 0) in vec3 aPos;\n"
@@ -43,9 +43,9 @@ const char* fragmentTextureShaderSource = "#version 330 core\n"
                                           "   FragColor = texColor;\n"
                                           "}\n\0";
 
-CFoo::CFoo( )
+GameManager::GameManager( )
 {
-    spdlog::info( "CFoo concept constructor called" );
+    spdlog::info( "GameManager concept constructor called" );
 
     auto* MainCamera = AddConcept<PureConceptCamera>( );
     MainCamera->SetCoordinate( 170 * 2 * 1.5, 170 * 2 * 2);
@@ -99,16 +99,16 @@ CFoo::CFoo( )
     auto* MAC         = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Papipupipupipa.ogg" );
     m_MainAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( MAC, true, true );
 
-    spdlog::info( "CFoo concept constructor returned" );
+    spdlog::info( "GameManager concept constructor returned" );
 }
 
-CFoo::~CFoo( )
+GameManager::~GameManager( )
 {
-    spdlog::info( "CFoo concept destructor called" );
+    spdlog::info( "GameManager concept destructor called" );
 }
 
 void
-CFoo::Apply( )
+GameManager::Apply( )
 {
     auto* Sp = GetConcept<ConceptRenderable>( );
 

@@ -1,4 +1,4 @@
-include_directories(Foo/Public)
+include_directories(GameManager/Public)
 include_directories(Map/Public)
 
 declare_library(
@@ -17,10 +17,10 @@ declare_library(
 
 declare_library(
         NAME
-        Foo.CFoo
+        GameManager.GameManager
 
         SRCS
-        Foo/Private/CFoo.cpp
+        GameManager/Private/GameManager.cpp
 
         P_DEPS
         Engine.lib

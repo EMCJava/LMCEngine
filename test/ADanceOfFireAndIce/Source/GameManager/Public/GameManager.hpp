@@ -9,12 +9,12 @@
 
 #include "TileSpriteSet.hpp"
 
-class CFoo : public ConceptApplicable
+class GameManager : public ConceptApplicable
 {
-    DECLARE_CONCEPT( CFoo, ConceptApplicable )
+    DECLARE_CONCEPT( GameManager, ConceptApplicable )
 
 public:
-    CFoo( );
+    GameManager( );
 
     void
     Apply( ) override;

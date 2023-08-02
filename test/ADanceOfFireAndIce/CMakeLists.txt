@@ -38,4 +38,4 @@ add_executable(ADanceOfFireAndIce main.cpp)
 target_link_libraries(ADanceOfFireAndIce Engine.lib)
 
 # Make sure game source changes will compile
-target_link_libraries(ADanceOfFireAndIce Foo.CFoo.lib)
+target_link_libraries(ADanceOfFireAndIce GameManager.GameManager.lib)
