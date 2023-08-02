@@ -14,10 +14,14 @@ class TileSpriteSet : public ConceptRenderable
 {
     DECLARE_CONCEPT( TileSpriteSet, ConceptRenderable )
 
+    inline static constexpr auto TileDistance = 170 * 2;
+
 public:
     struct TileMeta {
-        uint32_t Degree;
-        uint32_t AccumulatedDegree;
+        uint32_t             Degree { };
+        SpriteSquareTexture* TextureCache { };
+
+        uint32_t AccumulatedDegree { };
     };
 
     void
@@ -30,7 +34,7 @@ public:
     AddTile( TileMeta Tile );
 
 protected:
-    std::vector<TileMeta> m_TailList;
+    std::vector<TileMeta> m_TileList;
 
     /*
      *

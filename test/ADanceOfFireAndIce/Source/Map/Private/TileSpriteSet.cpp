@@ -11,6 +11,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 DEFINE_CONCEPT_DS( TileSpriteSet, ConceptRenderable )
 
 void
@@ -18,25 +20,40 @@ TileSpriteSet::Render( )
 {
     glm::mat4 TransformationMatrix { 1 };
 
-    for ( const auto& Tail : m_TailList )
+    Orientation TmpOrientation;
+    TmpOrientation.SetRotationCenter( 512 / 2, 512 / 2 );
+    TmpOrientation.SetCoordinate( -170, -200 );
+    TransformationMatrix = TmpOrientation.GetTranslationMatrix( ) * TmpOrientation.GetRotationMatrix( );
+
+    // Travel for next tile
+    TmpOrientation.SetCoordinate( TileDistance, 0 );
+
+    auto CameraSize = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
+    CameraSize.first *= 5;
+    CameraSize.second *= 5;
+
+    for ( const auto& Tile : m_TileList )
     {
-        REQUIRED_IF( m_Sprites.contains( Tail.Degree ) )
+        REQUIRED_IF( Tile.TextureCache != nullptr )
         {
 
-            auto& Sp       = m_Sprites[ Tail.Degree ];
+            auto& Sp       = Tile.TextureCache;
             auto* SpShader = Sp->GetShader( );
 
             if ( SpShader != nullptr )
             {
                 SpShader->Bind( );
-                if ( m_ActiveCamera != nullptr )
-                {
-                    SpShader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
-                }
+//                if ( m_ActiveCamera != nullptr )
+//                {
+//                    SpShader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
+//                }
+
+                SpShader->SetMat4( "projectionMatrix", glm::ortho<FloatTy>( -CameraSize.first / 2, CameraSize.first / 2, -CameraSize.second / 2, CameraSize.second / 2, -1, 1 ) );
 
                 SpShader->SetMat4( "modelMatrix", TransformationMatrix );
 
-                TransformationMatrix = Sp->GetTranslationMatrix( ) * Sp->GetRotationMatrix( );
+                TmpOrientation.SetRotation( 0, 0, glm::radians( 180 - FloatTy( Tile.Degree ) ) );
+                TransformationMatrix = TransformationMatrix * TmpOrientation.GetRotationMatrix( ) * TmpOrientation.GetTranslationMatrix( );
 
                 const auto* gl = Engine::GetEngine( )->GetGLContext( );
                 gl->ActiveTexture( GL_TEXTURE0 );
@@ -64,11 +81,16 @@ TileSpriteSet::RegisterSprite( uint32_t Degree, std::unique_ptr<SpriteSquareText
 void
 TileSpriteSet::AddTile( TileSpriteSet::TileMeta Tile )
 {
-    Tile.AccumulatedDegree = Tile.Degree;
-    if ( !m_TailList.empty( ) )
+    REQUIRED_IF( m_Sprites.contains( Tile.Degree ) )
     {
-        Tile.AccumulatedDegree += m_TailList.back( ).AccumulatedDegree;
+        Tile.TextureCache = m_Sprites[ Tile.Degree ].get( );
     }
 
-    m_TailList.push_back( Tile );
+    Tile.AccumulatedDegree = Tile.Degree;
+    if ( !m_TileList.empty( ) )
+    {
+        Tile.AccumulatedDegree += m_TileList.back( ).AccumulatedDegree;
+    }
+
+    m_TileList.push_back( Tile );
 }

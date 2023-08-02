@@ -59,14 +59,32 @@ CFoo::CFoo( )
     S1->SetProgram( SProgram );
 
     m_TileSpriteSet = AddConcept<TileSpriteSet>( );
-    auto* Sp1       = m_TileSpriteSet->RegisterSprite( 180, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
+    auto* Sp180     = m_TileSpriteSet->RegisterSprite( 180, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
 
-    Sp1->SetRotationCenter( 512 / 2, 512 / 2 );
-    Sp1->SetShader( S1 );
-    Sp1->SetTexturePath( "Access/Texture/Tile/180.png" );
-    Sp1->SetupSprite( );
+    Sp180->SetRotationCenter( 512 / 2, 512 / 2 );
+    Sp180->SetShader( S1 );
+    Sp180->SetTexturePath( "Access/Texture/Tile/180.png" );
+    Sp180->SetupSprite( );
+
+    auto* Sp60 = m_TileSpriteSet->RegisterSprite( 60, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
+
+    Sp60->SetRotationCenter( 512 / 2, 512 / 2 );
+    Sp60->SetShader( S1 );
+    Sp60->SetTexturePath( "Access/Texture/Tile/60.png" );
+    Sp60->SetupSprite( );
 
     m_TileSpriteSet->SetActiveCamera( MainCamera );
+    m_TileSpriteSet->AddTile( { 60 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 60 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 60 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 180 } );
     m_TileSpriteSet->AddTile( { 180 } );
 
     auto* DDC             = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Beats.ogg" );
