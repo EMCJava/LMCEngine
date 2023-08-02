@@ -47,10 +47,10 @@ CFoo::CFoo( )
 {
     spdlog::info( "CFoo concept constructor called" );
 
-    auto*      MainCamera           = AddConcept<PureConceptCamera>( );
-    const auto MainWindowDimensions = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
-    spdlog::info( "MainWindowDimensions: ({}, {})", MainWindowDimensions.first, MainWindowDimensions.second );
-    MainCamera->SetDimensions( MainWindowDimensions.first, MainWindowDimensions.second );
+    auto* MainCamera = AddConcept<PureConceptCamera>( );
+    MainCamera->SetCoordinate( -500, 700 );
+    MainCamera->SetScale( 1 / 2.f );
+    MainCamera->UpdateProjectionMatrix( );
 
     auto SProgram = std::make_shared<ShaderProgram>( );
     SProgram->Load( vertexTextureShaderSource, fragmentTextureShaderSource );
@@ -59,33 +59,32 @@ CFoo::CFoo( )
     S1->SetProgram( SProgram );
 
     m_TileSpriteSet = AddConcept<TileSpriteSet>( );
-    auto* Sp180     = m_TileSpriteSet->RegisterSprite( 180, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
 
-    Sp180->SetRotationCenter( 512 / 2, 512 / 2 );
-    Sp180->SetShader( S1 );
-    Sp180->SetTexturePath( "Access/Texture/Tile/180.png" );
-    Sp180->SetupSprite( );
+    const auto AddDegreeTile = [ & ]( uint32_t Degree ) {
+        auto* Sp = m_TileSpriteSet->RegisterSprite( Degree, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
 
-    auto* Sp60 = m_TileSpriteSet->RegisterSprite( 60, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
+        Sp->SetRotationCenter( 512 / 2, 512 / 2 );
+        Sp->SetShader( S1 );
+        Sp->SetTexturePath( "Access/Texture/Tile/" + std::to_string( Degree ) + ".png" );
+        Sp->SetupSprite( );
+    };
 
-    Sp60->SetRotationCenter( 512 / 2, 512 / 2 );
-    Sp60->SetShader( S1 );
-    Sp60->SetTexturePath( "Access/Texture/Tile/60.png" );
-    Sp60->SetupSprite( );
+    AddDegreeTile( 180 );
+    AddDegreeTile( 120 );
+    AddDegreeTile( 90 );
+    AddDegreeTile( 60 );
+
 
     m_TileSpriteSet->SetActiveCamera( MainCamera );
+    m_TileSpriteSet->AddTile( { 90 } );
+    m_TileSpriteSet->AddTile( { 120 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 90 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 180 } );
     m_TileSpriteSet->AddTile( { 60 } );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 60 } );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 60 } );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 180 } );
+
 
     auto* DDC             = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Beats.ogg" );
     m_DelayCheckingHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( DDC, true );

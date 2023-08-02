@@ -18,16 +18,6 @@ DEFINE_CONCEPT_DS( TileSpriteSet, ConceptRenderable )
 void
 TileSpriteSet::Render( )
 {
-    glm::mat4 TransformationMatrix { 1 };
-
-    Orientation TmpOrientation;
-    TmpOrientation.SetRotationCenter( 512 / 2, 512 / 2 );
-    TmpOrientation.SetCoordinate( -170, -200 );
-    TransformationMatrix = TmpOrientation.GetTranslationMatrix( ) * TmpOrientation.GetRotationMatrix( );
-
-    // Travel for next tile
-    TmpOrientation.SetCoordinate( TileDistance, 0 );
-
     auto CameraSize = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
     CameraSize.first *= 5;
     CameraSize.second *= 5;
@@ -43,17 +33,12 @@ TileSpriteSet::Render( )
             if ( SpShader != nullptr )
             {
                 SpShader->Bind( );
-//                if ( m_ActiveCamera != nullptr )
-//                {
-//                    SpShader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
-//                }
-
-                SpShader->SetMat4( "projectionMatrix", glm::ortho<FloatTy>( -CameraSize.first / 2, CameraSize.first / 2, -CameraSize.second / 2, CameraSize.second / 2, -1, 1 ) );
-
-                SpShader->SetMat4( "modelMatrix", TransformationMatrix );
-
-                TmpOrientation.SetRotation( 0, 0, glm::radians( 180 - FloatTy( Tile.Degree ) ) );
-                TransformationMatrix = TransformationMatrix * TmpOrientation.GetRotationMatrix( ) * TmpOrientation.GetTranslationMatrix( );
+                if ( m_ActiveCamera != nullptr )
+                {
+                    SpShader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
+                }
+                
+                SpShader->SetMat4( "modelMatrix", Tile.ModelMatrixCache );
 
                 const auto* gl = Engine::GetEngine( )->GetGLContext( );
                 gl->ActiveTexture( GL_TEXTURE0 );
@@ -89,7 +74,28 @@ TileSpriteSet::AddTile( TileSpriteSet::TileMeta Tile )
     Tile.AccumulatedDegree = Tile.Degree;
     if ( !m_TileList.empty( ) )
     {
-        Tile.AccumulatedDegree += m_TileList.back( ).AccumulatedDegree;
+        auto& LastTile = m_TileList.back( );
+
+        /*
+         *
+         * Rotation stats
+         *
+         * */
+        Tile.AccumulatedDegree += LastTile.AccumulatedDegree;
+
+
+        /*
+         *
+         * Transformation matrix
+         *
+         * */
+        Orientation TmpOrientation;
+        TmpOrientation.SetCoordinate( TileDistance, 0 );
+
+        TmpOrientation.SetRotationCenter( 512 / 2, 512 / 2 );
+        TmpOrientation.SetRotation( 0, 0, glm::radians( 180 - FloatTy( LastTile.Degree ) ) );
+
+        Tile.ModelMatrixCache = LastTile.ModelMatrixCache * TmpOrientation.GetRotationMatrix( ) * TmpOrientation.GetTranslationMatrix( );
     }
 
     m_TileList.push_back( Tile );

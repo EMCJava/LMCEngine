@@ -21,7 +21,8 @@ public:
         uint32_t             Degree { };
         SpriteSquareTexture* TextureCache { };
 
-        uint32_t AccumulatedDegree { };
+        uint32_t  AccumulatedDegree { };
+        glm::mat4 ModelMatrixCache { 1 };
     };
 
     void
