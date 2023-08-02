@@ -22,6 +22,9 @@ public:
     void
     SetupSprite( ) override;
 
+    uint32_t
+    GetTextureID( ) const noexcept;
+
 protected:
     uint32_t    m_TextureID;
     std::string m_TexturePath;

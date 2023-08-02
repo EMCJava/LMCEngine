@@ -50,7 +50,7 @@ public:
 protected:
     Rotation                          m_Rotation { };
     OrientationCoordinate::Coordinate m_RotationCenter { };
-    glm::mat4                         m_RotationMatrix { };
+    glm::mat4                         m_RotationMatrix { glm::mat4( 1 ) };
 };
 
 template <>

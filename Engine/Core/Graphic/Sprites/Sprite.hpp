@@ -24,6 +24,9 @@ public:
     void
     SetShader( const std::shared_ptr<Shader>& shader );
 
+    Shader*
+    GetShader( );
+
     /*
      *
      * Setup/Recreate sprite

@@ -5,8 +5,9 @@
 #pragma once
 
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
-
 #include <Engine/Core/Audio/AudioEngine.hpp>
+
+#include "TileSpriteSet.hpp"
 
 class CFoo : public ConceptApplicable
 {
@@ -24,4 +25,6 @@ private:
 
     bool    m_IsCheckingDeviceDelay = true;
     int64_t m_UserDeviceOffsetMS { };
+
+    TileSpriteSet* m_TileSpriteSet;
 };

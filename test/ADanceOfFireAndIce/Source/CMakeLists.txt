@@ -1,4 +1,19 @@
 include_directories(Foo/Public)
+include_directories(Map/Public)
+
+declare_library(
+        NAME
+        Map.TileSpriteSet
+
+        SRCS
+        Map/Private/TileSpriteSet.cpp
+
+        P_DEPS
+        SpriteSquareTexture.lib
+        Engine.lib
+
+        STATIC
+)
 
 declare_library(
         NAME
@@ -17,6 +32,7 @@ declare_library(
         ShaderProgram.lib
         Audio.lib
         PureConceptCamera.lib
+        Map.TileSpriteSet.lib
 
         DEPS
         ConceptApplicable.lib

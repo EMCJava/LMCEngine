@@ -119,3 +119,9 @@ SpriteSquareTexture::Render( )
 
     SpriteSquare::Render( );
 }
+
+uint32_t
+SpriteSquareTexture::GetTextureID( ) const noexcept
+{
+    return m_TextureID;
+}

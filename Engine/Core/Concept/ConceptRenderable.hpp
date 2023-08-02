@@ -14,7 +14,8 @@ public:
     virtual void
     Render( ) = 0;
 
-    void SetActiveCamera( class PureConceptCamera* ActiveCamera );
+    void
+    SetActiveCamera( class PureConceptCamera* ActiveCamera );
 
 protected:
     class PureConceptCamera* m_ActiveCamera;

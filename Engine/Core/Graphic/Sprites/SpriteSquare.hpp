@@ -16,6 +16,15 @@ public:
     void
     Render( ) override;
 
+
+    /*
+     *
+     * Render but don't change anything in the shader
+     *
+     * */
+    void
+    PureRender( );
+
     void
     SetupSprite( ) override;
 

@@ -44,3 +44,9 @@ Sprite::SetShader( const std::shared_ptr<Shader>& shader )
 {
     m_Shader = shader;
 }
+
+Shader*
+Sprite::GetShader( )
+{
+    return m_Shader.get( );
+}

@@ -57,12 +57,17 @@ CFoo::CFoo( )
 
     auto S1 = std::make_shared<Shader>( );
     S1->SetProgram( SProgram );
-    auto* Sp1 = AddConcept<SpriteSquareTexture>( 512, 512 );
+
+    m_TileSpriteSet = AddConcept<TileSpriteSet>( );
+    auto* Sp1       = m_TileSpriteSet->RegisterSprite( 180, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
+
     Sp1->SetRotationCenter( 512 / 2, 512 / 2 );
     Sp1->SetShader( S1 );
     Sp1->SetTexturePath( "Access/Texture/Tile/180.png" );
-    Sp1->SetActiveCamera( MainCamera );
     Sp1->SetupSprite( );
+
+    m_TileSpriteSet->SetActiveCamera( MainCamera );
+    m_TileSpriteSet->AddTile( { 180 } );
 
     auto* DDC             = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Beats.ogg" );
     m_DelayCheckingHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( DDC, true );
@@ -81,9 +86,7 @@ CFoo::~CFoo( )
 void
 CFoo::Apply( )
 {
-    auto* Sp = GetConcept<Sprite>( );
-    Sp->AlterCoordinate( Engine::GetEngine( )->GetDeltaSecond( ) );
-    Sp->AlterRotation( 0, 0, Engine ::GetEngine( )->GetDeltaSecond( ) * 10 );
+    auto* Sp = GetConcept<ConceptRenderable>( );
 
     if ( m_IsCheckingDeviceDelay )
     {

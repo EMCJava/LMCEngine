@@ -23,8 +23,13 @@ SpriteSquare::Render( )
 {
     Sprite::Render( );
 
-    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+    PureRender( );
+}
 
+void
+SpriteSquare::PureRender( )
+{
+    const auto* gl = Engine::GetEngine( )->GetGLContext( );
     GL_CHECK( gl->BindVertexArray( m_VAO ) )
     GL_CHECK( gl->BindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_EBO ) )
     GL_CHECK( gl->DrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr ) )
@@ -71,3 +76,4 @@ SpriteSquare::SetupSprite( )
     GL_CHECK( gl->BindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_EBO ) )
     GL_CHECK( gl->BufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( indices ), indices, GL_STATIC_DRAW ) )
 }
+

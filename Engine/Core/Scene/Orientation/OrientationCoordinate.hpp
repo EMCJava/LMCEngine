@@ -36,7 +36,7 @@ public:
 
 protected:
     Coordinate m_Coordinate { };
-    glm::mat4  m_TranslationMatrix { };
+    glm::mat4  m_TranslationMatrix { glm::mat4( 1 ) };
 };
 
 template <>
