@@ -36,7 +36,7 @@ FastRandom::GetSeed( ) const
     return m_Seed;
 }
 
-constexpr std::pair<uint64_t, uint64_t>
+constexpr std::array<uint64_t, 2>
 FastRandom::CopySeed( ) const
 {
     return m_Seed.Seed;

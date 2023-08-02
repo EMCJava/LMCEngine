@@ -28,7 +28,7 @@ public:
     [[nodiscard]] constexpr const NoiseType&
     GetSeed( ) const;
 
-    constexpr std::pair<uint64_t, uint64_t>
+    constexpr std::array<uint64_t, 2>
     CopySeed( ) const;
 
     constexpr void
