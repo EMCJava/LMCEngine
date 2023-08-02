@@ -14,7 +14,7 @@ class TileSpriteSet : public ConceptRenderable
 {
     DECLARE_CONCEPT( TileSpriteSet, ConceptRenderable )
 
-    inline static constexpr auto TileDistance = 170 * 2;
+    inline static constexpr auto TileDistance = 180 * 2;
 
 public:
     struct TileMeta {
