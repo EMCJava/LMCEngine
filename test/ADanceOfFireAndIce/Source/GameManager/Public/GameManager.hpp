@@ -20,6 +20,19 @@ public:
     Apply( ) override;
 
 private:
+    void
+    LoadTileSprites( std::set<uint32_t> Degrees );
+
+    void
+    LoadTileMap( );
+
+    void
+    LoadAudio( );
+
+    void
+    SetupCamera( );
+
+private:
     AudioHandle m_DelayCheckingHandle;
     AudioHandle m_MainAudioHandle;
 
@@ -27,4 +40,11 @@ private:
     int64_t m_UserDeviceOffsetMS { };
 
     TileSpriteSet* m_TileSpriteSet;
+
+    /*
+     *
+     * Concept saves
+     *
+     * */
+    class PureConceptCamera* m_Camera;
 };

@@ -47,57 +47,15 @@ GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
 
-    auto* MainCamera = AddConcept<PureConceptCamera>( );
-    MainCamera->SetCoordinate( 170 * 2 * 1.5, 170 * 2 * 2 );
-    MainCamera->SetScale( 1 / 3.f );
-    MainCamera->UpdateProjectionMatrix( );
-
+    SetupCamera( );
 
     m_TileSpriteSet = AddConcept<TileSpriteSet>( );
+    m_TileSpriteSet->SetActiveCamera( m_Camera );
 
-    /*
-     *
-     * Tile Sprite setup
-     *
-     * */
-    {
-        auto SProgram = std::make_shared<ShaderProgram>( );
-        SProgram->Load( vertexTextureShaderSource, fragmentTextureShaderSource );
-        auto Sh = std::make_shared<Shader>( );
-        Sh->SetProgram( SProgram );
+    LoadTileSprites( { 180, 120, 90, 60 } );
+    LoadTileMap( );
 
-        const auto AddDegreeTile = [ & ]( uint32_t Degree ) {
-            auto* Sp = m_TileSpriteSet->RegisterSprite( Degree, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
-
-            Sp->SetShader( Sh );
-            Sp->SetTexturePath( "Access/Texture/Tile/" + std::to_string( Degree ) + ".png" );
-            Sp->SetupSprite( );
-        };
-
-
-        AddDegreeTile( 180 );
-        AddDegreeTile( 120 );
-        AddDegreeTile( 90 );
-        AddDegreeTile( 60 );
-    }
-
-    m_TileSpriteSet->SetActiveCamera( MainCamera );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 60 } );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 60 } );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 60 } );
-
-
-    auto* DDC             = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Beats.ogg" );
-    m_DelayCheckingHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( DDC, true );
-
-    auto* MAC         = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Papipupipupipa.ogg" );
-    m_MainAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( MAC, true, true );
+    LoadAudio( );
 
     spdlog::info( "GameManager concept constructor returned" );
 }
@@ -126,4 +84,59 @@ GameManager::Apply( )
             m_MainAudioHandle.Resume( );
         }
     }
+}
+
+void
+GameManager::LoadTileSprites( std::set<uint32_t> Degrees )
+{
+    auto SProgram = std::make_shared<ShaderProgram>( );
+    SProgram->Load( vertexTextureShaderSource, fragmentTextureShaderSource );
+    auto Sh = std::make_shared<Shader>( );
+    Sh->SetProgram( SProgram );
+
+    const auto AddDegreeTile = [ & ]( uint32_t Degree ) {
+        auto* Sp = m_TileSpriteSet->RegisterSprite( Degree, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
+
+        Sp->SetShader( Sh );
+        Sp->SetTexturePath( "Access/Texture/Tile/" + std::to_string( Degree ) + ".png" );
+        Sp->SetupSprite( );
+    };
+
+    for ( auto Degree : Degrees )
+    {
+        AddDegreeTile( Degree );
+    }
+}
+
+void
+GameManager::LoadTileMap( )
+{
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 60 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 60 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 60 } );
+}
+
+void
+GameManager::LoadAudio( )
+{
+    auto* DDC             = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Beats.ogg" );
+    m_DelayCheckingHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( DDC, true );
+
+    auto* MAC         = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Papipupipupipa.ogg" );
+    m_MainAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( MAC, true, true );
+}
+
+void
+GameManager::SetupCamera( )
+{
+    m_Camera = AddConcept<PureConceptCamera>( );
+    m_Camera->SetCoordinate( 170 * 2 * 1.5, 170 * 2 * 2 );
+    m_Camera->SetScale( 1 / 3.f );
+    m_Camera->UpdateProjectionMatrix( );
 }
