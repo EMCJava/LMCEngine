@@ -52,28 +52,34 @@ CFoo::CFoo( )
         MainCamera->SetScale( 1 / 3.f );
     MainCamera->UpdateProjectionMatrix( );
 
-    auto SProgram = std::make_shared<ShaderProgram>( );
-    SProgram->Load( vertexTextureShaderSource, fragmentTextureShaderSource );
-
-    auto S1 = std::make_shared<Shader>( );
-    S1->SetProgram( SProgram );
 
     m_TileSpriteSet = AddConcept<TileSpriteSet>( );
 
-    const auto AddDegreeTile = [ & ]( uint32_t Degree ) {
-        auto* Sp = m_TileSpriteSet->RegisterSprite( Degree, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
+    /*
+     *
+     * Tile Sprite setup
+     *
+     * */
+    {
+        auto SProgram = std::make_shared<ShaderProgram>( );
+        SProgram->Load( vertexTextureShaderSource, fragmentTextureShaderSource );
+        auto Sh = std::make_shared<Shader>( );
+        Sh->SetProgram( SProgram );
 
-        Sp->SetShader( S1 );
-        Sp->SetTexturePath( "Access/Texture/Tile/" + std::to_string( Degree ) + ".png" );
-        Sp->SetupSprite( );
-    };
+        const auto AddDegreeTile = [ & ]( uint32_t Degree ) {
+            auto* Sp = m_TileSpriteSet->RegisterSprite( Degree, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
+
+            Sp->SetShader( Sh );
+            Sp->SetTexturePath( "Access/Texture/Tile/" + std::to_string( Degree ) + ".png" );
+            Sp->SetupSprite( );
+        };
 
 
-    AddDegreeTile( 180 );
-    AddDegreeTile( 120 );
-    AddDegreeTile( 90 );
-    AddDegreeTile( 60 );
-
+        AddDegreeTile( 180 );
+        AddDegreeTile( 120 );
+        AddDegreeTile( 90 );
+        AddDegreeTile( 60 );
+    }
 
     m_TileSpriteSet->SetActiveCamera( MainCamera );
     m_TileSpriteSet->AddTile( { 180 } );
