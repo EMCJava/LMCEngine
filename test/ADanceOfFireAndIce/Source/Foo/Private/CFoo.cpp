@@ -48,8 +48,8 @@ CFoo::CFoo( )
     spdlog::info( "CFoo concept constructor called" );
 
     auto* MainCamera = AddConcept<PureConceptCamera>( );
-    MainCamera->SetCoordinate( -500, 700 );
-    MainCamera->SetScale( 1 / 2.f );
+    MainCamera->SetCoordinate( 170 * 2 * 1.5, 170 * 2 * 2);
+        MainCamera->SetScale( 1 / 3.f );
     MainCamera->UpdateProjectionMatrix( );
 
     auto SProgram = std::make_shared<ShaderProgram>( );
@@ -63,11 +63,11 @@ CFoo::CFoo( )
     const auto AddDegreeTile = [ & ]( uint32_t Degree ) {
         auto* Sp = m_TileSpriteSet->RegisterSprite( Degree, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
 
-        Sp->SetRotationCenter( 512 / 2, 512 / 2 );
         Sp->SetShader( S1 );
         Sp->SetTexturePath( "Access/Texture/Tile/" + std::to_string( Degree ) + ".png" );
         Sp->SetupSprite( );
     };
+
 
     AddDegreeTile( 180 );
     AddDegreeTile( 120 );
@@ -76,11 +76,12 @@ CFoo::CFoo( )
 
 
     m_TileSpriteSet->SetActiveCamera( MainCamera );
-    m_TileSpriteSet->AddTile( { 90 } );
-    m_TileSpriteSet->AddTile( { 120 } );
     m_TileSpriteSet->AddTile( { 180 } );
     m_TileSpriteSet->AddTile( { 180 } );
-    m_TileSpriteSet->AddTile( { 90 } );
+    m_TileSpriteSet->AddTile( { 60 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 180 } );
+    m_TileSpriteSet->AddTile( { 60 } );
     m_TileSpriteSet->AddTile( { 180 } );
     m_TileSpriteSet->AddTile( { 180 } );
     m_TileSpriteSet->AddTile( { 60 } );

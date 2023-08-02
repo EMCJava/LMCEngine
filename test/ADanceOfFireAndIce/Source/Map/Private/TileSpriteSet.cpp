@@ -37,7 +37,7 @@ TileSpriteSet::Render( )
                 {
                     SpShader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
                 }
-                
+
                 SpShader->SetMat4( "modelMatrix", Tile.ModelMatrixCache );
 
                 const auto* gl = Engine::GetEngine( )->GetGLContext( );
@@ -69,34 +69,35 @@ TileSpriteSet::AddTile( TileSpriteSet::TileMeta Tile )
     REQUIRED_IF( m_Sprites.contains( Tile.Degree ) )
     {
         Tile.TextureCache = m_Sprites[ Tile.Degree ].get( );
+
+
+        Tile.AccumulatedDegree = Tile.Degree;
+        if ( !m_TileList.empty( ) )
+        {
+            auto& LastTile = m_TileList.back( );
+
+            /*
+             *
+             * Rotation stats
+             *
+             * */
+            Tile.AccumulatedDegree += LastTile.AccumulatedDegree;
+
+
+            /*
+             *
+             * Transformation matrix
+             *
+             * */
+            Orientation TmpOrientation;
+            TmpOrientation.SetCoordinate( TileDistance, 0 );
+
+            TmpOrientation.SetRotationCenter( 512 / 2, 512 / 2 );
+            TmpOrientation.SetRotation( 0, 0, glm::radians( 180 - FloatTy( LastTile.Degree ) ) );
+
+            Tile.ModelMatrixCache = LastTile.ModelMatrixCache * TmpOrientation.GetRotationMatrix( ) * TmpOrientation.GetTranslationMatrix( );
+        }
+
+        m_TileList.push_back( Tile );
     }
-
-    Tile.AccumulatedDegree = Tile.Degree;
-    if ( !m_TileList.empty( ) )
-    {
-        auto& LastTile = m_TileList.back( );
-
-        /*
-         *
-         * Rotation stats
-         *
-         * */
-        Tile.AccumulatedDegree += LastTile.AccumulatedDegree;
-
-
-        /*
-         *
-         * Transformation matrix
-         *
-         * */
-        Orientation TmpOrientation;
-        TmpOrientation.SetCoordinate( TileDistance, 0 );
-
-        TmpOrientation.SetRotationCenter( 512 / 2, 512 / 2 );
-        TmpOrientation.SetRotation( 0, 0, glm::radians( 180 - FloatTy( LastTile.Degree ) ) );
-
-        Tile.ModelMatrixCache = LastTile.ModelMatrixCache * TmpOrientation.GetRotationMatrix( ) * TmpOrientation.GetTranslationMatrix( );
-    }
-
-    m_TileList.push_back( Tile );
 }
