@@ -63,8 +63,6 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-    auto* Sp = GetConcept<ConceptRenderable>( );
-
     if ( m_IsCheckingDeviceDelay )
     {
         constexpr int64_t AudioDefaultOffset = 3000;
