@@ -1318,7 +1318,6 @@ const char* fragmentTextureShaderSource = "#version 330 core\n"
                                           "void main()\n"
                                           "{\n"
                                           "   vec4 texColor = texture(sample_texture, TexCoord);\n"
-                                          "   if(TexCoord.x < 0.03 && TexCoord.y < 0.03) {FragColor = vec4(1, 1, 1, 1); return;}\n"
                                           "   if(texColor.a < 0.1)\n"
                                           "        discard;\n"
                                           "   FragColor = texColor;\n"
@@ -1417,10 +1416,10 @@ GameManager::LoadTileSprites( const std::set<uint32_t>& Degrees )
 void
 GameManager::LoadTileMap( )
 {
-    //    for ( int i = 0; i < TmpMap.size( ); ++i )
-    //    {
-    //        m_TileSpriteSet->AddTile( { TmpMap[ i ].first, TmpMap[ i ].second } );
-    //    }
+        for ( int i = 0; i < TmpMap.size( ); ++i )
+        {
+            m_TileSpriteSet->AddTile( { TmpMap[ i ].first, TmpMap[ i ].second } );
+        }
 
     //    m_TileSpriteSet->AddTile( { 180, 1000 } );
     //    m_TileSpriteSet->AddTile( { 90, 2000 } );
@@ -1431,73 +1430,73 @@ GameManager::LoadTileMap( )
     //    m_TileSpriteSet->AddTile( { 180, 7000 } );
     //    m_TileSpriteSet->AddTile( { 90, 8000 } );
 
-    auto AddPerSecond = [ &, Time = 0 ]( uint32_t Degree ) mutable {
-        Time += 1;
-        m_TileSpriteSet->AddTile( { Degree, Time * 500.f } );
-    };
-    AddPerSecond( 180 );
-
+//    auto AddPerSecond = [ &, Time = 0 ]( uint32_t Degree ) mutable {
+//        Time += 1;
+//        m_TileSpriteSet->AddTile( { Degree, Time * 500.f } );
+//    };
+//    AddPerSecond( 180 );
+//
+////    AddPerSecond( 90 );
+////    AddPerSecond( 180 );
+////    AddPerSecond( 270 );
+////    AddPerSecond( 180 );
+////    AddPerSecond( 90 );
+////    AddPerSecond( 180 );
+//
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 60 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 60 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 60 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
 //    AddPerSecond( 90 );
 //    AddPerSecond( 180 );
-//    AddPerSecond( 270 );
 //    AddPerSecond( 180 );
 //    AddPerSecond( 90 );
 //    AddPerSecond( 180 );
-
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 60 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 60 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 60 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 90 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 90 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 90 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 90 );
-
-    AddPerSecond( 180 );
-    AddPerSecond( 60 );
-    AddPerSecond( 180 );
-    AddPerSecond( 60 );
-    AddPerSecond( 180 );
-    AddPerSecond( 60 );
-
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 120 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 120 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 120 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 120 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 120 );
-    AddPerSecond( 180 );
-    AddPerSecond( 180 );
-    AddPerSecond( 120 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 90 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 90 );
+//
+//    AddPerSecond( 180 );
+//    AddPerSecond( 60 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 60 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 60 );
+//
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 120 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 120 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 120 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 120 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 120 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 180 );
+//    AddPerSecond( 120 );
 }
 
 void
@@ -1516,7 +1515,7 @@ void
 GameManager::SetupCamera( )
 {
     m_Camera = AddConcept<PureConceptCamera>( );
-    m_Camera->SetScale( 1 / 2.f );
+    m_Camera->SetScale( 1 / 1.5f );
     m_Camera->UpdateProjectionMatrix( );
 }
 

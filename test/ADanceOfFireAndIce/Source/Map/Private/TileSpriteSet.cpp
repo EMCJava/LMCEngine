@@ -157,20 +157,7 @@ TileSpriteSet::SetTileMapOffset( const glm::mat4& OffsetMatrix )
 void
 TileSpriteSet::UpdateTileMapOffset( )
 {
-
     const auto DecomposedDistance = sqrt( TileDistance * TileDistance / 2.0f );
-    //    Orientation TmpOrientation;
-    //    TmpOrientation.SetOrigin( m_SpritesOrigin.X, m_SpritesOrigin.Y, m_SpritesOrigin.Z );
-    //
-    //    if ( m_TileListPointer > 0 )
-    //        TmpOrientation.SetRotation( 0, 0, glm::radians( FloatTy( m_TileList[ m_TileListPointer - 1 ].AccumulatedDegree ) ) );
-    //    // const auto Transform = glm::vec3( TmpOrientation.GetRotationMatrix( ) * glm::vec4( DecomposedDistance, DecomposedDistance, 0, 1 ) ) + glm::vec3( m_TileList[ m_TileListPointer ].ModelMatrixCache[ 3 ] );
-
-    //    const auto CenterOffset =
-    //        m_TileListPointer == 0                              ? glm::vec3( 0, 0, 0 )
-    //        : m_TileList[ m_TileListPointer - 1 ].Degree == 90  ? glm::vec3( 256, -256, 0 )
-    //        : m_TileList[ m_TileListPointer - 1 ].Degree == 180 ? glm::vec3( -256, -256, 0 )
-    //                                                            : glm::vec3( 0, 0, 0 );
 
     const auto RotationQuat      = glm::quat_cast( m_TileList[ m_TileListPointer ].ModelMatrixCache );
     const auto RollRotationAngle = glm::roll( RotationQuat );
@@ -180,8 +167,4 @@ TileSpriteSet::UpdateTileMapOffset( )
 
     const auto Transform  = glm::vec3( m_TileList[ m_TileListPointer ].ModelMatrixCache[ 3 ] ) + glm::vec3( RotatedOffset, 0 );
     m_TileMapOffsetMatrix = glm::translate( glm::mat4( 1 ), -Transform );
-
-    spdlog::info( "New tile Offset({}): {},{}", m_TileListPointer, round( Transform.x ), round( Transform.y ) );
-    spdlog::info( "New tile RollRotationAngle({}): {}", m_TileListPointer, RollRotationAngle );
-    spdlog::info( "New tile Rotation axis({}): {},{}", m_TileListPointer, ( RotatedOffset.x ), ( RotatedOffset.y ) );
 }
