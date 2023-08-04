@@ -40,3 +40,9 @@ void
 AudioHandle::Resume( )
 {
 }
+
+bool
+AudioHandle::SetSpeed( FloatTy Speed )
+{
+    return false;
+}

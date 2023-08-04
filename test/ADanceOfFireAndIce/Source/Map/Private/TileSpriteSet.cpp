@@ -157,16 +157,21 @@ TileSpriteSet::SetTileMapOffset( const glm::mat4& OffsetMatrix )
 FloatTy
 TileSpriteSet::UpdateTileMapOffset( )
 {
-    const auto DecomposedDistance = sqrt( TileDistance * TileDistance / 2.0f );
+    REQUIRED_IF( m_TileListPointer < m_TileList.size( ) - 1 )
+    {
+        const auto DecomposedDistance = sqrt( TileDistance * TileDistance / 2.0f );
 
-    const auto RotationQuat      = glm::quat_cast( m_TileList[ m_TileListPointer ].ModelMatrixCache );
-    const auto RollRotationAngle = glm::roll( RotationQuat );
+        const auto RotationQuat      = glm::quat_cast( m_TileList[ m_TileListPointer + 1 ].ModelMatrixCache );
+        const auto RollRotationAngle = glm::roll( RotationQuat );
 
-    const auto      RotationAxis  = glm::vec2( DecomposedDistance, DecomposedDistance );
-    const glm::vec2 RotatedOffset = glm::rotate( RotationAxis, RollRotationAngle );
+        const auto      RotationAxis  = glm::vec2( DecomposedDistance, DecomposedDistance );
+        const glm::vec2 RotatedOffset = glm::rotate( RotationAxis, RollRotationAngle );
 
-    const auto Transform  = glm::vec3( m_TileList[ m_TileListPointer ].ModelMatrixCache[ 3 ] ) + glm::vec3( RotatedOffset, 0 );
-    m_TileMapOffsetMatrix = glm::translate( glm::mat4( 1 ), -Transform );
+        const auto Transform  = glm::vec3( m_TileList[ m_TileListPointer + 1 ].ModelMatrixCache[ 3 ] ) + glm::vec3( RotatedOffset, 0 );
+        m_TileMapOffsetMatrix = glm::translate( glm::mat4( 1 ), -Transform );
 
-    return RollRotationAngle;
+        return RollRotationAngle;
+    }
+
+    return 0;
 }

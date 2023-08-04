@@ -69,6 +69,8 @@ public:
     void Paused( );
     void Resume( );
 
+    bool SetSpeed( FloatTy Speed );
+
 private:
     NativeSoundHandle m_NativeHandle;
 

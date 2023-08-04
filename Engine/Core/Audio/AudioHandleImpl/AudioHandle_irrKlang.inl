@@ -2,6 +2,8 @@
 // Created by loyus on 8/1/2023.
 //
 
+#include "Engine/Core/Audio/AudioHandle.hpp"
+
 AudioHandle::AudioHandle( NativeSoundHandle Handle )
     : m_NativeHandle( std::move( Handle ) )
 { }
@@ -46,4 +48,10 @@ void
 AudioHandle::Resume( )
 {
     return m_NativeHandle->setIsPaused( false );
+}
+
+bool
+AudioHandle::SetSpeed( FloatTy Speed )
+{
+    return m_NativeHandle->setPlaybackSpeed( Speed );
 }

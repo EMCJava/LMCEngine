@@ -83,6 +83,7 @@ private:
      * */
     FloatTy m_BPM { };
     FloatTy m_MSPB { };
+    FloatTy m_PlayingSpeed { 1 };
 
     /*
      *
@@ -93,7 +94,11 @@ private:
     class SpriteSquareTexture* m_ActivePlayerSprite { };
     class SpriteSquareTexture* m_InActivePlayerSprite { };
 
+    bool m_PlayerDirectionClockWise { true };
+
     bool m_WaitingForFirstBeat { true };
+
+    bool m_IsAutoPlay { true };
 
     /*
      *
