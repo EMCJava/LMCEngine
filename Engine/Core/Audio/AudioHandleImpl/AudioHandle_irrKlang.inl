@@ -18,7 +18,7 @@ AudioHandle::operator=( AudioHandle&& Handle ) noexcept
 }
 
 int64_t
-AudioHandle::GetCurrentAudioOffset( )
+AudioHandle::GetNativeCurrentAudioOffset( )
 {
     return m_NativeHandle->getPlayPosition( );
 }
