@@ -21,6 +21,8 @@ public:
         uint32_t Degree { };
         FloatTy  Time { };
 
+        bool ReverseDirection { false };
+
         SpriteSquareTexture* TextureCache { };
 
         uint32_t  AccumulatedDegree { };
@@ -63,6 +65,9 @@ public:
      * */
     FloatTy
     GetNextStartTime( );
+
+    TileMeta&
+    GetCurrentTileMeta( );
 
     /*
      *

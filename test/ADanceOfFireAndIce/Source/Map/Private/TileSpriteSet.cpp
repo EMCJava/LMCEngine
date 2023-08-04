@@ -171,3 +171,9 @@ TileSpriteSet::UpdateTileMapOffset( )
 
     return RollRotationAngle;
 }
+
+TileSpriteSet::TileMeta&
+TileSpriteSet::GetCurrentTileMeta( )
+{
+    return m_TileList[ m_TileListPointer ];
+}
