@@ -12,16 +12,14 @@
 #include <spdlog/spdlog.h>
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 DEFINE_CONCEPT_DS( TileSpriteSet, ConceptRenderable )
 
 void
 TileSpriteSet::Render( )
 {
-    auto CameraSize = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
-    CameraSize.first *= 5;
-    CameraSize.second *= 5;
-
     for ( const auto& Tile : m_TileList )
     {
         REQUIRED_IF( Tile.TextureCache != nullptr )
@@ -38,7 +36,7 @@ TileSpriteSet::Render( )
                     SpShader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
                 }
 
-                SpShader->SetMat4( "modelMatrix", Tile.ModelMatrixCache );
+                SpShader->SetMat4( "modelMatrix", m_TileMapOffsetMatrix * Tile.ModelMatrixCache );
 
                 const auto* gl = Engine::GetEngine( )->GetGLContext( );
                 gl->ActiveTexture( GL_TEXTURE0 );
@@ -70,7 +68,6 @@ TileSpriteSet::AddTile( TileSpriteSet::TileMeta Tile )
     {
         Tile.TextureCache = m_Sprites[ Tile.Degree ].get( );
 
-
         Tile.AccumulatedDegree = Tile.Degree;
         if ( !m_TileList.empty( ) )
         {
@@ -81,7 +78,7 @@ TileSpriteSet::AddTile( TileSpriteSet::TileMeta Tile )
              * Rotation stats
              *
              * */
-            Tile.AccumulatedDegree += LastTile.AccumulatedDegree;
+            Tile.AccumulatedDegree += LastTile.AccumulatedDegree == 180 ? 0 : LastTile.AccumulatedDegree;
 
 
             /*
@@ -96,8 +93,95 @@ TileSpriteSet::AddTile( TileSpriteSet::TileMeta Tile )
             TmpOrientation.SetRotation( 0, 0, glm::radians( 180 - FloatTy( LastTile.Degree ) ) );
 
             Tile.ModelMatrixCache = LastTile.ModelMatrixCache * TmpOrientation.GetRotationMatrix( ) * TmpOrientation.GetTranslationMatrix( );
+        } else
+        {
+            Orientation TmpOrientation;
+            TmpOrientation.SetOrigin( m_SpritesOrigin.X, m_SpritesOrigin.Y, m_SpritesOrigin.Z );
+
+            Tile.ModelMatrixCache = TmpOrientation.GetTranslationMatrix( );
         }
 
         m_TileList.push_back( Tile );
     }
+}
+
+void
+TileSpriteSet::SetSpritesOrigin( OrientationCoordinate::Coordinate Origin )
+{
+    m_SpritesOrigin = Origin;
+}
+
+uint32_t
+TileSpriteSet::GetCurrentDegree( )
+{
+    REQUIRED_IF( !TileReachedEnd( ) )
+    {
+        return m_TileList[ m_TileListPointer ].Degree;
+    }
+}
+
+void
+TileSpriteSet::Advance( )
+{
+    REQUIRED_IF( !TileReachedEnd( ) )
+    {
+        m_TileListPointer++;
+
+        UpdateTileMapOffset( );
+    }
+}
+
+bool
+TileSpriteSet::TileReachedEnd( )
+{
+    return m_TileListPointer >= m_TileList.size( );
+}
+
+FloatTy
+TileSpriteSet::GetNextStartTime( )
+{
+    if ( m_TileListPointer >= m_TileList.size( ) - 1 )
+    {
+        return std::numeric_limits<FloatTy>::max( );
+    }
+
+    return m_TileList[ m_TileListPointer + 1 ].Time;
+}
+
+void
+TileSpriteSet::SetTileMapOffset( const glm::mat4& OffsetMatrix )
+{
+    m_TileMapOffsetMatrix = OffsetMatrix;
+}
+
+void
+TileSpriteSet::UpdateTileMapOffset( )
+{
+
+    const auto DecomposedDistance = sqrt( TileDistance * TileDistance / 2.0f );
+    //    Orientation TmpOrientation;
+    //    TmpOrientation.SetOrigin( m_SpritesOrigin.X, m_SpritesOrigin.Y, m_SpritesOrigin.Z );
+    //
+    //    if ( m_TileListPointer > 0 )
+    //        TmpOrientation.SetRotation( 0, 0, glm::radians( FloatTy( m_TileList[ m_TileListPointer - 1 ].AccumulatedDegree ) ) );
+    //    // const auto Transform = glm::vec3( TmpOrientation.GetRotationMatrix( ) * glm::vec4( DecomposedDistance, DecomposedDistance, 0, 1 ) ) + glm::vec3( m_TileList[ m_TileListPointer ].ModelMatrixCache[ 3 ] );
+
+    //    const auto CenterOffset =
+    //        m_TileListPointer == 0                              ? glm::vec3( 0, 0, 0 )
+    //        : m_TileList[ m_TileListPointer - 1 ].Degree == 90  ? glm::vec3( 256, -256, 0 )
+    //        : m_TileList[ m_TileListPointer - 1 ].Degree == 180 ? glm::vec3( -256, -256, 0 )
+    //                                                            : glm::vec3( 0, 0, 0 );
+
+    const auto RotationQuat      = glm::quat_cast( m_TileList[ m_TileListPointer ].ModelMatrixCache );
+    const auto RollRotationAngle = glm::roll( RotationQuat );
+
+    const auto      RotationAxis  = glm::vec2( DecomposedDistance, DecomposedDistance );
+    const glm::vec2 RotatedOffset = glm::rotate( RotationAxis, RollRotationAngle );
+
+    const auto Transform  = glm::vec3( m_TileList[ m_TileListPointer ].ModelMatrixCache[ 3 ] ) + glm::vec3( RotatedOffset, 0 );
+    m_TileMapOffsetMatrix = glm::translate( glm::mat4( 1 ), -Transform );
+
+    spdlog::info( "New tile Offset({}): {},{}", m_TileListPointer, round( Transform.x ), round( Transform.y ) );
+    spdlog::info( "New tile RollRotationAngle({}): {}", m_TileListPointer, RollRotationAngle );
+    spdlog::info( "New tile Rotation axis({}): {},{}", m_TileListPointer, ( RotatedOffset.x ), ( RotatedOffset.y ) );
 }

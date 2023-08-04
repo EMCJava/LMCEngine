@@ -36,6 +36,36 @@ OrientationCoordinate::SetCoordinate( FloatTy X, FloatTy Y, FloatTy Z )
     return m_Coordinate;
 }
 
+const OrientationCoordinate::Coordinate&
+OrientationCoordinate::GetOrigin( ) const
+{
+    return m_Origin;
+}
+
+const OrientationCoordinate::Coordinate&
+OrientationCoordinate::AlterOrigin( FloatTy X, FloatTy Y, FloatTy Z )
+{
+    m_Origin.X += X;
+    m_Origin.Y += Y;
+    m_Origin.Z += Z;
+
+    UpdateTranslationMatrix( );
+
+    return m_Origin;
+}
+
+const OrientationCoordinate::Coordinate&
+OrientationCoordinate::SetOrigin( FloatTy X, FloatTy Y, FloatTy Z )
+{
+    m_Origin.X = X;
+    m_Origin.Y = Y;
+    m_Origin.Z = Z;
+
+    UpdateTranslationMatrix( );
+
+    return m_Origin;
+}
+
 glm::mat4&
 OrientationCoordinate::GetTranslationMatrix( )
 {
@@ -45,5 +75,5 @@ OrientationCoordinate::GetTranslationMatrix( )
 void
 OrientationCoordinate::UpdateTranslationMatrix( )
 {
-    m_TranslationMatrix = glm::translate( glm::mat4( 1 ), glm::vec3( m_Coordinate.X, m_Coordinate.Y, m_Coordinate.Z ) );
+    m_TranslationMatrix = glm::translate( glm::mat4( 1 ), glm::vec3( m_Coordinate.X, m_Coordinate.Y, m_Coordinate.Z ) - glm::vec3( m_Origin.X, m_Origin.Y, m_Origin.Z ) );
 }

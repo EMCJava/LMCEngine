@@ -21,7 +21,7 @@ public:
 
 private:
     void
-    LoadTileSprites( std::set<uint32_t> Degrees );
+    LoadTileSprites( const std::set<uint32_t>& Degrees );
 
     void
     LoadTileMap( );
@@ -31,6 +31,30 @@ private:
 
     void
     SetupCamera( );
+
+    void
+    LoadPlayerSprites( );
+
+    void
+    SetBPM( FloatTy BPM );
+
+    /*
+     *
+     * Game procedure
+     *
+     * */
+    void
+    UpdateDeviceOffset( );
+
+    /*
+     *
+     * User Input
+     *
+     * */
+    bool
+    TryAlterPlayer( );
+
+    bool IsUserPrimaryInteract( );
 
 private:
     AudioHandle m_DelayCheckingHandle;
@@ -43,8 +67,27 @@ private:
 
     /*
      *
+     * Song settings
+     *
+     * */
+    FloatTy m_BPM { };
+    FloatTy m_BPMS { };
+
+    /*
+     *
+     * Game State
+     *
+     * */
+    bool                       m_ActivePlayerIsFire { false };
+    class SpriteSquareTexture* m_ActivePlayerSprite { };
+    class SpriteSquareTexture* m_InActivePlayerSprite { };
+    /*
+     *
      * Concept saves
      *
      * */
     class PureConceptCamera* m_Camera;
+
+    class SpriteSquareTexture* FBSp { };
+    class SpriteSquareTexture* IBSp { };
 };

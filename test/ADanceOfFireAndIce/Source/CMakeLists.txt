@@ -12,6 +12,23 @@ declare_library(
         SpriteSquareTexture.lib
         Engine.lib
 
+        DEPS
+        OrientationCoordinate.lib
+
+        STATIC
+)
+
+declare_library(
+        NAME
+        Map.SongMapControl
+
+        SRCS
+        Map/Private/SongMapControl.cpp
+
+        P_DEPS
+        Map.TileSpriteSet.lib
+        spdlog::spdlog
+
         STATIC
 )
 
@@ -33,6 +50,7 @@ declare_library(
         Audio.lib
         PureConceptCamera.lib
         Map.TileSpriteSet.lib
+        Map.SongMapControl.lib
 
         DEPS
         ConceptApplicable.lib
