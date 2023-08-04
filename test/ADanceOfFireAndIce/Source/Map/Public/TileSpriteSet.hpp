@@ -75,9 +75,10 @@ public:
     /*
      *
      * Move map to current coordinate
+     * Return current tile rotation
      *
      * */
-    void
+    FloatTy
     UpdateTileMapOffset( );
 
     void

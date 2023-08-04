@@ -1328,16 +1328,18 @@ GameManager::GameManager( )
     spdlog::info( "GameManager concept constructor called" );
 
     SetupCamera( );
+    LoadAudio( );
 
     m_TileSpriteSet = AddConcept<TileSpriteSet>( );
     m_TileSpriteSet->SetActiveCamera( m_Camera );
 
     LoadPlayerSprites( );
 
-    LoadTileSprites( { 270, 240, 180, 120, 90, 60 } );
+    LoadTileSprites( { 360, 270, 240, 180, 135, 120, 90, 60, 45, 30 } );
     LoadTileMap( );
 
-    LoadAudio( );
+    m_TileSpriteSet->UpdateTileMapOffset( );
+    m_InActivePlayerSprite->SetRotation( 0, 0, glm::radians( 180.f ) );
 
     spdlog::info( "GameManager concept constructor returned" );
 }
@@ -1349,6 +1351,9 @@ GameManager::Apply( )
 
     if ( m_IsCheckingDeviceDelay ) [[unlikely]]
     {
+        // Adjust the audio offset to the correct value
+        (void) m_DelayCheckingHandle.GetCorrectedCurrentAudioOffset( );
+
         if ( PlayerInteract )
         {
             UpdateDeviceOffset( );
@@ -1365,26 +1370,87 @@ GameManager::Apply( )
         }
     } else
     {
-        if ( !m_TileSpriteSet->TileReachedEnd( ) )
+        const int64_t PlayPosition = m_MainAudioHandle.GetCorrectedCurrentAudioOffset( ) - m_UserDeviceOffsetMS;
+        if ( m_WaitingForFirstBeat )
         {
-            const int64_t PlayPosition         = m_MainAudioHandle.GetCurrentAudioOffset( ) - m_UserDeviceOffsetMS;
-            const FloatTy NextPlayTilePosition = m_TileSpriteSet->GetNextStartTime( );
-
-            if ( PlayPosition >= NextPlayTilePosition )
+            if ( PlayPosition <= m_MSPB )
             {
-                spdlog::info( "Play position: {}ms, next play tile position: {}ms", PlayPosition, NextPlayTilePosition );
+                m_WaitingForFirstBeat = false;
+            }
+        } else if ( !m_TileSpriteSet->TileReachedEnd( ) )
+        {
+            /*
+             *
+             * Rotate player
+             *
+             * */
+            constexpr auto OneBeatRadians   = glm::radians<FloatTy>( 180 );
+            const auto     RadiansPerSecond = OneBeatRadians * m_BPM / 60;
+            m_InActivePlayerSprite->AlterRotation( 0, 0, -Engine::GetEngine( )->GetDeltaSecond( ) * RadiansPerSecond );
+
+            const FloatTy   NextPlayTilePosition = m_TileSpriteSet->GetNextStartTime( );
+            const FloatTy   DeltaTimeToNext      = NextPlayTilePosition - PlayPosition;
+            const Tolerance NoteTolerance        = ToTolerance( DeltaTimeToNext );
+
+            bool DisAdvanced = false;
+            if ( NoteTolerance == Tolerance::Miss )
+            {
+                spdlog::info( "Node Miss: {} -> {}", PlayPosition, NextPlayTilePosition );
+
+                DisAdvanced = true;
                 m_TileSpriteSet->Advance( );
-                TryAlterPlayer( );
             }
 
             if ( PlayerInteract )
             {
-                TryAlterPlayer( );
+                DisAdvanced = true;
+                spdlog::info( "Play position: {}ms, next tile position: {}ms, Diff: {}", PlayPosition, NextPlayTilePosition, DeltaTimeToNext );
+
+                switch ( NoteTolerance )
+                {
+                case Tolerance::Perfect:
+                    spdlog::info( "Perfect" );
+                    m_TileSpriteSet->Advance( );
+                    break;
+                case Tolerance::Good:
+                    spdlog::info( "Good" );
+                    m_TileSpriteSet->Advance( );
+                    break;
+                case Tolerance::Bad:
+                    spdlog::info( "Bad" );
+                    m_TileSpriteSet->Advance( );
+                    break;
+                case Tolerance::EarlyMiss:
+                    spdlog::info( "EarlyMiss" );
+                    m_TileSpriteSet->Advance( );
+                    break;
+                default:
+                    DisAdvanced = false;
+                    break;
+                }
             }
 
-            constexpr auto OneBeatRadians   = glm::radians<FloatTy>( 180 );
-            const auto     RadiansPerSecond = OneBeatRadians * m_BPM / 60;
-            m_InActivePlayerSprite->AlterRotation( 0, 0, Engine::GetEngine( )->GetDeltaSecond( ) * RadiansPerSecond );
+            if ( DisAdvanced )
+            {
+                const auto CompensateBeat         = DeltaTimeToNext / m_MSPB;
+                const auto NoteHitCompensateAngle = CompensateBeat * 3.14159265f;
+
+                const auto RotationDegree = m_TileSpriteSet->UpdateTileMapOffset( );
+                m_InActivePlayerSprite->SetRotation( 0, 0, RotationDegree + 3.14159264f + NoteHitCompensateAngle );
+            }
+
+            //            if ( PlayPosition >= NextPlayTilePosition )
+            //            {
+            //                spdlog::info( "Play position: {}ms, next play tile position: {}ms", PlayPosition, NextPlayTilePosition );
+            //
+            //                TryAlterPlayer( );
+            //
+            //                m_TileSpriteSet->Advance( );
+            //
+            //                const auto RotationDegree = m_TileSpriteSet->UpdateTileMapOffset( );
+            //                spdlog::info( "Rotation degree: {}", glm::degrees( RotationDegree ) );
+            //                m_InActivePlayerSprite->SetRotation( 0, 0, RotationDegree + 3.14159264f );
+            //            }
         }
     }
 }
@@ -1416,87 +1482,51 @@ GameManager::LoadTileSprites( const std::set<uint32_t>& Degrees )
 void
 GameManager::LoadTileMap( )
 {
-        for ( int i = 0; i < TmpMap.size( ); ++i )
-        {
-            m_TileSpriteSet->AddTile( { TmpMap[ i ].first, TmpMap[ i ].second } );
-        }
+    //    m_TileSpriteSet->AddTile( { 180, 0 } );
+    //    for ( int i = 0; i < 30; ++i )
+    //    {
+    //        m_TileSpriteSet->AddTile( { TmpMap[ i ].first, TmpMap[ i ].second } );
+    //    }
 
-    //    m_TileSpriteSet->AddTile( { 180, 1000 } );
-    //    m_TileSpriteSet->AddTile( { 90, 2000 } );
-    //    m_TileSpriteSet->AddTile( { 180, 3000 } );
-    //    m_TileSpriteSet->AddTile( { 90, 4000 } );
-    //    m_TileSpriteSet->AddTile( { 180, 5000 } );
-    //    m_TileSpriteSet->AddTile( { 90, 6000 } );
-    //    m_TileSpriteSet->AddTile( { 180, 7000 } );
-    //    m_TileSpriteSet->AddTile( { 90, 8000 } );
+    auto AddPerSecond = [ &, BPM = m_BPM, Time = 0.f ]( uint32_t Degree ) mutable {
+        m_TileSpriteSet->AddTile( { Degree, Time } );
+        spdlog::info( "Time: {}ms", Time );
 
-//    auto AddPerSecond = [ &, Time = 0 ]( uint32_t Degree ) mutable {
-//        Time += 1;
-//        m_TileSpriteSet->AddTile( { Degree, Time * 500.f } );
-//    };
-//    AddPerSecond( 180 );
-//
-////    AddPerSecond( 90 );
-////    AddPerSecond( 180 );
-////    AddPerSecond( 270 );
-////    AddPerSecond( 180 );
-////    AddPerSecond( 90 );
-////    AddPerSecond( 180 );
-//
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 60 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 60 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 60 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 90 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 90 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 90 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 90 );
-//
-//    AddPerSecond( 180 );
-//    AddPerSecond( 60 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 60 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 60 );
-//
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 120 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 120 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 120 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 120 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 120 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 180 );
-//    AddPerSecond( 120 );
+        const auto MSPB = 60 * 1000 / BPM;
+
+        Time += MSPB * Degree / 180;
+    };
+    AddPerSecond( 180 );
+
+    AddPerSecond( 60 );
+    AddPerSecond( 180 );
+    AddPerSecond( 180 );
+    AddPerSecond( 60 );
+    AddPerSecond( 180 );
+    AddPerSecond( 180 );
+    AddPerSecond( 60 );
+    AddPerSecond( 180 );
+    AddPerSecond( 180 );
+
+    AddPerSecond( 60 );
+    AddPerSecond( 180 );
+    AddPerSecond( 180 );
+    AddPerSecond( 60 );
+    AddPerSecond( 180 );
+    AddPerSecond( 180 );
+    AddPerSecond( 60 );
+    AddPerSecond( 180 );
+    AddPerSecond( 180 );
+
+    AddPerSecond( 60 );
+    AddPerSecond( 180 );
+    AddPerSecond( 180 );
+    AddPerSecond( 60 );
+    AddPerSecond( 180 );
+    AddPerSecond( 180 );
+    AddPerSecond( 60 );
+    AddPerSecond( 180 );
+    AddPerSecond( 180 );
 }
 
 void
@@ -1508,7 +1538,8 @@ GameManager::LoadAudio( )
     auto* MAC         = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Papipupipupipa.ogg" );
     m_MainAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( MAC, true, true );
 
-    SetBPM( 300 );
+    // SetBPM( 300 );
+    SetBPM( 60 );
 }
 
 void
@@ -1573,7 +1604,7 @@ void
 GameManager::UpdateDeviceOffset( )
 {
     constexpr int64_t AudioDefaultOffset = 3000;
-    const int64_t     PlayPosition       = m_DelayCheckingHandle.GetCurrentAudioOffset( );
+    const int64_t     PlayPosition       = m_DelayCheckingHandle.GetCorrectedCurrentAudioOffset( );
 
     m_UserDeviceOffsetMS = PlayPosition - AudioDefaultOffset;
     spdlog::info( "Offset: {}", m_UserDeviceOffsetMS );
@@ -1583,5 +1614,33 @@ void
 GameManager::SetBPM( FloatTy BPM )
 {
     m_BPM  = BPM;
-    m_BPMS = BPM / 60 / 1000;
+    m_MSPB = 60 * 1000 / BPM;
+}
+
+GameManager::Tolerance
+GameManager::ToTolerance( FloatTy DeltaTime )
+{
+    const auto AbsDeltaTime = std::abs( DeltaTime );
+    if ( AbsDeltaTime < (FloatTy) Tolerance::Perfect )
+    {
+        return Tolerance::Perfect;
+    } else if ( AbsDeltaTime < (FloatTy) Tolerance::Good )
+    {
+        return Tolerance::Good;
+    } else if ( AbsDeltaTime < (FloatTy) Tolerance::Bad )
+    {
+        return Tolerance::Bad;
+    } else if ( DeltaTime > 0 )
+    {
+        if ( AbsDeltaTime < (FloatTy) Tolerance::Bad )
+        {
+            return Tolerance::EarlyMiss;
+        } else
+        {
+            return Tolerance::None;
+        }
+    } else
+    {
+        return Tolerance::Miss;
+    }
 }

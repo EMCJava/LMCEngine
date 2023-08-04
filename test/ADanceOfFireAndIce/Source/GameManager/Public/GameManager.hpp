@@ -13,6 +13,17 @@ class GameManager : public ConceptApplicable
 {
     DECLARE_CONCEPT( GameManager, ConceptApplicable )
 
+    enum class Tolerance : uint16_t {
+        Perfect   = 50,
+        Good      = 100,
+        Bad       = 200,
+        EarlyMiss = 300,
+        Miss,
+        None
+    };
+
+    static Tolerance ToTolerance( FloatTy DeltaTime );
+
 public:
     GameManager( );
 
@@ -71,7 +82,7 @@ private:
      *
      * */
     FloatTy m_BPM { };
-    FloatTy m_BPMS { };
+    FloatTy m_MSPB { };
 
     /*
      *
@@ -81,6 +92,9 @@ private:
     bool                       m_ActivePlayerIsFire { false };
     class SpriteSquareTexture* m_ActivePlayerSprite { };
     class SpriteSquareTexture* m_InActivePlayerSprite { };
+
+    bool m_WaitingForFirstBeat { true };
+
     /*
      *
      * Concept saves

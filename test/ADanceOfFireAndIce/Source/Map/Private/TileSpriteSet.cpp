@@ -64,7 +64,7 @@ TileSpriteSet::RegisterSprite( uint32_t Degree, std::unique_ptr<SpriteSquareText
 void
 TileSpriteSet::AddTile( TileSpriteSet::TileMeta Tile )
 {
-    REQUIRED_IF( m_Sprites.contains( Tile.Degree ) )
+    REQUIRED_IF( m_Sprites.contains( Tile.Degree ), spdlog::critical( "Missing {}", Tile.Degree ) )
     {
         Tile.TextureCache = m_Sprites[ Tile.Degree ].get( );
 
@@ -154,7 +154,7 @@ TileSpriteSet::SetTileMapOffset( const glm::mat4& OffsetMatrix )
     m_TileMapOffsetMatrix = OffsetMatrix;
 }
 
-void
+FloatTy
 TileSpriteSet::UpdateTileMapOffset( )
 {
     const auto DecomposedDistance = sqrt( TileDistance * TileDistance / 2.0f );
@@ -167,4 +167,6 @@ TileSpriteSet::UpdateTileMapOffset( )
 
     const auto Transform  = glm::vec3( m_TileList[ m_TileListPointer ].ModelMatrixCache[ 3 ] ) + glm::vec3( RotatedOffset, 0 );
     m_TileMapOffsetMatrix = glm::translate( glm::mat4( 1 ), -Transform );
+
+    return RollRotationAngle;
 }

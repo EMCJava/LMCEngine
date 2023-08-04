@@ -20,7 +20,8 @@ AudioHandle::operator=( AudioHandle&& Handle ) noexcept
 int64_t
 AudioHandle::GetNativeCurrentAudioOffset( )
 {
-    return m_NativeHandle->getPlayPosition( );
+    const auto Position = m_NativeHandle->getPlayPosition( );
+    return Position == -1 ? 0 : Position;
 }
 
 bool

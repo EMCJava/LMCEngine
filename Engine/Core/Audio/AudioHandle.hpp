@@ -10,6 +10,8 @@
 
 #include "Audio.hpp"
 
+#include <iostream>
+
 class AudioHandle
 {
 public:
@@ -49,7 +51,7 @@ public:
         {
             const auto TimeSinceLastFetch = TimeNow - m_LastFetchTimePoint;
 
-            const auto TimeDiffMillis     = std::chrono::duration_cast<std::chrono::milliseconds>( TimeSinceLastFetch ).count( );
+            const auto TimeDiffMillis = std::chrono::duration_cast<std::chrono::milliseconds>( TimeSinceLastFetch ).count( );
             return m_NativeAudioOffset + TimeDiffMillis;
         }
 
@@ -75,6 +77,6 @@ private:
      * Offset returned by the audio engine might not be most up to date
      *
      * */
-    int64_t             m_NativeAudioOffset { };
+    int64_t             m_NativeAudioOffset { -1 };
     TimerTy::time_point m_LastFetchTimePoint { };
 };
