@@ -21,7 +21,8 @@ public:
         uint32_t Degree { };
         FloatTy  Time { };
 
-        bool ReverseDirection { false };
+        bool    ReverseDirection { false };
+        FloatTy BPMChange { 0.0f };
 
         SpriteSquareTexture* TextureCache { };
 
@@ -37,6 +38,8 @@ public:
 
     void
     AddTile( TileMeta Tile );
+
+    void RemoveLastTile( );
 
     void
     SetSpritesOrigin( OrientationCoordinate::Coordinate Origin );
@@ -58,6 +61,9 @@ public:
     uint32_t
     GetCurrentDegree( );
 
+    size_t
+    GetCurrentPosition( ) const;
+
     /*
      *
      * Return the start time of next tile
@@ -69,6 +75,9 @@ public:
     TileMeta&
     GetCurrentTileMeta( );
 
+    size_t
+    GetTileCount( );
+
     /*
      *
      * Move pointer to the next tile
@@ -76,6 +85,14 @@ public:
      * */
     void
     Advance( );
+
+    /*
+     *
+     * Move pointer to the previous tile
+     *
+     * */
+    void
+    Retreat( );
 
     /*
      *
@@ -88,6 +105,14 @@ public:
 
     void
     SetTileMapOffset( const glm::mat4& OffsetMatrix );
+
+    /*
+     *
+     * For debug purpose
+     *
+     * */
+    void
+    PrintTileList( );
 
 protected:
     size_t                m_TileListPointer { 0 };

@@ -177,3 +177,53 @@ TileSpriteSet::GetCurrentTileMeta( )
 {
     return m_TileList[ m_TileListPointer ];
 }
+
+void
+TileSpriteSet::PrintTileList( )
+{
+    std::stringstream ss;
+
+    for ( const auto& Tile : m_TileList )
+    {
+        ss << "{" << Tile.Degree << ',' << Tile.Time << ',' << ( Tile.ReverseDirection ? "true" : "" ) << "},\n";
+    }
+
+    spdlog::info( "{}", ss.str( ) );
+}
+
+void
+TileSpriteSet::Retreat( )
+{
+    REQUIRED_IF( m_TileListPointer != 0 )
+    {
+        m_TileListPointer--;
+
+        UpdateTileMapOffset( );
+    }
+}
+
+void
+TileSpriteSet::RemoveLastTile( )
+{
+    if ( !m_TileList.empty( ) )
+    {
+        m_TileList.pop_back( );
+
+        if ( m_TileListPointer >= m_TileList.size( ) )
+        {
+            Retreat( );
+        }
+    }
+}
+
+size_t
+TileSpriteSet::GetTileCount( )
+{
+    return m_TileList.size( );
+}
+
+size_t
+TileSpriteSet::GetCurrentPosition( ) const
+{
+    return m_TileListPointer;
+}
