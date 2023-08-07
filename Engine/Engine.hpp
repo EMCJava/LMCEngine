@@ -8,7 +8,7 @@
 
 #include <string>
 
-using PrimoryWindow = class EditorWindow;
+using PrimaryWindow = class EditorWindow;
 
 class Engine
 {
@@ -163,7 +163,7 @@ private:
      * Windows
      *
      * */
-    PrimoryWindow*    m_MainWindow     = nullptr;
+    PrimaryWindow*    m_MainWindow     = nullptr;
     class WindowPool* m_MainWindowPool = nullptr;
 
     /*

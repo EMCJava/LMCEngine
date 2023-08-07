@@ -75,7 +75,7 @@ Engine::Engine( )
 
     m_AudioEngine = new AudioEngine;
 
-    m_MainWindow = new EditorWindow( 1600, 800, "LMCEngine" );
+    m_MainWindow = new PrimaryWindow( 1600, 800, "LMCEngine" );
 
     m_UserInput = new UserInput( m_MainWindow->GetWindowHandle( ) );
 
