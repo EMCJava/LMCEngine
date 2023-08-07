@@ -61,8 +61,19 @@ public:
     uint32_t
     GetCurrentDegree( );
 
+    /*
+     *
+     * Return the current degree of the pointer
+     *
+     * */
+    glm::vec3
+    GetCurrentTileTransform( );
+
     size_t
     GetCurrentPosition( ) const;
+
+    FloatTy
+    GetCurrentRollRotation( ) const;
 
     /*
      *
@@ -96,18 +107,6 @@ public:
 
     /*
      *
-     * Move map to current coordinate
-     * Return current tile rotation
-     *
-     * */
-    FloatTy
-    UpdateTileMapOffset( );
-
-    void
-    SetTileMapOffset( const glm::mat4& OffsetMatrix );
-
-    /*
-     *
      * For debug purpose
      *
      * */
@@ -119,8 +118,6 @@ protected:
     std::vector<TileMeta> m_TileList;
 
     OrientationCoordinate::Coordinate m_SpritesOrigin { };
-
-    glm::mat4 m_TileMapOffsetMatrix { 1 };
 
     /*
      *

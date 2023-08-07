@@ -1338,7 +1338,6 @@ GameManager::GameManager( )
     LoadTileSprites( { 360, 315, 270, 240, 180, 135, 120, 90, 60, 45, 30 } );
     LoadTileMap( );
 
-    m_TileSpriteSet->UpdateTileMapOffset( );
     m_InActivePlayerSprite->SetRotation( 0, 0, glm::radians( 180.f ) );
 
     spdlog::info( "GameManager concept constructor returned" );
@@ -1367,7 +1366,6 @@ GameManager::Apply( )
             m_IsCheckingDeviceDelay = false;
 
             m_MainAudioHandle.Resume( );
-            m_TileSpriteSet->UpdateTileMapOffset( );
         }
     } else
     {
@@ -1398,15 +1396,12 @@ GameManager::Apply( )
             const auto RadiansPerSecond = RadiansPerBeat * BeatPerMinute * MinutePerSecond;
             m_InActivePlayerSprite->AlterRotation( 0, 0, DirectionVector * DeltaSecond * RadiansPerSecond );
 
-
             bool DidAdvanced = false;
             if ( m_IsAutoPlay )
             {
                 if ( PlayPosition >= NextPlayTilePosition )
                 {
                     spdlog::info( "Play position: {}ms, next play tile position: {}ms", PlayPosition, NextPlayTilePosition );
-
-                    TryAlterPlayer( );
 
                     m_TileSpriteSet->Advance( );
                     DidAdvanced = true;
@@ -1453,12 +1448,41 @@ GameManager::Apply( )
 
             if ( DidAdvanced )
             {
+
+                TryAlterPlayer( );
+
+                /*
+                 *
+                 * Compensating offset for player misalignment generated from off beat hit
+                 *
+                 * */
                 const auto CompensateBeat         = -DeltaTimeToNext / m_MSPB;
                 const auto NoteHitCompensateAngle = DirectionVector * CompensateBeat * 3.14159265f;
-
-                const auto RotationDegree = m_TileSpriteSet->UpdateTileMapOffset( );
+                const auto RotationDegree         = m_TileSpriteSet->GetCurrentRollRotation( );
                 m_InActivePlayerSprite->SetRotation( 0, 0, RotationDegree + 3.14159264f + NoteHitCompensateAngle );
 
+                /*
+                 *
+                 * Move player for correct location on map
+                 *
+                 * */
+                const auto TileTransform = m_TileSpriteSet->GetCurrentTileTransform( );
+                m_InActivePlayerSprite->SetCoordinate( TileTransform.x, TileTransform.y );
+                m_ActivePlayerSprite->SetCoordinate( TileTransform.x, TileTransform.y );
+
+                /*
+                 *
+                 * Move camera to center player
+                 *
+                 * */
+                m_Camera->SetCoordinate( TileTransform.x, TileTransform.y );
+                m_Camera->UpdateProjectionMatrix( );
+
+                /*
+                 *
+                 * Tile effect
+                 *
+                 * */
                 const auto& NewTile = m_TileSpriteSet->GetCurrentTileMeta( );
                 if ( NewTile.ReverseDirection )
                 {
@@ -1501,7 +1525,7 @@ GameManager::LoadTileSprites( const std::set<uint32_t>& Degrees )
 void
 GameManager::LoadTileMap( )
 {
-    for ( int i = 0; i < 20; ++i )
+    for ( int i = 0; i < 40; ++i )
     {
         m_TileSpriteSet->AddTile( TmpMap[ i ] );
     }
@@ -1525,7 +1549,7 @@ void
 GameManager::SetupCamera( )
 {
     m_Camera = AddConcept<PureConceptCamera>( );
-    m_Camera->SetScale( 1 / 1.5f );
+    m_Camera->SetScale( 1 / 4.0F );
     m_Camera->UpdateProjectionMatrix( );
 }
 

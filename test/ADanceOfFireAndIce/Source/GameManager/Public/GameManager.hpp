@@ -98,7 +98,7 @@ private:
 
     bool m_WaitingForFirstBeat { true };
 
-    bool m_IsAutoPlay { true };
+    bool m_IsAutoPlay { false };
 
     /*
      *

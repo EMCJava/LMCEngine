@@ -36,7 +36,7 @@ TileSpriteSet::Render( )
                     SpShader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
                 }
 
-                SpShader->SetMat4( "modelMatrix", m_TileMapOffsetMatrix * Tile.ModelMatrixCache );
+                SpShader->SetMat4( "modelMatrix", Tile.ModelMatrixCache );
 
                 const auto* gl = Engine::GetEngine( )->GetGLContext( );
                 gl->ActiveTexture( GL_TEXTURE0 );
@@ -126,8 +126,6 @@ TileSpriteSet::Advance( )
     REQUIRED_IF( !TileReachedEnd( ) )
     {
         m_TileListPointer++;
-
-        UpdateTileMapOffset( );
     }
 }
 
@@ -146,30 +144,6 @@ TileSpriteSet::GetNextStartTime( )
     }
 
     return m_TileList[ m_TileListPointer + 1 ].Time;
-}
-
-void
-TileSpriteSet::SetTileMapOffset( const glm::mat4& OffsetMatrix )
-{
-    m_TileMapOffsetMatrix = OffsetMatrix;
-}
-
-FloatTy
-TileSpriteSet::UpdateTileMapOffset( )
-{
-    const auto DecomposedDistance = sqrt( TileDistance * TileDistance / 2.0f );
-
-    const auto RotationQuat      = glm::quat_cast( m_TileList[ m_TileListPointer ].ModelMatrixCache );
-    const auto RollRotationAngle = glm::roll( RotationQuat );
-
-    const auto      RotationAxis  = glm::vec2( DecomposedDistance, DecomposedDistance );
-    const glm::vec2 RotatedOffset = glm::rotate( RotationAxis, RollRotationAngle );
-
-
-    const auto Transform  = glm::vec3( m_TileList[ m_TileListPointer ].ModelMatrixCache[ 3 ] ) + glm::vec3( RotatedOffset, 0 );
-    m_TileMapOffsetMatrix = glm::translate( glm::mat4( 1 ), -Transform );
-
-    return RollRotationAngle;
 }
 
 TileSpriteSet::TileMeta&
@@ -198,7 +172,7 @@ TileSpriteSet::Retreat( )
     {
         m_TileListPointer--;
 
-        UpdateTileMapOffset( );
+        // UpdateTileMapOffset( );
     }
 }
 
@@ -226,4 +200,22 @@ size_t
 TileSpriteSet::GetCurrentPosition( ) const
 {
     return m_TileListPointer;
+}
+
+glm::vec3
+TileSpriteSet::GetCurrentTileTransform( )
+{
+    const auto DecomposedDistance = sqrt( TileDistance * TileDistance / 2.0f );
+
+    const auto      RotationAxis  = glm::vec2( DecomposedDistance, DecomposedDistance );
+    const glm::vec2 RotatedOffset = glm::rotate( RotationAxis, GetCurrentRollRotation( ) );
+
+    return glm::vec3( m_TileList[ m_TileListPointer ].ModelMatrixCache[ 3 ] ) + glm::vec3( RotatedOffset, 0 );
+}
+
+FloatTy
+TileSpriteSet::GetCurrentRollRotation( ) const
+{
+    const auto RotationQuat = glm::quat_cast( m_TileList[ m_TileListPointer ].ModelMatrixCache );
+    return glm::roll( RotationQuat );
 }
