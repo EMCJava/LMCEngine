@@ -18,6 +18,9 @@ public:
     bool
     NotEmpty( );
 
+    void
+    Clear( );
+
 private:
     uint64_t m_CacheHash { };
 
@@ -41,4 +44,12 @@ bool
 ConceptSetFetchCache<Ty>::NotEmpty( )
 {
     return !m_CachedConcepts.empty( );
+}
+
+template <typename Ty>
+void
+ConceptSetFetchCache<Ty>::Clear( )
+{
+    m_CacheHash = 0;
+    m_CachedConcepts.clear( );
 }

@@ -43,6 +43,14 @@ public:
 
     /*
      *
+     * The main loop of the window for rendering ImGui
+     *
+     * */
+    virtual void
+    UpdateImGui( ) { };
+
+    /*
+     *
      * Set swap interval for this window
      * Thus this function makes call to MakeContextCurrent
      *
@@ -84,6 +92,9 @@ public:
      * */
     std::pair<int, int>
     GetDimensions( ) const;
+
+    struct GladGLContext*
+    GetGLContext( ) const;
 
 protected:
     int         m_Width, m_Height;

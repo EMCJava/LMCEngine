@@ -279,13 +279,10 @@ private:
 
 template <typename Ty>
 struct IDCollisionsChecker {
-    static std::set<uint64_t> id_set;
+    inline static std::set<uint64_t> id_set;
     explicit IDCollisionsChecker( uint64_t id )
     {
         REQUIRED( id_set.count( id ) == 0 && "ID already in exist" );
         id_set.insert( id );
     }
 };
-
-template <typename Ty>
-inline std::set<uint64_t> IDCollisionsChecker<Ty>::id_set;

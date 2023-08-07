@@ -2,19 +2,26 @@ cmake_minimum_required(VERSION 3.25)
 project(ADanceOfFireAndIce)
 set(CMAKE_CXX_STANDARD 23)
 
+## ---------- Project setting ----------
+set(GAME_CONFIG_PATH ADanceOfFireAndIce.lmce)
+set(ROOT_CONCEPT_CLASS GameManager)
+set(ROOT_CONCEPT_PATH ${CMAKE_SOURCE_DIR}/Source/GameManager/Public/GameManager.hpp)
+set(ROOT_CONCEPT_LIB GameManager.GameManager.lib)
+
 ## ---------- Engine setting ----------
 set(ENGINE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 set(EditorBuild true)
 
 ## ---------- Game setting ----------
-set(GAME_CONFIG_PATH ADanceOfFireAndIce.lmce)
 set(PROJECT_PATH_CONFIG_PATH ProjectCache/ProjectPath.config)
 message("Game project config file ${GAME_CONFIG_PATH}")
 
 ## ---------- CMake module ----------
 list(APPEND CMAKE_MODULE_PATH "${ENGINE_ROOT}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/Source/cmake")
 include(functions)
 include(defines)
+include(SourceInclude)
 
 ## ---------- Shared source (Hot reload) setting ----------
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -35,7 +42,11 @@ add_subdirectory(${ENGINE_ROOT}/Engine Engine.Binary)
 add_subdirectory(Source)
 
 add_executable(ADanceOfFireAndIce main.cpp)
-target_link_libraries(ADanceOfFireAndIce Engine.lib)
 
-# Make sure game source changes will compile
-target_link_libraries(ADanceOfFireAndIce GameManager.GameManager.lib)
+if (NOT ${EditorBuild})
+    target_link_libraries(GameWindow.lib PRIVATE ${ROOT_CONCEPT_LIB})
+    target_link_libraries(Engine.lib ${ROOT_CONCEPT_LIB})
+endif ()
+
+target_link_libraries(ADanceOfFireAndIce ${ROOT_CONCEPT_LIB})
+target_link_libraries(ADanceOfFireAndIce Engine.lib)

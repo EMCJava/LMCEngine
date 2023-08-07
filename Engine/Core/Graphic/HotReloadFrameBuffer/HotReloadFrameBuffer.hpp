@@ -24,7 +24,7 @@ public:
     void
     BindFrameBuffer( ) const;
 
-    static void
+    void
     UnBindFrameBuffer( );
 
     void
@@ -33,7 +33,12 @@ public:
     uint32_t
     GetTextureID( ) const;
 
+    void
+    SetGLContext( struct GladGLContext* Context );
+
 private:
     uint32_t m_FBO { }, m_RBO { };
     uint32_t m_TextureID { };
+
+    struct GladGLContext* m_GLContext = nullptr;
 };

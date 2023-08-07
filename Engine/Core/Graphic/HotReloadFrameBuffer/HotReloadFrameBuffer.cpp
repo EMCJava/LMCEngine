@@ -9,26 +9,28 @@
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 #include <Engine/Engine.hpp>
 
+#include <glad/gl.h>
+
 HotReloadFrameBuffer::~HotReloadFrameBuffer( )
 {
-    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+    const auto* gl = m_GLContext;
     GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
 
     if ( m_FBO != 0 )
     {
-        gl->DeleteFramebuffers( 1, &m_FBO );
+        m_GLContext->DeleteFramebuffers( 1, &m_FBO );
         m_FBO = 0;
     }
 
     if ( m_TextureID != 0 )
     {
-        gl->DeleteTextures( 1, &m_TextureID );
+        m_GLContext->DeleteTextures( 1, &m_TextureID );
         m_TextureID = 0;
     }
 
     if ( m_RBO != 0 )
     {
-        gl->DeleteRenderbuffers( 1, &m_RBO );
+        m_GLContext->DeleteRenderbuffers( 1, &m_RBO );
         m_RBO = 0;
     }
 }
@@ -36,9 +38,7 @@ HotReloadFrameBuffer::~HotReloadFrameBuffer( )
 void
 HotReloadFrameBuffer::CreateFrameBuffer( float Width, float Height )
 {
-    const auto* gl = Engine::GetEngine( )->GetGLContext( );
-    GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
-
+    const auto* gl = m_GLContext;
     GL_CHECK( gl->GenFramebuffers( 1, &m_FBO ) );
     GL_CHECK( gl->BindFramebuffer( GL_FRAMEBUFFER, m_FBO ) );
 
@@ -67,21 +67,19 @@ HotReloadFrameBuffer::CreateFrameBuffer( float Width, float Height )
 void
 HotReloadFrameBuffer::BindFrameBuffer( ) const
 {
-    const auto* gl = Engine::GetEngine( )->GetGLContext( );
-    gl->BindFramebuffer( GL_FRAMEBUFFER, m_FBO );
+    m_GLContext->BindFramebuffer( GL_FRAMEBUFFER, m_FBO );
 }
 
 void
 HotReloadFrameBuffer::UnBindFrameBuffer( )
 {
-    const auto* gl = Engine::GetEngine( )->GetGLContext( );
-    gl->BindFramebuffer( GL_FRAMEBUFFER, 0 );
+    m_GLContext->BindFramebuffer( GL_FRAMEBUFFER, 0 );
 }
 
 void
 HotReloadFrameBuffer::RescaleFrameBuffer( float Width, float Height )
 {
-    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+    const auto* gl = m_GLContext;
     GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
 
     GL_CHECK( gl->BindTexture( GL_TEXTURE_2D, m_TextureID ) );
@@ -99,4 +97,10 @@ uint32_t
 HotReloadFrameBuffer::GetTextureID( ) const
 {
     return m_TextureID;
+}
+
+void
+HotReloadFrameBuffer::SetGLContext( struct GladGLContext* Context )
+{
+    m_GLContext = Context;
 }

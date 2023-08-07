@@ -8,8 +8,6 @@
 
 #include <string>
 
-using PrimaryWindow = class EditorWindow;
-
 class Engine
 {
     /*
@@ -75,6 +73,9 @@ public:
     static void
     OnKeyboardInput( struct GLFWwindow* window, int key, int scancode, int action, int mods );
 
+    static void
+    OnWindowResize( struct GLFWwindow* window, int Width, int Height );
+
     /*
      *
      * Set the global engine context
@@ -113,6 +114,9 @@ public:
      * */
     std::pair<int, int>
     GetMainWindowViewPortDimensions( ) const;
+
+    void
+    SetMainWindowViewPortDimensions( std::pair<int, int> Dimension );
 
     /*
      *
@@ -163,8 +167,8 @@ private:
      * Windows
      *
      * */
-    PrimaryWindow*    m_MainWindow     = nullptr;
-    class WindowPool* m_MainWindowPool = nullptr;
+    class PrimaryWindow* m_MainWindow     = nullptr;
+    class WindowPool*    m_MainWindowPool = nullptr;
 
     /*
      *
@@ -202,14 +206,7 @@ private:
      * Root concept in the screen
      *
      * */
-    class DynamicConcept* m_RootConcept = nullptr;
-
-    /*
-     *
-     * For root concept to render inside a ImGui window
-     *
-     * */
-    class HotReloadFrameBuffer* m_HRFrameBuffer = nullptr;
+    class RootConceptTy* m_RootConcept = nullptr;
 
     /*
      *

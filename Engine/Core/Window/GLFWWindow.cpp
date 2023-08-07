@@ -4,6 +4,7 @@
 
 #include "GLFWWindow.hpp"
 
+#include <Engine/Core/Graphic/API/OpenGL.hpp>
 #include <Engine/Core/Core.hpp>
 
 #include <GLFW/glfw3.h>
@@ -65,6 +66,14 @@ Window::Window( const char* Title, bool Create )
 
 Window::~Window( )
 {
+    if ( m_GLContext != nullptr )
+    {
+        gladLoaderUnloadGLContext( m_GLContext );
+
+        delete m_GLContext;
+        m_GLContext = nullptr;
+    }
+
     if ( m_Window != nullptr )
     {
         glfwDestroyWindow( m_Window );
@@ -99,6 +108,22 @@ Window::CreateWindow( )
     }
 
     MakeContextCurrent( );
+
+    /*
+     *
+     * Initialize GLAD & ImGui
+     *
+     * */
+    if ( m_GLContext != nullptr )
+    {
+        gladLoaderUnloadGLContext( m_GLContext );
+
+        delete m_GLContext;
+        m_GLContext = nullptr;
+    }
+
+    m_GLContext                  = new GladGLContext;
+    [[maybe_unused]] int version = gladLoadGLContext( m_GLContext, glfwGetProcAddress );
 }
 
 void
@@ -136,4 +161,10 @@ std::pair<int, int>
 Window::GetDimensions( ) const
 {
     return { m_Width, m_Height };
+}
+
+struct GladGLContext*
+Window::GetGLContext( ) const
+{
+    return m_GLContext;
 }

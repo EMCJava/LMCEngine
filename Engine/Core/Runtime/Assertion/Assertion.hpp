@@ -34,10 +34,11 @@
  * Required is for both debug and release, which is vital
  *
  * */
-#define REQUIRED( x )                                                               \
+#define REQUIRED( x, ... )                                                          \
     if ( !( x ) ) [[unlikely]]                                                      \
     {                                                                               \
         spdlog::critical( "Required failed: {} at {}:{}", #x, __FILE__, __LINE__ ); \
+        __VA_ARGS__;                                                                \
     }
 
 /*

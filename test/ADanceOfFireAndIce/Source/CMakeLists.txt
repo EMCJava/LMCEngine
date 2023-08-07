@@ -1,6 +1,3 @@
-include_directories(GameManager/Public)
-include_directories(Map/Public)
-
 declare_library(
         NAME
         Map.TileSpriteSet
@@ -47,7 +44,6 @@ declare_library(
         SpriteSquare.lib
         SpriteSquareTexture.lib
         ShaderProgram.lib
-        Audio.lib
         PureConceptCamera.lib
         Map.TileSpriteSet.lib
         Map.SongMapControl.lib
@@ -56,4 +52,5 @@ declare_library(
         ConceptApplicable.lib
         OrientationCoordinate.lib
         spdlog::spdlog
+        Audio.lib
 )

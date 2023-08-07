@@ -163,6 +163,8 @@ if (NOT ${no_irrklang})
 
     target_compile_definitions(audio.base.lib INTERFACE USE_IRRKLANG)
 
+    message("Using irrklang")
+
 else ()
     target_compile_definitions(audio.base.lib INTERFACE NO_AUDIO_ENGINE)
 endif ()

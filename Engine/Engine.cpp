@@ -19,7 +19,6 @@
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
 #include <Engine/Core/Environment/Environment.hpp>
-#include <Engine/Core/Runtime/DynamicLibrary/DynamicConcept.hpp>
 #include <Engine/Core/Window/EditorWindow.hpp>
 #include <Engine/Core/Window/WindowPool.hpp>
 #include <Engine/Core/Project/Project.hpp>
@@ -29,6 +28,8 @@
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 #include <Engine/Core/Audio/AudioEngine.hpp>
 #include <Engine/Core/Input/UserInput.hpp>
+
+#include RootConceptIncludePath
 
 #include <regex>
 
@@ -63,6 +64,12 @@ Engine::OnKeyboardInput( GLFWwindow* window, int key, int scancode, int action, 
     }
 }
 
+void
+Engine::OnWindowResize( struct GLFWwindow* /*unused*/, int Width, int Height )
+{
+    Engine::GetEngine( )->SetMainWindowViewPortDimensions( { Width, Height } );
+}
+
 Engine::Engine( )
 {
     if ( g_Engine != nullptr )
@@ -76,25 +83,16 @@ Engine::Engine( )
     m_AudioEngine = new AudioEngine;
 
     m_MainWindow = new PrimaryWindow( 1600, 800, "LMCEngine" );
+    m_GLContext  = m_MainWindow->GetGLContext( );
 
     m_UserInput = new UserInput( m_MainWindow->GetWindowHandle( ) );
 
     glfwSetKeyCallback( m_MainWindow->GetWindowHandle( ), OnKeyboardInput );
 
-    /*
-     *
-     * Initialize GLAD & ImGui
-     *
-     * */
-    m_GLContext                  = new GladGLContext;
-    [[maybe_unused]] int version = gladLoadGLContext( m_GLContext, glfwGetProcAddress );
-
     // Setup Dear ImGui context
     CreateImGuiContext( );
 
     m_MainWindowPool = new WindowPool;
-
-    m_HRFrameBuffer = new HotReloadFrameBuffer;
 
     /*
      *
@@ -105,14 +103,14 @@ Engine::Engine( )
 
     g_Engine = this;
 
-    /*
-     *
-     * The following code depends on engine context
-     *
-     * */
+#ifndef HOT_RELOAD
 
-    const auto WindowDimensions = m_MainWindow->GetDimensions( );
-    m_HRFrameBuffer->CreateFrameBuffer( WindowDimensions.first, WindowDimensions.second );
+    m_RootConcept = new RootConceptTy;
+    m_MainWindow->SetRootConcept( m_RootConcept );
+    glfwSetWindowSizeCallback( m_MainWindow->GetWindowHandle( ), OnWindowResize );
+    SetMainWindowViewPortDimensions( { 1600, 800 } );
+
+#endif
 }
 
 Engine::~Engine( )
@@ -125,9 +123,6 @@ Engine::~Engine( )
     delete m_ActiveProject;
     m_ActiveProject = nullptr;
 
-    delete m_HRFrameBuffer;
-    m_HRFrameBuffer = nullptr;
-
     delete m_MainWindowPool;
     m_MainWindowPool = nullptr;
 
@@ -137,14 +132,6 @@ Engine::~Engine( )
         ImGui_ImplGlfw_Shutdown( );
         ImGui::DestroyContext( m_ImGuiContext );
         m_ImGuiContext = nullptr;
-    }
-
-    if ( m_GLContext != nullptr )
-    {
-        gladLoaderUnloadGLContext( m_GLContext );
-
-        delete m_GLContext;
-        m_GLContext = nullptr;
     }
 
     delete m_UserInput;
@@ -186,6 +173,7 @@ Engine::Update( )
 void
 Engine::UpdateRootConcept( )
 {
+#ifdef HOT_RELOAD
     if ( m_RootConcept != nullptr )
     {
         auto& RootConcept = *m_RootConcept;
@@ -207,6 +195,9 @@ Engine::UpdateRootConcept( )
 
         RootConcept.As<ConceptApplicable>( )->Apply( );
     }
+#else
+    m_RootConcept->Apply( );
+#endif
 }
 
 // One instance of engine, so it's probably ok
@@ -223,11 +214,7 @@ Engine::Render( )
 
     try
     {
-        // For main viewport
-        m_MainWindow->SetPreviousFrameTexture( m_HRFrameBuffer->GetTextureID( ) );
-        m_MainWindow->Update( );
-
-        m_MainWindowPool->Update( );
+        m_MainWindow->UpdateImGui( );
     }
     catch ( const ImGuiContextInvalid& e )
     {
@@ -252,42 +239,45 @@ Engine::Render( )
      * User render
      *
      * */
-    if ( m_RootConcept != nullptr )
-    {
-        ( *m_RootConcept )->GetConcepts<ConceptRenderable>( g_ConceptRenderables );
-        if ( g_ConceptRenderables.NotEmpty( ) )
-        {
-            // we rescale the framebuffer to the actual window size here and reset the glViewport
-            const auto MainViewPortDimensions = m_MainWindow->GetHowReloadWindowDimensions( );
-            m_HRFrameBuffer->BindFrameBuffer( );
-            if ( m_MainViewPortDimensions != MainViewPortDimensions )
-            {
-                m_MainViewPortDimensions = MainViewPortDimensions;
+    //    if ( m_RootConcept != nullptr )
+    //    {
+    //        ( *m_RootConcept )->GetConcepts<ConceptRenderable>( g_ConceptRenderables );
+    //        if ( g_ConceptRenderables.NotEmpty( ) )
+    //        {
+    //            // we rescale the framebuffer to the actual window size here and reset the glViewport
+    //            const auto MainViewPortDimensions = m_MainWindow->GetHowReloadWindowDimensions( );
+    //            m_HRFrameBuffer->BindFrameBuffer( );
+    //            if ( m_MainViewPortDimensions != MainViewPortDimensions )
+    //            {
+    //                m_MainViewPortDimensions = MainViewPortDimensions;
+    //
+    //                ( *m_RootConcept )->GetConcepts<PureConceptCamera>( g_ConceptCameras );
+    //                g_ConceptCameras.ForEach( [ &MainViewPortDimensions ]( PureConceptCamera* item ) {
+    //                    item->SetDimensions( MainViewPortDimensions.first, MainViewPortDimensions.second );
+    //                } );
+    //
+    //                m_HRFrameBuffer->RescaleFrameBuffer( MainViewPortDimensions.first, MainViewPortDimensions.second );
+    //            }
+    //
+    //            /*
+    //             *
+    //             * Render every registered ConceptRenderable
+    //             *
+    //             * */
+    //            m_GLContext->Viewport( 0, 0, MainViewPortDimensions.first, MainViewPortDimensions.second );
+    //            m_GLContext->ClearColor( 0.85f, 0.83f, 0.84f, 1.0f );
+    //            m_GLContext->Clear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    //
+    //            g_ConceptRenderables.ForEach( []( ConceptRenderable* item ) {
+    //                item->Render( );
+    //            } );
+    //
+    //            m_HRFrameBuffer->UnBindFrameBuffer( );
+    //        }
+    //    }
 
-                ( *m_RootConcept )->GetConcepts<PureConceptCamera>( g_ConceptCameras );
-                g_ConceptCameras.ForEach( [ &MainViewPortDimensions ]( PureConceptCamera* item ) {
-                    item->SetDimensions( MainViewPortDimensions.first, MainViewPortDimensions.second );
-                } );
-
-                m_HRFrameBuffer->RescaleFrameBuffer( MainViewPortDimensions.first, MainViewPortDimensions.second );
-            }
-
-            /*
-             *
-             * Render every registered ConceptRenderable
-             *
-             * */
-            m_GLContext->Viewport( 0, 0, MainViewPortDimensions.first, MainViewPortDimensions.second );
-            m_GLContext->ClearColor( 0.85f, 0.83f, 0.84f, 1.0f );
-            m_GLContext->Clear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-            g_ConceptRenderables.ForEach( []( ConceptRenderable* item ) {
-                item->Render( );
-            } );
-
-            m_HRFrameBuffer->UnBindFrameBuffer( );
-        }
-    }
+    m_MainWindow->Update( );
+    m_MainWindowPool->Update( );
 
     glfwSwapBuffers( m_MainWindow->GetWindowHandle( ) );
 }
@@ -365,6 +355,8 @@ Engine::GetEngine( )
 void
 Engine::LoadProject( const std::string& Path )
 {
+
+#ifdef HOT_RELOAD
     if ( m_RootConcept != nullptr )
     {
         delete m_RootConcept;
@@ -379,7 +371,7 @@ Engine::LoadProject( const std::string& Path )
     {
         spdlog::info( "Loading root concepts: {}", RootConcept );
 
-        m_RootConcept      = new DynamicConcept;
+        m_RootConcept      = new RootConceptTy;
         const auto DLLPath = std::regex_replace( m_ActiveProject->GetConfig( ).shared_library_path_format, std::regex( "\\{\\}" ), RootConcept );
 
         m_RootConcept->Load( DLLPath, false );
@@ -391,11 +383,18 @@ Engine::LoadProject( const std::string& Path )
          * */
         m_RootConcept->SetEngineContext( this );
         m_RootConcept->AllocateConcept( );
+
+        m_MainWindow->SetRootConcept( m_RootConcept );
+
         ResetTimer( );
     } else
     {
         spdlog::info( "No root concepts specified" );
     }
+#else
+
+    REQUIRED( false, "Loading project in a stand-along build" );
+#endif
 }
 
 Project*
@@ -458,4 +457,10 @@ UserInput*
 Engine::GetUserInputHandle( )
 {
     return m_UserInput;
+}
+
+void
+Engine::SetMainWindowViewPortDimensions( std::pair<int, int> Dimension )
+{
+    m_MainViewPortDimensions = Dimension;
 }

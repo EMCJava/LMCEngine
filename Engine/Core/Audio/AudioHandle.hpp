@@ -4,13 +4,12 @@
 
 #pragma once
 
-#include <Engine/Core/Core.hpp>
-
-#include <utility>
-
 #include "Audio.hpp"
 
+#include <Engine/Core/Core.hpp>
+
 #include <iostream>
+#include <utility>
 
 class AudioHandle
 {

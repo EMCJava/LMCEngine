@@ -4,13 +4,29 @@
 
 #pragma once
 
-#include "Engine/Core/Concept/Concept.hpp"
+#include <Engine/Core/Window/GameWindow.hpp>
+#include <Engine/Core/Concept/Concept.hpp>
+
 #include "Window.hpp"
 
-class EditorWindow : public Window
+class EditorWindow : public GameWindow
 {
 public:
-    using Window::Window;
+    /*
+     *
+     * Create a normal window.
+     *
+     * */
+    EditorWindow( int Width, int Height, const char* Title, bool Fullscreen = false, bool Create = true );
+
+    /*
+     *
+     * Create a fullscreen window, with full resolution.
+     *
+     * */
+    EditorWindow( const char* Title, bool Create = true );
+
+    ~EditorWindow( );
 
     /*
      *
@@ -20,8 +36,13 @@ public:
     void
     Update( ) override;
 
-    std::pair<float, float>
-    GetHowReloadWindowDimensions( ) const;
+    /*
+     *
+     * The main loop of the window for rendering ImGui
+     *
+     * */
+    void
+    UpdateImGui( ) override;
 
     void
     SetPreviousFrameTexture( uint32_t TextureID );
@@ -32,9 +53,14 @@ private:
      * Main viewport setup
      *
      * */
-    float    m_HotReloadWindowWidth { };
-    float    m_HotReloadWindowHeight { };
     uint32_t m_PreviousFrameTextureID { };
+
+    /*
+     *
+     * For root concept to render inside a ImGui window
+     *
+     * */
+    class HotReloadFrameBuffer* m_HRFrameBuffer;
 
     /*
      *

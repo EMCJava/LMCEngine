@@ -12,6 +12,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <Engine/Core/Graphic/HotReloadFrameBuffer/HotReloadFrameBuffer.hpp>
 #include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
 #include <Engine/Core/File/OSFile.hpp>
 #include <Engine/Core/Project/Project.hpp>
@@ -21,6 +22,52 @@
 
 void
 EditorWindow::Update( )
+{
+    m_HRFrameBuffer->BindFrameBuffer( );
+    const auto WindowDimension = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
+    if ( m_MainViewPortDimension != WindowDimension )
+    {
+        // Size changed, need to recreate the frame buffer
+        m_HRFrameBuffer->RescaleFrameBuffer( WindowDimension.first, WindowDimension.second );
+    }
+
+    // Render main game
+    GameWindow::Update( );
+    m_HRFrameBuffer->UnBindFrameBuffer( );
+
+    m_PreviousFrameTextureID = m_HRFrameBuffer->GetTextureID( );
+}
+
+void
+EditorWindow::SetPreviousFrameTexture( uint32_t TextureID )
+{
+    m_PreviousFrameTextureID = TextureID;
+}
+
+EditorWindow::EditorWindow( int Width, int Height, const char* Title, bool Fullscreen, bool Create )
+    : GameWindow( Width, Height, Title, Fullscreen, Create )
+{
+    m_HRFrameBuffer = new HotReloadFrameBuffer;
+    m_HRFrameBuffer->SetGLContext( m_GLContext );
+    m_HRFrameBuffer->CreateFrameBuffer( m_Width, m_Height );
+}
+
+EditorWindow::EditorWindow( const char* Title, bool Create )
+    : GameWindow( Title, Create )
+{
+    m_HRFrameBuffer = new HotReloadFrameBuffer;
+    m_HRFrameBuffer->SetGLContext( m_GLContext );
+    m_HRFrameBuffer->CreateFrameBuffer( m_Width, m_Height );
+}
+
+EditorWindow::~EditorWindow( )
+{
+    delete m_HRFrameBuffer;
+    m_HRFrameBuffer = nullptr;
+}
+
+void
+EditorWindow::UpdateImGui( )
 {
     MakeContextCurrent( );
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
@@ -154,29 +201,18 @@ EditorWindow::Update( )
         // It also alows customization
         ImGui::BeginChild( "Render" );
 
-        const auto WindowDimensions = ImGui::GetContentRegionAvail( );
-        m_HotReloadWindowWidth      = WindowDimensions.x;
-        m_HotReloadWindowHeight     = WindowDimensions.y;
+        const auto                WindowDimensions    = ImGui::GetContentRegionAvail( );
+        const std::pair<int, int> WindowDimensionPair = { WindowDimensions.x, WindowDimensions.y };
+        if ( m_MainViewPortDimension != WindowDimensionPair )
+        {
+            Engine::GetEngine( )->SetMainWindowViewPortDimensions( WindowDimensionPair );
+        }
 
         ImGui::Image( reinterpret_cast<void*>( m_PreviousFrameTextureID ),
-                      ImVec2( m_HotReloadWindowWidth, m_HotReloadWindowHeight ),
-                      ImVec2( 0, 1 ),
-                      ImVec2( 1, 0 ) );
+                      WindowDimensions, ImVec2( 0, 1 ), ImVec2( 1, 0 ) );
 
         ImGui::EndChild( );
 
         ImGui::End( );
     }
-}
-
-std::pair<float, float>
-EditorWindow::GetHowReloadWindowDimensions( ) const
-{
-    return { m_HotReloadWindowWidth, m_HotReloadWindowHeight };
-}
-
-void
-EditorWindow::SetPreviousFrameTexture( uint32_t TextureID )
-{
-    m_PreviousFrameTextureID = TextureID;
 }
