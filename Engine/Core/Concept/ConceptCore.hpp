@@ -28,9 +28,9 @@ struct ConceptValueWrapper {
     static constexpr auto Value = C::TypeID;
 };
 
-#if !defined( NDEBUG ) && !defined( LMC_API_EXPORTS )
-#    define DEC_CHECK_ID               static const IDCollisionsChecker<Concept> __IDCollisionsChecker;
-#    define DEF_CHECK_ID( class_name ) inline const IDCollisionsChecker<Concept> class_name::__IDCollisionsChecker { class_name::TypeID };
+#if !defined( NDEBUG ) && defined( LMC_API_EXPORTS )
+#    define DEC_CHECK_ID               static const IDCollisionsChecker<class Concept> __IDCollisionsChecker;
+#    define DEF_CHECK_ID( class_name ) inline const IDCollisionsChecker<class Concept> class_name::__IDCollisionsChecker { class_name::TypeID };
 #else
 #    define DEC_CHECK_ID
 #    define DEF_CHECK_ID( class_name )
