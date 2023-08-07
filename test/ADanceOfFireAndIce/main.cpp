@@ -10,21 +10,21 @@
 #include <iostream>
 
 int
-main()
+main( )
 {
-	Engine engine;
+    Engine engine;
 
-	try
-	{
-		while (!engine.ShouldShutdown())
-		{
-			engine.Update();
-		}
-	}
-	catch (std::exception &e)
-	{
-		std::cerr << "Uncaught exception: " << e.what() << std::endl;
-	}
+    try
+    {
+        while ( !engine.ShouldShutdown( ) )
+        {
+            engine.Update( );
+        }
+    }
+    catch ( std::exception& e )
+    {
+        std::cerr << "Uncaught exception: " << e.what( ) << std::endl;
+    }
 
-	return 0;
+    return 0;
 }
