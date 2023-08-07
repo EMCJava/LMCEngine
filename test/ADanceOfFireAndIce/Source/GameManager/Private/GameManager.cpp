@@ -18,6 +18,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <glm/gtx/compatibility.hpp>
+
 #pragma warning( Tempory for keycode )
 #include <GLFW/glfw3.h>
 
@@ -1396,6 +1398,28 @@ GameManager::Apply( )
             const auto RadiansPerSecond = RadiansPerBeat * BeatPerMinute * MinutePerSecond;
             m_InActivePlayerSprite->AlterRotation( 0, 0, DirectionVector * DeltaSecond * RadiansPerSecond );
 
+            /*
+             *
+             * Camera move
+             *
+             * */
+            if ( m_CameraLerp < 1 )
+            {
+                m_CameraLerp += DeltaSecond * 15;
+                if ( m_CameraLerp >= 1 )
+                {
+                    m_Camera->SetCoordinate( m_CameraEnd.x, m_CameraEnd.y );
+                    m_Camera->UpdateProjectionMatrix( );
+
+                    m_CameraLerp = 1;
+                } else
+                {
+                    const auto LerpCoordinate = glm::lerp( m_CameraStart, m_CameraEnd, m_CameraLerp );
+                    m_Camera->SetCoordinate( LerpCoordinate.x, LerpCoordinate.y );
+                    m_Camera->UpdateProjectionMatrix( );
+                }
+            }
+
             bool DidAdvanced = false;
             if ( m_IsAutoPlay )
             {
@@ -1475,8 +1499,10 @@ GameManager::Apply( )
                  * Move camera to center player
                  *
                  * */
-                m_Camera->SetCoordinate( TileTransform.x, TileTransform.y );
-                m_Camera->UpdateProjectionMatrix( );
+                m_CameraLerp              = 0;
+                const auto CameraLocation = m_Camera->GetCoordinate( );
+                m_CameraStart             = glm::vec2 { CameraLocation.X, CameraLocation.Y };
+                m_CameraEnd               = TileTransform;
 
                 /*
                  *

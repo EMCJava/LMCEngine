@@ -102,6 +102,14 @@ private:
 
     /*
      *
+     * Linear interpolation for camera movement
+     *
+     * */
+    glm::vec2 m_CameraStart { }, m_CameraEnd { };
+    FloatTy   m_CameraLerp { 1 };
+
+    /*
+     *
      * Concept saves
      *
      * */
