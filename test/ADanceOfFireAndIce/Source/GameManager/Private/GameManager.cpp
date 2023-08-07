@@ -25,7 +25,7 @@ DEFINE_CONCEPT_DS_MA_SE( GameManager, Concept )
 namespace
 {
 std::vector<TileSpriteSet::TileMeta> TmpMap {
-    { 180, 1193 },
+    { 180, 0 },
     { 180, 1193 },
     { 180, 1493 },
     { 180, 1793 },
@@ -41,27 +41,27 @@ std::vector<TileSpriteSet::TileMeta> TmpMap {
     { 180, 4493 },
     { 270, 4793, true },
     { 90, 4943, true },
-    { 270, 5093, true  },
-    { 90, 5243, true  },
-    { 315, 5393, true  },
-    { 45, 5468, true  },
-    { 45, 5543 },
-    { 45, 5618 },
+    { 270, 5093, true },
+    { 90, 5243, true },
+    { 315, 5393, true },
+    { 45, 5468, true },
+    { 315, 5543, true },
+    { 45, 5618, true },
     { 180, 5693 },
-    { 90, 5993 },
-    { 90, 6143 },
-    { 90, 6293 },
-    { 90, 6443 },
-    { 90, 6593 },
-    { 45, 6743 },
-    { 45, 6818 },
-    { 90, 6893 },
-    { 90, 7043 },
-    { 90, 7193 },
-    { 90, 7343 },
-    { 90, 7493 },
-    { 90, 7643 },
-    { 45, 7793 },
+    { 270, 5993, true },
+    { 90, 6143, true },
+    { 270, 6293, true },
+    { 90, 6443, true },
+    { 270, 6593, true },
+    { 45, 6743, true },
+    { 315, 6818, true },
+    { 90, 6893, true },
+    { 270, 7043, true },
+    { 90, 7193, true },
+    { 270, 7343, true },
+    { 90, 7493, true },
+    { 270, 7643, true },
+    { 45, 7793, true },
     { 45, 7868 },
     { 45, 7943 },
     { 45, 8018 },
@@ -944,8 +944,8 @@ std::vector<TileSpriteSet::TileMeta> TmpMap {
     { 45, 121043 },
     { 45, 121118 },
     { 360, 121193 },
-    { 1080, 121793 },
-    { 360, 123593 },
+    { 360, 121793, false, 200 / 3.F },
+    { 360, 123593, false, 200 },
     { 360, 124193 },
     { 360, 124793 },
     { 360, 125393 },
@@ -1463,6 +1463,11 @@ GameManager::Apply( )
                 if ( NewTile.ReverseDirection )
                 {
                     m_PlayerDirectionClockWise = !m_PlayerDirectionClockWise;
+                }
+
+                if ( NewTile.BPMChange != 0 )
+                {
+                    SetBPM( NewTile.BPMChange );
                 }
             }
         }
