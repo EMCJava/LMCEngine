@@ -1567,8 +1567,6 @@ GameManager::LoadAudio( )
 
     auto* MAC         = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Papipupipupipa.ogg" );
     m_MainAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( MAC, true, true );
-    spdlog::info( "Loading audio: {}", fmt::ptr( MAC ) );
-    spdlog::info( "Loading audio: {}", fmt::ptr( m_MainAudioHandle.GetNativeSoundHandle().get() ) );
     m_MainAudioHandle.SetSpeed( m_PlayingSpeed );
     SetBPM( 200 * m_PlayingSpeed );
 }
