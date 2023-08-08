@@ -108,7 +108,8 @@ Engine::Engine( )
     m_RootConcept = new RootConceptTy;
     m_MainWindow->SetRootConcept( m_RootConcept );
     glfwSetWindowSizeCallback( m_MainWindow->GetWindowHandle( ), OnWindowResize );
-    SetMainWindowViewPortDimensions( { 1600, 800 } );
+    SetMainWindowViewPortDimensions( m_MainWindow->GetDimensions( ) );
+    LoadProject( GAME_CONFIG_PATH );
 
 #endif
 }
@@ -356,14 +357,14 @@ void
 Engine::LoadProject( const std::string& Path )
 {
 
+    m_ActiveProject->LoadProject( Path );
+
 #ifdef HOT_RELOAD
     if ( m_RootConcept != nullptr )
     {
         delete m_RootConcept;
         m_RootConcept = nullptr;
     }
-
-    m_ActiveProject->LoadProject( Path );
 
     const auto& RootConcept = m_ActiveProject->GetConfig( ).root_concept;
 
@@ -391,9 +392,6 @@ Engine::LoadProject( const std::string& Path )
     {
         spdlog::info( "No root concepts specified" );
     }
-#else
-
-    REQUIRED( false, "Loading project in a stand-along build" );
 #endif
 }
 
