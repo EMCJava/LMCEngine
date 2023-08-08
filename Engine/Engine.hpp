@@ -157,7 +157,9 @@ private:
 
     /*
      *
-     *
+     * Main view port size
+     * ImGui window size on editor build
+     * Game window size in stand-alone build
      *
      * */
     std::pair<float, float> m_MainViewPortDimensions { };

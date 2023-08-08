@@ -90,7 +90,7 @@ Engine::Engine( )
 
 #endif
 
-    m_MainWindow = new PrimaryWindow( 1600, 800, m_ActiveProject->GetConfig( ).project_name.c_str() );
+    m_MainWindow = new PrimaryWindow( 1600, 800, m_ActiveProject->GetConfig( ).project_name.c_str( ) );
     m_GLContext  = m_MainWindow->GetGLContext( );
 
     m_UserInput = new UserInput( m_MainWindow->GetWindowHandle( ) );
@@ -197,6 +197,13 @@ Engine::UpdateRootConcept( )
             RootConcept.SetEngineContext( this );
             RootConcept.AllocateConcept( );
             ResetTimer( );
+
+            /*
+             *
+             * Make sure new root concept reset camera
+             *
+             * */
+            m_MainViewPortDimensions = { };
         }
 
         RootConcept.As<ConceptApplicable>( )->Apply( );
@@ -239,48 +246,6 @@ Engine::Render( )
         ImGui::UpdatePlatformWindows( );
         ImGui::RenderPlatformWindowsDefault( );
     }
-
-    /*
-     *
-     * User render
-     *
-     * */
-    //    if ( m_RootConcept != nullptr )
-    //    {
-    //        ( *m_RootConcept )->GetConcepts<ConceptRenderable>( g_ConceptRenderables );
-    //        if ( g_ConceptRenderables.NotEmpty( ) )
-    //        {
-    //            // we rescale the framebuffer to the actual window size here and reset the glViewport
-    //            const auto MainViewPortDimensions = m_MainWindow->GetHowReloadWindowDimensions( );
-    //            m_HRFrameBuffer->BindFrameBuffer( );
-    //            if ( m_MainViewPortDimensions != MainViewPortDimensions )
-    //            {
-    //                m_MainViewPortDimensions = MainViewPortDimensions;
-    //
-    //                ( *m_RootConcept )->GetConcepts<PureConceptCamera>( g_ConceptCameras );
-    //                g_ConceptCameras.ForEach( [ &MainViewPortDimensions ]( PureConceptCamera* item ) {
-    //                    item->SetDimensions( MainViewPortDimensions.first, MainViewPortDimensions.second );
-    //                } );
-    //
-    //                m_HRFrameBuffer->RescaleFrameBuffer( MainViewPortDimensions.first, MainViewPortDimensions.second );
-    //            }
-    //
-    //            /*
-    //             *
-    //             * Render every registered ConceptRenderable
-    //             *
-    //             * */
-    //            m_GLContext->Viewport( 0, 0, MainViewPortDimensions.first, MainViewPortDimensions.second );
-    //            m_GLContext->ClearColor( 0.85f, 0.83f, 0.84f, 1.0f );
-    //            m_GLContext->Clear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    //
-    //            g_ConceptRenderables.ForEach( []( ConceptRenderable* item ) {
-    //                item->Render( );
-    //            } );
-    //
-    //            m_HRFrameBuffer->UnBindFrameBuffer( );
-    //        }
-    //    }
 
     m_MainWindow->Update( );
     m_MainWindowPool->Update( );
