@@ -24,6 +24,7 @@ GameWindow::Update( )
 #else
         auto* RootConcept = m_RootConcept;
 #endif
+        m_ConceptRenderables.Clear();
         RootConcept->GetConcepts<ConceptRenderable>( m_ConceptRenderables );
 
         if ( m_ConceptRenderables.NotEmpty( ) )

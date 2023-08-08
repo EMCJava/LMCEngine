@@ -2,6 +2,10 @@
 // Created by loyus on 7/16/2023.
 //
 
+#include "FastRandom.hpp"
+
+#include <random>
+
 constexpr int
 FastRandom::GetIntSeed( const FastRandom::NoiseType& Seed )
 {
@@ -129,4 +133,14 @@ inline std::ostream&
 operator<<( std::ostream& os, const FastRandom& n )
 {
     return os << '[' << n.m_Seed.Seed[ 0 ] << ", " << n.m_Seed.Seed[ 1 ] << ']' << std::flush;
+}
+
+inline FastRandom
+FastRandom::FromRand( )
+{
+    std::random_device                      rd;
+    std::mt19937_64                         gen( rd( ) );
+    std::uniform_int_distribution<uint64_t> dis;
+
+    return FromUint64( dis( gen ) );
 }

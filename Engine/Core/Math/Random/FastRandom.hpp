@@ -54,6 +54,9 @@ public:
     static constexpr FastRandom
     FromUint64( uint64_t Seed );
 
+    static FastRandom
+    FromRand( );
+
     bool constexpr
     operator==( const FastRandom& oth ) const;
 

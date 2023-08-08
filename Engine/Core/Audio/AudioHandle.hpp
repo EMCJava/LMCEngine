@@ -25,6 +25,13 @@ public:
     AudioHandle( AudioHandle& Handle )           = delete;
     AudioHandle operator=( AudioHandle& Handle ) = delete;
 
+    NativeSoundHandle&
+    GetNativeSoundHandle( )
+    {
+        return m_NativeHandle;
+    }
+
+
     /*
      *
      * Audio status getter

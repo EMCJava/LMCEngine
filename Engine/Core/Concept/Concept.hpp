@@ -23,8 +23,6 @@ class Concept : public PureConcept
     DECLARE_CONCEPT( Concept, PureConcept )
 
 public:
-    Concept( );
-
     /*
      *
      * Operations to sub concepts
@@ -56,7 +54,9 @@ public:
 
 private:
     std::vector<std::unique_ptr<PureConcept>> m_SubConcepts;
-    FastRandom                                m_SubConceptsStateHash;
+    FastRandom                                m_SubConceptsStateHash { FastRandom::FromUint64( SubConceptsStateHashInit.NextUint64( ) ) };
+
+    inline static FastRandom SubConceptsStateHashInit { FastRandom::FromRand( ) };
 };
 
 template <class ConceptType, typename... Args>

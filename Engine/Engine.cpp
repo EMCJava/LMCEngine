@@ -189,6 +189,11 @@ Engine::UpdateRootConcept( )
             spdlog::info( "RootConcept changes detected, hot reloading" );
             RootConcept.Reload( false );
 
+            spdlog::info( "Reloading Audio engine" );
+
+            delete m_AudioEngine;
+            m_AudioEngine = new AudioEngine;
+
             /*
              *
              * Make sure the library can access the same memory space
@@ -212,10 +217,6 @@ Engine::UpdateRootConcept( )
     m_RootConcept->Apply( );
 #endif
 }
-
-// One instance of engine, so it's probably ok
-ConceptSetFetchCache<ConceptRenderable> g_ConceptRenderables { };
-ConceptSetFetchCache<PureConceptCamera> g_ConceptCameras { };
 
 void
 Engine::Render( )
@@ -340,6 +341,11 @@ Engine::LoadProject( const std::string& Path )
 
     if ( !RootConcept.empty( ) )
     {
+        spdlog::info( "Reloading Audio engine" );
+
+        delete m_AudioEngine;
+        m_AudioEngine = new AudioEngine;
+
         spdlog::info( "Loading root concepts: {}", RootConcept );
 
         m_RootConcept      = new RootConceptTy;
