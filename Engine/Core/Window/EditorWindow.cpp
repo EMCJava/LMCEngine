@@ -171,6 +171,16 @@ EditorWindow::UpdateImGui( )
             ImGui::EndMenu( );
         }
 
+        if ( ImGui::BeginMenu( "Build" ) )
+        {
+            if ( ImGui::MenuItem( "Build Project" ) )
+            {
+
+            }
+
+            ImGui::EndMenu( );
+        }
+
         ImGui::EndMainMenuBar( );
     }
 
