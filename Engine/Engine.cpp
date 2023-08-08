@@ -82,7 +82,15 @@ Engine::Engine( )
 
     m_AudioEngine = new AudioEngine;
 
-    m_MainWindow = new PrimaryWindow( 1600, 800, "LMCEngine" );
+    m_ActiveProject = new Project;
+
+#ifndef HOT_RELOAD
+
+    LoadProject( GAME_CONFIG_PATH );
+
+#endif
+
+    m_MainWindow = new PrimaryWindow( 1600, 800, m_ActiveProject->GetConfig( ).project_name.c_str() );
     m_GLContext  = m_MainWindow->GetGLContext( );
 
     m_UserInput = new UserInput( m_MainWindow->GetWindowHandle( ) );
@@ -99,8 +107,6 @@ Engine::Engine( )
      * Engine
      *
      * */
-    m_ActiveProject = new Project;
-
     g_Engine = this;
 
 #ifndef HOT_RELOAD
@@ -109,7 +115,6 @@ Engine::Engine( )
     m_MainWindow->SetRootConcept( m_RootConcept );
     glfwSetWindowSizeCallback( m_MainWindow->GetWindowHandle( ), OnWindowResize );
     SetMainWindowViewPortDimensions( m_MainWindow->GetDimensions( ) );
-    LoadProject( GAME_CONFIG_PATH );
 
 #endif
 }
@@ -120,9 +125,6 @@ Engine::~Engine( )
 
     delete m_RootConcept;
     m_RootConcept = nullptr;
-
-    delete m_ActiveProject;
-    m_ActiveProject = nullptr;
 
     delete m_MainWindowPool;
     m_MainWindowPool = nullptr;
@@ -140,6 +142,9 @@ Engine::~Engine( )
 
     delete m_MainWindow;
     m_MainWindow = nullptr;
+
+    delete m_ActiveProject;
+    m_ActiveProject = nullptr;
 
     delete m_AudioEngine;
     m_AudioEngine = nullptr;

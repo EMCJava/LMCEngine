@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 ## ---------- Project setting ----------
 set(GAME_CONFIG_PATH ADanceOfFireAndIce.lmce)
+add_compile_definitions("GAME_CONFIG_PATH=\"${GAME_CONFIG_PATH}\"")
 set(ROOT_CONCEPT_CLASS GameManager)
 set(ROOT_CONCEPT_PATH ${CMAKE_SOURCE_DIR}/Source/GameManager/Public/GameManager.hpp)
 set(ROOT_CONCEPT_LIB GameManager.GameManager.lib)
