@@ -9,6 +9,8 @@
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 
+#include <sstream>
+
 #include <spdlog/spdlog.h>
 
 #include <glm/gtc/matrix_transform.hpp>

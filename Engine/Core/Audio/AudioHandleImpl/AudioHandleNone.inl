@@ -14,7 +14,7 @@ AudioHandle::operator=( AudioHandle&& ) noexcept
 }
 
 int64_t
-AudioHandle::GetCurrentAudioOffset( )
+AudioHandle::GetNativeCurrentAudioOffset( )
 {
     return 0;
 }
