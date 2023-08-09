@@ -163,8 +163,18 @@ if (NOT ${no_irrklang})
 
     target_compile_definitions(audio.base.lib INTERFACE USE_IRRKLANG)
 
-    message("Using irrklang")
-
 else ()
     target_compile_definitions(audio.base.lib INTERFACE NO_AUDIO_ENGINE)
 endif ()
+
+## -------------- OpenAL --------------
+FetchContent_Declare(
+        openal
+        GIT_REPOSITORY https://github.com/kcat/openal-soft.git
+        GIT_TAG v1.19
+)
+
+set(ALSOFT_NO_CONFIG_UTIL ON CACHE BOOL "Disable building the alsoft-config utility" FORCE)
+set(LIBTYPE "STATIC" CACHE STRING "" FORCE)
+
+FetchContent_MakeAvailable(openal)
