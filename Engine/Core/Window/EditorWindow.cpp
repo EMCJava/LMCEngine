@@ -20,6 +20,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_internal.h"
 #include <imgui.h>
+#include <imgui_memory_editor/imgui_memory_editor.h>
 
 // https://github.com/ocornut/imgui/issues/1496
 namespace
@@ -341,11 +342,13 @@ EditorWindow::UpdateImGui( )
         if ( m_ConceptInspectionCache.m_SelectedConcept != nullptr )
         {
             const auto* Name = m_ConceptInspectionCache.m_SelectedConcept->GetName( );
-            
+
             ::BeginGroupPanel( Name, ImVec2 { -1, 0 } );
 
-            static float data[ 3 ] { 0 };
-            ImGui::InputFloat3( "Coordinate", data );
+            static MemoryEditor mem_edit;
+            mem_edit.DrawContents( m_ConceptInspectionCache.m_SelectedConcept,
+                                   m_ConceptInspectionCache.m_SelectedConcept->GetSizeofV( ),
+                                   (size_t) m_ConceptInspectionCache.m_SelectedConcept );
 
             ImGui::Spacing( );
 

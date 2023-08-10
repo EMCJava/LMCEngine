@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "ConceptCoreRuntime.hpp"
+
 #include <Engine/Core/Algorithm/StringAlgorithm.hpp>
 #include <Engine/Core/Core.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
@@ -102,6 +104,11 @@ public:                                                            \
         return class_name::TypeID;                                 \
     }                                                              \
                                                                    \
+    virtual size_t GetSizeofV( )                                   \
+    {                                                              \
+        return sizeof( class_name );                               \
+    }                                                              \
+                                                                   \
 private:
 
 /*
@@ -160,6 +167,11 @@ public:                                                                         
     virtual decltype( TypeID ) GetTypeIDV( ) override                                                                                                  \
     {                                                                                                                                                  \
         return class_name::TypeID;                                                                                                                     \
+    }                                                                                                                                                  \
+                                                                                                                                                       \
+    virtual size_t GetSizeofV( ) override                                                                                                              \
+    {                                                                                                                                                  \
+        return sizeof( class_name );                                                                                                                   \
     }                                                                                                                                                  \
                                                                                                                                                        \
 private:

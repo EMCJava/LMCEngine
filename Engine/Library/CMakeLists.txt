@@ -168,3 +168,20 @@ if (NOT ${no_irrklang})
 else ()
     target_compile_definitions(audio.base.lib INTERFACE NO_AUDIO_ENGINE)
 endif ()
+
+## -------------- imgui_memory_editor --------------
+FetchContent_Declare(
+        imgui_club
+        GIT_REPOSITORY https://github.com/ocornut/imgui_club.git
+        GIT_TAG main
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+)
+
+FetchContent_GetProperties(imgui_club)
+if (NOT imgui_club_POPULATED)
+    FetchContent_Populate(imgui_club)
+endif ()
+
+add_library(imgui_club INTERFACE)
+target_include_directories(imgui_club INTERFACE ${imgui_club_SOURCE_DIR})
