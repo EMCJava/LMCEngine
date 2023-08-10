@@ -175,6 +175,16 @@ FetchContent_Declare(
 )
 
 set(ALSOFT_NO_CONFIG_UTIL ON CACHE BOOL "Disable building the alsoft-config utility" FORCE)
+set(ALSOFT_EXAMPLES OFF CACHE BOOL "Disable build and install example programs" FORCE)
+set(ALSOFT_TESTS OFF CACHE BOOL "Disable build and install test programs" FORCE)
+
+add_compile_definitions(AL_LIBTYPE_STATIC)
 set(LIBTYPE "STATIC" CACHE STRING "" FORCE)
 
 FetchContent_MakeAvailable(openal)
+
+get_cmake_property(_variableNames VARIABLES)
+list (SORT _variableNames)
+foreach (_variableName ${_variableNames})
+    message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()

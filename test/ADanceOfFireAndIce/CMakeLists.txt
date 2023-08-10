@@ -52,4 +52,4 @@ endif ()
 target_link_libraries(ADanceOfFireAndIce ${ROOT_CONCEPT_LIB})
 target_link_libraries(ADanceOfFireAndIce Engine.lib)
 
-target_link_libraries(ADanceOfFireAndIce OpenAL)
+target_link_libraries(ADanceOfFireAndIce OpenAL::OpenAL)
