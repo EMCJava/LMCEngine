@@ -290,8 +290,6 @@ EditorWindow::RenderConceptHierarchy( PureConcept* Con )
                 auto& ConceptsCache = m_ConceptInspectionCache.m_ConceptTree[ Con->GetHash( ) ];
                 ( (Concept*) Con )->GetConcepts( ConceptsCache );
 
-                ImGui::Unindent( ImGui::GetTreeNodeToLabelSpacing( ) );
-
                 ConceptsCache.ForEachIndex( [ this ]( auto Index, PureConcept* Con ) {
                     ImGui::PushID( Con );
 
@@ -303,8 +301,6 @@ EditorWindow::RenderConceptHierarchy( PureConcept* Con )
 
                     ImGui::PopID( );
                 } );
-
-                ImGui::Indent( ImGui::GetTreeNodeToLabelSpacing( ) );
 
                 ImGui::TreePop( );
             }
