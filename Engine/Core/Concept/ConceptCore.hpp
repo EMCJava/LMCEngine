@@ -50,6 +50,11 @@ public:                                                            \
 public:                                                            \
     virtual ~class_name( );                                        \
                                                                    \
+    virtual const char* GetName( )                                 \
+    {                                                              \
+        return #class_name;                                        \
+    }                                                              \
+                                                                   \
     template <typename ConceptType>                                \
     static consteval bool                                          \
     CanCastS( )                                                    \
@@ -99,6 +104,11 @@ public:                                                                         
                                                                                                                                                        \
 public:                                                                                                                                                \
     virtual ~class_name( );                                                                                                                            \
+                                                                                                                                                       \
+    virtual const char* GetName( ) override                                                                                                            \
+    {                                                                                                                                                  \
+        return #class_name;                                                                                                                            \
+    }                                                                                                                                                  \
                                                                                                                                                        \
     template <typename ConceptType>                                                                                                                    \
     static consteval bool                                                                                                                              \
@@ -282,7 +292,7 @@ struct IDCollisionsChecker {
     inline static std::set<uint64_t> id_set;
     explicit IDCollisionsChecker( uint64_t id )
     {
-        REQUIRED( id_set.count( id ) == 0 && "ID already in exist" );
+        REQUIRED( !id_set.contains( id ), assert( false && "ID already in exist" ) );
         id_set.insert( id );
     }
 };

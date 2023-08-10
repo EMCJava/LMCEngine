@@ -50,6 +50,13 @@ public:
 private:
     /*
      *
+     * Concept for Hierarchy showing
+     *
+     * */
+    ConceptSetFetchCache<Concept> m_Concepts { };
+
+    /*
+     *
      * Main viewport setup
      *
      * */

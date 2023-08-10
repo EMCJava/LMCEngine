@@ -15,6 +15,9 @@ public:
     void
     ForEach( auto&& F );
 
+    void
+    ForEachIndex( auto&& F );
+
     bool
     NotEmpty( );
 
@@ -38,6 +41,17 @@ ConceptSetFetchCache<Ty>::ForEach( auto&& F )
         F( C );
     }
 }
+
+template <typename Ty>
+void
+ConceptSetFetchCache<Ty>::ForEachIndex( auto&& F )
+{
+    for ( size_t i = 0; i < m_CachedConcepts.size( ); ++i )
+    {
+        F( i, m_CachedConcepts[ i ] );
+    }
+}
+
 
 template <typename Ty>
 bool

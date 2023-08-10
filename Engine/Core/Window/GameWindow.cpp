@@ -19,12 +19,9 @@ GameWindow::Update( )
     {
         MakeContextCurrent( );
 
-#ifdef HOT_RELOAD
-        auto& RootConcept = *m_RootConcept;
-#else
-        auto* RootConcept = m_RootConcept;
-#endif
-        m_ConceptRenderables.Clear();
+        auto* RootConcept = GetConceptPtr( );
+
+        m_ConceptRenderables.Clear( );
         RootConcept->GetConcepts<ConceptRenderable>( m_ConceptRenderables );
 
         if ( m_ConceptRenderables.NotEmpty( ) )
@@ -63,4 +60,16 @@ GameWindow::SetRootConcept( class RootConceptTy* RootConcept )
 {
     m_RootConcept = RootConcept;
     m_ConceptRenderables.Clear( );
+}
+
+class Concept*
+GameWindow::GetConceptPtr( )
+{
+    if ( m_RootConcept == nullptr ) return nullptr;
+
+#ifdef HOT_RELOAD
+    return m_RootConcept->As<Concept>( );
+#else
+    return m_RootConcept;
+#endif
 }
