@@ -1575,7 +1575,7 @@ void
 GameManager::SetupCamera( )
 {
     m_Camera = AddConcept<PureConceptCamera>( );
-    m_Camera->SetScale( 1 / 4.0F );
+    m_Camera->SetScale( 1 / 2.5F );
     m_Camera->UpdateProjectionMatrix( );
 }
 
