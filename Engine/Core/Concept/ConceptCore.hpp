@@ -11,6 +11,16 @@
 #include <cstdint>
 #include <set>
 
+template <typename Ty>
+struct IDCollisionsChecker {
+    static inline std::set<uint64_t> __attribute__( ( init_priority( 101 ) ) ) id_set { };
+    explicit IDCollisionsChecker( uint64_t id )
+    {
+        REQUIRED( !id_set.contains( id ), assert( false && "ID already in exist" ) );
+        id_set.insert( id );
+    }
+};
+
 /*
  *
  * For special ConstexprContainer
@@ -29,11 +39,9 @@ struct ConceptValueWrapper {
 };
 
 #if !defined( NDEBUG ) && defined( LMC_API_EXPORTS )
-#    define DEC_CHECK_ID               static const IDCollisionsChecker<class Concept> __IDCollisionsChecker;
-#    define DEF_CHECK_ID( class_name ) const IDCollisionsChecker<class Concept> class_name::__IDCollisionsChecker { class_name::TypeID };
+#    define DEC_CHECK_ID( class_name ) inline static const IDCollisionsChecker<class Concept> __IDCollisionsChecker { class_name::TypeID };
 #else
-#    define DEC_CHECK_ID
-#    define DEF_CHECK_ID( class_name )
+#    define DEC_CHECK_ID( class_name )
 #endif
 
 /*
@@ -45,7 +53,7 @@ struct ConceptValueWrapper {
 public:                                                            \
     static constexpr uint64_t TypeID = HashString( #class_name );  \
     using ParentSet                  = ConstexprContainer<TypeID>; \
-    DEC_CHECK_ID                                                   \
+    DEC_CHECK_ID( class_name )                                     \
                                                                    \
 public:                                                            \
     virtual ~class_name( );                                        \
@@ -89,6 +97,11 @@ public:                                                            \
                                                                    \
     virtual bool CanCastV( decltype( TypeID ) ConceptID );         \
                                                                    \
+    virtual decltype( TypeID ) GetTypeIDV( )                       \
+    {                                                              \
+        return class_name::TypeID;                                 \
+    }                                                              \
+                                                                   \
 private:
 
 /*
@@ -100,7 +113,7 @@ private:
 public:                                                                                                                                                \
     static constexpr uint64_t TypeID = HashString( #class_name );                                                                                      \
     using ParentSet                  = CombineContainersWrapExcludeFirst<ConceptValueWrapper, ConceptParentSetWrapper, class_name, __VA_ARGS__>::type; \
-    DEC_CHECK_ID                                                                                                                                       \
+    DEC_CHECK_ID( class_name )                                                                                                                         \
                                                                                                                                                        \
 public:                                                                                                                                                \
     virtual ~class_name( );                                                                                                                            \
@@ -143,6 +156,11 @@ public:                                                                         
     }                                                                                                                                                  \
                                                                                                                                                        \
     virtual bool CanCastV( decltype( TypeID ) ConceptID ) override;                                                                                    \
+                                                                                                                                                       \
+    virtual decltype( TypeID ) GetTypeIDV( ) override                                                                                                  \
+    {                                                                                                                                                  \
+        return class_name::TypeID;                                                                                                                     \
+    }                                                                                                                                                  \
                                                                                                                                                        \
 private:
 
@@ -214,8 +232,6 @@ private:
  *
  * */
 #define DEFINE_CONCEPT( class_name, ... )                                        \
-    DEF_CHECK_ID( class_name )                                                   \
-                                                                                 \
     bool                                                                         \
     class_name::CanCastV( uint64_t ConceptID )                                   \
     {                                                                            \
@@ -228,7 +244,6 @@ private:
  *                                                                               \
  * */
 #define DEFINE_CONCEPT_DS( class_name, ... )    \
-    DEF_CHECK_ID( class_name )                  \
                                                 \
     class_name::~class_name( ) = default;       \
                                                 \
@@ -286,13 +301,3 @@ private:
     {                                                      \
         Engine::SetEngine( EngineContext );                \
     }
-
-template <typename Ty>
-struct IDCollisionsChecker {
-    inline static std::set<uint64_t> id_set;
-    explicit IDCollisionsChecker( uint64_t id )
-    {
-        REQUIRED( !id_set.contains( id ), assert( false && "ID already in exist" ) );
-        id_set.insert( id );
-    }
-};
