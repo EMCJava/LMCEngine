@@ -7,3 +7,9 @@
 #include <random>
 
 DEFINE_CONCEPT_DS( Concept, PureConcept )
+
+bool
+Concept::HasSubConcept( )
+{
+    return !m_SubConcepts.empty( );
+}

@@ -9,8 +9,42 @@
 
 #include "Window.hpp"
 
+#include <map>
+
 class EditorWindow : public GameWindow
 {
+    struct ConceptInspectionCache {
+        /*
+         *
+         * Concept for Hierarchy showing
+         *
+         * */
+        std::map<uint64_t, ConceptSetFetchCache<PureConcept>> m_ConceptTree { };
+
+        /*
+         *
+         * Concept for Hierarchy showing
+         *
+         * */
+        PureConcept* m_SelectedConcept { };
+
+        /*
+         *
+         * A mask for ImGui selection
+         *
+         * */
+        std::set<PureConcept*> SelectedConceptMask { };
+    };
+
+
+    /*
+     *
+     * Return true if node is selected
+     *
+     * */
+    bool
+    RenderConceptHierarchy( PureConcept* Con );
+
 public:
     /*
      *
@@ -48,12 +82,7 @@ public:
     SetPreviousFrameTexture( uint32_t TextureID );
 
 private:
-    /*
-     *
-     * Concept for Hierarchy showing
-     *
-     * */
-    ConceptSetFetchCache<Concept> m_Concepts { };
+    ConceptInspectionCache m_ConceptInspectionCache;
 
     /*
      *

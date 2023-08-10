@@ -38,7 +38,7 @@ public:
     SetSeed( const std::array<int32_t, 4>& Seed );
 
     constexpr uint64_t
-    SeekUint64( );
+    SeekUint64( ) const noexcept;
 
     /*
      *

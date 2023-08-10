@@ -22,35 +22,38 @@ GameWindow::Update( )
         auto* RootConcept = GetConceptPtr( );
 
         m_ConceptRenderables.Clear( );
-        RootConcept->GetConcepts<ConceptRenderable>( m_ConceptRenderables );
-
-        if ( m_ConceptRenderables.NotEmpty( ) )
+        if ( RootConcept->CanCastV( Concept::TypeID ) )
         {
-            const auto MainWindowViewPortDimensions = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
+            ( (Concept*) RootConcept )->GetConcepts<ConceptRenderable>( m_ConceptRenderables );
 
-            // we rescale the framebuffer to the actual window size here and reset the glViewport
-            if ( MainWindowViewPortDimensions != m_MainViewPortDimension )
+            if ( m_ConceptRenderables.NotEmpty( ) )
             {
-                m_MainViewPortDimension = MainWindowViewPortDimensions;
+                const auto MainWindowViewPortDimensions = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
 
-                RootConcept->GetConcepts<PureConceptCamera>( m_ConceptCameras );
-                m_ConceptCameras.ForEach( [ this ]( PureConceptCamera* item ) {
-                    item->SetDimensions( m_MainViewPortDimension.first, m_MainViewPortDimension.second );
+                // we rescale the framebuffer to the actual window size here and reset the glViewport
+                if ( MainWindowViewPortDimensions != m_MainViewPortDimension )
+                {
+                    m_MainViewPortDimension = MainWindowViewPortDimensions;
+
+                    ( (Concept*) RootConcept )->GetConcepts<PureConceptCamera>( m_ConceptCameras );
+                    m_ConceptCameras.ForEach( [ this ]( PureConceptCamera* item ) {
+                        item->SetDimensions( m_MainViewPortDimension.first, m_MainViewPortDimension.second );
+                    } );
+                }
+
+                /*
+                 *
+                 * Render every registered ConceptRenderable
+                 *
+                 * */
+                m_GLContext->Viewport( 0, 0, m_MainViewPortDimension.first, m_MainViewPortDimension.second );
+                m_GLContext->ClearColor( 0.85f, 0.83f, 0.84f, 1.0f );
+                m_GLContext->Clear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+                m_ConceptRenderables.ForEach( []( ConceptRenderable* item ) {
+                    item->Render( );
                 } );
             }
-
-            /*
-             *
-             * Render every registered ConceptRenderable
-             *
-             * */
-            m_GLContext->Viewport( 0, 0, m_MainViewPortDimension.first, m_MainViewPortDimension.second );
-            m_GLContext->ClearColor( 0.85f, 0.83f, 0.84f, 1.0f );
-            m_GLContext->Clear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-            m_ConceptRenderables.ForEach( []( ConceptRenderable* item ) {
-                item->Render( );
-            } );
         }
     }
 }
@@ -62,13 +65,13 @@ GameWindow::SetRootConcept( class RootConceptTy* RootConcept )
     m_ConceptRenderables.Clear( );
 }
 
-class Concept*
+class PureConcept*
 GameWindow::GetConceptPtr( )
 {
     if ( m_RootConcept == nullptr ) return nullptr;
 
 #ifdef HOT_RELOAD
-    return m_RootConcept->As<Concept>( );
+    return m_RootConcept->As<PureConcept>( );
 #else
     return m_RootConcept;
 #endif

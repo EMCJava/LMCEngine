@@ -8,8 +8,6 @@
 #include "PureConcept.hpp"
 #include "ConceptSetFetchCache.hpp"
 
-#include <Engine/Core/Math/Random/FastRandom.hpp>
-
 #include <memory>
 #include <vector>
 
@@ -52,18 +50,19 @@ public:
     void
     GetConcepts( ConceptSetFetchCache<ConceptType>& Out );
 
-private:
-    std::vector<std::unique_ptr<PureConcept>> m_SubConcepts;
-    FastRandom                                m_SubConceptsStateHash { FastRandom::FromUint64( SubConceptsStateHashInit.NextUint64( ) ) };
+    bool
+    HasSubConcept( );
 
-    inline static FastRandom SubConceptsStateHashInit { FastRandom::FromRand( ) };
+private:
+
+    std::vector<std::unique_ptr<PureConcept>> m_SubConcepts;
 };
 
 template <class ConceptType, typename... Args>
 ConceptType*
 Concept::AddConcept( Args&&... params )
 {
-    m_SubConceptsStateHash.NextUint64( );
+    m_ConceptsStateHash.NextUint64( );
     return (ConceptType*) ( m_SubConcepts.emplace_back( std::make_unique<ConceptType>( std::forward<Args>( params )... ) ).get( ) );
 }
 
@@ -91,7 +90,7 @@ Concept::RemoveConcept( )
         if ( m_SubConcepts[ i ]->CanCastV( ConceptType::TypeID ) )
         {
             m_SubConcepts.erase( m_SubConcepts.begin( ) + i );
-            m_SubConceptsStateHash.NextUint64( );
+            m_ConceptsStateHash.NextUint64( );
             return true;
         }
     }
@@ -124,7 +123,7 @@ Concept::RemoveConcepts( )
 
     if ( RemovedCount > 0 ) [[likely]]
     {
-        m_SubConceptsStateHash.NextUint64( );
+        m_ConceptsStateHash.NextUint64( );
     }
 
     return RemovedCount;
@@ -134,7 +133,7 @@ template <class ConceptType>
 void
 Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out )
 {
-    const auto StateHash = m_SubConceptsStateHash.SeekUint64( );
+    const auto StateHash = m_ConceptsStateHash.SeekUint64( );
     if ( Out.m_CacheHash == StateHash )
     {
         // Concept set not changed

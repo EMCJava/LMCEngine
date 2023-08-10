@@ -2,8 +2,6 @@
 // Created by loyus on 7/16/2023.
 //
 
-#include "FastRandom.hpp"
-
 #include <random>
 
 constexpr int
@@ -59,7 +57,7 @@ FastRandom::SetSeed( const std::array<int32_t, 4>& Seed )
 }
 
 constexpr uint64_t
-FastRandom::SeekUint64( )
+FastRandom::SeekUint64( ) const noexcept
 {
     const uint64_t s0 = m_Seed.SeedArray[ 0 ];
     uint64_t       s1 = m_Seed.SeedArray[ 1 ];

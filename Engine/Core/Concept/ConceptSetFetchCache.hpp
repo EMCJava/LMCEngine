@@ -24,6 +24,9 @@ public:
     void
     Clear( );
 
+    uint64_t
+    GetHash( ) const noexcept;
+
 private:
     uint64_t m_CacheHash { };
 
@@ -31,6 +34,13 @@ private:
 
     friend class Concept;
 };
+
+template <typename Ty>
+uint64_t
+ConceptSetFetchCache<Ty>::GetHash( ) const noexcept
+{
+    return m_CacheHash;
+}
 
 template <typename Ty>
 void

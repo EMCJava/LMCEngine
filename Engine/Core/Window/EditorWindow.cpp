@@ -187,95 +187,10 @@ EditorWindow::UpdateImGui( )
         ImGui::Begin( "Hierarchy" );
 
         auto* RootConcept = GetConceptPtr( );
-        if ( RootConcept != nullptr )
+        if ( RenderConceptHierarchy( RootConcept ) )
         {
-            RootConcept->GetConcepts( m_Concepts );
-
-            static ImGuiTreeNodeFlags base_flags         = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
-            static bool               test_drag_and_drop = false;
-            ImGui::Checkbox( "Test tree node as drag source", &test_drag_and_drop );
-            ImGui::Text( "Hello!" );
-            ImGui::Unindent( ImGui::GetTreeNodeToLabelSpacing( ) );
-
-            // 'selection_mask' is dumb representation of what may be user-side selection state.
-            //  You may retain selection state inside or outside your objects in whatever format you see fit.
-            // 'node_clicked' is temporary storage of what node we have clicked to process selection at the end
-            /// of the loop. May be a pointer to your own node type, etc.
-            static int selection_mask = 0;
-            int        node_clicked   = -1;
-
-            m_Concepts.ForEachIndex( [ &node_clicked ]( auto Index, auto* Con ) {
-                // Disable the default "open on single-click behavior" + set Selected flag according to our selection.
-                // To alter selection we use IsItemClicked() && !IsItemToggledOpen(), so clicking on an arrow doesn't alter selection.
-
-                ImGuiTreeNodeFlags node_flags  = base_flags;
-                const bool         is_selected = ( selection_mask & ( 1 << Index ) ) != 0;
-                if ( is_selected )
-                    node_flags |= ImGuiTreeNodeFlags_Selected;
-
-                // Items 3..5 are Tree Leaves
-                // The only reason we use TreeNode at all is to allow selection of the leaf. Otherwise we can
-                // use BulletText() or advance the cursor by GetTreeNodeToLabelSpacing() and call Text().
-                node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;   // ImGuiTreeNodeFlags_Bullet
-                ImGui::TreeNodeEx( (void*) (intptr_t) Index, node_flags, "%s", Con->GetName() );
-                if ( ImGui::IsItemClicked( ) && !ImGui::IsItemToggledOpen( ) )
-                    node_clicked = Index;
-            } );
-
-            //            for ( int i = 0; i < 6; i++ )
-            //            {
-            //                // Disable the default "open on single-click behavior" + set Selected flag according to our selection.
-            //                // To alter selection we use IsItemClicked() && !IsItemToggledOpen(), so clicking on an arrow doesn't alter selection.
-            //                ImGuiTreeNodeFlags node_flags  = base_flags;
-            //                const bool         is_selected = ( selection_mask & ( 1 << i ) ) != 0;
-            //                if ( is_selected )
-            //                    node_flags |= ImGuiTreeNodeFlags_Selected;
-            //                if ( i < 3 )
-            //                {
-            //                    // Items 0..2 are Tree Node
-            //                    bool node_open = ImGui::TreeNodeEx( (void*) (intptr_t) i, node_flags, "Selectable Node %d", i );
-            //                    if ( ImGui::IsItemClicked( ) && !ImGui::IsItemToggledOpen( ) )
-            //                        node_clicked = i;
-            //                    if ( test_drag_and_drop && ImGui::BeginDragDropSource( ) )
-            //                    {
-            //                        ImGui::SetDragDropPayload( "_TREENODE", NULL, 0 );
-            //                        ImGui::Text( "This is a drag and drop source" );
-            //                        ImGui::EndDragDropSource( );
-            //                    }
-            //                    if ( node_open )
-            //                    {
-            //                        ImGui::BulletText( "Blah blah\nBlah Blah" );
-            //                        ImGui::TreePop( );
-            //                    }
-            //                } else
-            //                {
-            //                    // Items 3..5 are Tree Leaves
-            //                    // The only reason we use TreeNode at all is to allow selection of the leaf. Otherwise we can
-            //                    // use BulletText() or advance the cursor by GetTreeNodeToLabelSpacing() and call Text().
-            //                    node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;   // ImGuiTreeNodeFlags_Bullet
-            //                    ImGui::TreeNodeEx( (void*) (intptr_t) i, node_flags, "Selectable Leaf %d", i );
-            //                    if ( ImGui::IsItemClicked( ) && !ImGui::IsItemToggledOpen( ) )
-            //                        node_clicked = i;
-            //                    if ( test_drag_and_drop && ImGui::BeginDragDropSource( ) )
-            //                    {
-            //                        ImGui::SetDragDropPayload( "_TREENODE", NULL, 0 );
-            //                        ImGui::Text( "This is a drag and drop source" );
-            //                        ImGui::EndDragDropSource( );
-            //                    }
-            //                }
-            //            }
-
-            if ( node_clicked != -1 )
-            {
-                // Update selection state
-                // (process outside of tree loop to avoid visual inconsistencies during the clicking frame)
-                if ( ImGui::GetIO( ).KeyCtrl )
-                    selection_mask ^= ( 1 << node_clicked );   // CTRL+click to toggle
-                else                                           // if (!(selection_mask & (1 << node_clicked))) // Depending on selection behavior you want, may want to preserve selection when clicking on item that is part of the selection
-                    selection_mask = ( 1 << node_clicked );    // Click to single-select
-            }
-
-            ImGui::Indent( ImGui::GetTreeNodeToLabelSpacing( ) );
+            m_ConceptInspectionCache.SelectedConceptMask.clear( );
+            m_ConceptInspectionCache.SelectedConceptMask.emplace( RootConcept );
         }
 
         ImGui::End( );
@@ -291,6 +206,11 @@ EditorWindow::UpdateImGui( )
 
     {
         ImGui::Begin( "Details" );
+
+        if ( m_ConceptInspectionCache.m_SelectedConcept != nullptr )
+        {
+            ImGui::Text( "Concept type - %s -", m_ConceptInspectionCache.m_SelectedConcept->GetName( ) );
+        }
 
         ImGui::End( );
     }
@@ -316,4 +236,88 @@ EditorWindow::UpdateImGui( )
 
         ImGui::End( );
     }
+}
+
+bool
+EditorWindow::RenderConceptHierarchy( PureConcept* Con )
+{
+    bool IsSelected = false;
+
+    static const auto DragAndDropOperation = []( PureConcept* Con ) {
+        /*
+         *
+         * Drag and drop operations
+         *
+         * */
+        if ( ImGui::BeginDragDropSource( ) )
+        {
+            ImGui::SetDragDropPayload( "ConceptDAD", &Con, sizeof( PureConcept* ) );
+            ImGui::Text( "Moves as sub-concept" );
+            ImGui::EndDragDropSource( );
+        }
+
+        if ( ImGui::BeginDragDropTarget( ) )
+        {
+            if ( const ImGuiPayload* Payload = ImGui::AcceptDragDropPayload( "ConceptDAD" ) )
+            {
+                PureConcept* PayloadConcept = *( (PureConcept**) Payload->Data );
+                spdlog::info( "Drag concept from {} to {}", PayloadConcept->GetName( ), Con->GetName( ) );
+            }
+            ImGui::EndDragDropTarget( );
+        }
+    };
+
+    if ( Con != nullptr )
+    {
+        ImGuiTreeNodeFlags BaseFlag    = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+        const bool         is_selected = m_ConceptInspectionCache.SelectedConceptMask.contains( Con );
+        if ( is_selected )
+        {
+            BaseFlag |= ImGuiTreeNodeFlags_Selected;
+            m_ConceptInspectionCache.m_SelectedConcept = Con;
+        }
+
+        if ( Con->CanCastV( Concept::TypeID ) && ( (Concept*) Con )->HasSubConcept( ) )
+        {
+            // Has sub node
+            bool node_open = ImGui::TreeNodeEx( Con, BaseFlag, "%s", Con->GetName( ) );
+            IsSelected     = ImGui::IsItemClicked( ) && !ImGui::IsItemToggledOpen( );
+
+            DragAndDropOperation( Con );
+
+            if ( node_open )
+            {
+                auto& ConceptsCache = m_ConceptInspectionCache.m_ConceptTree[ Con->GetHash( ) ];
+                ( (Concept*) Con )->GetConcepts( ConceptsCache );
+
+                ImGui::Unindent( ImGui::GetTreeNodeToLabelSpacing( ) );
+
+                ConceptsCache.ForEachIndex( [ this ]( auto Index, PureConcept* Con ) {
+                    ImGui::PushID( Con );
+
+                    if ( RenderConceptHierarchy( Con ) )
+                    {
+                        m_ConceptInspectionCache.SelectedConceptMask.clear( );
+                        m_ConceptInspectionCache.SelectedConceptMask.emplace( Con );
+                    }
+
+                    ImGui::PopID( );
+                } );
+
+                ImGui::Indent( ImGui::GetTreeNodeToLabelSpacing( ) );
+
+                ImGui::TreePop( );
+            }
+        } else
+        {
+            // No sub node
+            BaseFlag |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+            ImGui::TreeNodeEx( Con, BaseFlag, "%s", Con->GetName( ) );
+            IsSelected = ImGui::IsItemClicked( ) && !ImGui::IsItemToggledOpen( );
+
+            DragAndDropOperation( Con );
+        }
+    }
+
+    return IsSelected;
 }

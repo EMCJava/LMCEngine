@@ -31,7 +31,8 @@ protected:
 
     class RootConceptTy* m_RootConcept = nullptr;
 
-    class Concept* GetConceptPtr( );
+    class PureConcept*
+    GetConceptPtr( );
 
     ConceptSetFetchCache<ConceptRenderable> m_ConceptRenderables { };
     ConceptSetFetchCache<PureConceptCamera> m_ConceptCameras { };
