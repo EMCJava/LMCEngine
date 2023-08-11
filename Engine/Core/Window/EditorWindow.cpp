@@ -19,6 +19,7 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_internal.h"
+#include "Engine/Core/Graphic/Sprites/Sprite.hpp"
 #include <imgui.h>
 #include <imgui_memory_editor/imgui_memory_editor.h>
 
@@ -151,6 +152,21 @@ EndGroupPanel( )
     ImGui::EndGroup( );
 }
 }   // namespace
+
+void
+ToImGuiWidget( const char* Name, uint32_t* Value )
+{
+    ImGui::InputScalar( Name, ImGuiDataType_S32, Value );
+}
+
+void
+ToImGuiWidget( const char* Name, std::shared_ptr<Shader>* Value )
+{
+    auto PtrAddress = reinterpret_cast<uint64_t>( Value->get( ) );
+    ImGui::BeginDisabled( );
+    ImGui::InputScalar( Name, ImGuiDataType_U64, &PtrAddress, nullptr, nullptr, "%p", ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal );
+    ImGui::EndDisabled( );
+}
 
 void
 EditorWindow::Update( )
@@ -339,20 +355,35 @@ EditorWindow::UpdateImGui( )
     {
         ImGui::Begin( "Details" );
 
-        if ( m_ConceptInspectionCache.m_SelectedConcept != nullptr )
+        if ( m_ConceptInspectionCache.SelectedConcept != nullptr )
         {
-            const auto* Name = m_ConceptInspectionCache.m_SelectedConcept->GetName( );
+            const auto* Name = m_ConceptInspectionCache.SelectedConcept->GetName( );
 
-            ::BeginGroupPanel( Name, ImVec2 { -1, 0 } );
+            if ( ImGui::BeginTabBar( Name ) )
+            {
+                if ( ImGui::BeginTabItem( Name ) )
+                {
+                    if ( m_ConceptInspectionCache.SelectedConcept->CanCastV( Sprite::TypeID ) )
+                    {
+                        ::BeginGroupPanel( "Sprite", ImVec2 { -1, 0 } );
 
-            static MemoryEditor mem_edit;
-            mem_edit.DrawContents( m_ConceptInspectionCache.m_SelectedConcept,
-                                   m_ConceptInspectionCache.m_SelectedConcept->GetSizeofV( ),
-                                   (size_t) m_ConceptInspectionCache.m_SelectedConcept );
+                        ToImGuiWidget( "Sprite", (Sprite*) m_ConceptInspectionCache.SelectedConcept );
 
-            ImGui::Spacing( );
+                        ImGui::Spacing( );
+                        ::EndGroupPanel( );
+                    }
 
-            ::EndGroupPanel( );
+                    ImGui::EndTabItem( );
+                }
+
+                if ( ImGui::BeginTabItem( "Memory" ) )
+                {
+                    ConceptMemoryViewGroup( "Memory View", m_ConceptInspectionCache.SelectedConcept );
+                    ImGui::EndTabItem( );
+                }
+
+                ImGui::EndTabBar( );
+            }
         }
 
         ImGui::End( );
@@ -417,7 +448,7 @@ EditorWindow::RenderConceptHierarchy( PureConcept* Con )
         if ( is_selected )
         {
             BaseFlag |= ImGuiTreeNodeFlags_Selected;
-            m_ConceptInspectionCache.m_SelectedConcept = Con;
+            m_ConceptInspectionCache.SelectedConcept = Con;
         }
 
         if ( Con->CanCastV( Concept::TypeID ) && ( (Concept*) Con )->HasSubConcept( ) )
@@ -430,7 +461,7 @@ EditorWindow::RenderConceptHierarchy( PureConcept* Con )
 
             if ( node_open )
             {
-                auto& ConceptsCache = m_ConceptInspectionCache.m_ConceptTree[ Con->GetHash( ) ];
+                auto& ConceptsCache = m_ConceptInspectionCache.ConceptTree[ Con->GetHash( ) ];
                 ( (Concept*) Con )->GetConcepts( ConceptsCache );
 
                 ConceptsCache.ForEachIndex( [ this ]( auto Index, PureConcept* Con ) {
@@ -459,4 +490,27 @@ EditorWindow::RenderConceptHierarchy( PureConcept* Con )
     }
 
     return IsSelected;
+}
+
+void
+EditorWindow::ConceptMemoryViewGroup( const char* Name, PureConcept* Con )
+{
+    ::BeginGroupPanel( Name, ImVec2 { -1, 0 } );
+
+    static MemoryEditor mem_edit;
+    mem_edit.DrawContents( Con,
+                           Con->GetSizeofV( ),
+                           (size_t) Con );
+
+    ImGui::Spacing( );
+
+    ::EndGroupPanel( );
+}
+
+void
+EditorWindow::SetRootConcept( DynamicConcept* RootConcept )
+{
+    GameWindow::SetRootConcept( RootConcept );
+
+    m_ConceptInspectionCache = { };
 }

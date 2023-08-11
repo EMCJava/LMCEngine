@@ -39,4 +39,8 @@ public:
 protected:
     std::shared_ptr<Shader> m_Shader;
     uint32_t                m_VAO { }, m_VBO { }, m_EBO { };
+
+    ENABLE_IMGUI( Sprite, m_VAO, m_VBO, m_EBO, m_Shader )
 };
+
+DEFINE_SIMPLE_IMGUI_TYPE( Sprite, m_VAO, m_VBO, m_EBO, m_Shader )

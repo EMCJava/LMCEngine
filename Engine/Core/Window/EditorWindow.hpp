@@ -19,14 +19,14 @@ class EditorWindow : public GameWindow
          * Concept for Hierarchy showing
          *
          * */
-        std::map<uint64_t, ConceptSetFetchCache<PureConcept>> m_ConceptTree { };
+        std::map<uint64_t, ConceptSetFetchCache<PureConcept>> ConceptTree { };
 
         /*
          *
          * Concept for Hierarchy showing
          *
          * */
-        PureConcept* m_SelectedConcept { };
+        PureConcept* SelectedConcept { };
 
         /*
          *
@@ -36,7 +36,6 @@ class EditorWindow : public GameWindow
         std::set<PureConcept*> SelectedConceptMask { };
     };
 
-
     /*
      *
      * Return true if node is selected
@@ -44,6 +43,9 @@ class EditorWindow : public GameWindow
      * */
     bool
     RenderConceptHierarchy( PureConcept* Con );
+
+    void
+    ConceptMemoryViewGroup( const char* Name, PureConcept* Con );
 
 public:
     /*
@@ -81,8 +83,11 @@ public:
     void
     SetPreviousFrameTexture( uint32_t TextureID );
 
+    void
+    SetRootConcept( class RootConceptTy* RootConcept ) override;
+
 private:
-    ConceptInspectionCache m_ConceptInspectionCache;
+    ConceptInspectionCache m_ConceptInspectionCache { };
 
     /*
      *

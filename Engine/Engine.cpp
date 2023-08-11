@@ -201,6 +201,8 @@ Engine::UpdateRootConcept( )
              * */
             RootConcept.SetEngineContext( this );
             RootConcept.AllocateConcept( );
+            m_MainWindow->SetRootConcept( m_RootConcept );
+
             ResetTimer( );
 
             /*
@@ -300,7 +302,7 @@ Engine::CreateImGuiContext( )
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark( );
-    // ImGui::StyleColorsLight();
+    ImGui::GetStyle( ).SeparatorTextAlign = ImVec2( 0.5F, 0.5F );
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL( m_MainWindow->GetWindowHandle( ), true );

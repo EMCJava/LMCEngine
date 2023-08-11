@@ -18,7 +18,7 @@ public:
     void
     Update( ) override;
 
-    void
+    virtual void
     SetRootConcept( class RootConceptTy* RootConcept );
 
 protected:
