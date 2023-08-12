@@ -15,7 +15,11 @@
 
 template <typename Ty>
 struct IDCollisionsChecker {
+#ifdef _MSC_VER
+    static inline std::set<uint64_t> id_set { };
+#else
     static inline std::set<uint64_t> __attribute__( ( init_priority( 101 ) ) ) id_set { };
+#endif
     explicit IDCollisionsChecker( uint64_t id )
     {
         REQUIRED( !id_set.contains( id ), assert( false && "ID already in exist" ) );
