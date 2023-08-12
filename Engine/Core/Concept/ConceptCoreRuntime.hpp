@@ -285,12 +285,8 @@
 #define LMCENGINE_FOREACH( func, ... )         LMCENGINE_EXPAND( LMCENGINE_PASTE( func, __VA_ARGS__ ) )
 #define LMCENGINE_FOREACH_2( func, arg1, ... ) LMCENGINE_EXPAND( LMCENGINE_PASTE_2( func, arg1, __VA_ARGS__ ) )
 
-#define EXPOSE_TYPE( VAR )                  using __##VAR##_IMGUI_TY = decltype( VAR );
-#define TO_IMGUI_DECLARE( class_name, VAR ) void ToImGuiWidget( const char* Name, class_name::__##VAR##_IMGUI_TY* Value );
-#define SIMPLE_DEFAULT_IMGUI_TYPE( VAR )    ToImGuiWidget( #VAR, &Value->VAR );
+#define SIMPLE_DEFAULT_IMGUI_TYPE( VAR ) ToImGuiPointerSwitch( #VAR, &Value->VAR );
 
-#define EXPOSE_TYPE_TO_IMGUI( ... )           LMCENGINE_FOREACH( EXPOSE_TYPE, __VA_ARGS__ )
-#define DECLARE_FOR_IMGUI( class_name, ... )  LMCENGINE_FOREACH_2( TO_IMGUI_DECLARE, class_name, __VA_ARGS__ )
 #define SIMPLE_LIST_DEFAULT_IMGUI_TYPE( ... ) LMCENGINE_FOREACH( SIMPLE_DEFAULT_IMGUI_TYPE, __VA_ARGS__ )
 
 #define DEFINE_DLL_TYPE_TO_IMGUI( class_name )                               \
@@ -299,26 +295,52 @@
         ToImGuiWidget( Name, static_cast<class_name*>( Value ) );            \
     }
 
-#define DEFINE_SIMPLE_IMGUI_TYPE( class_name, ... )                  \
-    inline void ToImGuiWidget( const char* Name, class_name* Value ) \
-    {                                                                \
-        SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ );               \
-    }                                                                \
-                                                                     \
+#define DEFINE_SIMPLE_IMGUI_TYPE( class_name, ... )                               \
+    void class_name::ToImGuiWidgetInternal( const char* Name, class_name* Value ) \
+    {                                                                             \
+        ImGui::SeparatorText( #class_name );                                      \
+        SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ );                            \
+    }                                                                             \
+                                                                                  \
+    void ToImGuiWidget( const char* Name, class_name* Value )                     \
+    {                                                                             \
+        class_name::ToImGuiWidgetInternal( Name, Value );                         \
+    }                                                                             \
+                                                                                  \
     DEFINE_DLL_TYPE_TO_IMGUI( class_name )
 
-#define ENABLE_IMGUI( class_name, ... )                               \
-public:                                                               \
-    EXPOSE_TYPE_TO_IMGUI( __VA_ARGS__ )                               \
-                                                                      \
-    friend void ToImGuiWidget( const char* Name, class_name* Value ); \
-    }                                                                 \
-    ;                                                                 \
-                                                                      \
-    DECLARE_FOR_IMGUI( class_name, __VA_ARGS__ )                      \
-    /* For formatting */ namespace                                    \
-    {
+/*
+ *
+ * It will chain the result of parent class
+ *
+ * */
+#define DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( class_name, chain_target, ... )         \
+    void class_name::ToImGuiWidgetInternal( const char* Name, class_name* Value ) \
+    {                                                                             \
+        ImGui::SeparatorText( #class_name );                                      \
+        SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ );                            \
+        chain_target::ToImGuiWidgetInternal( Name, Value );                       \
+    }                                                                             \
+                                                                                  \
+    void ToImGuiWidget( const char* Name, class_name* Value )                     \
+    {                                                                             \
+        class_name::ToImGuiWidgetInternal( Name, Value );                         \
+    }                                                                             \
+                                                                                  \
+    DEFINE_DLL_TYPE_TO_IMGUI( class_name )
 
+#define ENABLE_IMGUI( class_name )                                            \
+                                                                              \
+protected:                                                                    \
+    static void ToImGuiWidgetInternal( const char* Name, class_name* Value ); \
+                                                                              \
+public:                                                                       \
+    friend void ToImGuiWidget( const char* Name, class_name* Value );         \
+    }                                                                         \
+    ;                                                                         \
+    void ToImGuiWidget( const char* Name, class_name* Value );                \
+    /* For formatting */ namespace                                            \
+    {
 
 struct NamingCollectionConcept {
 };
@@ -329,12 +351,17 @@ template <typename Ty>
 struct NamingCollection {
     static inline std::map<std::string, uint64_t> LMC_INIT_PRIORITY( 102 ) Names { };
 
+    // To initialize the variable
+    explicit NamingCollection( ) = default;
+
     explicit NamingCollection( const char* Name, uint64_t ID )
     {
         REQUIRED( !Names.contains( Name ), spdlog::error( "Name already in exist: {}", Name ) );
         Names[ Name ] = ID;
     }
 };
+
+inline NamingCollection<class Concept> __G_NamingCollection { };
 
 struct NameIDPair {
     char*    NamePre = nullptr;

@@ -30,4 +30,6 @@ public:
 
 protected:
     int m_Width = 0, m_Height = 0;
+
+    ENABLE_IMGUI( SpriteSquare )
 };

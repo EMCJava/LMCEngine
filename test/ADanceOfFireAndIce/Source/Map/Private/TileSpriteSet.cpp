@@ -5,6 +5,7 @@
 #include "TileSpriteSet.hpp"
 
 #include <Engine/Engine.hpp>
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
@@ -17,7 +18,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-DEFINE_CONCEPT_DS( TileSpriteSet, ConceptRenderable )
+DEFINE_CONCEPT_DS( TileSpriteSet )
+DEFINE_SIMPLE_IMGUI_TYPE( TileSpriteSet, m_TileListPointer, m_SpritesOrigin )
 
 void
 TileSpriteSet::Render( )

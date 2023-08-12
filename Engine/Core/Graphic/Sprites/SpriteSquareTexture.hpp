@@ -28,4 +28,6 @@ public:
 protected:
     uint32_t    m_TextureID;
     std::string m_TexturePath;
+
+    ENABLE_IMGUI( SpriteSquareTexture )
 };

@@ -118,5 +118,5 @@ private:
     class SpriteSquareTexture* FBSp { };
     class SpriteSquareTexture* IBSp { };
 
-    ENABLE_IMGUI( GameManager, m_BPM, m_CameraLerp )
+    ENABLE_IMGUI( GameManager )
 };

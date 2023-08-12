@@ -6,7 +6,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-DEFINE_CONCEPT_DS( PureConceptCamera, PureConcept )
+DEFINE_CONCEPT_DS( PureConceptCamera )
 
 void
 PureConceptCamera::SetDimensions( int Width, int Height )

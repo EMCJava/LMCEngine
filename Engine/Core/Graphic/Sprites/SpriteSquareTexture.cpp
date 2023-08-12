@@ -4,12 +4,14 @@
 
 #include "SpriteSquareTexture.hpp"
 
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 #include <Engine/Engine.hpp>
 
 #include <stb_image.h>
 
-DEFINE_CONCEPT_DS( SpriteSquareTexture, SpriteSquare )
+DEFINE_CONCEPT_DS( SpriteSquareTexture )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( SpriteSquareTexture, SpriteSquare, m_TextureID, m_TexturePath )
 
 void
 SpriteSquareTexture::SetupSprite( )

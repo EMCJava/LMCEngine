@@ -125,4 +125,6 @@ protected:
      *
      * */
     std::map<uint32_t, std::unique_ptr<SpriteSquareTexture>> m_Sprites;
+
+    ENABLE_IMGUI( TileSpriteSet )
 };

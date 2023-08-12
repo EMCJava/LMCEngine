@@ -351,7 +351,7 @@ EditorWindow::UpdateImGui( )
                     const auto ToImGuiFuncPtr = Engine::GetEngine( )->GetConceptToImGuiFuncPtr( m_ConceptInspectionCache.SelectedConcept->GetTypeIDV( ) );
                     if ( ToImGuiFuncPtr != nullptr )
                     {
-                        ::BeginGroupPanel( Name, ImVec2 { -1, 0 } );
+                        ::BeginGroupPanel( "Property inspect", ImVec2 { -1, 0 } );
 
                         ToImGuiFuncPtr( Name, m_ConceptInspectionCache.SelectedConcept );
 

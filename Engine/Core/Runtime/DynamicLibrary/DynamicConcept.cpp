@@ -72,7 +72,7 @@ DynamicConcept::LoadFunctions( )
     LoadSymbolAs( "mem_free", m_DeAllocator );
 
     m_ConceptToImGuiFuncPtrMap.clear( );
-    NamingCollectionMap* ( *GetConceptNames )( );
+    NamingCollectionMap* ( *GetConceptNames )( ) = nullptr;
     LoadSymbolAs( "GetConceptNames", GetConceptNames );
     REQUIRED_IF( GetConceptNames != nullptr )
     {

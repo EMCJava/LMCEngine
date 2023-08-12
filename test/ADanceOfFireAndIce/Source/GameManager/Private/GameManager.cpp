@@ -24,8 +24,8 @@
 #pragma warning( Tempory for keycode )
 #include <GLFW/glfw3.h>
 
-DEFINE_CONCEPT_DS_MA_SE( GameManager, Concept )
-DEFINE_SIMPLE_IMGUI_TYPE( GameManager, m_BPM, m_CameraLerp )
+DEFINE_CONCEPT_DS_MA_SE( GameManager )
+DEFINE_SIMPLE_IMGUI_TYPE( GameManager, m_BPM, m_CameraLerp, m_TileSpriteSet, m_ActivePlayerSprite, m_InActivePlayerSprite )
 
 namespace
 {

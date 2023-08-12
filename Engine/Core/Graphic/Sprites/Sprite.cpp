@@ -11,8 +11,8 @@
 
 #include <spdlog/spdlog.h>
 
-DEFINE_CONCEPT( Sprite, ConceptRenderable )
-DEFINE_SIMPLE_IMGUI_TYPE( Sprite, m_VAO, m_VBO, m_EBO )
+DEFINE_CONCEPT( Sprite )
+DEFINE_SIMPLE_IMGUI_TYPE( Sprite, m_VAO, m_VBO, m_EBO, m_Shader )
 
 Sprite::~Sprite( )
 {

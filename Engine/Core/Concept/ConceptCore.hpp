@@ -18,12 +18,17 @@ template <typename Ty>
 struct IDCollisionsChecker {
     static inline std::set<uint64_t> LMC_INIT_PRIORITY( 101 ) id_set { };
 
+    // To initialize the variable
+    explicit IDCollisionsChecker( ) = default;
+
     explicit IDCollisionsChecker( uint64_t id )
     {
         REQUIRED( !id_set.contains( id ), assert( false && "ID already in exist" ) );
         id_set.insert( id );
     }
 };
+
+inline IDCollisionsChecker<class Concept> __G_IDCollisionsChecker { };
 
 /*
  *
@@ -222,15 +227,15 @@ private:
  * This is used per dynamic library to allocate a concept for that library.
  *
  * */
-#    define MEM_ALLOC_CONCEPT( class_name, ... ) \
-        LMC_API void* mem_alloc( )               \
-        {                                        \
-            return new class_name;               \
-        }                                        \
-                                                 \
-        LMC_API void mem_free( void* ptr )       \
-        {                                        \
-            delete (class_name*) ptr;            \
+#    define MEM_ALLOC_CONCEPT( class_name ) \
+        LMC_API void* mem_alloc( )          \
+        {                                   \
+            return new class_name;          \
+        }                                   \
+                                            \
+        LMC_API void mem_free( void* ptr )  \
+        {                                   \
+            delete (class_name*) ptr;       \
         }
 #else
 /*
@@ -239,7 +244,7 @@ private:
  * Non-engine build, expand to empty
  *
  * */
-#    define MEM_ALLOC_CONCEPT( class_name, ... )
+#    define MEM_ALLOC_CONCEPT( class_name )
 #endif
 
 /*
@@ -247,7 +252,7 @@ private:
  * Most basic concepts definition, a virtual function checking static parent set
  *
  * */
-#define DEFINE_CONCEPT( class_name, ... )                                        \
+#define DEFINE_CONCEPT( class_name )                                             \
     bool                                                                         \
     class_name::CanCastV( uint64_t ConceptID )                                   \
     {                                                                            \
@@ -259,7 +264,7 @@ private:
  * Most basic concepts definition, a virtual function checking static parent set \
  *                                                                               \
  * */
-#define DEFINE_CONCEPT_DS( class_name, ... )    \
+#define DEFINE_CONCEPT_DS( class_name )         \
                                                 \
     class_name::~class_name( ) = default;       \
                                                 \
@@ -276,9 +281,9 @@ private:
  * This can be used to replace DEFINE_CONCEPT_MA_SE to avoid redefinition of SetEngineContext
  *
  * */
-#define DEFINE_CONCEPT_MA( class_name, ... )  \
-    DEFINE_CONCEPT( class_name, __VA_ARGS__ ) \
-    MEM_ALLOC_CONCEPT( class_name, __VA_ARGS__ )
+#define DEFINE_CONCEPT_MA( class_name ) \
+    DEFINE_CONCEPT( class_name )        \
+    MEM_ALLOC_CONCEPT( class_name )
 
 /*
  *
@@ -287,9 +292,9 @@ private:
  * This can be used to replace DEFINE_CONCEPT_MA_SE to avoid redefinition of SetEngineContext
  *
  * */
-#define DEFINE_CONCEPT_DS_MA( class_name, ... )  \
-    DEFINE_CONCEPT_DS( class_name, __VA_ARGS__ ) \
-    MEM_ALLOC_CONCEPT( class_name, __VA_ARGS__ )
+#define DEFINE_CONCEPT_DS_MA( class_name ) \
+    DEFINE_CONCEPT_DS( class_name )        \
+    MEM_ALLOC_CONCEPT( class_name )
 
 /*
  *
@@ -297,8 +302,8 @@ private:
  * Usually used for concepts that need to be hot loaded
  *
  * */
-#define DEFINE_CONCEPT_MA_SE( class_name, ... )            \
-    DEFINE_CONCEPT_MA( class_name, __VA_ARGS__ )           \
+#define DEFINE_CONCEPT_MA_SE( class_name )                 \
+    DEFINE_CONCEPT_MA( class_name )                        \
     LMC_API void SetEngineContext( Engine* EngineContext ) \
     {                                                      \
         Engine::SetEngine( EngineContext );                \
@@ -310,9 +315,9 @@ private:
  * Usually used for concepts that need to be hot loaded
  *
  * */
-#define DEFINE_CONCEPT_DS_MA_SE( class_name, ... )         \
-    DEFINE_CONCEPT_DS( class_name, __VA_ARGS__ )           \
-    MEM_ALLOC_CONCEPT( class_name, __VA_ARGS__ )           \
+#define DEFINE_CONCEPT_DS_MA_SE( class_name )              \
+    DEFINE_CONCEPT_DS( class_name )                        \
+    MEM_ALLOC_CONCEPT( class_name )                        \
     LMC_API void SetEngineContext( Engine* EngineContext ) \
     {                                                      \
         Engine::SetEngine( EngineContext );                \

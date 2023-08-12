@@ -6,7 +6,7 @@
 
 #include <random>
 
-DEFINE_CONCEPT_DS( Concept, PureConcept )
+DEFINE_CONCEPT_DS( Concept )
 
 bool
 Concept::HasSubConcept( )

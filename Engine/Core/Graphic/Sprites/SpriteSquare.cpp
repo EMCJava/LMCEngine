@@ -4,12 +4,14 @@
 
 #include "SpriteSquare.hpp"
 
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 #include <Engine/Engine.hpp>
 
 #include <spdlog/spdlog.h>
 
-DEFINE_CONCEPT_DS( SpriteSquare, Sprite )
+DEFINE_CONCEPT_DS( SpriteSquare )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( SpriteSquare, Sprite, m_Width, m_Height )
 
 SpriteSquare::SpriteSquare( int Width, int Height )
     : m_Width( Width )
@@ -76,4 +78,3 @@ SpriteSquare::SetupSprite( )
     GL_CHECK( gl->BindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_EBO ) )
     GL_CHECK( gl->BufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( indices ), indices, GL_STATIC_DRAW ) )
 }
-

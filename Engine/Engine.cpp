@@ -388,9 +388,11 @@ Engine::GetGLContext( )
 void
 Engine::SetEngine( Engine* EngineContext )
 {
-    spdlog::warn( "Setting engine context manually" );
+    spdlog::warn( "Setting engine context manually to: {}", fmt::ptr( EngineContext ) );
     g_Engine = EngineContext;
-    ImGui::SetCurrentContext( g_Engine->m_ImGuiContext );
+
+    spdlog::warn( "Setting ImGui context manually to: {}", fmt::ptr( EngineContext->m_ImGuiContext ) );
+    ImGui::SetCurrentContext( EngineContext->m_ImGuiContext );
 }
 
 void
