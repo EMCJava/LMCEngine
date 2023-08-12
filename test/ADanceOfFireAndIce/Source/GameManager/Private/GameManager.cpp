@@ -4,18 +4,12 @@
 
 #include "GameManager.hpp"
 
-#include <Engine/Core/Concept/ConceptRenderable.hpp>
-#include <Engine/Core/Scene/Orientation/OrientationCoordinate.hpp>
-#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Engine.hpp>
-
-#include <Engine/Core/Audio/AudioEngine.hpp>
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
-#include <Engine/Core/Graphic/Shader/Shader.hpp>
-#include <Engine/Core/Graphic/Sprites/SpriteSquare.hpp>
-#include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Input/UserInput.hpp>
+#include <Engine/Core/Concept/ConceptCoreRuntime.inl>
 
 #include <spdlog/spdlog.h>
 

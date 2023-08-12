@@ -23,6 +23,7 @@ target_link_libraries(Engine.lib
         Audio.lib
         UserInput.lib
         PureConceptCamera.lib
+        ConceptCoreRuntime.lib
 
         SpriteSquare.lib
         )

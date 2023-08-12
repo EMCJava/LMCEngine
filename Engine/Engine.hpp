@@ -188,6 +188,10 @@ private:
      * */
     struct ImGuiContext* m_ImGuiContext = nullptr;
 
+    void* ( *m_ImGuiContext_alloc_func )( size_t sz, void* user_data ) = nullptr;
+    void ( *m_ImGuiContext_free_func )( void* ptr, void* user_data )   = nullptr;
+    void* m_ImGuiContext_user_data                                     = nullptr;
+
     /*
      *
      * Should only be call after m_MainWindow has been initialized

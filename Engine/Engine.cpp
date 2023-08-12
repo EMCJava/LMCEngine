@@ -202,6 +202,7 @@ Engine::UpdateRootConcept( )
             RootConcept.SetEngineContext( this );
             RootConcept.AllocateConcept( );
             m_MainWindow->SetRootConcept( m_RootConcept );
+            m_MainWindow->MakeContextCurrent( );
 
             ResetTimer( );
 
@@ -268,9 +269,14 @@ Engine::CreateImGuiContext( )
     IMGUI_CHECKVERSION( );
     if ( m_ImGuiContext != nullptr )
     {
+        spdlog::info( "Destroying ImGui context: {}", fmt::ptr( m_ImGuiContext ) );
         DestroyImGuiContext( );
     }
+
+    ImGui::GetAllocatorFunctions( &m_ImGuiContext_alloc_func, &m_ImGuiContext_free_func, &m_ImGuiContext_user_data );
     m_ImGuiContext = ImGui::CreateContext( );
+    spdlog::info( "New ImGui context: {}", fmt::ptr( m_ImGuiContext ) );
+
     ImGui::SetCurrentContext( m_ImGuiContext );
     ImGuiIO& io = ImGui::GetIO( );
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;   // Enable Keyboard Controls
@@ -393,6 +399,7 @@ Engine::SetEngine( Engine* EngineContext )
 
     spdlog::warn( "Setting ImGui context manually to: {}", fmt::ptr( EngineContext->m_ImGuiContext ) );
     ImGui::SetCurrentContext( EngineContext->m_ImGuiContext );
+    ImGui::SetAllocatorFunctions( EngineContext->m_ImGuiContext_alloc_func, EngineContext->m_ImGuiContext_free_func, EngineContext->m_ImGuiContext_user_data );
 }
 
 void
