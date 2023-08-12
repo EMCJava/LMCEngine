@@ -390,6 +390,7 @@ Engine::SetEngine( Engine* EngineContext )
 {
     spdlog::warn( "Setting engine context manually" );
     g_Engine = EngineContext;
+    ImGui::SetCurrentContext( g_Engine->m_ImGuiContext );
 }
 
 void
@@ -439,4 +440,23 @@ void
 Engine::SetMainWindowViewPortDimensions( std::pair<int, int> Dimension )
 {
     m_MainViewPortDimensions = Dimension;
+}
+
+void ( *Engine::GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* )
+{
+#ifdef HOT_RELOAD
+
+    REQUIRED_IF( m_RootConcept != nullptr )
+    {
+        const auto& Map = m_RootConcept->GetConceptToImGuiFuncPtrMap( );
+        if ( const auto It = Map.find( ConceptTypeID ); It != Map.end( ) )
+        {
+            return It->second;
+        }
+    }
+
+    return nullptr;
+#else
+    return nullptr;
+#endif
 }

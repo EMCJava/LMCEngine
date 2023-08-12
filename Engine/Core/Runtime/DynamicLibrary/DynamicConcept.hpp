@@ -4,7 +4,11 @@
 
 #pragma once
 
+#include <Engine/Core/Concept/ConceptCoreRuntime.hpp>
+
 #include "DynamicLibrary.hpp"
+
+#include <map>
 
 class DynamicConcept : public DynamicLibrary
 {
@@ -60,9 +64,14 @@ public:
         return static_cast<Ty*>( m_Concept );
     }
 
+    const auto& GetConceptToImGuiFuncPtrMap( ) { return m_ConceptToImGuiFuncPtrMap; }
+
 private:
-    void* ( *m_Allocator )( )        = nullptr;
-    void ( *m_DeAllocator )( void* ) = nullptr;
+    void* ( *m_Allocator )( )                    = nullptr;
+    void ( *m_DeAllocator )( void* )             = nullptr;
+    NamingCollectionMap* m_ConceptNameCollection = nullptr;
+
+    std::map<uint32_t, void ( * )( const char*, void* )> m_ConceptToImGuiFuncPtrMap { };
 
     class Concept* m_Concept = nullptr;
 };

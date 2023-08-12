@@ -154,21 +154,6 @@ EndGroupPanel( )
 }   // namespace
 
 void
-ToImGuiWidget( const char* Name, uint32_t* Value )
-{
-    ImGui::InputScalar( Name, ImGuiDataType_S32, Value );
-}
-
-void
-ToImGuiWidget( const char* Name, std::shared_ptr<Shader>* Value )
-{
-    auto PtrAddress = reinterpret_cast<uint64_t>( Value->get( ) );
-    ImGui::BeginDisabled( );
-    ImGui::InputScalar( Name, ImGuiDataType_U64, &PtrAddress, nullptr, nullptr, "%p", ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal );
-    ImGui::EndDisabled( );
-}
-
-void
 EditorWindow::Update( )
 {
     m_HRFrameBuffer->BindFrameBuffer( );
@@ -363,11 +348,12 @@ EditorWindow::UpdateImGui( )
             {
                 if ( ImGui::BeginTabItem( Name ) )
                 {
-                    if ( m_ConceptInspectionCache.SelectedConcept->CanCastV( Sprite::TypeID ) )
+                    const auto ToImGuiFuncPtr = Engine::GetEngine( )->GetConceptToImGuiFuncPtr( m_ConceptInspectionCache.SelectedConcept->GetTypeIDV( ) );
+                    if ( ToImGuiFuncPtr != nullptr )
                     {
-                        ::BeginGroupPanel( "Sprite", ImVec2 { -1, 0 } );
+                        ::BeginGroupPanel( Name, ImVec2 { -1, 0 } );
 
-                        ToImGuiWidget( "Sprite", (Sprite*) m_ConceptInspectionCache.SelectedConcept );
+                        ToImGuiFuncPtr( Name, m_ConceptInspectionCache.SelectedConcept );
 
                         ImGui::Spacing( );
                         ::EndGroupPanel( );

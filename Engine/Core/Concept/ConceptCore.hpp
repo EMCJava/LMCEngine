@@ -11,15 +11,13 @@
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
 #include <cstdint>
+#include <map>
 #include <set>
 
 template <typename Ty>
 struct IDCollisionsChecker {
-#ifdef _MSC_VER
-    static inline std::set<uint64_t> id_set { };
-#else
-    static inline std::set<uint64_t> __attribute__( ( init_priority( 101 ) ) ) id_set { };
-#endif
+    static inline std::set<uint64_t> LMC_INIT_PRIORITY( 101 ) id_set { };
+
     explicit IDCollisionsChecker( uint64_t id )
     {
         REQUIRED( !id_set.contains( id ), assert( false && "ID already in exist" ) );
@@ -45,9 +43,9 @@ struct ConceptValueWrapper {
 };
 
 #if !defined( NDEBUG ) && defined( LMC_API_EXPORTS )
-#    define DEC_CHECK_ID( class_name ) inline static const IDCollisionsChecker<class Concept> __IDCollisionsChecker { class_name::TypeID };
+#    define DEC_CONCEPT_CHECK_ID( class_name ) inline static const IDCollisionsChecker<class Concept> __IDCollisionsChecker { class_name::TypeID };
 #else
-#    define DEC_CHECK_ID( class_name )
+#    define DEC_CONCEPT_CHECK_ID( class_name )
 #endif
 
 /*
@@ -59,7 +57,8 @@ struct ConceptValueWrapper {
 public:                                                            \
     static constexpr uint64_t TypeID = HashString( #class_name );  \
     using ParentSet                  = ConstexprContainer<TypeID>; \
-    DEC_CHECK_ID( class_name )                                     \
+    DEC_CONCEPT_CHECK_ID( class_name )                             \
+    DEC_CONCEPT_NAME_COLLECTION( class_name )                      \
                                                                    \
 public:                                                            \
     virtual ~class_name( );                                        \
@@ -124,7 +123,8 @@ private:
 public:                                                                                                                                                \
     static constexpr uint64_t TypeID = HashString( #class_name );                                                                                      \
     using ParentSet                  = CombineContainersWrapExcludeFirst<ConceptValueWrapper, ConceptParentSetWrapper, class_name, __VA_ARGS__>::type; \
-    DEC_CHECK_ID( class_name )                                                                                                                         \
+    DEC_CONCEPT_CHECK_ID( class_name )                                                                                                                 \
+    DEC_CONCEPT_NAME_COLLECTION( class_name )                                                                                                          \
                                                                                                                                                        \
 public:                                                                                                                                                \
     virtual ~class_name( );                                                                                                                            \

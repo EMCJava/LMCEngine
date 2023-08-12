@@ -5,12 +5,14 @@
 #include "Sprite.hpp"
 
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 #include <Engine/Engine.hpp>
 
 #include <spdlog/spdlog.h>
 
 DEFINE_CONCEPT( Sprite, ConceptRenderable )
+DEFINE_SIMPLE_IMGUI_TYPE( Sprite, m_VAO, m_VBO, m_EBO )
 
 Sprite::~Sprite( )
 {

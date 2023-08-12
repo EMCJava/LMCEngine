@@ -4,11 +4,15 @@
 
 #include "DynamicConcept.hpp"
 
+#include <Engine/Core/Concept/ConceptCore.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
 DynamicConcept::~DynamicConcept( )
 {
     DeAllocateConcept( );
+
+    delete m_ConceptNameCollection;
+    m_ConceptNameCollection = nullptr;
 
     m_Concept     = nullptr;
     m_DeAllocator = nullptr;
@@ -66,6 +70,31 @@ DynamicConcept::LoadFunctions( )
 {
     LoadSymbolAs( "mem_alloc", m_Allocator );
     LoadSymbolAs( "mem_free", m_DeAllocator );
+
+    m_ConceptToImGuiFuncPtrMap.clear( );
+    NamingCollectionMap* ( *GetConceptNames )( );
+    LoadSymbolAs( "GetConceptNames", GetConceptNames );
+    REQUIRED_IF( GetConceptNames != nullptr )
+    {
+        delete m_ConceptNameCollection;
+        m_ConceptNameCollection = GetConceptNames( );
+
+        const std::string ToImGuiWidgetPrefix = "ToImGuiWidget_";
+        void ( *ToImGuiFunPtr )( const char*, void* );
+        for ( size_t i = 0; i < m_ConceptNameCollection->ConceptLen; i++ )
+        {
+            ToImGuiFunPtr       = nullptr;
+            std::string FunName = ToImGuiWidgetPrefix + std::string( m_ConceptNameCollection->Concepts[ i ].NamePre );
+            LoadSymbolAs( FunName, ToImGuiFunPtr );
+
+            if ( ToImGuiFunPtr != nullptr )
+            {
+                spdlog::info( "Found ToImGuiWidget function: {}", std::string( m_ConceptNameCollection->Concepts[ i ].NamePre ) );
+
+                m_ConceptToImGuiFuncPtrMap[ m_ConceptNameCollection->Concepts[ i ].ID ] = ToImGuiFunPtr;
+            }
+        }
+    }
 
     return m_Allocator != nullptr && m_DeAllocator != nullptr;
 }

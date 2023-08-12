@@ -6,6 +6,7 @@
 
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 #include <Engine/Core/Scene/Orientation/OrientationCoordinate.hpp>
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Engine.hpp>
 
 #include <Engine/Core/Audio/AudioEngine.hpp>
@@ -24,6 +25,8 @@
 #include <GLFW/glfw3.h>
 
 DEFINE_CONCEPT_DS_MA_SE( GameManager, Concept )
+DEFINE_SIMPLE_IMGUI_TYPE( GameManager, m_BPM, m_CameraLerp )
+
 namespace
 {
 std::vector<TileSpriteSet::TileMeta> TmpMap {

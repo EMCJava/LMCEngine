@@ -79,6 +79,12 @@
 
 #define LMC_GVariable( name ) __G_##name##_
 
+#ifdef _MSC_VER
+#    define LMC_INIT_PRIORITY( priority )
+#else
+#    define LMC_INIT_PRIORITY( priority ) __attribute__( ( init_priority( priority ) ) )
+#endif
+
 /*
  *
  * Type defines

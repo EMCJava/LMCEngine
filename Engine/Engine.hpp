@@ -134,6 +134,8 @@ public:
     class UserInput*
     GetUserInputHandle( );
 
+    void ( *GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* );
+
 private:
     bool m_ShouldShutdown = false;
 
