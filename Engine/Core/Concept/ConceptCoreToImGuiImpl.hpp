@@ -174,7 +174,7 @@ ToImGuiWidget( const char* Name, Container<Ty, Allocator>* Value )
 
     for ( size_t Index = 0; Index < Value->size( ); Index++ )
     {
-        sprintf( IndexPtrStart, "[%zu]", Index );
+        snprintf( IndexPtrStart, NameStrWithIndex.capacity() + 1, "[%zu]", Index );
         ToImGuiPointerSwitch( NameStrWithIndex.c_str( ), Value->at( Index ) );
     }
 }
