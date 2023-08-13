@@ -28,4 +28,6 @@ private:
     glm::mat4 m_ProjectionMatrix { 1 };
     FloatTy   m_CameraWidth { }, m_CameraHeight { };
     FloatTy   m_Scale { };
+
+    ENABLE_IMGUI( PureConceptCamera )
 };

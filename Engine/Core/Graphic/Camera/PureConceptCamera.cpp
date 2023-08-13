@@ -4,9 +4,12 @@
 
 #include "PureConceptCamera.hpp"
 
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 DEFINE_CONCEPT_DS( PureConceptCamera )
+DEFINE_SIMPLE_IMGUI_TYPE( PureConceptCamera, m_CameraWidth, m_CameraHeight, m_Scale )
 
 void
 PureConceptCamera::SetDimensions( int Width, int Height )
