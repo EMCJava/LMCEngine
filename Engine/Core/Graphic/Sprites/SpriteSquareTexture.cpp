@@ -11,7 +11,32 @@
 #include <stb_image.h>
 
 DEFINE_CONCEPT_DS( SpriteSquareTexture )
-DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( SpriteSquareTexture, SpriteSquare, m_TextureID, m_TexturePath )
+DEFINE_NECESSARY_IMGUI_TYPE( SpriteSquareTexture )
+
+void
+SpriteSquareTexture::ToImGuiWidgetInternal( const char* Name, SpriteSquareTexture* Value )
+{
+    ImGui::SeparatorText( "SpriteSquareTexture" );
+
+    ToImGuiPointerSwitch( "m_TextureID", &Value->m_TextureID );
+    // Texture preview
+    ImGui::SameLine( );
+    ImGui::Text( "(Preview)" );
+    if ( ImGui::BeginItemTooltip( ) )
+    {
+        ImGui::PushTextWrapPos( ImGui::GetFontSize( ) * 35.0f );
+        ImGui::Image( reinterpret_cast<void*>( Value->m_TextureID ),
+                      ImVec2 { 50, 50 }, ImVec2( 0, 1 ), ImVec2( 1, 0 ),
+                      ImVec4 { 1, 1, 1, 1 },
+                      ImGui::GetStyleColorVec4( ImGuiCol_Text ) );
+
+        ImGui::PopTextWrapPos( );
+        ImGui::EndTooltip( );
+    }
+
+    SIMPLE_LIST_DEFAULT_IMGUI_TYPE( m_TexturePath );
+    SpriteSquare::ToImGuiWidgetInternal( Name, Value );
+}
 
 void
 SpriteSquareTexture::SetupSprite( )

@@ -295,6 +295,15 @@
         ToImGuiWidget( Name, static_cast<class_name*>( Value ) );            \
     }
 
+#define DEFINE_NECESSARY_IMGUI_TYPE( class_name )             \
+                                                              \
+    void ToImGuiWidget( const char* Name, class_name* Value ) \
+    {                                                         \
+        class_name::ToImGuiWidgetInternal( Name, Value );     \
+    }                                                         \
+                                                              \
+    DEFINE_DLL_TYPE_TO_IMGUI( class_name )
+
 #define DEFINE_SIMPLE_IMGUI_TYPE( class_name, ... )                               \
     void class_name::ToImGuiWidgetInternal( const char* Name, class_name* Value ) \
     {                                                                             \
@@ -302,12 +311,8 @@
         SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ );                            \
     }                                                                             \
                                                                                   \
-    void ToImGuiWidget( const char* Name, class_name* Value )                     \
-    {                                                                             \
-        class_name::ToImGuiWidgetInternal( Name, Value );                         \
-    }                                                                             \
-                                                                                  \
-    DEFINE_DLL_TYPE_TO_IMGUI( class_name )
+    DEFINE_NECESSARY_IMGUI_TYPE( class_name )
+
 
 /*
  *
@@ -322,12 +327,7 @@
         chain_target::ToImGuiWidgetInternal( Name, Value );                       \
     }                                                                             \
                                                                                   \
-    void ToImGuiWidget( const char* Name, class_name* Value )                     \
-    {                                                                             \
-        class_name::ToImGuiWidgetInternal( Name, Value );                         \
-    }                                                                             \
-                                                                                  \
-    DEFINE_DLL_TYPE_TO_IMGUI( class_name )
+    DEFINE_NECESSARY_IMGUI_TYPE( class_name )
 
 #define ENABLE_IMGUI( class_name )                                            \
                                                                               \
