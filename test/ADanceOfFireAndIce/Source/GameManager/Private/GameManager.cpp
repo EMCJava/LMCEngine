@@ -8,6 +8,7 @@
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
+#include <Engine/Core/Graphic/Sprites/SpriteSquareAnimatedTexture.hpp>
 #include <Engine/Core/Input/UserInput.hpp>
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
 
@@ -19,7 +20,7 @@
 #include <GLFW/glfw3.h>
 
 DEFINE_CONCEPT_DS_MA_SE( GameManager )
-DEFINE_SIMPLE_IMGUI_TYPE( GameManager, m_BPM, m_CameraLerp, m_TileSpriteSet, m_ActivePlayerSprite, m_InActivePlayerSprite )
+DEFINE_SIMPLE_IMGUI_TYPE( GameManager, m_BPM, m_CameraLerp, m_TileSpriteSet )
 
 namespace
 {
@@ -1317,8 +1318,6 @@ const char* fragmentTextureShaderSource = "#version 330 core\n"
                                           "void main()\n"
                                           "{\n"
                                           "   vec4 texColor = texture(sample_texture, TexCoord);\n"
-                                          "   if(texColor.a < 0.1)\n"
-                                          "        discard;\n"
                                           "   FragColor = texColor;\n"
                                           "}\n\0";
 
@@ -1337,6 +1336,8 @@ GameManager::GameManager( )
     LoadTileSprites( { 360, 315, 270, 240, 180, 135, 120, 90, 60, 45, 30 } );
     LoadTileMap( );
 
+    SetupExplosionSprite( );
+
     m_InActivePlayerSprite->SetRotation( 0, 0, glm::radians( 180.f ) );
 
     spdlog::info( "GameManager concept constructor returned" );
@@ -1347,6 +1348,16 @@ GameManager::Apply( )
 {
     const auto DeltaSecond    = Engine::GetEngine( )->GetDeltaSecond( );
     const bool PlayerInteract = IsUserPrimaryInteract( );
+
+    static FloatTy AnimationUpdateDelay { };
+    AnimationUpdateDelay -= DeltaSecond;
+
+    if ( AnimationUpdateDelay <= 0 )
+    {
+        m_ExplosionSprite->NextFrame( );
+
+        AnimationUpdateDelay = 0.005;
+    }
 
     if ( m_IsCheckingDeviceDelay ) [[unlikely]]
     {
@@ -1584,22 +1595,22 @@ GameManager::LoadPlayerSprites( )
     auto Sh = std::make_shared<Shader>( );
     Sh->SetProgram( SProgram );
 
-    m_InActivePlayerSprite = FBSp = AddConcept<SpriteSquareTexture>( 512, 512 );
+    m_InActivePlayerSprite = m_FBSp = AddConcept<SpriteSquareTexture>( 512, 512 );
 
-    FBSp->SetRotationCenter( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
-    FBSp->SetOrigin( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
+    m_FBSp->SetRotationCenter( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
+    m_FBSp->SetOrigin( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
 
-    FBSp->SetShader( Sh );
-    FBSp->SetTexturePath( "Access/Texture/Player/FireBall.png" );
-    FBSp->SetActiveCamera( m_Camera );
-    FBSp->SetupSprite( );
+    m_FBSp->SetShader( Sh );
+    m_FBSp->SetTexturePath( "Access/Texture/Player/FireBall.png" );
+    m_FBSp->SetActiveCamera( m_Camera );
+    m_FBSp->SetupSprite( );
 
-    m_ActivePlayerSprite = IBSp = AddConcept<SpriteSquareTexture>( 512, 512 );
-    IBSp->SetOrigin( 512 / 2, 512 / 2 );
-    IBSp->SetShader( Sh );
-    IBSp->SetTexturePath( "Access/Texture/Player/IceBall.png" );
-    IBSp->SetActiveCamera( m_Camera );
-    IBSp->SetupSprite( );
+    m_ActivePlayerSprite = m_IBSp = AddConcept<SpriteSquareTexture>( 512, 512 );
+    m_IBSp->SetOrigin( 512 / 2, 512 / 2 );
+    m_IBSp->SetShader( Sh );
+    m_IBSp->SetTexturePath( "Access/Texture/Player/IceBall.png" );
+    m_IBSp->SetActiveCamera( m_Camera );
+    m_IBSp->SetupSprite( );
 }
 
 bool
@@ -1669,4 +1680,22 @@ GameManager::ToTolerance( FloatTy DeltaTime )
     {
         return Tolerance::Miss;
     }
+}
+
+void
+GameManager::SetupExplosionSprite( )
+{
+    auto Sh = std::make_shared<Shader>( );
+    Sh->SetProgram( m_ActivePlayerSprite->GetShader( )->GetProgram( ) );
+
+    m_ExplosionSprite = AddConcept<SpriteSquareAnimatedTexture>( 512, 512 );
+    m_ExplosionSprite->SetOrigin( 512 / 2, 512 / 2 );
+    m_ExplosionSprite->SetShader( Sh );
+    m_ExplosionSprite->SetTexturePath( "Access/Texture/explosion.png" );
+    m_ExplosionSprite->SetActiveCamera( m_Camera );
+
+    // Animation setting
+    m_ExplosionSprite->SetTextureGrid( 8, 8 );
+
+    m_ExplosionSprite->SetupSprite( );
 }

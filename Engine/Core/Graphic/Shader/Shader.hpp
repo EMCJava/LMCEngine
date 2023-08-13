@@ -35,6 +35,8 @@ public:
 
     void SetProgram( std::shared_ptr<ShaderProgram>& SProgram );
 
+    auto& GetProgram( ) { return m_ShaderProgram; }
+
 private:
     std::shared_ptr<ShaderProgram> m_ShaderProgram;
 

@@ -44,6 +44,9 @@ private:
     SetupCamera( );
 
     void
+    SetupExplosionSprite( );
+
+    void
     LoadPlayerSprites( );
 
     void
@@ -113,10 +116,12 @@ private:
      * Concept saves
      *
      * */
-    class PureConceptCamera* m_Camera;
+    class PureConceptCamera* m_Camera { };
 
-    class SpriteSquareTexture* FBSp { };
-    class SpriteSquareTexture* IBSp { };
+    class SpriteSquareTexture* m_FBSp { };
+    class SpriteSquareTexture* m_IBSp { };
+
+    class SpriteSquareAnimatedTexture* m_ExplosionSprite { };
 
     ENABLE_IMGUI( GameManager )
 };

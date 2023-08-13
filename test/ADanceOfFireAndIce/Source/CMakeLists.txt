@@ -47,6 +47,7 @@ declare_library(
         PureConceptCamera.lib
         Map.TileSpriteSet.lib
         Map.SongMapControl.lib
+        SpriteSquareAnimatedTexture.lib
 
         DEPS
         ConceptApplicable.lib

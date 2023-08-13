@@ -70,6 +70,16 @@ ToImGuiWidget( const char* Name, std::string* Value )
  * std containers
  *
  * */
+template <typename Ty1, typename Ty2>
+void
+ToImGuiWidget( const char* Name, std::pair<Ty1, Ty2>* Value )
+{
+    std::string NameStr = Name;
+    ToImGuiPointerSwitch( ( NameStr + ".first" ).c_str( ), &Value->first );
+    ImGui::SameLine( );
+    ToImGuiPointerSwitch( ( NameStr + ".second" ).c_str( ), &Value->second );
+}
+
 template <typename Ty>
 void
 ToImGuiWidget( const char* Name, std::shared_ptr<Ty>* Value )
@@ -101,61 +111,62 @@ ToImGuiWidget( const char* Name, Container<KTy, VTy, Comparator, Allocator>* Val
     static std::map<void*, VTy*> IndexValueSaves;
     VTy*&                        ThisValueSaves = IndexValueSaves[ Value ];
 
-    ImGui::PushID( Value );
-
-    ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 5.0f );
-    ImGui::BeginChild( "KVView", ImVec2( -FLT_MIN, 260 ), true, ImGuiWindowFlags_None );
-
-    ImGui::SeparatorText( Name );
-
-    const float Width_5          = ( ImGui::GetContentRegionAvail( ).x - ImGui::GetStyle( ).ItemSpacing.x ) / 8;
-    const float KeyWindowWidth   = Width_5 * 2;
-    const float ValueWindowWidth = Width_5 * 6;
-
-    VTy* SelectedValue = nullptr;
-
-    // Keys
-    if ( ImGui::BeginListBox( "##Keys", ImVec2( KeyWindowWidth, -FLT_MIN ) ) )
+    if ( ImGui::CollapsingHeader( Name, ImGuiTreeNodeFlags_OpenOnArrow ) )
     {
-        size_t Index = 0;
-        for ( auto& KVPair : *Value )
+        ImGui::PushID( Value );
+
+        ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 5.0f );
+        ImGui::BeginChild( "KVView", ImVec2( -FLT_MIN, 260 ), true, ImGuiWindowFlags_None );
+
+        const float Width_5          = ( ImGui::GetContentRegionAvail( ).x - ImGui::GetStyle( ).ItemSpacing.x ) / 8;
+        const float KeyWindowWidth   = Width_5 * 2;
+        const float ValueWindowWidth = Width_5 * 6;
+
+        VTy* SelectedValue = nullptr;
+
+        // Keys
+        if ( ImGui::BeginListBox( "##Keys", ImVec2( KeyWindowWidth, -FLT_MIN ) ) )
         {
-            const bool is_selected = ( ThisValueSaves == &KVPair.second );
-            if ( ImGui::Selectable( std::to_string( KVPair.first ).c_str( ), is_selected ) )
+            size_t Index = 0;
+            for ( auto& KVPair : *Value )
             {
-                ThisValueSaves = &KVPair.second;
+                const bool is_selected = ( ThisValueSaves == &KVPair.second );
+                if ( ImGui::Selectable( std::to_string( KVPair.first ).c_str( ), is_selected ) )
+                {
+                    ThisValueSaves = &KVPair.second;
+                }
+
+                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if ( is_selected )
+                {
+                    ImGui::SetItemDefaultFocus( );
+                }
+
+                Index += 1;
             }
 
-            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if ( is_selected )
-            {
-                ImGui::SetItemDefaultFocus( );
-            }
-
-            Index += 1;
+            ImGui::EndListBox( );
         }
 
-        ImGui::EndListBox( );
-    }
+        ImGui::SameLine( );
 
-    ImGui::SameLine( );
-
-    // Value
-    {
-        ImGui::BeginChild( "VView", ImVec2( ValueWindowWidth, 0 ), true, ImGuiWindowFlags_None );
-
-        if ( ThisValueSaves != nullptr )
+        // Value
         {
-            ToImGuiPointerSwitch( "Value", ThisValueSaves );
+            ImGui::BeginChild( "VView", ImVec2( ValueWindowWidth, 0 ), true, ImGuiWindowFlags_None );
+
+            if ( ThisValueSaves != nullptr )
+            {
+                ToImGuiPointerSwitch( "Value", ThisValueSaves );
+            }
+
+            ImGui::EndChild( );
         }
 
         ImGui::EndChild( );
+        ImGui::PopStyleVar( );
+
+        ImGui::PopID( );
     }
-
-    ImGui::EndChild( );
-    ImGui::PopStyleVar( );
-
-    ImGui::PopID( );
 }
 
 template <template <typename, typename> class Container,
@@ -172,25 +183,35 @@ ToImGuiWidget( const char* Name, Container<Ty, Allocator>* Value )
 
     char* IndexPtrStart = NameStrWithIndex.data( ) + NameStr.size( );
 
-    for ( size_t Index = 0; Index < Value->size( ); Index++ )
+
+    if ( ImGui::CollapsingHeader( Name, ImGuiTreeNodeFlags_OpenOnArrow ) )
     {
-        snprintf( IndexPtrStart, NameStrWithIndex.capacity() + 1, "[%zu]", Index );
-        ToImGuiPointerSwitch( NameStrWithIndex.c_str( ), Value->at( Index ) );
+        for ( size_t Index = 0; Index < Value->size( ); Index++ )
+        {
+            snprintf( IndexPtrStart, NameStrWithIndex.capacity( ) + 1, "[%zu]", Index );
+            ToImGuiPointerSwitch( NameStrWithIndex.c_str( ), Value->at( Index ) );
+        }
     }
 }
 
 /*
  *
- * Is a double pointer
+ * Is a double pointer without type impl
  *
  * */
 template <typename Ty>
 inline typename std::enable_if_t<std::is_pointer_v<std::remove_pointer_t<Ty>>, void>
 ToImGuiPointerSwitch( const char* Name, Ty Value )
 {
-    ImGui::BeginDisabled( );
-    ImGui::InputScalar( Name, ImGuiDataType_U64, (void*) Value, nullptr, nullptr, "%p", ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal );
-    ImGui::EndDisabled( );
+    if constexpr ( requires( std::remove_pointer_t<Ty> ValueRP ) { ToImGuiWidget( Name, ValueRP ); } )
+    {
+        ToImGuiWidget( Name, *Value );
+    } else
+    {
+        ImGui::BeginDisabled( );
+        ImGui::InputScalar( Name, ImGuiDataType_U64, (void*) Value, nullptr, nullptr, "%p", ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal );
+        ImGui::EndDisabled( );
+    }
 }
 
 /*
