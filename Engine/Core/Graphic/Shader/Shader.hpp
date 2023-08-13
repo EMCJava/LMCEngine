@@ -6,14 +6,17 @@
 
 #include "ShaderProgram.hpp"
 
+#include <Engine/Core/Concept/PureConcept.hpp>
+
 #include <glm/glm.hpp>
 
 #include <cstdint>
 #include <memory>
 #include <string>
 
-class Shader
+class Shader : public PureConcept
 {
+    DECLARE_CONCEPT( Shader, PureConcept )
 public:
     Shader( ) = default;
 
@@ -34,4 +37,6 @@ public:
 
 private:
     std::shared_ptr<ShaderProgram> m_ShaderProgram;
+
+    ENABLE_IMGUI( Shader )
 };

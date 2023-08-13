@@ -19,7 +19,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 DEFINE_CONCEPT_DS( TileSpriteSet )
-DEFINE_SIMPLE_IMGUI_TYPE( TileSpriteSet, m_TileListPointer, m_SpritesOrigin )
+DEFINE_SIMPLE_IMGUI_TYPE( TileSpriteSet, m_TileListPointer, m_SpritesOrigin, m_Sprites )
 
 void
 TileSpriteSet::Render( )
@@ -122,6 +122,8 @@ TileSpriteSet::GetCurrentDegree( )
     {
         return m_TileList[ m_TileListPointer ].Degree;
     }
+
+    return 0;
 }
 
 void

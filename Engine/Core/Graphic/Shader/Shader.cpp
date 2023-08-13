@@ -5,11 +5,15 @@
 #include "Shader.hpp"
 
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Engine.hpp>
 
 #include <spdlog/spdlog.h>
 
 #include <fstream>
+
+DEFINE_CONCEPT_DS( Shader )
+DEFINE_SIMPLE_IMGUI_TYPE( Shader, m_ShaderProgram )
 
 void
 Shader::Bind( ) const

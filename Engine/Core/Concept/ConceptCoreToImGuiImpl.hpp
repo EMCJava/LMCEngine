@@ -7,8 +7,24 @@
 #include <Engine/Core/Scene/Orientation/OrientationCoordinate.hpp>
 
 #include <memory>
+#include <type_traits>
 
 #include <imgui.h>
+
+/*
+ *
+ * Is a pointer switches
+ *
+ * */
+template <typename Ty>
+inline typename std::enable_if_t<std::is_pointer_v<std::remove_pointer_t<Ty>>, void>
+ToImGuiPointerSwitch( const char* Name, Ty Value );
+template <typename Ty>
+inline typename std::enable_if_t<!std::is_pointer_v<std::remove_pointer_t<Ty>> && std::is_pointer_v<Ty>, void>
+ToImGuiPointerSwitch( const char* Name, Ty Value );
+template <typename Ty>
+inline typename std::enable_if_t<!std::is_pointer_v<Ty>, void>
+ToImGuiPointerSwitch( const char* Name, Ty& Value );
 
 inline void
 ToImGuiWidget( const char* Name, OrientationCoordinate::Coordinate* Value )
@@ -49,14 +65,118 @@ ToImGuiWidget( const char* Name, std::string* Value )
     ImGui::InputText( Name, Value->data( ), Value->capacity( ) + 1 );
 }
 
+/*
+ *
+ * std containers
+ *
+ * */
 template <typename Ty>
 void
 ToImGuiWidget( const char* Name, std::shared_ptr<Ty>* Value )
 {
-    auto PtrAddress = reinterpret_cast<uint64_t>( Value->get( ) );
-    ImGui::BeginDisabled( );
-    ImGui::InputScalar( Name, ImGuiDataType_U64, &PtrAddress, nullptr, nullptr, "%p", ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal );
-    ImGui::EndDisabled( );
+    ToImGuiPointerSwitch( Name, Value->get( ) );
+}
+
+template <typename Ty>
+void
+ToImGuiWidget( const char* Name, std::unique_ptr<Ty>* Value )
+{
+    ToImGuiPointerSwitch( Name, Value->get( ) );
+}
+
+/*
+ *
+ * Container such as map
+ *
+ * */
+template <template <typename, typename, typename, typename> class Container,
+          typename KTy,
+          typename VTy,
+          typename Comparator = std::less<KTy>,
+          typename Allocator  = std::allocator<std::pair<KTy, VTy>>>
+void
+ToImGuiWidget( const char* Name, Container<KTy, VTy, Comparator, Allocator>* Value )
+{
+    // FIXME: put this in engine or anything other than here
+    static std::map<void*, VTy*> IndexValueSaves;
+    VTy*&                        ThisValueSaves = IndexValueSaves[ Value ];
+
+    ImGui::PushID( Value );
+
+    ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 5.0f );
+    ImGui::BeginChild( "KVView", ImVec2( -FLT_MIN, 260 ), true, ImGuiWindowFlags_None );
+
+    ImGui::SeparatorText( Name );
+
+    const float Width_5          = ( ImGui::GetContentRegionAvail( ).x - ImGui::GetStyle( ).ItemSpacing.x ) / 8;
+    const float KeyWindowWidth   = Width_5 * 2;
+    const float ValueWindowWidth = Width_5 * 6;
+
+    VTy* SelectedValue = nullptr;
+
+    // Keys
+    if ( ImGui::BeginListBox( "##Keys", ImVec2( KeyWindowWidth, -FLT_MIN ) ) )
+    {
+        size_t Index = 0;
+        for ( auto& KVPair : *Value )
+        {
+            const bool is_selected = ( ThisValueSaves == &KVPair.second );
+            if ( ImGui::Selectable( std::to_string( KVPair.first ).c_str( ), is_selected ) )
+            {
+                ThisValueSaves = &KVPair.second;
+            }
+
+            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if ( is_selected )
+            {
+                ImGui::SetItemDefaultFocus( );
+            }
+
+            Index += 1;
+        }
+
+        ImGui::EndListBox( );
+    }
+
+    ImGui::SameLine( );
+
+    // Value
+    {
+        ImGui::BeginChild( "VView", ImVec2( ValueWindowWidth, 0 ), true, ImGuiWindowFlags_None );
+
+        if ( ThisValueSaves != nullptr )
+        {
+            ToImGuiPointerSwitch( "Value", ThisValueSaves );
+        }
+
+        ImGui::EndChild( );
+    }
+
+    ImGui::EndChild( );
+    ImGui::PopStyleVar( );
+
+    ImGui::PopID( );
+}
+
+template <template <typename, typename> class Container,
+          typename Ty,
+          typename Allocator = std::allocator<Ty>>
+void
+ToImGuiWidget( const char* Name, Container<Ty, Allocator>* Value )
+{
+    static std::string NameStrWithIndex;
+    std::string        NameStr = NameStrWithIndex = Name;
+
+    const int Digit = log10( Value->size( ) ) + 1;
+    NameStrWithIndex.reserve( NameStr.size( ) + 2 + Digit );
+
+    char* IndexPtrStart = NameStrWithIndex.data( ) + NameStr.size( );
+
+    for ( size_t Index = 0; Index < Value->size( ); Index++ )
+    {
+        sprintf( IndexPtrStart, "[%zu]", Index );
+        ToImGuiPointerSwitch( NameStrWithIndex.c_str( ), Value->at( Index ) );
+    }
 }
 
 /*
@@ -65,7 +185,7 @@ ToImGuiWidget( const char* Name, std::shared_ptr<Ty>* Value )
  *
  * */
 template <typename Ty>
-inline typename std::enable_if_t<std::is_pointer<typename std::remove_pointer<Ty>::type>::value, void>
+inline typename std::enable_if_t<std::is_pointer_v<std::remove_pointer_t<Ty>>, void>
 ToImGuiPointerSwitch( const char* Name, Ty Value )
 {
     ImGui::BeginDisabled( );
@@ -79,8 +199,20 @@ ToImGuiPointerSwitch( const char* Name, Ty Value )
  *
  * */
 template <typename Ty>
-inline typename std::enable_if_t<!std::is_pointer<typename std::remove_pointer<Ty>::type>::value, void>
+inline typename std::enable_if_t<!std::is_pointer_v<std::remove_pointer_t<Ty>> && std::is_pointer_v<Ty>, void>
 ToImGuiPointerSwitch( const char* Name, Ty Value )
 {
     ToImGuiWidget( Name, Value );
+}
+
+/*
+ *
+ * Is a value
+ *
+ * */
+template <typename Ty>
+inline typename std::enable_if_t<!std::is_pointer_v<Ty>, void>
+ToImGuiPointerSwitch( const char* Name, Ty& Value )
+{
+    ToImGuiWidget( Name, &Value );
 }

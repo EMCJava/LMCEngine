@@ -4,13 +4,15 @@
 
 #pragma once
 
+#include <Engine/Core/Concept/PureConcept.hpp>
+
 #include <string_view>
 
-class ShaderProgram
+class ShaderProgram : public PureConcept
 {
+    DECLARE_CONCEPT( ShaderProgram, PureConcept )
 public:
     ShaderProgram( ) = default;
-    ~ShaderProgram( );
 
     void
     Load( const char* Vertex, const char* Fragment );
@@ -26,4 +28,6 @@ public:
 
 protected:
     uint32_t m_ProgramID = 0;
+
+    ENABLE_IMGUI( ShaderProgram )
 };

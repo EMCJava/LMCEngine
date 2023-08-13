@@ -313,6 +313,13 @@ Engine::CreateImGuiContext( )
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL( m_MainWindow->GetWindowHandle( ), true );
     ImGui_ImplOpenGL3_Init( );
+
+#ifdef HOT_RELOAD
+    if ( m_RootConcept != nullptr )
+    {
+        m_RootConcept->SetEngineContext( this );
+    }
+#endif
 }
 
 void

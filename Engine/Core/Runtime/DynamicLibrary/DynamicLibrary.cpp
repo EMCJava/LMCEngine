@@ -191,7 +191,7 @@ DynamicLibrary::MakeDLLCopy( )
 
     const fs::path DLLFileDebugInfo = DLLFileWithoutExtension.string( ) + ".pdb";
 
-    if ( fs::exists( DLLFileDebugInfo ) )
+    if ( fs::exists( DLLFileDebugInfo ) && false )
     {
         spdlog::info( "DynamicLibrary::MakeDLLCopy: Removing debug info for hot-reloading: {}", DLLFileDebugInfo.string( ) );
         MakeSureOperation( [ &DLLFileDebugInfo, retry_left = 10 ]( ) mutable {

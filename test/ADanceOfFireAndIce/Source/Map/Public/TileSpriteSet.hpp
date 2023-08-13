@@ -22,7 +22,7 @@ public:
         FloatTy  Time { };
 
         bool    ReverseDirection { false };
-        FloatTy BPMChange { 0.0f };
+        FloatTy BPMChange { 0.0F };
 
         SpriteSquareTexture* TextureCache { };
 

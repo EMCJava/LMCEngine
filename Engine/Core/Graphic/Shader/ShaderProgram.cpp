@@ -6,11 +6,15 @@
 
 #include <Engine/Engine.hpp>
 
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 
 #include <spdlog/spdlog.h>
 
 #include <fstream>
+
+DEFINE_CONCEPT( ShaderProgram )
+DEFINE_SIMPLE_IMGUI_TYPE( ShaderProgram, m_ProgramID )
 
 void
 ShaderProgram::Load( const char* Vertex, const char* Fragment )

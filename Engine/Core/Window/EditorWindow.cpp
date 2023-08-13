@@ -348,6 +348,8 @@ EditorWindow::UpdateImGui( )
             {
                 if ( ImGui::BeginTabItem( Name ) )
                 {
+                    auto* CurrentContext = ImGui::GetCurrentContext( );
+
                     const auto ToImGuiFuncPtr = Engine::GetEngine( )->GetConceptToImGuiFuncPtr( m_ConceptInspectionCache.SelectedConcept->GetTypeIDV( ) );
                     if ( ToImGuiFuncPtr != nullptr )
                     {
