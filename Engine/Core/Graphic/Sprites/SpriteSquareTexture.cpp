@@ -14,9 +14,12 @@ DEFINE_CONCEPT_DS( SpriteSquareTexture )
 DEFINE_NECESSARY_IMGUI_TYPE( SpriteSquareTexture )
 
 void
-SpriteSquareTexture::ToImGuiWidgetInternal( const char* Name, SpriteSquareTexture* Value )
+SpriteSquareTexture::ToImGuiWidgetInternal( const char* Name, SpriteSquareTexture* Value, bool ShouldAddSeparator )
 {
-    ImGui::SeparatorText( "SpriteSquareTexture" );
+    if ( ShouldAddSeparator )
+    {
+        ImGui::SeparatorText( "SpriteSquareTexture" );
+    }
 
     ToImGuiPointerSwitch( "m_TextureID", &Value->m_TextureID );
     // Texture preview
@@ -35,7 +38,7 @@ SpriteSquareTexture::ToImGuiWidgetInternal( const char* Name, SpriteSquareTextur
     }
 
     SIMPLE_LIST_DEFAULT_IMGUI_TYPE( m_TexturePath );
-    SpriteSquare::ToImGuiWidgetInternal( Name, Value );
+    SpriteSquare::ToImGuiWidgetInternal( Name, Value, ShouldAddSeparator );
 }
 
 void

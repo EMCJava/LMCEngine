@@ -292,25 +292,28 @@
 #define DEFINE_DLL_TYPE_TO_IMGUI( class_name )                               \
     LMC_API void ToImGuiWidget_##class_name( const char* Name, void* Value ) \
     {                                                                        \
-        ToImGuiWidget( Name, static_cast<class_name*>( Value ) );            \
+        ToImGuiWidget( Name, static_cast<class_name*>( Value ), true );      \
     }
 
-#define DEFINE_NECESSARY_IMGUI_TYPE( class_name )             \
-                                                              \
-    void ToImGuiWidget( const char* Name, class_name* Value ) \
-    {                                                         \
-        class_name::ToImGuiWidgetInternal( Name, Value );     \
-    }                                                         \
-                                                              \
+#define DEFINE_NECESSARY_IMGUI_TYPE( class_name )                                      \
+                                                                                       \
+    void ToImGuiWidget( const char* Name, class_name* Value, bool ShouldAddSeparator ) \
+    {                                                                                  \
+        class_name::ToImGuiWidgetInternal( Name, Value, ShouldAddSeparator );          \
+    }                                                                                  \
+                                                                                       \
     DEFINE_DLL_TYPE_TO_IMGUI( class_name )
 
-#define DEFINE_SIMPLE_IMGUI_TYPE( class_name, ... )                               \
-    void class_name::ToImGuiWidgetInternal( const char* Name, class_name* Value ) \
-    {                                                                             \
-        ImGui::SeparatorText( #class_name );                                      \
-        SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ );                            \
-    }                                                                             \
-                                                                                  \
+#define DEFINE_SIMPLE_IMGUI_TYPE( class_name, ... )                                                        \
+    void class_name::ToImGuiWidgetInternal( const char* Name, class_name* Value, bool ShouldAddSeparator ) \
+    {                                                                                                      \
+        if ( ShouldAddSeparator )                                                                          \
+        {                                                                                                  \
+            ImGui::SeparatorText( #class_name );                                                           \
+        }                                                                                                  \
+        SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ );                                                     \
+    }                                                                                                      \
+                                                                                                           \
     DEFINE_NECESSARY_IMGUI_TYPE( class_name )
 
 
@@ -319,27 +322,30 @@
  * It will chain the result of parent class
  *
  * */
-#define DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( class_name, chain_target, ... )         \
-    void class_name::ToImGuiWidgetInternal( const char* Name, class_name* Value ) \
-    {                                                                             \
-        ImGui::SeparatorText( #class_name );                                      \
-        SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ );                            \
-        chain_target::ToImGuiWidgetInternal( Name, Value );                       \
-    }                                                                             \
-                                                                                  \
+#define DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( class_name, chain_target, ... )                                  \
+    void class_name::ToImGuiWidgetInternal( const char* Name, class_name* Value, bool ShouldAddSeparator ) \
+    {                                                                                                      \
+        if ( ShouldAddSeparator )                                                                          \
+        {                                                                                                  \
+            ImGui::SeparatorText( #class_name );                                                           \
+        }                                                                                                  \
+        SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ );                                                     \
+        chain_target::ToImGuiWidgetInternal( Name, Value, ShouldAddSeparator );                            \
+    }                                                                                                      \
+                                                                                                           \
     DEFINE_NECESSARY_IMGUI_TYPE( class_name )
 
-#define ENABLE_IMGUI( class_name )                                            \
-                                                                              \
-protected:                                                                    \
-    static void ToImGuiWidgetInternal( const char* Name, class_name* Value ); \
-                                                                              \
-public:                                                                       \
-    friend void ToImGuiWidget( const char* Name, class_name* Value );         \
-    }                                                                         \
-    ;                                                                         \
-    void ToImGuiWidget( const char* Name, class_name* Value );                \
-    /* For formatting */ namespace                                            \
+#define ENABLE_IMGUI( class_name )                                                                             \
+                                                                                                               \
+protected:                                                                                                     \
+    static void ToImGuiWidgetInternal( const char* Name, class_name* Value, bool ShouldAddSeparator = false ); \
+                                                                                                               \
+public:                                                                                                        \
+    friend void ToImGuiWidget( const char* Name, class_name* Value, bool ShouldAddSeparator );                 \
+    }                                                                                                          \
+    ;                                                                                                          \
+    void ToImGuiWidget( const char* Name, class_name* Value, bool ShouldAddSeparator = false );                \
+    /* For formatting */ namespace                                                                             \
     {
 
 struct NamingCollectionConcept {
