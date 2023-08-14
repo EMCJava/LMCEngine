@@ -36,7 +36,7 @@ GameWindow::Update( )
                     m_MainViewPortDimension = MainWindowViewPortDimensions;
 
                     ( (Concept*) RootConcept )->GetConcepts<PureConceptCamera>( m_ConceptCameras );
-                    m_ConceptCameras.ForEach( [ this ]( PureConceptCamera* item ) {
+                    m_ConceptCameras.ForEach( [ this ]( std::shared_ptr<PureConceptCamera>& item ) {
                         item->SetDimensions( m_MainViewPortDimension.first, m_MainViewPortDimension.second );
                     } );
                 }
@@ -52,7 +52,7 @@ GameWindow::Update( )
                 m_GLContext->ClearColor( 0.85f, 0.83f, 0.84f, 1.0f );
                 m_GLContext->Clear( GL_COLOR_BUFFER_BIT );
 
-                m_ConceptRenderables.ForEach( []( ConceptRenderable* item ) {
+                m_ConceptRenderables.ForEach( []( std::shared_ptr<ConceptRenderable>& item ) {
                     item->Render( );
                 } );
             }

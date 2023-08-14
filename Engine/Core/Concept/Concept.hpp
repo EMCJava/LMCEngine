@@ -27,7 +27,7 @@ public:
      *
      * */
     template <class ConceptType, typename... Args>
-    ConceptType*
+    std::shared_ptr<ConceptType>
     AddConcept( Args&&... params );
 
     bool
@@ -42,12 +42,12 @@ public:
     RemoveConcepts( );
 
     template <class ConceptType>
-    ConceptType*
+    std::shared_ptr<PureConcept>
     GetConcept( );
 
     template <class ConceptType>
     void
-    GetConcepts( std::vector<ConceptType*>& Out );
+    GetConcepts( std::vector<std::shared_ptr<PureConcept>>& Out );
 
     template <class ConceptType>
     void
@@ -60,7 +60,7 @@ public:
     Destroy( );
 
 private:
-    std::vector<std::unique_ptr<PureConcept>> m_SubConcepts;
+    std::vector<std::shared_ptr<PureConcept>> m_SubConcepts;
 
     /*
      *
@@ -72,30 +72,31 @@ private:
 };
 
 template <class ConceptType, typename... Args>
-ConceptType*
+std::shared_ptr<ConceptType>
 Concept::AddConcept( Args&&... params )
 {
     m_ConceptsStateHash.NextUint64( );
 
     if constexpr ( ConceptType::template CanCastS<Concept>( ) )
     {
-        auto* Result        = (ConceptType*) ( m_SubConcepts.emplace_back( std::make_unique<ConceptType>( std::forward<Args>( params )... ) ).get( ) );
+        auto Result = std::static_pointer_cast<ConceptType>( m_SubConcepts.emplace_back( std::make_unique<ConceptType>( std::forward<Args>( params )... ) ) );
+
         Result->m_BelongsTo = this;
         return Result;
     }
 
-    return (ConceptType*) ( m_SubConcepts.emplace_back( std::make_unique<ConceptType>( std::forward<Args>( params )... ) ).get( ) );
+    return std::static_pointer_cast<ConceptType>( m_SubConcepts.emplace_back( std::make_unique<ConceptType>( std::forward<Args>( params )... ) ) );
 }
 
 template <class ConceptType>
-ConceptType*
+std::shared_ptr<PureConcept>
 Concept::GetConcept( )
 {
-    for ( const auto& Concept : m_SubConcepts )
+    for ( auto& Concept : m_SubConcepts )
     {
         if ( Concept->CanCastV( ConceptType::TypeID ) )
         {
-            return (ConceptType*) Concept.get( );
+            return Concept;
         }
     }
 
@@ -121,14 +122,14 @@ Concept::RemoveConcept( )
 
 template <class ConceptType>
 void
-Concept::GetConcepts( std::vector<ConceptType*>& Out )
+Concept::GetConcepts( std::vector<std::shared_ptr<PureConcept>>& Out )
 {
     Out.clear( );
     for ( const auto& Concept : m_SubConcepts )
     {
         if ( Concept->CanCastV( ConceptType::TypeID ) )
         {
-            Out.emplace_back( (ConceptType*) Concept.get( ) );
+            Out.emplace_back( Concept );
         }
     }
 }
@@ -163,11 +164,11 @@ Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out )
 
     Out.m_CacheHash = StateHash;
     Out.m_CachedConcepts.clear( );
-    for ( const auto& Concept : m_SubConcepts )
+    for ( auto& Concept : m_SubConcepts )
     {
         if ( Concept->CanCastV( ConceptType::TypeID ) )
         {
-            Out.m_CachedConcepts.emplace_back( (ConceptType*) Concept.get( ) );
+            Out.m_CachedConcepts.emplace_back( std::static_pointer_cast<ConceptType>( Concept ) );
         }
     }
 }

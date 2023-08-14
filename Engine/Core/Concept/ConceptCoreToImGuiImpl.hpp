@@ -88,6 +88,18 @@ ToImGuiWidget( const char* Name, std::pair<Ty1, Ty2>* Value )
 
 template <typename Ty>
 void
+ToImGuiWidget( const char* Name, std::weak_ptr<Ty>* Value )
+{
+    if ( Value->expired( ) )
+    {
+        ImGui::TextDisabled( "%s [ REF EXPIRED ]", Name );
+    }
+
+    ToImGuiPointerSwitch( Name, Value->lock( ).get( ) );
+}
+
+template <typename Ty>
+void
 ToImGuiWidget( const char* Name, std::shared_ptr<Ty>* Value )
 {
     ToImGuiPointerSwitch( Name, Value->get( ) );
@@ -229,7 +241,13 @@ template <typename Ty>
 inline typename std::enable_if_t<!std::is_pointer_v<std::remove_pointer_t<Ty>> && std::is_pointer_v<Ty>, void>
 ToImGuiPointerSwitch( const char* Name, Ty Value )
 {
-    ToImGuiWidget( Name, Value );
+    if constexpr ( requires( Ty ValueReq ) { ToImGuiWidget( Name, ValueReq ); } )
+    {
+        ToImGuiWidget( Name, Value );
+    } else
+    {
+        ImGui::InputScalar( Name, ImGuiDataType_U64, (void*) &Value, nullptr, nullptr, "%p", ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal );
+    }
 }
 
 /*

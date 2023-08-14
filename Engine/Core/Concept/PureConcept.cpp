@@ -4,7 +4,12 @@
 
 #include "PureConcept.hpp"
 
-DEFINE_CONCEPT_DS( PureConcept )
+DEFINE_CONCEPT( PureConcept )
+
+PureConcept::~PureConcept( )
+{
+    spdlog::critical( "!!!! PureConcept::~PureConcept(): {} !!!!", fmt::ptr( this ) );
+}
 
 uint64_t
 PureConcept::GetHash( ) const noexcept

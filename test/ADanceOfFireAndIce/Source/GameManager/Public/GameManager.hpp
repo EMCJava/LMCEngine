@@ -77,7 +77,7 @@ private:
     bool    m_IsCheckingDeviceDelay = true;
     int64_t m_UserDeviceOffsetMS { };
 
-    TileSpriteSet* m_TileSpriteSet;
+    std::weak_ptr<TileSpriteSet> m_TileSpriteSetRef;
 
     /*
      *
@@ -93,9 +93,9 @@ private:
      * Game State
      *
      * */
-    bool                       m_ActivePlayerIsFire { false };
-    class SpriteSquareTexture* m_ActivePlayerSprite { };
-    class SpriteSquareTexture* m_InActivePlayerSprite { };
+    bool                                     m_ActivePlayerIsFire { false };
+    std::shared_ptr<class SpriteSquareTexture> m_ActivePlayerSprite { };
+    std::shared_ptr<class SpriteSquareTexture> m_InActivePlayerSprite { };
 
     bool m_PlayerDirectionClockWise { true };
 
@@ -116,12 +116,12 @@ private:
      * Concept saves
      *
      * */
-    class PureConceptCamera* m_Camera { };
+    std::shared_ptr<class PureConceptCamera> m_Camera { };
 
-    class SpriteSquareTexture* m_FBSp { };
-    class SpriteSquareTexture* m_IBSp { };
+    std::weak_ptr<class SpriteSquareTexture> m_FBSp { };
+    std::weak_ptr<class SpriteSquareTexture> m_IBSp { };
 
-    class SpriteSquareAnimatedTexture* m_ExplosionSprite { };
+    std::shared_ptr<class SpriteSquareAnimatedTexture> m_ExplosionSprite { };
 
     ENABLE_IMGUI( GameManager )
 };

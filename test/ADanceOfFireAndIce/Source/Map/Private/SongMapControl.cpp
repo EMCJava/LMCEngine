@@ -11,5 +11,5 @@
 void
 SongMapControl::SetTileSpriteSet( TileSpriteSet* Ptr )
 {
-    m_TileSpriteSet = Ptr;
+    m_TileSpriteSetRef = Ptr;
 }

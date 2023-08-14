@@ -30,7 +30,7 @@ public:
 private:
     uint64_t m_CacheHash { };
 
-    std::vector<Ty*> m_CachedConcepts { };
+    std::vector<std::shared_ptr<Ty>> m_CachedConcepts { };
 
     friend class Concept;
 };
@@ -46,7 +46,7 @@ template <typename Ty>
 void
 ConceptSetFetchCache<Ty>::ForEach( auto&& F )
 {
-    for ( Ty* C : m_CachedConcepts )
+    for ( auto& C : m_CachedConcepts )
     {
         F( C );
     }

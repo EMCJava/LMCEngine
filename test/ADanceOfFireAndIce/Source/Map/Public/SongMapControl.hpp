@@ -10,5 +10,5 @@ public:
     void SetTileSpriteSet( class TileSpriteSet* Ptr );
 
 private:
-    class TileSpriteSet* m_TileSpriteSet;
+    class TileSpriteSet* m_TileSpriteSetRef;
 };

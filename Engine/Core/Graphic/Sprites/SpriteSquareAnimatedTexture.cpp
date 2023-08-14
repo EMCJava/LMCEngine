@@ -63,6 +63,7 @@ SpriteSquareAnimatedTexture::Render( )
 
     if ( !m_Repeat && m_AnimationFrameIndex >= m_FrameBoxList.size( ) - 1 )
     {
+        Destroy( );
         return;
     }
 

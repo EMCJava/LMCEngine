@@ -450,13 +450,13 @@ EditorWindow::RenderConceptHierarchy( PureConcept* Con )
                 auto& ConceptsCache = m_ConceptInspectionCache.ConceptTree[ Con->GetHash( ) ];
                 ( (Concept*) Con )->GetConcepts( ConceptsCache );
 
-                ConceptsCache.ForEachIndex( [ this ]( auto Index, PureConcept* Con ) {
-                    ImGui::PushID( Con );
+                ConceptsCache.ForEachIndex( [ this ]( auto Index, std::shared_ptr<PureConcept>& Con ) {
+                    ImGui::PushID( Con.get( ) );
 
-                    if ( RenderConceptHierarchy( Con ) )
+                    if ( RenderConceptHierarchy( Con.get( ) ) )
                     {
                         m_ConceptInspectionCache.SelectedConceptMask.clear( );
-                        m_ConceptInspectionCache.SelectedConceptMask.emplace( Con );
+                        m_ConceptInspectionCache.SelectedConceptMask.emplace( Con.get( ) );
                     }
 
                     ImGui::PopID( );

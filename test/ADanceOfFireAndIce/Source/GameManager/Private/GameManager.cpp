@@ -20,7 +20,7 @@
 #include <GLFW/glfw3.h>
 
 DEFINE_CONCEPT_DS_MA_SE( GameManager )
-DEFINE_SIMPLE_IMGUI_TYPE( GameManager, m_BPM, m_CameraLerp, m_TileSpriteSet )
+DEFINE_SIMPLE_IMGUI_TYPE( GameManager, m_BPM, m_CameraLerp, m_TileSpriteSetRef )
 
 namespace
 {
@@ -1328,8 +1328,8 @@ GameManager::GameManager( )
     SetupCamera( );
     LoadAudio( );
 
-    m_TileSpriteSet = AddConcept<TileSpriteSet>( );
-    m_TileSpriteSet->SetActiveCamera( m_Camera );
+    m_TileSpriteSetRef = AddConcept<TileSpriteSet>( );
+    m_TileSpriteSetRef.lock( )->SetActiveCamera( m_Camera.get( ) );
 
     LoadPlayerSprites( );
 
@@ -1369,8 +1369,10 @@ GameManager::Apply( )
         }
     } else
     {
+        auto TileSpriteSetShared = m_TileSpriteSetRef.lock( );
+
         const int64_t PlayPosition         = m_MainAudioHandle.GetCorrectedCurrentAudioOffset( ) - m_UserDeviceOffsetMS;
-        const FloatTy NextPlayTilePosition = m_TileSpriteSet->GetNextStartTime( );
+        const FloatTy NextPlayTilePosition = TileSpriteSetShared->GetNextStartTime( );
         const FloatTy DeltaTimeToNext      = NextPlayTilePosition - PlayPosition;
 
         if ( m_WaitingForFirstBeat )
@@ -1379,7 +1381,7 @@ GameManager::Apply( )
             {
                 m_WaitingForFirstBeat = false;
             }
-        } else if ( !m_TileSpriteSet->TileReachedEnd( ) )
+        } else if ( !TileSpriteSetShared->TileReachedEnd( ) )
         {
             /*
              *
@@ -1425,7 +1427,7 @@ GameManager::Apply( )
                 {
                     spdlog::info( "Play position: {}ms, next play tile position: {}ms", PlayPosition, NextPlayTilePosition );
 
-                    m_TileSpriteSet->Advance( );
+                    TileSpriteSetShared->Advance( );
                     DidAdvanced = true;
                 }
             } else
@@ -1435,7 +1437,7 @@ GameManager::Apply( )
                 {
                     spdlog::info( "Node Miss: {} -> {}", PlayPosition, NextPlayTilePosition );
 
-                    m_TileSpriteSet->Advance( );
+                    TileSpriteSetShared->Advance( );
                     DidAdvanced = true;
                 }
                 if ( PlayerInteract )
@@ -1447,19 +1449,19 @@ GameManager::Apply( )
                     {
                     case Tolerance::Perfect:
                         spdlog::info( "Perfect" );
-                        m_TileSpriteSet->Advance( );
+                        TileSpriteSetShared->Advance( );
                         break;
                     case Tolerance::Good:
                         spdlog::info( "Good" );
-                        m_TileSpriteSet->Advance( );
+                        TileSpriteSetShared->Advance( );
                         break;
                     case Tolerance::Bad:
                         spdlog::info( "Bad" );
-                        m_TileSpriteSet->Advance( );
+                        TileSpriteSetShared->Advance( );
                         break;
                     case Tolerance::EarlyMiss:
                         spdlog::info( "EarlyMiss" );
-                        m_TileSpriteSet->Advance( );
+                        TileSpriteSetShared->Advance( );
                         break;
                     default:
                         DidAdvanced = false;
@@ -1480,7 +1482,7 @@ GameManager::Apply( )
                  * */
                 const auto CompensateBeat         = -DeltaTimeToNext / m_MSPB;
                 const auto NoteHitCompensateAngle = DirectionVector * CompensateBeat * 3.14159265f;
-                const auto RotationDegree         = m_TileSpriteSet->GetCurrentRollRotation( );
+                const auto RotationDegree         = TileSpriteSetShared->GetCurrentRollRotation( );
                 m_InActivePlayerSprite->SetRotation( 0, 0, RotationDegree + 3.14159264f + NoteHitCompensateAngle );
 
                 /*
@@ -1488,7 +1490,7 @@ GameManager::Apply( )
                  * Move player for correct location on map
                  *
                  * */
-                const auto TileTransform = m_TileSpriteSet->GetCurrentTileTransform( );
+                const auto TileTransform = TileSpriteSetShared->GetCurrentTileTransform( );
                 m_InActivePlayerSprite->SetCoordinate( TileTransform.x, TileTransform.y );
                 m_ActivePlayerSprite->SetCoordinate( TileTransform.x, TileTransform.y );
 
@@ -1507,7 +1509,7 @@ GameManager::Apply( )
                  * Tile effect
                  *
                  * */
-                const auto& NewTile = m_TileSpriteSet->GetCurrentTileMeta( );
+                const auto& NewTile = TileSpriteSetShared->GetCurrentTileMeta( );
                 if ( NewTile.ReverseDirection )
                 {
                     m_PlayerDirectionClockWise = !m_PlayerDirectionClockWise;
@@ -1531,14 +1533,14 @@ GameManager::LoadTileSprites( const std::set<uint32_t>& Degrees )
     Sh->SetProgram( SProgram );
 
     const auto AddDegreeTile = [ & ]( uint32_t Degree ) {
-        auto* Sp = m_TileSpriteSet->RegisterSprite( Degree, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
+        auto* Sp = m_TileSpriteSetRef.lock( )->RegisterSprite( Degree, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
 
         Sp->SetShader( Sh );
         Sp->SetTexturePath( "Access/Texture/Tile/" + std::to_string( Degree ) + ".png" );
         Sp->SetupSprite( );
     };
 
-    m_TileSpriteSet->SetSpritesOrigin( { 512 / 2, 512 / 2 } );
+    m_TileSpriteSetRef.lock( )->SetSpritesOrigin( { 512 / 2, 512 / 2 } );
 
     for ( auto Degree : Degrees )
     {
@@ -1549,9 +1551,10 @@ GameManager::LoadTileSprites( const std::set<uint32_t>& Degrees )
 void
 GameManager::LoadTileMap( )
 {
+    auto Map = m_TileSpriteSetRef.lock( );
     for ( int i = 0; i < 40; ++i )
     {
-        m_TileSpriteSet->AddTile( TmpMap[ i ] );
+        Map->AddTile( TmpMap[ i ] );
     }
 }
 
@@ -1573,8 +1576,10 @@ void
 GameManager::SetupCamera( )
 {
     m_Camera = AddConcept<PureConceptCamera>( );
-    m_Camera->SetScale( 1 / 2.5F );
-    m_Camera->UpdateProjectionMatrix( );
+
+    auto CameraLocked = m_Camera;
+    CameraLocked->SetScale( 1 / 2.5F );
+    CameraLocked->UpdateProjectionMatrix( );
 }
 
 void
@@ -1585,22 +1590,25 @@ GameManager::LoadPlayerSprites( )
     auto Sh = std::make_shared<Shader>( );
     Sh->SetProgram( SProgram );
 
-    m_InActivePlayerSprite = m_FBSp = AddConcept<SpriteSquareTexture>( 512, 512 );
+    m_FBSp = m_InActivePlayerSprite = AddConcept<SpriteSquareTexture>( 512, 512 );
 
-    m_FBSp->SetRotationCenter( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
-    m_FBSp->SetOrigin( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
+    auto FBSpLocked = m_FBSp.lock( );
+    FBSpLocked->SetRotationCenter( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
+    FBSpLocked->SetOrigin( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
 
-    m_FBSp->SetShader( Sh );
-    m_FBSp->SetTexturePath( "Access/Texture/Player/FireBall.png" );
-    m_FBSp->SetActiveCamera( m_Camera );
-    m_FBSp->SetupSprite( );
+    FBSpLocked->SetShader( Sh );
+    FBSpLocked->SetTexturePath( "Access/Texture/Player/FireBall.png" );
+    FBSpLocked->SetActiveCamera( m_Camera.get( ) );
+    FBSpLocked->SetupSprite( );
 
-    m_ActivePlayerSprite = m_IBSp = AddConcept<SpriteSquareTexture>( 512, 512 );
-    m_IBSp->SetOrigin( 512 / 2, 512 / 2 );
-    m_IBSp->SetShader( Sh );
-    m_IBSp->SetTexturePath( "Access/Texture/Player/IceBall.png" );
-    m_IBSp->SetActiveCamera( m_Camera );
-    m_IBSp->SetupSprite( );
+    m_IBSp = m_ActivePlayerSprite = AddConcept<SpriteSquareTexture>( 512, 512 );
+    auto IBSpLocked               = m_IBSp.lock( );
+
+    IBSpLocked->SetOrigin( 512 / 2, 512 / 2 );
+    IBSpLocked->SetShader( Sh );
+    IBSpLocked->SetTexturePath( "Access/Texture/Player/IceBall.png" );
+    IBSpLocked->SetActiveCamera( m_Camera.get( ) );
+    IBSpLocked->SetupSprite( );
 }
 
 bool
@@ -1679,10 +1687,11 @@ GameManager::SetupExplosionSprite( )
     Sh->SetProgram( m_ActivePlayerSprite->GetShader( )->GetProgram( ) );
 
     m_ExplosionSprite = AddConcept<SpriteSquareAnimatedTexture>( 512, 512 );
+
     m_ExplosionSprite->SetOrigin( 512 / 2, 512 / 2 );
     m_ExplosionSprite->SetShader( Sh );
     m_ExplosionSprite->SetTexturePath( "Access/Texture/explosion.png" );
-    m_ExplosionSprite->SetActiveCamera( m_Camera );
+    m_ExplosionSprite->SetActiveCamera( m_Camera.get( ) );
 
     // Animation setting
     m_ExplosionSprite->SetTextureGrid( 8, 8 );
