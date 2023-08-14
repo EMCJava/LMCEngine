@@ -50,7 +50,7 @@ public:
     SetFrameTime( FloatTy DeltaTime );
 
     void
-    SetRepeat( bool Repeat, bool DestroyAfterFinish );
+    SetRepeat( bool Repeat = true, bool DestroyAfterFinish = true );
 
 protected:
     uint32_t m_AnimationFrameIndex { 0 };
