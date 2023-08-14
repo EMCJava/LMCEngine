@@ -30,6 +30,9 @@ public:
     ConceptType*
     AddConcept( Args&&... params );
 
+    bool
+    RemoveConcept( PureConcept* ConceptPtr );
+
     template <class ConceptType>
     bool
     RemoveConcept( );
@@ -53,9 +56,19 @@ public:
     bool
     HasSubConcept( );
 
-private:
+    void
+    Destroy( );
 
+private:
     std::vector<std::unique_ptr<PureConcept>> m_SubConcepts;
+
+    /*
+     *
+     * Pointer to who owns(calls AddConcept on) this concept
+     * Useful in e.g. Destroy concept, PureConcept should not be able to delete itself
+     *
+     * */
+    Concept* m_BelongsTo = nullptr;
 };
 
 template <class ConceptType, typename... Args>
@@ -63,6 +76,14 @@ ConceptType*
 Concept::AddConcept( Args&&... params )
 {
     m_ConceptsStateHash.NextUint64( );
+
+    if constexpr ( ConceptType::template CanCastS<Concept>( ) )
+    {
+        auto* Result        = (ConceptType*) ( m_SubConcepts.emplace_back( std::make_unique<ConceptType>( std::forward<Args>( params )... ) ).get( ) );
+        Result->m_BelongsTo = this;
+        return Result;
+    }
+
     return (ConceptType*) ( m_SubConcepts.emplace_back( std::make_unique<ConceptType>( std::forward<Args>( params )... ) ).get( ) );
 }
 
