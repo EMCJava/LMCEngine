@@ -1349,16 +1349,6 @@ GameManager::Apply( )
     const auto DeltaSecond    = Engine::GetEngine( )->GetDeltaSecond( );
     const bool PlayerInteract = IsUserPrimaryInteract( );
 
-    static FloatTy AnimationUpdateDelay { };
-    AnimationUpdateDelay -= DeltaSecond;
-
-    if ( AnimationUpdateDelay <= 0 )
-    {
-        m_ExplosionSprite->NextFrame( );
-
-        AnimationUpdateDelay = 0.005;
-    }
-
     if ( m_IsCheckingDeviceDelay ) [[unlikely]]
     {
         // Adjust the audio offset to the correct value
@@ -1696,6 +1686,7 @@ GameManager::SetupExplosionSprite( )
 
     // Animation setting
     m_ExplosionSprite->SetTextureGrid( 8, 8 );
+    m_ExplosionSprite->SetFrameTime( 0.005F );
 
     m_ExplosionSprite->SetupSprite( );
 }

@@ -41,9 +41,20 @@ public:
     size_t
     GetTotalFrame( ) const;
 
+    /*
+     *
+     * Second each frame will stay
+     *
+     * */
+    void
+    SetFrameTime( FloatTy DeltaTime );
+
 protected:
     uint32_t m_AnimationFrameIndex { 0 };
     uint32_t m_HorCount { 0 }, m_VertCount { 0 };
+
+    FloatTy m_FrameTime { 0 };
+    FloatTy m_CurrentFrameTimeLeft { 0 };
 
     std::vector<std::pair<FrameBoxListCoordinate, FrameBoxListCoordinate>> m_FrameBoxList { };
 

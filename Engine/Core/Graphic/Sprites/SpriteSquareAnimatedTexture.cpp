@@ -61,6 +61,18 @@ SpriteSquareAnimatedTexture::Render( )
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
 
+    if ( m_FrameTime != 0 )
+    {
+        m_CurrentFrameTimeLeft -= Engine::GetEngine( )->GetDeltaSecond( );
+
+        if ( m_CurrentFrameTimeLeft <= 0 )
+        {
+            NextFrame( );
+
+            m_CurrentFrameTimeLeft = m_FrameTime;
+        }
+    }
+
     if ( m_Shader != nullptr )
     {
         gl->ActiveTexture( GL_TEXTURE0 );
@@ -134,7 +146,7 @@ SpriteSquareAnimatedTexture::SetupSprite( )
         }
     }
 
-    spdlog::critical("AAAA {}", FrameIndicesArray[std::size( indices ) * m_FrameBoxList.size( ) - 1]);
+    spdlog::critical( "AAAA {}", FrameIndicesArray[ std::size( indices ) * m_FrameBoxList.size( ) - 1 ] );
 
     GL_CHECK( gl->GenVertexArrays( 1, &m_VAO ) )
     GL_CHECK( gl->BindVertexArray( m_VAO ) )
@@ -203,4 +215,10 @@ void
 SpriteSquareAnimatedTexture::NextFrame( )
 {
     m_AnimationFrameIndex = ( m_AnimationFrameIndex + 1 ) % m_FrameBoxList.size( );
+}
+
+void
+SpriteSquareAnimatedTexture::SetFrameTime( FloatTy DeltaTime )
+{
+    m_FrameTime = DeltaTime;
 }
