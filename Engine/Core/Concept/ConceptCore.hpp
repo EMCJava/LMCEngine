@@ -264,15 +264,11 @@ private:
  * Most basic concepts definition, a virtual function checking static parent set \
  *                                                                               \
  * */
-#define DEFINE_CONCEPT_DS( class_name )         \
-                                                \
-    class_name::~class_name( ) = default;       \
-                                                \
-    bool                                        \
-    class_name::CanCastV( uint64_t ConceptID )  \
-    {                                           \
-        return ParentSet::Contain( ConceptID ); \
-    }
+#define DEFINE_CONCEPT_DS( class_name )   \
+                                          \
+    class_name::~class_name( ) = default; \
+                                          \
+    DEFINE_CONCEPT( class_name )
 
 /*
  *
