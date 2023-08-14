@@ -15,7 +15,7 @@
 #include <stb_image.h>
 
 DEFINE_CONCEPT_DS( SpriteSquareAnimatedTexture )
-DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( SpriteSquareAnimatedTexture, SpriteSquareTexture, m_AnimationFrameIndex, m_FrameBoxList, m_FrameTime, m_CurrentFrameTimeLeft )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( SpriteSquareAnimatedTexture, SpriteSquareTexture, m_AnimationFrameIndex, m_FrameBoxList, m_Repeat, m_DestroyAfterFinish, m_FrameTime, m_CurrentFrameTimeLeft )
 
 void
 SpriteSquareAnimatedTexture::SetTextureGrid( uint32_t HorCount, uint32_t VertCount )
@@ -60,6 +60,11 @@ void
 SpriteSquareAnimatedTexture::Render( )
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
+
+    if ( !m_Repeat && m_AnimationFrameIndex >= m_FrameBoxList.size( ) - 1 )
+    {
+        return;
+    }
 
     if ( m_FrameTime != 0 )
     {
@@ -221,4 +226,11 @@ void
 SpriteSquareAnimatedTexture::SetFrameTime( FloatTy DeltaTime )
 {
     m_FrameTime = DeltaTime;
+}
+
+void
+SpriteSquareAnimatedTexture::SetRepeat( bool Repeat, bool DestroyAfterFinish )
+{
+    m_Repeat             = Repeat;
+    m_DestroyAfterFinish = DestroyAfterFinish;
 }

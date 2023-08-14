@@ -1687,6 +1687,7 @@ GameManager::SetupExplosionSprite( )
     // Animation setting
     m_ExplosionSprite->SetTextureGrid( 8, 8 );
     m_ExplosionSprite->SetFrameTime( 0.005F );
+    m_ExplosionSprite->SetRepeat( false );
 
     m_ExplosionSprite->SetupSprite( );
 }

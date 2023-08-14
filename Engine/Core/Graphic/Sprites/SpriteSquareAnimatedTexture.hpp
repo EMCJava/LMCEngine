@@ -49,12 +49,18 @@ public:
     void
     SetFrameTime( FloatTy DeltaTime );
 
+    void
+    SetRepeat( bool Repeat, bool DestroyAfterFinish );
+
 protected:
     uint32_t m_AnimationFrameIndex { 0 };
     uint32_t m_HorCount { 0 }, m_VertCount { 0 };
 
     FloatTy m_FrameTime { 0 };
     FloatTy m_CurrentFrameTimeLeft { 0 };
+
+    bool m_Repeat { true };
+    bool m_DestroyAfterFinish { true };
 
     std::vector<std::pair<FrameBoxListCoordinate, FrameBoxListCoordinate>> m_FrameBoxList { };
 

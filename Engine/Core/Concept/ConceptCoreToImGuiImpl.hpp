@@ -35,6 +35,12 @@ ToImGuiWidget( const char* Name, OrientationCoordinate::Coordinate* Value )
 }
 
 inline void
+ToImGuiWidget( const char* Name, bool* Value )
+{
+    ImGui::Checkbox( Name, Value );
+}
+
+inline void
 ToImGuiWidget( const char* Name, size_t* Value )
 {
     ImGui::InputScalar( Name, ImGuiDataType_U64, Value );
