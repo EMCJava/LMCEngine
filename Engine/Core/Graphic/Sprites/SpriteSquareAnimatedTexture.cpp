@@ -15,7 +15,7 @@
 #include <stb_image.h>
 
 DEFINE_CONCEPT_DS( SpriteSquareAnimatedTexture )
-DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( SpriteSquareAnimatedTexture, SpriteSquareTexture, m_AnimationFrameIndex, m_FrameBoxList )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( SpriteSquareAnimatedTexture, SpriteSquareTexture, m_AnimationFrameIndex, m_FrameBoxList, m_FrameTime, m_CurrentFrameTimeLeft )
 
 void
 SpriteSquareAnimatedTexture::SetTextureGrid( uint32_t HorCount, uint32_t VertCount )
