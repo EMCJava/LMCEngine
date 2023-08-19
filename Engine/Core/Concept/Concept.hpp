@@ -11,6 +11,9 @@
 #include <memory>
 #include <vector>
 
+#pragma warning(Using dynamic_pointer_cast, performance can be impacted)
+#define ConceptCasting std::dynamic_pointer_cast
+
 /*
  *
  * Virtual Concept system in this engine
@@ -79,13 +82,13 @@ Concept::AddConcept( Args&&... params )
 
     if constexpr ( ConceptType::template CanCastS<Concept>( ) )
     {
-        auto Result = std::static_pointer_cast<ConceptType>( m_SubConcepts.emplace_back( std::make_unique<ConceptType>( std::forward<Args>( params )... ) ) );
+        auto Result = ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( std::make_unique<ConceptType>( std::forward<Args>( params )... ) ) );
 
         Result->m_BelongsTo = this;
         return Result;
     }
 
-    return std::static_pointer_cast<ConceptType>( m_SubConcepts.emplace_back( std::make_unique<ConceptType>( std::forward<Args>( params )... ) ) );
+    return ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( std::make_unique<ConceptType>( std::forward<Args>( params )... ) ) );
 }
 
 template <class ConceptType>
@@ -168,7 +171,7 @@ Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out )
     {
         if ( Concept->CanCastV( ConceptType::TypeID ) )
         {
-            Out.m_CachedConcepts.emplace_back( std::static_pointer_cast<ConceptType>( Concept ) );
+            Out.m_CachedConcepts.emplace_back( std::dynamic_pointer_cast<ConceptType>( Concept ) );
         }
     }
 }
