@@ -41,7 +41,7 @@ PrintSysCallError( std::string_view message )
     size_t size = FormatMessageA( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                                   nullptr, errorMessageID, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), (LPSTR) &messageBuffer, 0, nullptr );
 
-    spdlog::error( "{}: {}", message, std::string_view( messageBuffer, size ) );
+    spdlog::error( "{}: {}", message, std::string_view( messageBuffer, size - 2 ) );
 
     // Free the Win32's string's buffer.
     LocalFree( messageBuffer );
