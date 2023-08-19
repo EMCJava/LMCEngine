@@ -21,7 +21,6 @@ GameWindow::Update( )
 
         auto* RootConcept = GetConceptPtr( );
 
-        m_ConceptRenderables.Clear( );
         if ( RootConcept->CanCastV( Concept::TypeID ) )
         {
             ( (Concept*) RootConcept )->GetConcepts( m_ConceptRenderables );
