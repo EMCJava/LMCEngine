@@ -264,10 +264,13 @@ private:
  * Most basic concepts definition, a virtual function checking static parent set \
  *                                                                               \
  * */
-#define DEFINE_CONCEPT_DS( class_name )   \
-                                          \
-    class_name::~class_name( ) = default; \
-                                          \
+#define DEFINE_CONCEPT_DS( class_name )                                               \
+                                                                                      \
+    class_name::~class_name( )                                                        \
+    {                                                                                 \
+        spdlog::trace( "{}::~{} -> {}", #class_name, #class_name, fmt::ptr( this ) ); \
+    }                                                                                 \
+                                                                                      \
     DEFINE_CONCEPT( class_name )
 
 /*
