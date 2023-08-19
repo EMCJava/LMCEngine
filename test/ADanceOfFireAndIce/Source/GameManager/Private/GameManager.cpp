@@ -1686,17 +1686,18 @@ GameManager::SetupExplosionSprite( )
     auto Sh = std::make_shared<Shader>( );
     Sh->SetProgram( m_ActivePlayerSprite->GetShader( )->GetProgram( ) );
 
-    m_ExplosionSprite = AddConcept<SpriteSquareAnimatedTexture>( 512, 512 );
+    m_ExplosionSprite          = AddConcept<SpriteSquareAnimatedTexture>( 512, 512 );
+    auto ExplosionSpriteShared = m_ExplosionSprite.lock( );
 
-    m_ExplosionSprite->SetOrigin( 512 / 2, 512 / 2 );
-    m_ExplosionSprite->SetShader( Sh );
-    m_ExplosionSprite->SetTexturePath( "Access/Texture/explosion.png" );
-    m_ExplosionSprite->SetActiveCamera( m_Camera.get( ) );
+    ExplosionSpriteShared->SetOrigin( 512 / 2, 512 / 2 );
+    ExplosionSpriteShared->SetShader( Sh );
+    ExplosionSpriteShared->SetTexturePath( "Access/Texture/explosion.png" );
+    ExplosionSpriteShared->SetActiveCamera( m_Camera.get( ) );
 
     // Animation setting
-    m_ExplosionSprite->SetTextureGrid( 8, 8 );
-    m_ExplosionSprite->SetFrameTime( 0.005F );
-    m_ExplosionSprite->SetRepeat( false );
+    ExplosionSpriteShared->SetTextureGrid( 8, 8 );
+    ExplosionSpriteShared->SetFrameTime( 0.005F );
+    ExplosionSpriteShared->SetRepeat( false );
 
-    m_ExplosionSprite->SetupSprite( );
+    ExplosionSpriteShared->SetupSprite( );
 }

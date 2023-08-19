@@ -78,6 +78,10 @@ Engine::Engine( )
     }
 
     spdlog::info( "Engine initializing" );
+#ifndef NDEBUG
+    spdlog::set_level( spdlog::level::trace );
+#endif
+
     InitializeEnvironment( );
 
     m_AudioEngine = new AudioEngine;
@@ -414,6 +418,10 @@ Engine::GetGLContext( )
 void
 Engine::SetEngine( Engine* EngineContext )
 {
+#ifndef NDEBUG
+    spdlog::set_level( spdlog::level::trace );
+#endif
+
     spdlog::warn( "Setting engine context manually to: {}", fmt::ptr( EngineContext ) );
     g_Engine = EngineContext;
 

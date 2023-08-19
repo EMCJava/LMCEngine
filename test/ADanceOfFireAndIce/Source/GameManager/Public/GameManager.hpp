@@ -121,7 +121,7 @@ private:
     std::weak_ptr<class SpriteSquareTexture> m_FBSp { };
     std::weak_ptr<class SpriteSquareTexture> m_IBSp { };
 
-    std::shared_ptr<class SpriteSquareAnimatedTexture> m_ExplosionSprite { };
+    std::weak_ptr<class SpriteSquareAnimatedTexture> m_ExplosionSprite { };
 
     ENABLE_IMGUI( GameManager )
 };
