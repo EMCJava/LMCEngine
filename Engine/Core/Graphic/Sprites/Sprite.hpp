@@ -27,6 +27,9 @@ public:
     Shader*
     GetShader( );
 
+    void
+    SetShaderMatrix( );
+
     /*
      *
      * Setup/Recreate sprite

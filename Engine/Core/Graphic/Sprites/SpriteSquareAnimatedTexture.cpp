@@ -79,13 +79,8 @@ SpriteSquareAnimatedTexture::Render( )
         }
     }
 
-    if ( m_Shader != nullptr )
-    {
-        gl->ActiveTexture( GL_TEXTURE0 );
-        gl->BindTexture( GL_TEXTURE_2D, m_TextureID );
-    }
-
-    Sprite::Render( );
+    SetShaderMatrix( );
+    BindTexture( );
 
     GL_CHECK( gl->BindVertexArray( m_VAO ) )
     GL_CHECK( gl->BindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_EBO ) )
@@ -171,48 +166,7 @@ SpriteSquareAnimatedTexture::SetupSprite( )
     GL_CHECK( gl->BindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_EBO ) )
     GL_CHECK( gl->BufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( indices ) * m_FrameBoxList.size( ), FrameIndicesArray.get( ), GL_STATIC_DRAW ) )
 
-    // Setup texture
-
-    // texture 1
-    // ---------
-    gl->GenTextures( 1, &m_TextureID );
-    gl->BindTexture( GL_TEXTURE_2D, m_TextureID );
-    // set the texture wrapping parameters
-    gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );   // set texture wrapping to GL_REPEAT (default wrapping method)
-    gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-    // set texture filtering parameters
-    gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    // load image, create texture and generate mipmaps
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load( true );   // tell stb_image.h to flip loaded texture's on the y-axis.
-    unsigned char* data = stbi_load( m_TexturePath.c_str( ), &width, &height, &nrChannels, 0 );
-    if ( data )
-    {
-        GLenum Format;
-        if ( nrChannels == 1 )
-        {
-            Format = GL_RED;
-        } else if ( nrChannels == 3 )
-        {
-            Format = GL_RGB;
-        } else if ( nrChannels == 4 )
-        {
-            Format = GL_RGBA;
-        }
-
-        spdlog::info( "Loaded texture {} with size {} x {} C {}", m_TexturePath, width, height, nrChannels );
-
-        gl->TexImage2D( GL_TEXTURE_2D, 0, Format, width, height, 0, Format, GL_UNSIGNED_BYTE, data );
-        gl->GenerateMipmap( GL_TEXTURE_2D );
-    } else
-    {
-        spdlog::error( "Failed to load texture" );
-    }
-    stbi_image_free( data );
-
-    m_Shader->Bind( );
-    gl->Uniform1i( m_Shader->GetUniformLocation( "sample_texture" ), 0 );
+    LoadTexture( );
 }
 
 void

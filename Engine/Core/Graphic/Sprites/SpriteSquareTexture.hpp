@@ -22,6 +22,12 @@ public:
     void
     SetupSprite( ) override;
 
+    void
+    LoadTexture( );
+
+    void
+    BindTexture( );
+
     uint32_t
     GetTextureID( ) const noexcept;
 

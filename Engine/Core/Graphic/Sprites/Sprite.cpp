@@ -29,16 +29,7 @@ Sprite::~Sprite( )
 void
 Sprite::Render( )
 {
-    if ( m_Shader != nullptr )
-    {
-        m_Shader->Bind( );
-        if ( m_ActiveCamera != nullptr )
-        {
-            m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
-        }
-
-        m_Shader->SetMat4( "modelMatrix", GetTranslationMatrix( ) * GetRotationMatrix( ) );
-    }
+    SetShaderMatrix( );
 }
 
 void
@@ -51,4 +42,19 @@ Shader*
 Sprite::GetShader( )
 {
     return m_Shader.get( );
+}
+
+void
+Sprite::SetShaderMatrix( )
+{
+    if ( m_Shader != nullptr )
+    {
+        m_Shader->Bind( );
+        if ( m_ActiveCamera != nullptr )
+        {
+            m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
+        }
+
+        m_Shader->SetMat4( "modelMatrix", GetTranslationMatrix( ) * GetRotationMatrix( ) );
+    }
 }

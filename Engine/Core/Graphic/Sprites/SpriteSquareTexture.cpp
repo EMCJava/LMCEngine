@@ -87,10 +87,44 @@ SpriteSquareTexture::SetupSprite( )
     GL_CHECK( gl->BindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_EBO ) )
     GL_CHECK( gl->BufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( indices ), indices, GL_STATIC_DRAW ) )
 
-    // Setup texture
+    LoadTexture( );
+}
 
-    // texture 1
-    // ---------
+void
+SpriteSquareTexture::SetTexturePath( const std::string& TexturePath )
+{
+    m_TexturePath = TexturePath;
+}
+
+void
+SpriteSquareTexture::Render( )
+{
+    BindTexture( );
+    SpriteSquare::Render( );
+}
+
+uint32_t
+SpriteSquareTexture::GetTextureID( ) const noexcept
+{
+    return m_TextureID;
+}
+
+void
+SpriteSquareTexture::BindTexture( )
+{
+    if ( m_Shader != nullptr )
+    {
+        const auto* gl = Engine::GetEngine( )->GetGLContext( );
+        gl->ActiveTexture( GL_TEXTURE0 );
+        gl->BindTexture( GL_TEXTURE_2D, m_TextureID );
+    }
+}
+
+void
+SpriteSquareTexture::LoadTexture( )
+{
+    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+
     gl->GenTextures( 1, &m_TextureID );
     gl->BindTexture( GL_TEXTURE_2D, m_TextureID );
     // set the texture wrapping parameters
@@ -129,29 +163,4 @@ SpriteSquareTexture::SetupSprite( )
 
     m_Shader->Bind( );
     gl->Uniform1i( m_Shader->GetUniformLocation( "sample_texture" ), 0 );
-}
-
-void
-SpriteSquareTexture::SetTexturePath( const std::string& TexturePath )
-{
-    m_TexturePath = TexturePath;
-}
-
-void
-SpriteSquareTexture::Render( )
-{
-    if ( m_Shader != nullptr )
-    {
-        const auto* gl = Engine::GetEngine( )->GetGLContext( );
-        gl->ActiveTexture( GL_TEXTURE0 );
-        gl->BindTexture( GL_TEXTURE_2D, m_TextureID );
-    }
-
-    SpriteSquare::Render( );
-}
-
-uint32_t
-SpriteSquareTexture::GetTextureID( ) const noexcept
-{
-    return m_TextureID;
 }
