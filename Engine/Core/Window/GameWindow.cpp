@@ -24,7 +24,7 @@ GameWindow::Update( )
         m_ConceptRenderables.Clear( );
         if ( RootConcept->CanCastV( Concept::TypeID ) )
         {
-            ( (Concept*) RootConcept )->GetConcepts<ConceptRenderable>( m_ConceptRenderables );
+            ( (Concept*) RootConcept )->GetConcepts( m_ConceptRenderables );
 
             if ( m_ConceptRenderables.NotEmpty( ) )
             {
@@ -35,7 +35,7 @@ GameWindow::Update( )
                 {
                     m_MainViewPortDimension = MainWindowViewPortDimensions;
 
-                    ( (Concept*) RootConcept )->GetConcepts<PureConceptCamera>( m_ConceptCameras );
+                    ( (Concept*) RootConcept )->GetConcepts( m_ConceptCameras );
                     m_ConceptCameras.ForEach( [ this ]( std::shared_ptr<PureConceptCamera>& item ) {
                         item->SetDimensions( m_MainViewPortDimension.first, m_MainViewPortDimension.second );
                     } );
