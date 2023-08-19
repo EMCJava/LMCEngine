@@ -152,8 +152,6 @@ SpriteSquareAnimatedTexture::SetupSprite( )
         }
     }
 
-    spdlog::critical( "AAAA {}", FrameIndicesArray[ std::size( indices ) * m_FrameBoxList.size( ) - 1 ] );
-
     GL_CHECK( gl->GenVertexArrays( 1, &m_VAO ) )
     GL_CHECK( gl->BindVertexArray( m_VAO ) )
 
