@@ -7,6 +7,7 @@
 #include <Engine/Core/Math/Random/FastRandom.hpp>
 
 #include <vector>
+#include <memory>
 
 template <typename Ty>
 class ConceptSetFetchCache
