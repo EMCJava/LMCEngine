@@ -123,8 +123,14 @@ Engine::~Engine( )
 {
     spdlog::info( "Engine destroying" );
 
+#ifdef HOT_RELOAD
+    // We might still need the destructor for example in the dll
+    // We only deallocate the concept but leave the library loaded
+    m_RootConcept->DeAllocateConcept( );
+#else
     delete m_RootConcept;
     m_RootConcept = nullptr;
+#endif
 
     delete m_MainWindowPool;
     m_MainWindowPool = nullptr;
@@ -148,6 +154,13 @@ Engine::~Engine( )
 
     delete m_AudioEngine;
     m_AudioEngine = nullptr;
+
+#ifdef HOT_RELOAD
+    // After "almost" everything is deallocated
+    // We then unload the dll safely
+    delete m_RootConcept;
+    m_RootConcept = nullptr;
+#endif
 
     ShutdownEnvironment( );
 }
