@@ -100,6 +100,7 @@ private:
      * */
     FloatTy m_BPM { };
     FloatTy m_MSPB { };
+    FloatTy m_DegreePreMS { };
     FloatTy m_PlayingSpeed { 1 };
 
     /*

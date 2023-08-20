@@ -1648,15 +1648,16 @@ GameManager::SetBPM( FloatTy BPM )
 {
     m_BPM  = BPM;
     m_MSPB = 60 * 1000 / BPM;
+
+    constexpr auto DegreePreBeat = 180;
+    m_DegreePreMS                = DegreePreBeat * ( 1 / m_MSPB );
 }
 
 GameManager::Tolerance
 GameManager::ToTolerance( FloatTy DeltaTime )
 {
-    const auto     AbsDeltaTime  = std::abs( DeltaTime );
-    constexpr auto DegreePreBeat = 180;
-    const auto     DegreePreMS   = DegreePreBeat * ( 1 / m_MSPB );
-    const auto     CurrentDegree = DegreePreMS * AbsDeltaTime;
+    const auto AbsDeltaTime  = std::abs( DeltaTime );
+    const auto CurrentDegree = m_DegreePreMS * AbsDeltaTime;
 
     if ( CurrentDegree < (FloatTy) Tolerance::Perfect )
     {
