@@ -1658,8 +1658,6 @@ GameManager::ToTolerance( FloatTy DeltaTime )
     const auto     DegreePreMS   = DegreePreBeat * ( 1 / m_MSPB );
     const auto     CurrentDegree = DegreePreMS * AbsDeltaTime;
 
-    spdlog::info( "CurrentDegree: {}, DeltaTime: {}", CurrentDegree, DeltaTime );
-
     if ( CurrentDegree < (FloatTy) Tolerance::Perfect )
     {
         return Tolerance::Perfect;
