@@ -130,7 +130,10 @@ Engine::~Engine( )
 #ifdef HOT_RELOAD
     // We might still need the destructor for example in the dll
     // We only deallocate the concept but leave the library loaded
-    m_RootConcept->DeAllocateConcept( );
+    if ( m_RootConcept != nullptr )
+    {
+        m_RootConcept->DeAllocateConcept( );
+    }
 #else
     delete m_RootConcept;
     m_RootConcept = nullptr;

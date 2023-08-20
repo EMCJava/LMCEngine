@@ -41,10 +41,13 @@ private:
     LoadAudio( );
 
     void
+    SetupShader( );
+
+    void
     SetupCamera( );
 
     void
-    SetupExplosionSprite( OrientationCoordinate::Coordinate Coordinate = { } );
+    SetupExplosionSpriteTemplate( );
 
     void
     LoadPlayerSprites( );
@@ -120,6 +123,9 @@ private:
 
     std::weak_ptr<class SpriteSquareTexture> m_FBSp { };
     std::weak_ptr<class SpriteSquareTexture> m_IBSp { };
+
+    std::shared_ptr<class Shader>                      m_SpriteShader { };
+    std::unique_ptr<class SpriteSquareAnimatedTexture> m_ExplosionSpriteTemplate { };
 
     ENABLE_IMGUI( GameManager )
 };

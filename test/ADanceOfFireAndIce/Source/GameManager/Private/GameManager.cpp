@@ -1332,12 +1332,15 @@ GameManager::GameManager( )
     m_TileSpriteSetRef = AddConcept<TileSpriteSet>( );
     m_TileSpriteSetRef.lock( )->SetActiveCamera( m_Camera.get( ) );
 
+    SetupShader( );
+
     LoadPlayerSprites( );
 
     LoadTileSprites( { 360, 315, 270, 240, 180, 135, 120, 90, 60, 45, 30 } );
     LoadTileMap( );
 
-    SetupExplosionSprite( );
+    SetupExplosionSpriteTemplate( );
+    ( *AddConcept<SpriteSquareAnimatedTexture>( 512, 512 ) ) << *m_ExplosionSpriteTemplate;
 
     m_InActivePlayerSprite->SetRotation( 0, 0, glm::radians( 180.f ) );
 
@@ -1473,11 +1476,10 @@ GameManager::Apply( )
 
             if ( DidAdvanced )
             {
-
-                {
-                    StopWatch timer;
-                    SetupExplosionSprite( m_InActivePlayerSprite->GetWorldCoordinate( ) );
-                }
+                const auto TileTransformBefore = TileSpriteSetShared->GetCurrentTileTransform( );
+                auto       NewExplosion        = ( AddConcept<SpriteSquareAnimatedTexture>( 512, 512 ) );
+                ( *NewExplosion ) << *m_ExplosionSpriteTemplate;
+                NewExplosion->SetCoordinate( TileTransformBefore.x, TileTransformBefore.y, TileTransformBefore.z );
 
                 TryAlterPlayer( );
 
@@ -1533,15 +1535,10 @@ GameManager::Apply( )
 void
 GameManager::LoadTileSprites( const std::set<uint32_t>& Degrees )
 {
-    auto SProgram = std::make_shared<ShaderProgram>( );
-    SProgram->Load( vertexTextureShaderSource, fragmentTextureShaderSource );
-    auto Sh = std::make_shared<Shader>( );
-    Sh->SetProgram( SProgram );
-
     const auto AddDegreeTile = [ & ]( uint32_t Degree ) {
         auto* Sp = m_TileSpriteSetRef.lock( )->RegisterSprite( Degree, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
 
-        Sp->SetShader( Sh );
+        Sp->SetShader( m_SpriteShader );
         Sp->SetTexturePath( "Access/Texture/Tile/" + std::to_string( Degree ) + ".png" );
         Sp->SetupSprite( );
     };
@@ -1591,18 +1588,13 @@ GameManager::SetupCamera( )
 void
 GameManager::LoadPlayerSprites( )
 {
-    auto SProgram = std::make_shared<ShaderProgram>( );
-    SProgram->Load( vertexTextureShaderSource, fragmentTextureShaderSource );
-    auto Sh = std::make_shared<Shader>( );
-    Sh->SetProgram( SProgram );
-
     m_FBSp = m_InActivePlayerSprite = AddConcept<SpriteSquareTexture>( 512, 512 );
 
     auto FBSpLocked = m_FBSp.lock( );
     FBSpLocked->SetRotationCenter( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
     FBSpLocked->SetOrigin( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
 
-    FBSpLocked->SetShader( Sh );
+    FBSpLocked->SetShader( m_SpriteShader );
     FBSpLocked->SetTexturePath( "Access/Texture/Player/FireBall.png" );
     FBSpLocked->SetActiveCamera( m_Camera.get( ) );
     FBSpLocked->SetupSprite( );
@@ -1611,7 +1603,7 @@ GameManager::LoadPlayerSprites( )
     auto IBSpLocked               = m_IBSp.lock( );
 
     IBSpLocked->SetOrigin( 512 / 2, 512 / 2 );
-    IBSpLocked->SetShader( Sh );
+    IBSpLocked->SetShader( m_SpriteShader );
     IBSpLocked->SetTexturePath( "Access/Texture/Player/IceBall.png" );
     IBSpLocked->SetActiveCamera( m_Camera.get( ) );
     IBSpLocked->SetupSprite( );
@@ -1687,24 +1679,31 @@ GameManager::ToTolerance( FloatTy DeltaTime )
 }
 
 void
-GameManager::SetupExplosionSprite( OrientationCoordinate::Coordinate Coordinate )
+GameManager::SetupExplosionSpriteTemplate( )
 {
-    auto Sh = std::make_shared<Shader>( );
-    Sh->SetProgram( m_ActivePlayerSprite->GetShader( )->GetProgram( ) );
+    REQUIRED_IF( m_SpriteShader, assert( false && "Explosion shader not loaded" ) )
+    {
+        m_ExplosionSpriteTemplate = std::make_unique<SpriteSquareAnimatedTexture>( 512, 512 );
 
-    auto ExplosionSpriteShared = AddConcept<SpriteSquareAnimatedTexture>( 512, 512 );
+        m_ExplosionSpriteTemplate->SetOrigin( 512 / 2, 512 / 2 );
+        m_ExplosionSpriteTemplate->SetShader( m_SpriteShader );
+        m_ExplosionSpriteTemplate->SetTexturePath( "Access/Texture/explosion.png" );
+        m_ExplosionSpriteTemplate->SetActiveCamera( m_Camera.get( ) );
 
-    ExplosionSpriteShared->SetOrigin( 512 / 2, 512 / 2 );
-    ExplosionSpriteShared->SetShader( Sh );
-    ExplosionSpriteShared->SetTexturePath( "Access/Texture/explosion.png" );
-    ExplosionSpriteShared->SetActiveCamera( m_Camera.get( ) );
+        // Animation setting
+        m_ExplosionSpriteTemplate->SetTextureGrid( 8, 8 );
+        m_ExplosionSpriteTemplate->SetFrameTime( 0.005F );
+        m_ExplosionSpriteTemplate->SetRepeat( false );
 
-    ExplosionSpriteShared->SetCoordinate( Coordinate );
+        m_ExplosionSpriteTemplate->SetupSprite( );
+    }
+}
 
-    // Animation setting
-    ExplosionSpriteShared->SetTextureGrid( 8, 8 );
-    ExplosionSpriteShared->SetFrameTime( 0.005F );
-    ExplosionSpriteShared->SetRepeat( false );
-
-    ExplosionSpriteShared->SetupSprite( );
+void
+GameManager::SetupShader( )
+{
+    auto SProgram = std::make_shared<ShaderProgram>( );
+    SProgram->Load( vertexTextureShaderSource, fragmentTextureShaderSource );
+    m_SpriteShader = std::make_shared<Shader>( );
+    m_SpriteShader->SetProgram( SProgram );
 }

@@ -43,5 +43,12 @@ protected:
     std::shared_ptr<Shader> m_Shader;
     uint32_t                m_VAO { }, m_VBO { }, m_EBO { };
 
+    /*
+     *
+     * Useful when multiple concept uses the same context
+     *
+     * */
+    bool m_ShouldDeallocateGLResources { true };
+
     ENABLE_IMGUI( Sprite )
 };

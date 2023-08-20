@@ -47,7 +47,7 @@ SpriteSquareAnimatedTexture::SetAnimationFrameIndex( uint32_t Index )
 size_t
 SpriteSquareAnimatedTexture::GetTotalFrame( ) const
 {
-    return m_FrameBoxList.size( );
+    return m_TotalFrame;
 }
 
 void
@@ -61,7 +61,7 @@ SpriteSquareAnimatedTexture::Render( )
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
 
-    if ( !m_Repeat && m_AnimationFrameIndex >= m_FrameBoxList.size( ) - 1 )
+    if ( !m_Repeat && m_AnimationFrameIndex >= m_TotalFrame - 1 )
     {
         Destroy( );
         return;
@@ -91,6 +91,7 @@ void
 SpriteSquareAnimatedTexture::SetupSprite( )
 {
     spdlog::info( "Setting up texture {}", m_TexturePath );
+    m_TotalFrame = m_FrameBoxList.size( );
 
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
     GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
@@ -113,8 +114,8 @@ SpriteSquareAnimatedTexture::SetupSprite( )
     }
 
     // Copy square for every frame
-    auto FrameVerticesArray = std::make_unique<float[]>( std::size( vertices ) * m_FrameBoxList.size( ) );
-    for ( int i = 0; i < m_FrameBoxList.size( ); ++i )
+    auto FrameVerticesArray = std::make_unique<float[]>( std::size( vertices ) * m_TotalFrame );
+    for ( int i = 0; i < m_TotalFrame; ++i )
     {
         auto* StartPtr = FrameVerticesArray.get( ) + i * std::size( vertices );
         memcpy( StartPtr, vertices, sizeof( vertices ) );
@@ -137,8 +138,8 @@ SpriteSquareAnimatedTexture::SetupSprite( )
         1, 2, 3    // second triangle
     };
 
-    auto FrameIndicesArray = std::make_unique<uint32_t[]>( std::size( indices ) * m_FrameBoxList.size( ) );
-    for ( int i = 0; i < m_FrameBoxList.size( ); ++i )
+    auto FrameIndicesArray = std::make_unique<uint32_t[]>( std::size( indices ) * m_TotalFrame );
+    for ( int i = 0; i < m_TotalFrame; ++i )
     {
         auto* StartPtr = FrameIndicesArray.get( ) + i * std::size( indices );
         for ( int j = 0; j < std::size( indices ); ++j )
@@ -153,7 +154,7 @@ SpriteSquareAnimatedTexture::SetupSprite( )
     // 2. copy our vertices array in a buffer for OpenGL to use
     GL_CHECK( gl->GenBuffers( 1, &m_VBO ) )
     GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_VBO ) )
-    GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, sizeof( vertices ) * m_FrameBoxList.size( ), FrameVerticesArray.get( ), GL_STATIC_DRAW ) )
+    GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, sizeof( vertices ) * m_TotalFrame, FrameVerticesArray.get( ), GL_STATIC_DRAW ) )
 
     // 3. then set our vertex attributes pointers
     GL_CHECK( gl->VertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, PointVerticesOccu * sizeof( float ), nullptr ) )
@@ -164,7 +165,7 @@ SpriteSquareAnimatedTexture::SetupSprite( )
 
     GL_CHECK( gl->GenBuffers( 1, &m_EBO ) )
     GL_CHECK( gl->BindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_EBO ) )
-    GL_CHECK( gl->BufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( indices ) * m_FrameBoxList.size( ), FrameIndicesArray.get( ), GL_STATIC_DRAW ) )
+    GL_CHECK( gl->BufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( indices ) * m_TotalFrame, FrameIndicesArray.get( ), GL_STATIC_DRAW ) )
 
     LoadTexture( );
 }
@@ -172,7 +173,7 @@ SpriteSquareAnimatedTexture::SetupSprite( )
 void
 SpriteSquareAnimatedTexture::NextFrame( )
 {
-    m_AnimationFrameIndex = ( m_AnimationFrameIndex + 1 ) % m_FrameBoxList.size( );
+    m_AnimationFrameIndex = ( m_AnimationFrameIndex + 1 ) % m_TotalFrame;
 }
 
 void
@@ -186,4 +187,33 @@ SpriteSquareAnimatedTexture::SetRepeat( bool Repeat, bool DestroyAfterFinish )
 {
     m_Repeat             = Repeat;
     m_DestroyAfterFinish = DestroyAfterFinish;
+}
+
+SpriteSquareAnimatedTexture&
+SpriteSquareAnimatedTexture::operator<<( SpriteSquareAnimatedTexture& Other )
+{
+    m_Origin = Other.m_Origin;
+    UpdateTranslationMatrix( );
+
+    m_Rotation = Other.m_Rotation;
+    UpdateRotationMatrix( );
+
+    m_Repeat               = Other.m_Repeat;
+    m_AnimationFrameIndex  = Other.m_AnimationFrameIndex;
+    m_TotalFrame           = Other.m_TotalFrame;
+    m_FrameTime            = Other.m_FrameTime;
+    m_CurrentFrameTimeLeft = Other.m_CurrentFrameTimeLeft;
+
+    m_Shader       = Other.m_Shader;
+    m_ActiveCamera = Other.m_ActiveCamera;
+
+    m_VAO = Other.m_VAO;
+    m_EBO = Other.m_EBO;
+    m_VAO = Other.m_VAO;
+
+    m_TextureID = Other.m_TextureID;
+
+    m_ShouldDeallocateGLResources = false;
+
+    return *this;
 }

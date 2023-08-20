@@ -52,6 +52,14 @@ public:
     void
     SetRepeat( bool Repeat = true, bool DestroyAfterFinish = true );
 
+    /*
+     *
+     * Copy this concept so that it's just renderable, nothing more
+     *
+     * */
+    SpriteSquareAnimatedTexture&
+    operator<<( SpriteSquareAnimatedTexture& Other );
+
 protected:
     uint32_t m_AnimationFrameIndex { 0 };
     uint32_t m_HorCount { 0 }, m_VertCount { 0 };
@@ -63,6 +71,8 @@ protected:
     bool m_DestroyAfterFinish { true };
 
     std::vector<std::pair<FrameBoxListCoordinate, FrameBoxListCoordinate>> m_FrameBoxList { };
+
+    size_t m_TotalFrame { 0 };
 
     ENABLE_IMGUI( SpriteSquareAnimatedTexture )
 };

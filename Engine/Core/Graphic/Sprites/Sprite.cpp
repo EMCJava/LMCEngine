@@ -16,14 +16,17 @@ DEFINE_SIMPLE_IMGUI_TYPE( Sprite, m_VAO, m_VBO, m_EBO, m_Shader )
 
 Sprite::~Sprite( )
 {
-    const auto* gl = Engine::GetEngine( )->GetGLContext( );
-    GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
+    if ( m_ShouldDeallocateGLResources )
+    {
+        const auto* gl = Engine::GetEngine( )->GetGLContext( );
+        GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
 
-    GL_CHECK( gl->DeleteVertexArrays( 1, &m_VAO ) );
-    GL_CHECK( gl->DeleteBuffers( 1, &m_VBO ) );
-    GL_CHECK( gl->DeleteBuffers( 1, &m_EBO ) );
+        GL_CHECK( gl->DeleteVertexArrays( 1, &m_VAO ) );
+        GL_CHECK( gl->DeleteBuffers( 1, &m_VBO ) );
+        GL_CHECK( gl->DeleteBuffers( 1, &m_EBO ) );
 
-    m_VAO = m_VBO = m_EBO = 0;
+        m_VAO = m_VBO = m_EBO = 0;
+    }
 }
 
 void
