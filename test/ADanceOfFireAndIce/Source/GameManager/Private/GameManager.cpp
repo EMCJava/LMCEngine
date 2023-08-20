@@ -5,6 +5,7 @@
 #include "GameManager.hpp"
 
 #include <Engine/Engine.hpp>
+#include <Engine/Core/Utilities/StopWatch.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
@@ -1473,6 +1474,11 @@ GameManager::Apply( )
             if ( DidAdvanced )
             {
 
+                {
+                    StopWatch timer;
+                    SetupExplosionSprite( m_InActivePlayerSprite->GetWorldCoordinate( ) );
+                }
+
                 TryAlterPlayer( );
 
                 /*
@@ -1681,18 +1687,19 @@ GameManager::ToTolerance( FloatTy DeltaTime )
 }
 
 void
-GameManager::SetupExplosionSprite( )
+GameManager::SetupExplosionSprite( OrientationCoordinate::Coordinate Coordinate )
 {
     auto Sh = std::make_shared<Shader>( );
     Sh->SetProgram( m_ActivePlayerSprite->GetShader( )->GetProgram( ) );
 
-    m_ExplosionSprite          = AddConcept<SpriteSquareAnimatedTexture>( 512, 512 );
-    auto ExplosionSpriteShared = m_ExplosionSprite.lock( );
+    auto ExplosionSpriteShared = AddConcept<SpriteSquareAnimatedTexture>( 512, 512 );
 
     ExplosionSpriteShared->SetOrigin( 512 / 2, 512 / 2 );
     ExplosionSpriteShared->SetShader( Sh );
     ExplosionSpriteShared->SetTexturePath( "Access/Texture/explosion.png" );
     ExplosionSpriteShared->SetActiveCamera( m_Camera.get( ) );
+
+    ExplosionSpriteShared->SetCoordinate( Coordinate );
 
     // Animation setting
     ExplosionSpriteShared->SetTextureGrid( 8, 8 );

@@ -10,6 +10,9 @@
 class Orientation : public OrientationCoordinate
     , public OrientationRotation
 {
+public:
+    OrientationCoordinate::Coordinate
+    GetWorldCoordinate( ) const;
 };
 
 template <>

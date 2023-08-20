@@ -32,6 +32,10 @@ public:
     SetCoordinate( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0 );
 
     const Coordinate&
+    SetCoordinate( Coordinate Coor );
+
+
+    const Coordinate&
     GetOrigin( ) const;
 
     const Coordinate&

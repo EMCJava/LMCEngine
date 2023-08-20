@@ -44,7 +44,7 @@ private:
     SetupCamera( );
 
     void
-    SetupExplosionSprite( );
+    SetupExplosionSprite( OrientationCoordinate::Coordinate Coordinate = { } );
 
     void
     LoadPlayerSprites( );
@@ -93,7 +93,7 @@ private:
      * Game State
      *
      * */
-    bool                                     m_ActivePlayerIsFire { false };
+    bool                                       m_ActivePlayerIsFire { false };
     std::shared_ptr<class SpriteSquareTexture> m_ActivePlayerSprite { };
     std::shared_ptr<class SpriteSquareTexture> m_InActivePlayerSprite { };
 
@@ -120,8 +120,6 @@ private:
 
     std::weak_ptr<class SpriteSquareTexture> m_FBSp { };
     std::weak_ptr<class SpriteSquareTexture> m_IBSp { };
-
-    std::weak_ptr<class SpriteSquareAnimatedTexture> m_ExplosionSprite { };
 
     ENABLE_IMGUI( GameManager )
 };
