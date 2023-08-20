@@ -13,16 +13,27 @@ class GameManager : public ConceptApplicable
 {
     DECLARE_CONCEPT( GameManager, ConceptApplicable )
 
+    /*
+     *
+     * Tolerance in degrees
+     *
+     * */
     enum class Tolerance : uint16_t {
-        Perfect   = 50,
-        Good      = 100,
-        Bad       = 200,
-        EarlyMiss = 300,
+        Perfect   = 30,
+        Good      = 45,
+        Bad       = 55,
+        EarlyMiss = 65,
         Miss,
         None
     };
 
-    static Tolerance ToTolerance( FloatTy DeltaTime );
+    /*
+     *
+     *
+     * Has to calculated base on bpm
+     * */
+    Tolerance
+    ToTolerance( FloatTy DeltaTime );
 
 public:
     GameManager( );

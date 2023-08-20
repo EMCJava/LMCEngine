@@ -1653,19 +1653,25 @@ GameManager::SetBPM( FloatTy BPM )
 GameManager::Tolerance
 GameManager::ToTolerance( FloatTy DeltaTime )
 {
-    const auto AbsDeltaTime = std::abs( DeltaTime );
-    if ( AbsDeltaTime < (FloatTy) Tolerance::Perfect )
+    const auto     AbsDeltaTime  = std::abs( DeltaTime );
+    constexpr auto DegreePreBeat = 180;
+    const auto     DegreePreMS   = DegreePreBeat * ( 1 / m_MSPB );
+    const auto     CurrentDegree = DegreePreMS * AbsDeltaTime;
+
+    spdlog::info( "CurrentDegree: {}, DeltaTime: {}", CurrentDegree, DeltaTime );
+
+    if ( CurrentDegree < (FloatTy) Tolerance::Perfect )
     {
         return Tolerance::Perfect;
-    } else if ( AbsDeltaTime < (FloatTy) Tolerance::Good )
+    } else if ( CurrentDegree < (FloatTy) Tolerance::Good )
     {
         return Tolerance::Good;
-    } else if ( AbsDeltaTime < (FloatTy) Tolerance::Bad )
+    } else if ( CurrentDegree < (FloatTy) Tolerance::Bad )
     {
         return Tolerance::Bad;
     } else if ( DeltaTime > 0 )
     {
-        if ( AbsDeltaTime < (FloatTy) Tolerance::Bad )
+        if ( CurrentDegree < (FloatTy) Tolerance::Bad )
         {
             return Tolerance::EarlyMiss;
         } else
