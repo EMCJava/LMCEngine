@@ -3,6 +3,7 @@
 //
 
 #include "GameManager.hpp"
+#include "ToleranceBar.hpp"
 
 #include <Engine/Engine.hpp>
 #include <Engine/Core/Utilities/StopWatch.hpp>
@@ -21,7 +22,7 @@
 #include <GLFW/glfw3.h>
 
 DEFINE_CONCEPT_DS_MA_SE( GameManager )
-DEFINE_SIMPLE_IMGUI_TYPE( GameManager, m_BPM, m_CameraLerp, m_TileSpriteSetRef )
+DEFINE_SIMPLE_IMGUI_TYPE( GameManager, m_BPM, m_CameraLerp, m_TileSpriteSetRef, m_ToleranceBar )
 
 namespace
 {
@@ -1340,7 +1341,7 @@ GameManager::GameManager( )
     LoadTileMap( );
 
     SetupExplosionSpriteTemplate( );
-    ( *AddConcept<SpriteSquareAnimatedTexture>( 512, 512 ) ) << *m_ExplosionSpriteTemplate;
+    LoadToleranceSprite( );
 
     m_InActivePlayerSprite->SetRotation( 0, 0, glm::radians( 180.f ) );
 
@@ -1476,19 +1477,39 @@ GameManager::Apply( )
 
             if ( DidAdvanced )
             {
+                /*
+                 *
+                 * Add tolerance bar
+                 *
+                 * */
+                auto EarlyMissDegree = (FloatTy) Tolerance::EarlyMiss;
+                m_ToleranceBar->AddBar( -m_DegreePreMS * DeltaTimeToNext / EarlyMissDegree );
+
+                /*
+                 *
+                 * Add explosion effect
+                 *
+                 * */
                 const auto TileTransformBefore = TileSpriteSetShared->GetCurrentTileTransform( );
                 auto       NewExplosion        = ( AddConcept<SpriteSquareAnimatedTexture>( 512, 512 ) );
                 ( *NewExplosion ) << *m_ExplosionSpriteTemplate;
                 NewExplosion->SetCoordinate( TileTransformBefore.x, TileTransformBefore.y, TileTransformBefore.z );
 
+                /*
+                 *
+                 * Switch player sprite
+                 *
+                 * */
                 TryAlterPlayer( );
+
+                const auto& NewTile = TileSpriteSetShared->GetCurrentTileMeta( );
 
                 /*
                  *
                  * Compensating offset for player misalignment generated from off beat hit
                  *
                  * */
-                const auto CompensateBeat         = -DeltaTimeToNext / m_MSPB;
+                const auto CompensateBeat         = -DeltaTimeToNext / m_MSPB * ( NewTile.ReverseDirection && m_PlayerDirectionClockWise ? -1 : 1 );
                 const auto NoteHitCompensateAngle = DirectionVector * CompensateBeat * 3.14159265f;
                 const auto RotationDegree         = TileSpriteSetShared->GetCurrentRollRotation( );
                 m_InActivePlayerSprite->SetRotation( 0, 0, RotationDegree + 3.14159264f + NoteHitCompensateAngle );
@@ -1517,7 +1538,6 @@ GameManager::Apply( )
                  * Tile effect
                  *
                  * */
-                const auto& NewTile = TileSpriteSetShared->GetCurrentTileMeta( );
                 if ( NewTile.ReverseDirection )
                 {
                     m_PlayerDirectionClockWise = !m_PlayerDirectionClockWise;
@@ -1659,18 +1679,18 @@ GameManager::ToTolerance( FloatTy DeltaTime )
     const auto AbsDeltaTime  = std::abs( DeltaTime );
     const auto CurrentDegree = m_DegreePreMS * AbsDeltaTime;
 
-    if ( CurrentDegree < (FloatTy) Tolerance::Perfect )
+    if ( CurrentDegree <= (FloatTy) Tolerance::Perfect )
     {
         return Tolerance::Perfect;
-    } else if ( CurrentDegree < (FloatTy) Tolerance::Good )
+    } else if ( CurrentDegree <= (FloatTy) Tolerance::Good )
     {
         return Tolerance::Good;
-    } else if ( CurrentDegree < (FloatTy) Tolerance::Bad )
+    } else if ( CurrentDegree <= (FloatTy) Tolerance::Bad )
     {
         return Tolerance::Bad;
     } else if ( DeltaTime > 0 )
     {
-        if ( CurrentDegree < (FloatTy) Tolerance::Bad )
+        if ( CurrentDegree <= (FloatTy) Tolerance::EarlyMiss )
         {
             return Tolerance::EarlyMiss;
         } else
@@ -1711,4 +1731,18 @@ GameManager::SetupShader( )
     SProgram->Load( vertexTextureShaderSource, fragmentTextureShaderSource );
     m_SpriteShader = std::make_shared<Shader>( );
     m_SpriteShader->SetProgram( SProgram );
+}
+
+void
+GameManager::LoadToleranceSprite( )
+{
+    m_ToleranceBar = AddConcept<ToleranceBar>( 400, 30 );
+
+    m_ToleranceBar->SetRotationCenter( 400 / 2, 30 / 2 );
+    m_ToleranceBar->SetOrigin( 400 / 2, 30 / 2 );
+
+    m_ToleranceBar->SetShader( m_SpriteShader );
+    m_ToleranceBar->SetTexturePath( "Access/Texture/tolerance.png" );
+    m_ToleranceBar->SetActiveCamera( m_Camera.get( ) );
+    m_ToleranceBar->SetupSprite( );
 }

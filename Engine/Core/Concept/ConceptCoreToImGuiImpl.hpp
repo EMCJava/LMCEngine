@@ -5,6 +5,7 @@
 #pragma once
 
 #include <Engine/Core/Scene/Orientation/OrientationCoordinate.hpp>
+#include <Engine/Core/Math/Random/FastRandom.hpp>
 
 #include <memory>
 #include <type_traits>
@@ -69,6 +70,13 @@ ToImGuiWidget( const char* Name, std::string* Value )
 {
     Value->reserve( Value->size( ) * 2 );
     ImGui::InputText( Name, Value->data( ), Value->capacity( ) + 1 );
+}
+
+inline void
+ToImGuiWidget( const char* Name, FastRandom* Value )
+{
+    const auto& Seed = Value->GetSeed( );
+    ImGui::InputScalarN( Name, ImGuiDataType_S64, (void*) Seed.Seed.data( ), 2 );
 }
 
 /*
@@ -196,19 +204,24 @@ ToImGuiWidget( const char* Name, Container<Ty, Allocator>* Value )
     static std::string NameStrWithIndex;
     std::string        NameStr = NameStrWithIndex = Name;
 
-    const int Digit = log10( Value->size( ) ) + 1;
-    NameStrWithIndex.reserve( NameStr.size( ) + 2 + Digit );
-
-    char* IndexPtrStart = NameStrWithIndex.data( ) + NameStr.size( );
-
-
-    if ( ImGui::CollapsingHeader( Name, ImGuiTreeNodeFlags_OpenOnArrow ) )
+    if ( Value->size( ) != 0 )
     {
-        for ( size_t Index = 0; Index < Value->size( ); Index++ )
+        const int Digit = log10( Value->size( ) ) + 1;
+        NameStrWithIndex.reserve( NameStr.size( ) + 2 + Digit );
+
+        char* IndexPtrStart = NameStrWithIndex.data( ) + NameStr.size( );
+
+        if ( ImGui::CollapsingHeader( Name, ImGuiTreeNodeFlags_OpenOnArrow ) )
         {
-            snprintf( IndexPtrStart, NameStrWithIndex.capacity( ) + 1, "[%zu]", Index );
-            ToImGuiPointerSwitch( NameStrWithIndex.c_str( ), Value->at( Index ) );
+            for ( size_t Index = 0; Index < Value->size( ); Index++ )
+            {
+                snprintf( IndexPtrStart, NameStrWithIndex.capacity( ) + 1, "[%zu]", Index );
+                ToImGuiPointerSwitch( NameStrWithIndex.c_str( ), Value->at( Index ) );
+            }
         }
+    } else
+    {
+        ImGui::TextDisabled( "%s [ CONTAINER EMPTY ]", Name );
     }
 }
 
@@ -243,7 +256,13 @@ ToImGuiPointerSwitch( const char* Name, Ty Value )
 {
     if constexpr ( requires( Ty ValueReq ) { ToImGuiWidget( Name, ValueReq ); } )
     {
-        ToImGuiWidget( Name, Value );
+        if ( Value == nullptr )
+        {
+            ImGui::TextDisabled( "%s [ NULL ]", Name );
+        } else
+        {
+            ToImGuiWidget( Name, Value );
+        }
     } else
     {
         ImGui::InputScalar( Name, ImGuiDataType_U64, (void*) &Value, nullptr, nullptr, "%p", ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal );

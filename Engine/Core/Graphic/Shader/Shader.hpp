@@ -33,6 +33,8 @@ public:
 
     void SetMat4( const std::string& Name, const glm::mat4& mat ) const;
 
+    void SetFloat( const std::string& Name, float Value ) const;
+
     void SetProgram( std::shared_ptr<ShaderProgram>& SProgram );
 
     auto& GetProgram( ) { return m_ShaderProgram; }

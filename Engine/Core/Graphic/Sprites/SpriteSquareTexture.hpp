@@ -17,7 +17,9 @@ public:
     SetTexturePath( const std::string& TexturePath );
 
     void
-    Render( ) override;
+    SetImage( std::shared_ptr<class PureConceptImage> Image );
+
+    void Render( ) override;
 
     void
     SetupSprite( ) override;
@@ -34,6 +36,8 @@ public:
 protected:
     uint32_t    m_TextureID;
     std::string m_TexturePath;
+
+    std::shared_ptr<class PureConceptImage> m_TextureImage;
 
     ENABLE_IMGUI( SpriteSquareTexture )
 };

@@ -329,7 +329,7 @@
         {                                                                                                  \
             ImGui::SeparatorText( #class_name );                                                           \
         }                                                                                                  \
-        SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ );                                                     \
+        SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ )                                                      \
         chain_target::ToImGuiWidgetInternal( Name, Value, ShouldAddSeparator );                            \
     }                                                                                                      \
                                                                                                            \

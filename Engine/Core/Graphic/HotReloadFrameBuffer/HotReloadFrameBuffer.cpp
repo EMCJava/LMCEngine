@@ -65,15 +65,17 @@ HotReloadFrameBuffer::CreateFrameBuffer( float Width, float Height )
 }
 
 void
-HotReloadFrameBuffer::BindFrameBuffer( ) const
+HotReloadFrameBuffer::BindFrameBuffer( )
 {
+    m_GLContext->GetIntegerv( GL_FRAMEBUFFER_BINDING, &m_PreviousFBO );
     m_GLContext->BindFramebuffer( GL_FRAMEBUFFER, m_FBO );
 }
 
 void
 HotReloadFrameBuffer::UnBindFrameBuffer( )
 {
-    m_GLContext->BindFramebuffer( GL_FRAMEBUFFER, 0 );
+    m_GLContext->BindFramebuffer( GL_FRAMEBUFFER, m_PreviousFBO );
+    m_PreviousFBO = 0;
 }
 
 void

@@ -19,13 +19,25 @@ public:
     [[nodiscard]] const glm::mat4&
     GetProjectionMatrix( ) const;
 
-    void SetDimensions( int Width, int Height );
-    void SetScale( FloatTy Scale );
+    [[nodiscard]] const glm::mat4&
+    GetProjectionMatrixNonOffset( ) const;
 
-    void UpdateProjectionMatrix( );
+    void
+    SetDimensions( int Width, int Height );
+    std::pair<FloatTy, FloatTy>
+    GetDimensions( ) const;
+
+    void
+    SetScale( FloatTy Scale );
+    FloatTy
+    GetScale( ) const;
+
+    void
+    UpdateProjectionMatrix( );
 
 private:
     glm::mat4 m_ProjectionMatrix { 1 };
+    glm::mat4 m_ProjectionMatrixNonOffset { 1 };
     FloatTy   m_CameraWidth { }, m_CameraHeight { };
     FloatTy   m_Scale { };
 

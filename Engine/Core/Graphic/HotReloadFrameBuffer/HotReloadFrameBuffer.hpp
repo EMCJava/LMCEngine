@@ -22,7 +22,7 @@ public:
     CreateFrameBuffer( float Width, float Height );
 
     void
-    BindFrameBuffer( ) const;
+    BindFrameBuffer( );
 
     void
     UnBindFrameBuffer( );
@@ -38,6 +38,7 @@ public:
 
 private:
     uint32_t m_FBO { }, m_RBO { };
+    int32_t  m_PreviousFBO { 0 };
     uint32_t m_TextureID { };
 
     struct GladGLContext* m_GLContext = nullptr;

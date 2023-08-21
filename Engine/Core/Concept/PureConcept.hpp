@@ -20,10 +20,5 @@ protected:
     FastRandom               m_ConceptsStateHash { FastRandom::FromUint64( ConceptsStateHashInit.NextUint64( ) ) };
     inline static FastRandom ConceptsStateHashInit { FastRandom::FromRand( ) };
 
-    /*
-     *
-     * ImGui interface fallback
-     *
-     * */
-    static void ToImGuiWidgetInternal( const char* /*unused*/, PureConcept* /*unused*/ ) { }
+    ENABLE_IMGUI( PureConcept )
 };

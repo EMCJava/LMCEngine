@@ -82,13 +82,13 @@ Concept::AddConcept( Args&&... params )
 
     if constexpr ( ConceptType::template CanCastS<Concept>( ) )
     {
-        auto Result = ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( std::make_unique<ConceptType>( std::forward<Args>( params )... ) ) );
+        auto Result = ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( std::make_shared<ConceptType>( std::forward<Args>( params )... ) ) );
 
         Result->m_BelongsTo = this;
         return Result;
     }
 
-    return ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( std::make_unique<ConceptType>( std::forward<Args>( params )... ) ) );
+    return ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( std::make_shared<ConceptType>( std::forward<Args>( params )... ) ) );
 }
 
 template <class ConceptType>

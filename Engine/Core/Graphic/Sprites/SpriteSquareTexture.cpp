@@ -4,11 +4,10 @@
 
 #include "SpriteSquareTexture.hpp"
 
+#include <Engine/Core/Graphic/Image/PureConceptImage.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 #include <Engine/Engine.hpp>
-
-#include <stb_image.h>
 
 DEFINE_CONCEPT_DS( SpriteSquareTexture )
 DEFINE_NECESSARY_IMGUI_TYPE( SpriteSquareTexture )
@@ -133,34 +132,40 @@ SpriteSquareTexture::LoadTexture( )
     // set texture filtering parameters
     gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    // load image, create texture and generate mipmaps
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load( true );   // tell stb_image.h to flip loaded texture's on the y-axis.
-    unsigned char* data = stbi_load( m_TexturePath.c_str( ), &width, &height, &nrChannels, 0 );
-    if ( data )
+
+    if ( m_TextureImage == nullptr )
+    {
+        m_TextureImage = std::make_shared<PureConceptImage>( m_TexturePath );
+    }
+
+    const bool HasCorrectData = ( m_TexturePath.empty( ) || m_TextureImage->GetImagePath( ) == m_TexturePath ) && m_TextureImage->GetImageData( );
+    if ( HasCorrectData || m_TextureImage->LoadImage( m_TexturePath ) )
     {
         GLenum Format;
-        if ( nrChannels == 1 )
+        switch ( m_TextureImage->GetImageChannelCount( ) )
         {
-            Format = GL_RED;
-        } else if ( nrChannels == 3 )
-        {
-            Format = GL_RGB;
-        } else if ( nrChannels == 4 )
-        {
-            Format = GL_RGBA;
+        case 1: Format = GL_RED; break;
+        case 2: Format = GL_RGB; break;
+        case 4: Format = GL_RGBA; break;
+
+        default:
+            throw std::runtime_error( "Unsupported image channel count" );
         }
 
-        spdlog::info( "Loaded texture {} with size {} x {} C {}", m_TexturePath, width, height, nrChannels );
-
-        gl->TexImage2D( GL_TEXTURE_2D, 0, Format, width, height, 0, Format, GL_UNSIGNED_BYTE, data );
+        const auto ImageDimension = m_TextureImage->GetImageDimension( );
+        gl->TexImage2D( GL_TEXTURE_2D, 0, Format, ImageDimension.first, ImageDimension.second, 0, Format, GL_UNSIGNED_BYTE, m_TextureImage->GetImageData( ) );
         gl->GenerateMipmap( GL_TEXTURE_2D );
     } else
     {
-        spdlog::error( "Failed to load texture" );
+        throw std::runtime_error( ( "Failed to load image: " + m_TexturePath ).c_str( ) );
     }
-    stbi_image_free( data );
 
     m_Shader->Bind( );
     gl->Uniform1i( m_Shader->GetUniformLocation( "sample_texture" ), 0 );
+}
+
+void
+SpriteSquareTexture::SetImage( std::shared_ptr<struct PureConceptImage> Image )
+{
+    m_TextureImage = Image;
 }

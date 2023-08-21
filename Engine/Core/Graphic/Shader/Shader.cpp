@@ -36,6 +36,13 @@ Shader::SetMat4( const std::string& Name, const glm::mat4& mat ) const
 }
 
 void
+Shader::SetFloat( const std::string& Name, float Value ) const
+{
+    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+    gl->Uniform1f( GetUniformLocation( Name ), Value );
+}
+
+void
 Shader::SetProgram( std::shared_ptr<ShaderProgram>& SProgram )
 {
     m_ShaderProgram = SProgram;

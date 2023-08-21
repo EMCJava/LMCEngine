@@ -17,6 +17,57 @@ declare_library(
 
 declare_library(
         NAME
+        Effect.ToleranceVisualizer
+
+        SRCS
+        Effect/Private/ToleranceVisualizer.cpp
+
+        P_DEPS
+        HotReloadFrameBuffer.lib
+        SpriteSquareTexture.lib
+        spdlog::spdlog
+
+        DEPS
+
+        STATIC
+)
+
+declare_library(
+        NAME
+        Effect.ToleranceBarStrike
+
+        SRCS
+        Effect/Private/ToleranceBarStrike.cpp
+
+        P_DEPS
+        SpriteSquareTexture.lib
+        spdlog::spdlog
+
+        DEPS
+
+        STATIC
+)
+
+declare_library(
+        NAME
+        Effect.ToleranceBar
+
+        SRCS
+        Effect/Private/ToleranceBar.cpp
+
+        P_DEPS
+        SpriteSquareTexture.lib
+        Effect.ToleranceBarStrike.lib
+        PureConceptImage.lib
+        spdlog::spdlog
+
+        DEPS
+
+        STATIC
+)
+
+declare_library(
+        NAME
         Map.SongMapControl
 
         SRCS
@@ -48,6 +99,8 @@ declare_library(
         Map.TileSpriteSet.lib
         Map.SongMapControl.lib
         SpriteSquareAnimatedTexture.lib
+        Effect.ToleranceVisualizer.lib
+        Effect.ToleranceBar.lib
 
         DEPS
         ConceptApplicable.lib

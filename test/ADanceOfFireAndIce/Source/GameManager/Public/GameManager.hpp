@@ -64,6 +64,9 @@ private:
     LoadPlayerSprites( );
 
     void
+    LoadToleranceSprite( );
+
+    void
     SetBPM( FloatTy BPM );
 
     /*
@@ -138,6 +141,8 @@ private:
 
     std::shared_ptr<class Shader>                      m_SpriteShader { };
     std::unique_ptr<class SpriteSquareAnimatedTexture> m_ExplosionSpriteTemplate { };
+
+    std::shared_ptr<class ToleranceBar> m_ToleranceBar { };
 
     ENABLE_IMGUI( GameManager )
 };
