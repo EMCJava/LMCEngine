@@ -369,7 +369,7 @@ EditorWindow::ConceptMemoryViewGroup( const char* Name, PureConcept* Con )
 }
 
 void
-EditorWindow::SetRootConcept( DynamicConcept* RootConcept )
+EditorWindow::SetRootConcept( RootConceptTy* RootConcept )
 {
     GameWindow::SetRootConcept( RootConcept );
 
