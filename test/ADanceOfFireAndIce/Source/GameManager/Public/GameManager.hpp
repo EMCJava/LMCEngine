@@ -141,7 +141,7 @@ private:
     std::weak_ptr<class SpriteSquareTexture> m_IBSp { };
 
     std::shared_ptr<class Shader>                      m_SpriteShader { };
-    std::unique_ptr<class SpriteSquareAnimatedTexture> m_ExplosionSpriteTemplate { };
+    std::unique_ptr<class SpriteSquareAnimatedTexture> m_ExplosionSpriteTemplate;
 
     std::shared_ptr<class ToleranceBar> m_ToleranceBar { };
 
