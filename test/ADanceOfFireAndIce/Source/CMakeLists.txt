@@ -17,23 +17,6 @@ declare_library(
 
 declare_library(
         NAME
-        Effect.ToleranceVisualizer
-
-        SRCS
-        Effect/Private/ToleranceVisualizer.cpp
-
-        P_DEPS
-        HotReloadFrameBuffer.lib
-        SpriteSquareTexture.lib
-        spdlog::spdlog
-
-        DEPS
-
-        STATIC
-)
-
-declare_library(
-        NAME
         Effect.ToleranceBarStrike
 
         SRCS
@@ -66,20 +49,6 @@ declare_library(
         STATIC
 )
 
-#declare_library(
-#        NAME
-#        Map.SongMapControl
-#
-#        SRCS
-#        Map/Private/SongMapControl.cpp
-#
-#        P_DEPS
-#        Map.TileSpriteSet.lib
-#        spdlog::spdlog
-#
-#        STATIC
-#)
-
 declare_library(
         NAME
         GameManager.GameManager
@@ -98,7 +67,6 @@ declare_library(
         PureConceptCamera.lib
         Map.TileSpriteSet.lib
         SpriteSquareAnimatedTexture.lib
-        Effect.ToleranceVisualizer.lib
         Effect.ToleranceBar.lib
 
         DEPS
