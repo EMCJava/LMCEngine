@@ -96,3 +96,9 @@ Project::~Project( )
 {
     spdlog::info( "Close project: {}", m_Config.project_name );
 }
+
+const std::string&
+Project::GetProjectPath( ) const
+{
+    return m_ProjectFilePath;
+}

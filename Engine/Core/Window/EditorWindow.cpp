@@ -176,6 +176,13 @@ EditorWindow::UpdateImGui( )
         {
             if ( ImGui::MenuItem( "Build Project" ) )
             {
+                const std::filesystem::path ProjectFilePath = Engine::GetEngine( )->GetProject( )->GetProjectPath( );
+
+                if ( !ProjectFilePath.empty( ) )
+                {
+                    const auto BuildPath = OSFile::PickFolder( ProjectFilePath.parent_path( ).string( ).c_str( ) );
+                    spdlog::info( "Building project {} in path: {}", Engine::GetEngine( )->GetProject( )->GetConfig( ).project_name, BuildPath );
+                }
             }
 
             ImGui::EndMenu( );
