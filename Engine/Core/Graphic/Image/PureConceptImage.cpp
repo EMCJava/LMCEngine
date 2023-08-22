@@ -8,7 +8,7 @@
 
 #include <spdlog/spdlog.h>
 
-#include <imgui.h>
+#include <ImGui/ImGui.hpp>
 
 #include <stb_image.h>
 

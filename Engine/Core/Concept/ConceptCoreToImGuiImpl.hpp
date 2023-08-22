@@ -4,13 +4,14 @@
 
 #pragma once
 
+#include <ImGui/Ext/ImGuiGroup.hpp>
 #include <Engine/Core/Scene/Orientation/OrientationCoordinate.hpp>
 #include <Engine/Core/Math/Random/FastRandom.hpp>
 
 #include <memory>
 #include <type_traits>
 
-#include <imgui.h>
+#include <ImGui/ImGui.hpp>
 
 /*
  *

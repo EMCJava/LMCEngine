@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <ImGui/Ext/ImGuiGroup.hpp>
 #include <Engine/Core/Core.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
@@ -310,8 +311,16 @@
         if ( ShouldAddSeparator )                                                                          \
         {                                                                                                  \
             ImGui::SeparatorText( #class_name );                                                           \
+        } else                                                                                             \
+        {                                                                                                  \
+            ImGuiGroup::BeginGroupPanel( Name, ImVec2 { -1, 0 } );                                         \
         }                                                                                                  \
         SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ );                                                     \
+        if ( !ShouldAddSeparator )                                                                         \
+        {                                                                                                  \
+            ImGui::Spacing( );                                                                             \
+            ImGuiGroup::EndGroupPanel( );                                                                  \
+        }                                                                                                  \
     }                                                                                                      \
                                                                                                            \
     DEFINE_NECESSARY_IMGUI_TYPE( class_name )
@@ -328,9 +337,17 @@
         if ( ShouldAddSeparator )                                                                          \
         {                                                                                                  \
             ImGui::SeparatorText( #class_name );                                                           \
+        } else                                                                                             \
+        {                                                                                                  \
+            ImGuiGroup::BeginGroupPanel( Name, ImVec2 { -1, 0 } );                                         \
         }                                                                                                  \
         SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ )                                                      \
         chain_target::ToImGuiWidgetInternal( Name, Value, ShouldAddSeparator );                            \
+        if ( !ShouldAddSeparator )                                                                         \
+        {                                                                                                  \
+            ImGui::Spacing( );                                                                             \
+            ImGuiGroup::EndGroupPanel( );                                                                  \
+        }                                                                                                  \
     }                                                                                                      \
                                                                                                            \
     DEFINE_NECESSARY_IMGUI_TYPE( class_name )

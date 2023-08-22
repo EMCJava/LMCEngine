@@ -12,6 +12,8 @@
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareAnimatedTexture.hpp>
 #include <Engine/Core/Input/UserInput.hpp>
+
+// To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
 
 #include <spdlog/spdlog.h>

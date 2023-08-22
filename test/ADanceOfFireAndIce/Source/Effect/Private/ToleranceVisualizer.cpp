@@ -10,7 +10,7 @@
 #include <Engine/Core/Graphic/HotReloadFrameBuffer/HotReloadFrameBuffer.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 
-#include <imgui.h>
+#include <ImGui/ImGui.hpp>
 
 #include <spdlog/spdlog.h>
 

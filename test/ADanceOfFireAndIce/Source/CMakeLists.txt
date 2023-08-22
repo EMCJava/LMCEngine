@@ -66,19 +66,19 @@ declare_library(
         STATIC
 )
 
-declare_library(
-        NAME
-        Map.SongMapControl
-
-        SRCS
-        Map/Private/SongMapControl.cpp
-
-        P_DEPS
-        Map.TileSpriteSet.lib
-        spdlog::spdlog
-
-        STATIC
-)
+#declare_library(
+#        NAME
+#        Map.SongMapControl
+#
+#        SRCS
+#        Map/Private/SongMapControl.cpp
+#
+#        P_DEPS
+#        Map.TileSpriteSet.lib
+#        spdlog::spdlog
+#
+#        STATIC
+#)
 
 declare_library(
         NAME
@@ -97,7 +97,6 @@ declare_library(
         ShaderProgram.lib
         PureConceptCamera.lib
         Map.TileSpriteSet.lib
-        Map.SongMapControl.lib
         SpriteSquareAnimatedTexture.lib
         Effect.ToleranceVisualizer.lib
         Effect.ToleranceBar.lib

@@ -18,6 +18,9 @@ SpriteSquareTexture::ToImGuiWidgetInternal( const char* Name, SpriteSquareTextur
     if ( ShouldAddSeparator )
     {
         ImGui::SeparatorText( "SpriteSquareTexture" );
+    } else
+    {
+        ImGuiGroup::BeginGroupPanel( Name, ImVec2 { -1, 0 } );
     }
 
     ToImGuiPointerSwitch( "m_TextureID", &Value->m_TextureID );
@@ -38,6 +41,11 @@ SpriteSquareTexture::ToImGuiWidgetInternal( const char* Name, SpriteSquareTextur
 
     SIMPLE_LIST_DEFAULT_IMGUI_TYPE( m_TexturePath );
     SpriteSquare::ToImGuiWidgetInternal( Name, Value, ShouldAddSeparator );
+    if ( !ShouldAddSeparator )
+    {
+        ImGui::Spacing( );
+        ImGuiGroup::EndGroupPanel( );
+    }
 }
 
 void
