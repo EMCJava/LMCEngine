@@ -19,10 +19,11 @@ class GameManager : public ConceptApplicable
      *
      * */
     enum class Tolerance : uint16_t {
-        Perfect   = 30,
-        Good      = 45,
-        Bad       = 55,
-        EarlyMiss = 65,
+        Perfect           = 30,
+        Good              = 45,
+        Bad               = 55,
+        ToleranceBarRange = 65,
+        EarlyMiss         = 70,
         Miss,
         None
     };

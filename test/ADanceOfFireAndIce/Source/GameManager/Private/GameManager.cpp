@@ -1482,7 +1482,7 @@ GameManager::Apply( )
                  * Add tolerance bar
                  *
                  * */
-                auto EarlyMissDegree = (FloatTy) Tolerance::EarlyMiss;
+                auto EarlyMissDegree = (FloatTy) Tolerance::ToleranceBarRange;
                 m_ToleranceBar->AddBar( -m_DegreePreMS * DeltaTimeToNext / EarlyMissDegree );
 
                 /*
