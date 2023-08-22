@@ -18,4 +18,7 @@ PickFile( const std::vector<nfdfilteritem_t>& filter, const char* default_path =
 std::string
 SaveFile( const std::vector<nfdfilteritem_t>& filter, const char* default_path = nullptr );
 
+std::string
+PickFolder( const char* default_path = nullptr );
+
 };   // namespace OSFile
