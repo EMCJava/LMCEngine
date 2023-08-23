@@ -131,16 +131,22 @@ if (WIN32)
     set_target_properties(irrklang PROPERTIES IMPORTED_IMPLIB ${irrklang_SOURCE_DIR}/lib/Winx64-visualStudio/irrKlang.lib)
     set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll)
 
+    add_custom_target(populate_irrklang_folder
+            ${CMAKE_COMMAND} -E  make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    )
+
     add_custom_target(
-            populate_irrklang
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll ${CMAKE_BINARY_DIR}/.
+            populate_irrklang ALL
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/.
+            DEPENDS populate_irrklang_folder
+            COMMENT "Exporting irrKlang.dll into build tree"
     )
 elseif (APPLE)
-    # message(FATAL_ERROR "CMAKE_OSX_ARCHITECTURES ${CMAKE_OSX_ARCHITECTURES}")
+    # message(FATAL_ERROR " CMAKE_OSX_ARCHITECTURES ${CMAKE_OSX_ARCHITECTURES} ")
 
     EXECUTE_PROCESS(COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE)
-    if (${ARCHITECTURE} STREQUAL "arm64")
-        message("Not support for arm64 on apple")
+    if (${ARCHITECTURE} STREQUAL " arm64")
+        message("Not support for arm64 on apple ")
 
         set(no_irrklang TRUE)
     else ()
@@ -149,9 +155,9 @@ elseif (APPLE)
 
     add_custom_target(populate_irrklang)
 elseif (UNIX)
-    message(FATAL_ERROR "Platform not tested")
+    message(FATAL_ERROR " Platform not tested")
 else ()
-    message(FATAL_ERROR "No supported platform was detected")
+    message(FATAL_ERROR "No supported platform was detected ")
 endif ()
 
 add_library(audio.base.lib INTERFACE)
@@ -163,7 +169,7 @@ if (NOT ${no_irrklang})
 
     target_compile_definitions(audio.base.lib INTERFACE USE_IRRKLANG)
 
-    message("Using irrklang")
+    message(" Using irrklang")
 
 else ()
     target_compile_definitions(audio.base.lib INTERFACE NO_AUDIO_ENGINE)
@@ -175,7 +181,7 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/ocornut/imgui_club.git
         GIT_TAG main
         CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
+        BUILD_COMMAND " "
 )
 
 FetchContent_GetProperties(imgui_club)

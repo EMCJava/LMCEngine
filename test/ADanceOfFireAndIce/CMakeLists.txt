@@ -2,6 +2,20 @@ cmake_minimum_required(VERSION 3.25)
 project(ADanceOfFireAndIce)
 set(CMAKE_CXX_STANDARD 23)
 
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+    message(
+            STATUS "No CMAKE_BUILD_TYPE selected, defaulting to ${CMAKE_BUILD_TYPE}"
+    )
+endif ()
+
+if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+    message(
+            STATUS "No CMAKE_RUNTIME_OUTPUT_DIRECTORY selected, defaulting to ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+    )
+endif ()
+
 ## ---------- Project setting ----------
 set(GAME_CONFIG_PATH ADanceOfFireAndIce.lmce)
 add_compile_definitions("GAME_CONFIG_PATH=\"${GAME_CONFIG_PATH}\"")
@@ -11,7 +25,7 @@ set(ROOT_CONCEPT_LIB GameManager.GameManager.lib)
 
 ## ---------- Engine setting ----------
 set(ENGINE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
-set(EditorBuild true)
+set(EditorBuild false)
 
 ## ---------- Game setting ----------
 set(PROJECT_PATH_CONFIG_PATH ProjectCache/ProjectPath.config)
