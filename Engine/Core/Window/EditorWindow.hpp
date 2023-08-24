@@ -9,6 +9,9 @@
 
 #include "Window.hpp"
 
+#include <filesystem>
+#include <memory>
+#include <thread>
 #include <map>
 
 class EditorWindow : public GameWindow
@@ -46,6 +49,21 @@ class EditorWindow : public GameWindow
 
     void
     ConceptMemoryViewGroup( const char* Name, PureConcept* Con );
+
+
+    enum class BuildStage { CMakeConfig,
+                            CmakeBuild,
+                            CopyFiles,
+                            Finished,
+                            None };
+    void
+    SetBuildPath( );
+    void
+    BuildReleaseConfigCmake( );
+    void
+    BuildRelease( );
+    void
+    BuildReleaseCopyEssentialFiles( );
 
 public:
     /*
@@ -109,4 +127,17 @@ private:
      *
      * */
     bool m_ShowImGuiDemoWindow = false;
+
+    /*
+     *
+     * Build settings
+     *
+     * */
+    std::filesystem::path        m_BuildPath { };
+    std::unique_ptr<std::thread> m_BuildThread { };
+    BuildStage                   m_BuildStage    = BuildStage::None;
+    BuildStage                   m_BuildFailedAt = BuildStage::None;
+
+    uint32_t m_MaxThreadAllowed   = 0;
+    uint32_t m_BuildThreadAllowed = 0;
 };

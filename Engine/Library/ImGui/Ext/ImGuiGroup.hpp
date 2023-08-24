@@ -12,7 +12,7 @@ namespace ImGuiGroup
 inline ImVector<ImRect> s_GroupPanelLabelStack;
 
 inline void
-BeginGroupPanel( const char* name, const ImVec2& size )
+BeginGroupPanel( const char* name, const ImVec2& size = ImVec2 { -1, 0 } )
 {
     ImGui::BeginGroup( );
 

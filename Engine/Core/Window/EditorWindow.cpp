@@ -4,6 +4,8 @@
 
 #include "EditorWindow.hpp"
 
+#include <libexecstream/exec-stream.h>
+
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/HotReloadFrameBuffer/HotReloadFrameBuffer.hpp>
 #include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
@@ -16,10 +18,113 @@
 
 #include <spdlog/spdlog.h>
 
-#include <filesystem>
-
 #include <ImGui/ImGui.hpp>
 #include <imgui_memory_editor/imgui_memory_editor.h>
+
+#include <filesystem>
+#include <regex>
+
+namespace
+{
+
+bool
+CopyProjectAssets( const std::filesystem::path& Path, std::filesystem::path Destination )
+{
+    const auto CopyOptions =
+        std::filesystem::copy_options::update_existing
+        | std::filesystem::copy_options::recursive;
+
+    if ( !std::filesystem::exists( Path ) )
+    {
+        spdlog::warn( "Path does not exist, not copying: {}", absolute( Path ).string( ) );
+        return false;
+    }
+
+    const bool IsDirectory = std::filesystem::is_directory( Path );
+
+    std::error_code OperationError;
+    spdlog::info( "Copying {} {} to {}", IsDirectory ? "directory" : "file", absolute( Path ).string( ), absolute( Destination ).string( ) );
+    if ( IsDirectory )
+    {
+        const auto DirectoryName = Path.filename( );
+        Destination              = Destination / DirectoryName;
+        std::filesystem::create_directories( Destination, OperationError );
+
+        if ( OperationError.value( ) )
+        {
+            spdlog::error( "Failed to create directory at destination: {}({})", OperationError.message( ), OperationError.value( ) );
+            return false;
+        }
+    }
+
+    std::filesystem::copy( Path, Destination, CopyOptions, OperationError );
+
+    constexpr size_t RetryCount = 5;
+    for ( size_t Tries = 0; Tries < RetryCount && OperationError.value( ); ++Tries )
+    {
+        spdlog::error( "Failed, {}({}), retry left: {}", OperationError.message( ), OperationError.value( ), RetryCount - Tries );
+        std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
+        std::filesystem::copy( Path, Destination, CopyOptions, OperationError );
+    }
+
+    if ( OperationError.value( ) )
+    {
+        spdlog::error( "Failed, {}({}), unable to copy", OperationError.message( ), OperationError.value( ) );
+
+        return false;
+    }
+
+    return true;
+}
+
+int
+RunCommand( const std::string& Program, const std::string& Arguments, auto&& OnStdOut, auto&& OnStdErr, const std::vector<std::pair<std::string, std::string>>& PreCommands = { } )
+{
+    exec_stream_t es;
+    es.set_wait_timeout( exec_stream_t::stream_kind_t::s_all, 10 * 60 * 1000 );
+
+    for ( const auto& Cmd : PreCommands )
+    {
+        spdlog::info( "Running command: {} {}", Cmd.first, Cmd.second );
+        es.start( Cmd.first, Cmd.second );
+        std::string s;
+        while ( std::getline( es.out( ), s ) )
+        {
+            spdlog::info( "exec_stream(out) : - {} -", s );
+        }
+        while ( std::getline( es.err( ), s ) )
+        {
+            spdlog::info( "exec_stream(err) : - {} -", s );
+        }
+        es.close( );
+    }
+
+    spdlog::info( "Running command: {} {}", Program, Arguments );
+    es.start( Program, Arguments );
+
+    auto StdErr = std::thread( [ &es, &OnStdErr ]( ) {
+        std::string s;
+        while ( std::getline( es.err( ), s ) )
+        {
+            OnStdErr( s );
+        }
+    } );
+
+    auto StdOut = std::thread( [ &es, &OnStdOut ]( ) {
+        std::string s;
+        while ( std::getline( es.out( ), s ) )
+        {
+            OnStdOut( s );
+        }
+    } );
+
+    if ( StdErr.joinable( ) ) StdErr.join( );
+    if ( StdOut.joinable( ) ) StdOut.join( );
+
+    es.close( );
+    return es.exit_code( );
+}
+}   // namespace
 
 void
 EditorWindow::Update( )
@@ -76,6 +181,8 @@ EditorWindow::UpdateImGui( )
     gl->Viewport( 0, 0, m_Width, m_Height );
     gl->ClearColor( 0, 0, 0, 0 );
     gl->Clear( GL_COLOR_BUFFER_BIT );
+
+    std::optional<bool> ShowProjectBuild;
 
     ImGui::DockSpaceOverViewport( ImGui::GetMainViewport( ) );
 
@@ -176,13 +283,7 @@ EditorWindow::UpdateImGui( )
         {
             if ( ImGui::MenuItem( "Build Project" ) )
             {
-                const std::filesystem::path ProjectFilePath = Engine::GetEngine( )->GetProject( )->GetProjectPath( );
-
-                if ( !ProjectFilePath.empty( ) )
-                {
-                    const auto BuildPath = OSFile::PickFolder( ProjectFilePath.parent_path( ).string( ).c_str( ) );
-                    spdlog::info( "Building project {} in path: {}", Engine::GetEngine( )->GetProject( )->GetConfig( ).project_name, BuildPath );
-                }
+                ShowProjectBuild = true;
             }
 
             ImGui::EndMenu( );
@@ -270,6 +371,186 @@ EditorWindow::UpdateImGui( )
         ImGui::EndChild( );
 
         ImGui::End( );
+    }
+
+    {
+        if ( ShowProjectBuild.has_value( ) )
+        {
+            if ( ShowProjectBuild.value( ) )
+            {
+                SetBuildPath( );
+
+                m_BuildThreadAllowed = m_MaxThreadAllowed = std::thread::hardware_concurrency( );
+                ImGui::OpenPopup( "Project Build" );
+            }
+        }
+
+        ImVec2 center = ImGui::GetMainViewport( )->GetCenter( );
+        ImGui::SetNextWindowPos( center, ImGuiCond_Appearing, ImVec2( 0.5f, 0.5f ) );
+        if ( ImGui::BeginPopup( "Project Build", ImGuiWindowFlags_AlwaysAutoResize ) )
+        {
+            {
+                if ( m_BuildFailedAt == BuildStage::CMakeConfig )
+                {
+                    ImGui::PushStyleColor( ImGuiCol_Text, ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ) );
+                }
+
+                ImGuiGroup::BeginGroupPanel( "Cmake Settings" );
+
+                ImGui::Text( "%ls", m_BuildPath.c_str( ) );
+                ImGui::SameLine( );
+                if ( ImGui::ArrowButton( "##PF", ImGuiDir_Down ) )
+                {
+                    SetBuildPath( );
+                }
+
+                ImGui::Spacing( );
+                ImGuiGroup::EndGroupPanel( );
+
+                if ( m_BuildFailedAt == BuildStage::CMakeConfig )
+                {
+                    ImGui::PopStyleColor( );
+                }
+            }
+
+            ImGui::Spacing( );
+
+            {
+                if ( m_BuildFailedAt == BuildStage::CmakeBuild )
+                {
+                    ImGui::PushStyleColor( ImGuiCol_Text, ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ) );
+                }
+
+                ImGuiGroup::BeginGroupPanel( "Build Settings" );
+
+                const uint32_t MinThread = 1;
+                ImGui::SliderScalar( "Build Threads", ImGuiDataType_U32, &m_BuildThreadAllowed, &MinThread, &m_MaxThreadAllowed );
+
+                ImGui::Spacing( );
+                ImGuiGroup::EndGroupPanel( );
+
+                if ( m_BuildFailedAt == BuildStage::CmakeBuild )
+                {
+                    ImGui::PopStyleColor( );
+                }
+            }
+
+            {
+                if ( m_BuildFailedAt == BuildStage::CopyFiles )
+                {
+                    ImGui::PushStyleColor( ImGuiCol_Text, ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ) );
+                }
+
+                ImGuiGroup::BeginGroupPanel( "Assets Settings" );
+
+                ImGui::SeparatorText( "Copy Asset Files To" );
+                ImGui::BeginDisabled( );
+                ImGui::Text( "%ls", m_BuildPath.c_str( ) );
+                ImGui::EndDisabled( );
+
+                ImGui::Spacing( );
+                ImGuiGroup::EndGroupPanel( );
+
+                if ( m_BuildFailedAt == BuildStage::CopyFiles )
+                {
+                    ImGui::PopStyleColor( );
+                }
+            }
+
+            if ( ImGui::Button( "Build", ImVec2( 120, 0 ) ) )
+            {
+                ImGui::OpenPopup( "Build Progress" );
+
+                m_BuildFailedAt = BuildStage::None;
+                m_BuildStage    = BuildStage::CMakeConfig;
+                m_BuildThread   = std::make_unique<std::thread>( &EditorWindow::BuildReleaseConfigCmake, this );
+            }
+            ImGui::SetItemDefaultFocus( );
+            ImGui::SameLine( );
+            if ( ImGui::Button( "Finish", ImVec2( 120, 0 ) ) )
+            {
+                ImGui::CloseCurrentPopup( );
+            }
+
+            /*
+             *
+             * Build progress bar
+             *
+             * */
+            {
+                if ( ImGui::BeginPopupModal( "Build Progress", nullptr, ImGuiWindowFlags_AlwaysAutoResize ) )
+                {
+
+                    float       progress = 0;
+                    std::string StatusStr;
+                    if ( m_BuildThread == nullptr )
+                    {
+                        progress = 1;
+
+                        // Finished
+                        if ( m_BuildStage == BuildStage::None || m_BuildFailedAt != BuildStage::None )
+                        {
+
+                            StatusStr = m_BuildFailedAt != BuildStage::None ? "Failed Building" : "Finishing Building";
+                        } else
+                        {
+                            // Failed
+                            if ( m_BuildStage != BuildStage::Finished )
+                            {
+                                m_BuildFailedAt = m_BuildStage;
+                            }
+
+                            m_BuildStage = BuildStage::None;
+                        }
+                    } else
+                    {
+                        switch ( m_BuildStage )
+                        {
+                        case BuildStage::CMakeConfig:
+                            progress  = 1 / 4.F;
+                            StatusStr = "Cmake Configuration";
+                            break;
+                        case BuildStage::CmakeBuild:
+                            progress  = 2 / 4.F;
+                            StatusStr = "Project Building";
+                            break;
+                        case BuildStage::CopyFiles:
+                            progress  = 3 / 4.F;
+                            StatusStr = "Copying Project Asset Files";
+                            break;
+                        case BuildStage::Finished:
+                        case BuildStage::None:
+                            break;
+                        }
+                    }
+
+                    ImGui::ProgressBar( progress, ImVec2( 0.f, 0.f ), StatusStr.c_str( ) );
+
+                    ImGui::Separator( );
+                    ImGui::Dummy( ImVec2( 120 /*+ ImGui::GetStyle( ).ItemSpacing.x*/, 0 ) );
+                    ImGui::Spacing( );
+
+                    if ( m_BuildStage != BuildStage::None )
+                    {
+                        ImGui::BeginDisabled( );
+                    }
+
+                    if ( ImGui::Button( "Close", ImVec2( 120, 0 ) ) )
+                    {
+                        ImGui::CloseCurrentPopup( );
+                    }
+
+                    if ( m_BuildStage != BuildStage::None )
+                    {
+                        ImGui::EndDisabled( );
+                    }
+
+                    ImGui::EndPopup( );
+                }
+            }
+
+            ImGui::EndPopup( );
+        }
     }
 }
 
@@ -374,4 +655,175 @@ EditorWindow::SetRootConcept( RootConceptTy* RootConcept )
     GameWindow::SetRootConcept( RootConcept );
 
     m_ConceptInspectionCache = { };
+}
+
+void
+EditorWindow::SetBuildPath( )
+{
+    REQUIRED_IF( m_BuildStage == BuildStage::None )
+    {
+        const auto&           Project           = Engine::GetEngine( )->GetProject( );
+        std::filesystem::path ProjectFolderPath = Project->GetProjectPath( );
+        if ( !ProjectFolderPath.empty( ) )
+        {
+            ProjectFolderPath      = ProjectFolderPath.parent_path( );
+            const auto defaultPath = m_BuildPath;
+            m_BuildPath            = OSFile::PickFolder( ProjectFolderPath.string( ).c_str( ) );
+            if ( m_BuildPath.empty( ) )
+            {
+                m_BuildPath = defaultPath;
+            }
+            spdlog::info( "Building project {} in path: {}", Project->GetConfig( ).project_name, m_BuildPath.string( ) );
+        }
+    }
+}
+
+void
+EditorWindow::BuildReleaseConfigCmake( )
+{
+    REQUIRED_IF( !m_BuildPath.empty( ) && m_BuildStage == BuildStage::CMakeConfig && m_BuildThread != nullptr && std::this_thread::get_id( ) == m_BuildThread->get_id( ) )
+    {
+        const auto&           Project           = Engine::GetEngine( )->GetProject( );
+        std::filesystem::path ProjectFolderPath = Project->GetProjectPath( );
+        ProjectFolderPath                       = ProjectFolderPath.parent_path( );
+
+        /*
+         *
+         * Cmake setup
+         *
+         * */
+        try
+        {
+            std::string Arguments = ProjectFolderPath.string( ) /* + " -G Ninja"*/ + " -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=" + m_BuildPath.string( ) + " -DEditorBuild=false" + " -B " + ( m_BuildPath / "cmake" ).string( );
+            Arguments             = std::regex_replace( Arguments, std::regex( R"(\\)" ), "/" );   // Why????
+
+            std::string ErrorLogs       = "";
+            float       ConfiguringTime = 0, GeneratingTime = 0;
+
+            RunCommand(
+                "cmake", Arguments,
+                [ &ConfiguringTime, &GeneratingTime ]( auto& s ) {
+                    spdlog::info( "exec_stream : - {} -", s );
+                    std::regex  GeneratingPattern( R"(Generating done \((\d+\.\d+)s\))" );
+                    std::smatch GeneratingMatch;
+                    if ( std::regex_search( s, GeneratingMatch, GeneratingPattern ) )
+                    {
+                        GeneratingTime = std::stof( GeneratingMatch.str( 1 ) );
+                    }
+
+                    std::regex  ConfiguringPattern( R"(Configuring done \((\d+\.\d+)s\))" );
+                    std::smatch ConfiguringMatch;
+                    if ( std::regex_search( s, ConfiguringMatch, ConfiguringPattern ) )
+                    {
+                        ConfiguringTime = std::stof( ConfiguringMatch.str( 1 ) );
+                    }
+                },
+                [ &ErrorLogs ]( auto& s ) { ErrorLogs += s + '\n'; } );
+
+            if ( GeneratingTime != 0 )
+            {
+                spdlog::info( "Cmake generation complete, CT: {}s, GT: {}s", ConfiguringTime, GeneratingTime );
+
+                m_BuildThread->detach( );
+                m_BuildStage  = BuildStage::CmakeBuild;
+                m_BuildThread = std::make_unique<std::thread>( &EditorWindow::BuildRelease, this );
+            } else
+            {
+                spdlog::error( "Cmake generation failed" );
+                spdlog::error( "{}", ErrorLogs );
+
+                m_BuildThread->detach( );
+                m_BuildThread.reset( );
+            }
+        }
+        catch ( std::exception const& e )
+        {
+            spdlog::error( "error: {}", e.what( ) );
+
+            m_BuildThread->detach( );
+            m_BuildThread.reset( );
+        }
+    }
+}
+
+void
+EditorWindow::BuildRelease( )
+{
+    REQUIRED_IF( !m_BuildPath.empty( ) && m_BuildStage == BuildStage::CmakeBuild && m_BuildThread != nullptr && std::this_thread::get_id( ) == m_BuildThread->get_id( ) )
+    {
+        /*
+         *
+         * Build
+         *
+         * */
+        try
+        {
+            std::string Arguments = "--build " + ( m_BuildPath / "cmake" ).string( ) + " -j " + std::to_string( m_BuildThreadAllowed );
+            Arguments             = std::regex_replace( Arguments, std::regex( R"(\\)" ), "/" );   // Why????
+
+            std::string ErrorLogs = "";
+            const auto  ExitCode  = RunCommand(
+                "cmake", Arguments,
+                []( auto& s ) {
+                    spdlog::info( "exec_stream : - {} -", s );
+                },
+                [ &ErrorLogs ]( auto& s ) { ErrorLogs += s + '\n'; } );
+
+            if ( ExitCode == 0 )
+            {
+                m_BuildThread->detach( );
+                m_BuildStage  = BuildStage::CopyFiles;
+                m_BuildThread = std::make_unique<std::thread>( &EditorWindow::BuildReleaseCopyEssentialFiles, this );
+            } else
+            {
+                m_BuildThread->detach( );
+                m_BuildThread.reset( );
+            };
+        }
+        catch ( std::exception const& e )
+        {
+            spdlog::error( "error: {}", e.what( ) );
+
+            m_BuildThread->detach( );
+            m_BuildThread.reset( );
+        }
+    }
+}
+
+void
+EditorWindow::BuildReleaseCopyEssentialFiles( )
+{
+    REQUIRED_IF( !m_BuildPath.empty( ) && m_BuildStage == BuildStage::CopyFiles && m_BuildThread != nullptr && std::this_thread::get_id( ) == m_BuildThread->get_id( ) )
+    {
+        const auto&           Project           = Engine::GetEngine( )->GetProject( );
+        std::filesystem::path ProjectFolderPath = Project->GetProjectPath( );
+        ProjectFolderPath                       = ProjectFolderPath.parent_path( );
+
+        /*
+         *
+         * Copy essential project files
+         *
+         * */
+        std::string ProjectPaths[] = { "Assets", "Editor" };
+        for ( const auto& Path : ProjectPaths )
+        {
+            if ( !CopyProjectAssets( ProjectFolderPath / Path, m_BuildPath ) )
+            {
+                m_BuildThread->detach( );
+                m_BuildThread.reset( );
+                return;
+            }
+        }
+
+        if ( !CopyProjectAssets( Project->GetProjectPath( ), m_BuildPath ) )
+        {
+            m_BuildThread->detach( );
+            m_BuildThread.reset( );
+            return;
+        }
+
+        m_BuildStage = BuildStage::Finished;
+        m_BuildThread->detach( );
+        m_BuildThread.reset( );
+    }
 }
