@@ -53,12 +53,16 @@ Project::LoadProject( const std::string& ProjectFilePath )
     ProjectPath = ProjectPath.parent_path( );
 
     // Setup project path config
+#ifdef HOT_RELOAD
     {
         auto ProjectPathConfigFile = ProjectPath / "ProjectCache/ProjectPath.config";
         auto ProjectPathConfig     = ReadJsonFile( ProjectPathConfigFile );
 
         m_Config.shared_library_path_format = ProjectPathConfig[ "shared_library_path_" CMAKE_BUILD_TYPE "_format" ];
     }
+#else
+    m_Config.shared_library_path_format = "";
+#endif
 
     if ( m_Config.editor_layout_path.empty( ) )
     {
