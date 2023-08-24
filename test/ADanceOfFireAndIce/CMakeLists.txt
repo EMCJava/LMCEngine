@@ -25,11 +25,14 @@ set(ROOT_CONCEPT_LIB GameManager.GameManager.lib)
 
 ## ---------- Engine setting ----------
 set(ENGINE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
-set(EditorBuild false)
+if (NOT DEFINED EditorBuild)
+    set(EditorBuild true)
+endif ()
+message(STATUS "EditorBuild: ${EditorBuild}")
 
 ## ---------- Game setting ----------
-set(PROJECT_PATH_CONFIG_PATH ProjectCache/ProjectPath.config)
-message("Game project config file ${GAME_CONFIG_PATH}")
+set(PROJECT_PATH_CONFIG_PATH ${CMAKE_CURRENT_SOURCE_DIR}/ProjectCache/ProjectPath.config)
+message(STATUS "Game project config file ${PROJECT_PATH_CONFIG_PATH}")
 
 ## ---------- CMake module ----------
 list(APPEND CMAKE_MODULE_PATH "${ENGINE_ROOT}/cmake")
@@ -40,13 +43,11 @@ include(SourceInclude)
 
 ## ---------- Shared source (Hot reload) setting ----------
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-file(RELATIVE_PATH RELATIVE_BINARY_DIR ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-set(SHARED_BINARY_PATH_FORMAT "${RELATIVE_BINARY_DIR}/Source/${CMAKE_SHARED_LIBRARY_PREFIX}{}.lib${CMAKE_SHARED_LIBRARY_SUFFIX}")
+set(SHARED_BINARY_PATH_FORMAT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_SHARED_LIBRARY_PREFIX}{}.lib${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
 ## Write hot reload config in the project config file
 file(READ ${PROJECT_PATH_CONFIG_PATH} project_config_data)
 string(JSON project_new_config_data SET "${project_config_data}" "shared_library_path_${CMAKE_BUILD_TYPE}_format" "\"${SHARED_BINARY_PATH_FORMAT}\"")
-message(${project_new_config_data})
 file(WRITE ${PROJECT_PATH_CONFIG_PATH} "${project_new_config_data}")
 
 ## ---------- Engine setup ----------
@@ -57,6 +58,9 @@ add_subdirectory(${ENGINE_ROOT}/Engine Engine.Binary)
 add_subdirectory(Source)
 
 add_executable(ADanceOfFireAndIce main.cpp)
+if (MSVC)
+    set_target_properties(ADanceOfFireAndIce PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<0:>)
+endif (MSVC)
 
 if (NOT ${EditorBuild})
     target_link_libraries(GameWindow.lib PRIVATE ${ROOT_CONCEPT_LIB})
