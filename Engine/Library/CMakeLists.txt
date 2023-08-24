@@ -43,6 +43,10 @@ endif ()
 add_library(glad.lib glad/gl.h glad/gl.c)
 target_include_directories(glad.lib PUBLIC .)
 
+## -------------- libexecstream --------------
+add_library(libexecstream.lib libexecstream/exec-stream.h libexecstream/exec-stream.cpp)
+target_include_directories(libexecstream.lib PUBLIC .)
+
 ## -------------- nativefiledialog --------------
 FetchContent_Declare(
         nativefiledialog
