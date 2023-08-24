@@ -80,9 +80,9 @@ void
 ToleranceBar::SetupBarTemplate( )
 {
     m_BarImage = std::make_shared<PureConceptImage>( );
-    if ( !m_BarImage->LoadImage( "Access/Texture/bar.png" ) )
+    if ( !m_BarImage->LoadImage( "Assets/Texture/bar.png" ) )
     {
-        throw std::runtime_error( "Failed to load image: Access/Texture/bar.png" );
+        throw std::runtime_error( "Failed to load image: Assets/Texture/bar.png" );
     }
 
     auto SProgram = std::make_shared<ShaderProgram>( );

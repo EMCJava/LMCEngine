@@ -1561,7 +1561,7 @@ GameManager::LoadTileSprites( const std::set<uint32_t>& Degrees )
         auto* Sp = m_TileSpriteSetRef.lock( )->RegisterSprite( Degree, std::make_unique<SpriteSquareTexture>( 512, 512 ) );
 
         Sp->SetShader( m_SpriteShader );
-        Sp->SetTexturePath( "Access/Texture/Tile/" + std::to_string( Degree ) + ".png" );
+        Sp->SetTexturePath( "Assets/Texture/Tile/" + std::to_string( Degree ) + ".png" );
         Sp->SetupSprite( );
     };
 
@@ -1588,10 +1588,10 @@ GameManager::LoadAudio( )
 {
     m_PlayingSpeed = 1;
 
-    auto* DDC             = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Beats.ogg" );
+    auto* DDC             = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/Beats.ogg" );
     m_DelayCheckingHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( DDC, true );
 
-    auto* MAC         = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Access/Audio/Papipupipupipa.ogg" );
+    auto* MAC         = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/Papipupipupipa.ogg" );
     m_MainAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( MAC, true, true );
     m_MainAudioHandle.SetSpeed( m_PlayingSpeed );
     SetBPM( 200 * m_PlayingSpeed );
@@ -1617,7 +1617,7 @@ GameManager::LoadPlayerSprites( )
     FBSpLocked->SetOrigin( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
 
     FBSpLocked->SetShader( m_SpriteShader );
-    FBSpLocked->SetTexturePath( "Access/Texture/Player/FireBall.png" );
+    FBSpLocked->SetTexturePath( "Assets/Texture/Player/FireBall.png" );
     FBSpLocked->SetActiveCamera( m_Camera.get( ) );
     FBSpLocked->SetupSprite( );
 
@@ -1626,7 +1626,7 @@ GameManager::LoadPlayerSprites( )
 
     IBSpLocked->SetOrigin( 512 / 2, 512 / 2 );
     IBSpLocked->SetShader( m_SpriteShader );
-    IBSpLocked->SetTexturePath( "Access/Texture/Player/IceBall.png" );
+    IBSpLocked->SetTexturePath( "Assets/Texture/Player/IceBall.png" );
     IBSpLocked->SetActiveCamera( m_Camera.get( ) );
     IBSpLocked->SetupSprite( );
 }
@@ -1714,7 +1714,7 @@ GameManager::SetupExplosionSpriteTemplate( )
 
         m_ExplosionSpriteTemplate->SetOrigin( 512 / 2, 512 / 2 );
         m_ExplosionSpriteTemplate->SetShader( m_SpriteShader );
-        m_ExplosionSpriteTemplate->SetTexturePath( "Access/Texture/explosion.png" );
+        m_ExplosionSpriteTemplate->SetTexturePath( "Assets/Texture/explosion.png" );
         m_ExplosionSpriteTemplate->SetActiveCamera( m_Camera.get( ) );
 
         // Animation setting
@@ -1744,7 +1744,7 @@ GameManager::LoadToleranceSprite( )
     m_ToleranceBar->SetOrigin( 400 / 2, 30 / 2 );
 
     m_ToleranceBar->SetShader( m_SpriteShader );
-    m_ToleranceBar->SetTexturePath( "Access/Texture/tolerance.png" );
+    m_ToleranceBar->SetTexturePath( "Assets/Texture/tolerance.png" );
     m_ToleranceBar->SetActiveCamera( m_Camera.get( ) );
     m_ToleranceBar->SetupSprite( );
 }
