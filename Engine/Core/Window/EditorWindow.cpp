@@ -397,7 +397,7 @@ EditorWindow::UpdateImGui( )
 
                 ImGuiGroup::BeginGroupPanel( "Cmake Settings" );
 
-                ImGui::Text( "%ls", m_BuildPath.c_str( ) );
+                ImGui::Text( "%s", m_BuildPath.string().c_str( ) );
                 ImGui::SameLine( );
                 if ( ImGui::ArrowButton( "##PF", ImGuiDir_Down ) )
                 {
@@ -445,7 +445,7 @@ EditorWindow::UpdateImGui( )
 
                 ImGui::SeparatorText( "Copy Asset Files To" );
                 ImGui::BeginDisabled( );
-                ImGui::Text( "%ls", m_BuildPath.c_str( ) );
+                ImGui::Text( "%s", m_BuildPath.string().c_str( ) );
                 ImGui::EndDisabled( );
 
                 ImGui::Spacing( );
