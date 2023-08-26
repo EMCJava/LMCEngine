@@ -635,6 +635,25 @@ EditorWindow::UpdateImGui( )
                             if ( m_BuildStage != BuildStage::Finished )
                             {
                                 m_BuildFailedAt = m_BuildStage;
+                            } else
+                            {
+#ifdef LMC_WIN
+                                std::string OpenFolderSysCommand = "explorer " + m_BuildPath.string( );
+#elif defined( LMC_APPLE )
+                                std::string OpenFolderSysCommand = "open " + m_BuildPath.string( );
+#elif defined( LMC_LINUX )
+                                std::string OpenFolderSysCommand = "xdg-open " + m_BuildPath.string( );
+#else
+                                std::string OpenFolderSysCommand = "";
+#endif
+
+                                if ( !OpenFolderSysCommand.empty( ) )
+                                {
+                                    spdlog::info( "Executing command: {}({})", OpenFolderSysCommand, system( OpenFolderSysCommand.c_str( ) ) );
+                                } else
+                                {
+                                    spdlog::warn( "Unknown platform, not opening folder" );
+                                }
                             }
 
                             m_BuildStage = BuildStage::None;
@@ -662,6 +681,7 @@ EditorWindow::UpdateImGui( )
                     }
 
                     ImGui::ProgressBar( progress, ImVec2( m_Width / 2.F, 0.f ), StatusStr.c_str( ) );
+                    ImGui::Separator( );
 
                     // Not finished, show build messages
                     if ( m_BuildStage != BuildStage::Finished )
@@ -670,7 +690,6 @@ EditorWindow::UpdateImGui( )
                         m_BuildThreadStrBuffer->Draw( "Build Logs", nullptr, m_Height / 2.F );
                     }
 
-                    ImGui::Separator( );
                     ImGui::Dummy( ImVec2( 120 /*+ ImGui::GetStyle( ).ItemSpacing.x*/, 0 ) );
                     ImGui::Spacing( );
 
