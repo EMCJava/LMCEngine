@@ -304,7 +304,7 @@ Engine::CreateImGuiContext( )
     io.ConfigDockingWithShift = true;
     if ( !m_MainWindow->IsFullscreen( ) )
     {
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+        // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     }
     io.IniFilename = nullptr;
 
