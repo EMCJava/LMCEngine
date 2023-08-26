@@ -776,6 +776,7 @@ EditorWindow::BuildRelease( )
                 m_BuildThread = std::make_unique<std::thread>( &EditorWindow::BuildReleaseCopyEssentialFiles, this );
             } else
             {
+                spdlog::error( "Build failed: - {} -", ErrorLogs );
                 m_BuildThread->detach( );
                 m_BuildThread.reset( );
             };
