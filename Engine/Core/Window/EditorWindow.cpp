@@ -293,7 +293,7 @@ EditorWindow::EditorWindow( const char* Title, bool Create )
 EditorWindow::~EditorWindow( )
 {
     m_ShouldBuild = false;
-    if ( m_BuildThread->joinable( ) )
+    if ( m_BuildThread && m_BuildThread->joinable( ) )
     {
         m_BuildThread->join( );
         m_BuildThread.reset( );
