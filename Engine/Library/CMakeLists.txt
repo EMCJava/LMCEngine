@@ -149,11 +149,12 @@ elseif (APPLE)
     # message(FATAL_ERROR " CMAKE_OSX_ARCHITECTURES ${CMAKE_OSX_ARCHITECTURES} ")
 
     EXECUTE_PROCESS(COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE)
-    if (${ARCHITECTURE} STREQUAL " arm64")
+    if (${ARCHITECTURE} STREQUAL "arm64")
         message("Not support for arm64 on apple ")
 
         set(no_irrklang TRUE)
     else ()
+        message("Not on arm64 apple (${ARCHITECTURE}), enabling irrklang")
         set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/macosx-gcc/libirrklang.dylib)
     endif ()
 
