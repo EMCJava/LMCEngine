@@ -134,9 +134,13 @@ private:
      *
      * */
     std::filesystem::path        m_BuildPath { };
+    bool                         m_ShouldBuild = true;
     std::unique_ptr<std::thread> m_BuildThread { };
     BuildStage                   m_BuildStage    = BuildStage::None;
     BuildStage                   m_BuildFailedAt = BuildStage::None;
+
+    std::unique_ptr<struct LogGroup> m_BuildThreadStrBuffer;
+    std::mutex                       m_BuildThreadStrBufferMutex { };
 
     uint32_t m_MaxThreadAllowed   = 0;
     uint32_t m_BuildThreadAllowed = 0;
