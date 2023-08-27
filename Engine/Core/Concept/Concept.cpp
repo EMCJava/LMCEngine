@@ -6,21 +6,23 @@
 
 #include <random>
 
-DEFINE_CONCEPT_DS( Concept )
+DEFINE_CONCEPT( Concept )
+
+Concept::~Concept( )
+{
+    for ( auto& Con : m_SubConcepts )
+    {
+        TEST( Con->m_BelongsTo == this );
+        Con->m_BelongsTo = nullptr;
+    }
+
+    spdlog::trace( "{}::~{} -> {}", "Concept", "Concept", fmt::ptr( this ) );
+}
 
 bool
 Concept::HasSubConcept( )
 {
     return !m_SubConcepts.empty( );
-}
-
-void
-Concept::Destroy( )
-{
-    if ( m_BelongsTo != nullptr )
-    {
-        m_BelongsTo->RemoveConcept( this );
-    }
 }
 
 bool
@@ -30,6 +32,9 @@ Concept::RemoveConcept( PureConcept* ConceptPtr )
     {
         if ( It->get( ) == ConceptPtr )
         {
+            TEST( ConceptPtr->m_BelongsTo == this );
+            ConceptPtr->m_BelongsTo = nullptr;
+
             m_SubConcepts.erase( It );
             m_ConceptsStateHash.NextUint64( );
             return true;

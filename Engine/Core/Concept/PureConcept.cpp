@@ -4,13 +4,31 @@
 
 #include "PureConcept.hpp"
 
+#include <Engine/Core/Concept/Concept.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
-DEFINE_CONCEPT_DS( PureConcept )
+DEFINE_CONCEPT( PureConcept )
 DEFINE_SIMPLE_IMGUI_TYPE( PureConcept, m_ConceptsStateHash )
+
+PureConcept::~PureConcept( )
+{
+    Destroy( );
+
+    spdlog::trace( "{}::~{} -> {}", "PureConcept", "PureConcept", fmt::ptr( this ) );
+}
 
 uint64_t
 PureConcept::GetHash( ) const noexcept
 {
     return m_ConceptsStateHash.SeekUint64( );
+}
+
+void
+PureConcept::Destroy( )
+{
+    if ( m_BelongsTo != nullptr )
+    {
+        m_BelongsTo->RemoveConcept( this );
+        m_BelongsTo = nullptr;
+    }
 }

@@ -11,7 +11,7 @@
 #include <memory>
 #include <vector>
 
-#pragma warning(Using dynamic_pointer_cast, performance can be impacted)
+#pragma warning( Using dynamic_pointer_cast, performance can be impacted )
 #define ConceptCasting std::dynamic_pointer_cast
 
 /*
@@ -59,19 +59,8 @@ public:
     bool
     HasSubConcept( );
 
-    void
-    Destroy( );
-
 private:
     std::vector<std::shared_ptr<PureConcept>> m_SubConcepts;
-
-    /*
-     *
-     * Pointer to who owns(calls AddConcept on) this concept
-     * Useful in e.g. Destroy concept, PureConcept should not be able to delete itself
-     *
-     * */
-    Concept* m_BelongsTo = nullptr;
 };
 
 template <class ConceptType, typename... Args>
@@ -79,16 +68,12 @@ std::shared_ptr<ConceptType>
 Concept::AddConcept( Args&&... params )
 {
     m_ConceptsStateHash.NextUint64( );
+    static_assert( ConceptType::template CanCastS<PureConcept>( ) );
 
-    if constexpr ( ConceptType::template CanCastS<Concept>( ) )
-    {
-        auto Result = ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( std::make_shared<ConceptType>( std::forward<Args>( params )... ) ) );
+    auto Result = ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( std::make_shared<ConceptType>( std::forward<Args>( params )... ) ) );
 
-        Result->m_BelongsTo = this;
-        return Result;
-    }
-
-    return ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( std::make_shared<ConceptType>( std::forward<Args>( params )... ) ) );
+    Result->m_BelongsTo = this;
+    return Result;
 }
 
 template <class ConceptType>
@@ -114,6 +99,9 @@ Concept::RemoveConcept( )
     {
         if ( m_SubConcepts[ i ]->CanCastV( ConceptType::TypeID ) )
         {
+            TEST( m_SubConcepts[ i ]->m_BelongsTo == this );
+            m_SubConcepts[ i ]->m_BelongsTo = nullptr;
+
             m_SubConcepts.erase( m_SubConcepts.begin( ) + i );
             m_ConceptsStateHash.NextUint64( );
             return true;
@@ -141,17 +129,24 @@ template <class ConceptType>
 int
 Concept::RemoveConcepts( )
 {
-    int RemovedCount = std::erase_if( m_SubConcepts.begin( ), m_SubConcepts.end( ),
-                                      []( auto& SubConcept ) {
-                                          return SubConcept->template CanCast<ConceptType>( );
-                                      } );
+    auto PartIt = std::partition( m_SubConcepts.begin( ), m_SubConcepts.end( ),
+                                  []( auto& SubConcept ) {
+                                      return SubConcept->template CanCast<ConceptType>( );
+                                  } );
 
-    if ( RemovedCount > 0 ) [[likely]]
+    const auto RemoveCount = std::distance( PartIt, m_SubConcepts.end( ) );
+    if ( RemoveCount != 0 ) [[likely]]
     {
+        std::for_each( PartIt, m_SubConcepts.end( ), [ this ]( auto& SubConcept ) {
+            TEST( SubConcept->m_BelongsTo == this );
+            SubConcept->m_BelongsTo = nullptr;
+        } );
+
+        m_SubConcepts.erase( PartIt, m_SubConcepts.end( ) );
         m_ConceptsStateHash.NextUint64( );
     }
 
-    return RemovedCount;
+    return RemoveCount;
 }
 
 template <class ConceptType>
