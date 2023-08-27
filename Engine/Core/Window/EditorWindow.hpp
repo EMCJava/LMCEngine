@@ -130,6 +130,13 @@ private:
 
     /*
      *
+     * Editor states
+     *
+     * */
+    class PureConcept *m_ConceptDragStart, *m_ConceptDragEnd;
+
+    /*
+     *
      * Build settings
      *
      * */

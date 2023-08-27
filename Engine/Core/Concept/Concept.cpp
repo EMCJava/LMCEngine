@@ -43,3 +43,30 @@ Concept::RemoveConcept( PureConcept* ConceptPtr )
 
     return false;
 }
+
+bool
+Concept::TransferSubConcept( PureConcept* ConceptPtr )
+{
+    if ( ConceptPtr->m_BelongsTo != nullptr && ConceptPtr->m_BelongsTo != this ) [[likely]]
+    {
+        auto&      OriginalSet = ConceptPtr->m_BelongsTo->m_SubConcepts;
+        const auto OccIt       = std::find_if( OriginalSet.begin( ), OriginalSet.end( ),
+                                               [ ConceptPtr ]( std::shared_ptr<PureConcept>& SubConcept ) {
+                                             return SubConcept.get( ) == ConceptPtr;
+                                         } );
+
+        REQUIRED_IF( OccIt != OriginalSet.end( ) )
+        {
+            m_SubConcepts.emplace_back( std::move( *OccIt ) );
+            m_ConceptsStateHash.NextUint64( );
+
+            OriginalSet.erase( OccIt );
+            ConceptPtr->m_BelongsTo->m_ConceptsStateHash.NextUint64( );
+
+            ConceptPtr->m_BelongsTo = this;
+            return true;
+        }
+    }
+
+    return false;
+}

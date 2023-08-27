@@ -426,11 +426,29 @@ EditorWindow::UpdateImGui( )
     {
         ImGui::Begin( "Hierarchy" );
 
+        m_ConceptDragStart = m_ConceptDragEnd = nullptr;
+
         auto* RootConcept = GetConceptPtr( );
         if ( RenderConceptHierarchy( RootConcept ) )
         {
             m_ConceptInspectionCache.SelectedConceptMask.clear( );
             m_ConceptInspectionCache.SelectedConceptMask.emplace( RootConcept );
+        }
+
+        /*
+         *
+         * Drag and drop operations
+         *
+         * */
+        {
+            if ( m_ConceptDragStart != nullptr && m_ConceptDragEnd != nullptr )
+            {
+                if ( m_ConceptDragEnd->CanCastV( Concept::TypeID ) ) [[likely]]
+                {
+                    ( (Concept*) m_ConceptDragEnd )->TransferSubConcept( m_ConceptDragStart );
+                    spdlog::info( "Transferred subConcept ownership" );
+                }
+            }
         }
 
         ImGui::End( );
@@ -722,7 +740,7 @@ EditorWindow::RenderConceptHierarchy( PureConcept* Con )
 {
     bool IsSelected = false;
 
-    static const auto DragAndDropOperation = []( PureConcept* Con ) {
+    static const auto DragAndDropOperation = [ this ]( PureConcept* Con ) {
         /*
          *
          * Drag and drop operations
@@ -741,6 +759,8 @@ EditorWindow::RenderConceptHierarchy( PureConcept* Con )
             {
                 PureConcept* PayloadConcept = *( (PureConcept**) Payload->Data );
                 spdlog::info( "Drag concept from {} to {}", PayloadConcept->GetName( ), Con->GetName( ) );
+                m_ConceptDragStart = PayloadConcept;
+                m_ConceptDragEnd   = Con;
             }
             ImGui::EndDragDropTarget( );
         }

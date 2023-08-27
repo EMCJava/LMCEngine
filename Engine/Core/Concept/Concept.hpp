@@ -59,6 +59,14 @@ public:
     bool
     HasSubConcept( );
 
+    /*
+     *
+     * Get ownership of a sub concept
+     *
+     * */
+    bool
+    TransferSubConcept( PureConcept* ConceptPtr );
+
 private:
     std::vector<std::shared_ptr<PureConcept>> m_SubConcepts;
 };
