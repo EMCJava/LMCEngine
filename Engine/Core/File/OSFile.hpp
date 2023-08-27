@@ -6,6 +6,7 @@
 
 #include <nfd.hpp>
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -20,5 +21,8 @@ SaveFile( const std::vector<nfdfilteritem_t>& filter, const char* default_path =
 
 std::string
 PickFolder( const char* default_path = nullptr );
+
+bool
+CopyFolder( const std::filesystem::path& Path, std::filesystem::path Destination );
 
 };   // namespace OSFile

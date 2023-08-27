@@ -4,8 +4,7 @@
 
 #include "EditorWindow.hpp"
 
-#include <libexecstream/exec-stream.h>
-
+#include <Engine/Core/Runtime/ExternalProgram/ProgramExecute.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/HotReloadFrameBuffer/HotReloadFrameBuffer.hpp>
 #include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
@@ -23,108 +22,6 @@
 
 #include <filesystem>
 #include <regex>
-
-namespace
-{
-
-bool
-CopyProjectAssets( const std::filesystem::path& Path, std::filesystem::path Destination )
-{
-    const auto CopyOptions =
-        std::filesystem::copy_options::update_existing
-        | std::filesystem::copy_options::recursive;
-
-    if ( !std::filesystem::exists( Path ) )
-    {
-        spdlog::warn( "Path does not exist, not copying: {}", absolute( Path ).string( ) );
-        return false;
-    }
-
-    const bool IsDirectory = std::filesystem::is_directory( Path );
-
-    std::error_code OperationError;
-    spdlog::info( "Copying {} {} to {}", IsDirectory ? "directory" : "file", absolute( Path ).string( ), absolute( Destination ).string( ) );
-    if ( IsDirectory )
-    {
-        const auto DirectoryName = Path.filename( );
-        Destination              = Destination / DirectoryName;
-        std::filesystem::create_directories( Destination, OperationError );
-
-        if ( OperationError.value( ) )
-        {
-            spdlog::error( "Failed to create directory at destination: {}({})", OperationError.message( ), OperationError.value( ) );
-            return false;
-        }
-    }
-
-    std::filesystem::copy( Path, Destination, CopyOptions, OperationError );
-
-    constexpr size_t RetryCount = 5;
-    for ( size_t Tries = 0; Tries < RetryCount && OperationError.value( ); ++Tries )
-    {
-        spdlog::error( "Failed, {}({}), retry left: {}", OperationError.message( ), OperationError.value( ), RetryCount - Tries );
-        std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
-        std::filesystem::copy( Path, Destination, CopyOptions, OperationError );
-    }
-
-    if ( OperationError.value( ) )
-    {
-        spdlog::error( "Failed, {}({}), unable to copy", OperationError.message( ), OperationError.value( ) );
-
-        return false;
-    }
-
-    return true;
-}
-
-int
-RunCommand( const std::string& Program, const std::string& Arguments, auto&& OnStdOut, auto&& OnStdErr, const std::vector<std::pair<std::string, std::string>>& PreCommands = { } )
-{
-    exec_stream_t es;
-    es.set_wait_timeout( exec_stream_t::stream_kind_t::s_all, 10 * 60 * 1000 );
-
-    for ( const auto& Cmd : PreCommands )
-    {
-        spdlog::info( "Running command: {} {}", Cmd.first, Cmd.second );
-        es.start( Cmd.first, Cmd.second );
-        std::string s;
-        while ( std::getline( es.out( ), s ) )
-        {
-            spdlog::info( "exec_stream(out) : - {} -", s );
-        }
-        while ( std::getline( es.err( ), s ) )
-        {
-            spdlog::info( "exec_stream(err) : - {} -", s );
-        }
-        es.close( );
-    }
-
-    spdlog::info( "Running command: {} {}", Program, Arguments );
-    es.start( Program, Arguments );
-
-    auto StdErr = std::thread( [ &es, &OnStdErr ]( ) {
-        std::string s;
-        while ( std::getline( es.err( ), s ) )
-        {
-            OnStdErr( s );
-        }
-    } );
-
-    auto StdOut = std::thread( [ &es, &OnStdOut ]( ) {
-        std::string s;
-        while ( std::getline( es.out( ), s ) )
-        {
-            OnStdOut( s );
-        }
-    } );
-
-    if ( StdErr.joinable( ) ) StdErr.join( );
-    if ( StdOut.joinable( ) ) StdOut.join( );
-
-    es.close( );
-    return es.exit_code( );
-}
-}   // namespace
 
 // From ImGiu demo
 struct LogGroup {
@@ -883,7 +780,7 @@ EditorWindow::BuildReleaseConfigCmake( )
             std::string ErrorLogs       = "";
             float       ConfiguringTime = 0, GeneratingTime = 0;
 
-            RunCommand(
+            ExternalProgram::RunCommand(
                 "cmake", Arguments,
                 [ this, &ConfiguringTime, &GeneratingTime ]( auto& s ) {
                     spdlog::info( "exec_stream : - {} -", s );
@@ -960,7 +857,7 @@ EditorWindow::BuildRelease( )
             Arguments             = std::regex_replace( Arguments, std::regex( R"(\\)" ), "/" );   // Why????
 
             std::string ErrorLogs = "";
-            const auto  ExitCode  = RunCommand(
+            const auto  ExitCode  = ExternalProgram::RunCommand(
                 "cmake", Arguments,
                 [ this ]( auto& s ) {
                     spdlog::info( "exec_stream : - {} -", s );
@@ -1020,7 +917,7 @@ EditorWindow::BuildReleaseCopyEssentialFiles( )
         std::string ProjectPaths[] = { "Assets", "Editor" };
         for ( const auto& Path : ProjectPaths )
         {
-            if ( !CopyProjectAssets( ProjectFolderPath / Path, m_BuildPath ) )
+            if ( !OSFile::CopyFolder( ProjectFolderPath / Path, m_BuildPath ) )
             {
                 m_BuildThread->detach( );
                 m_BuildThread.reset( );
@@ -1028,7 +925,7 @@ EditorWindow::BuildReleaseCopyEssentialFiles( )
             }
         }
 
-        if ( !CopyProjectAssets( Project->GetProjectPath( ), m_BuildPath ) )
+        if ( !OSFile::CopyFolder( Project->GetProjectPath( ), m_BuildPath ) )
         {
             m_BuildThread->detach( );
             m_BuildThread.reset( );
