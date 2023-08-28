@@ -663,29 +663,29 @@ EditorWindow::BuildReleaseConfigCmake( )
 
             ExternalProgram::RunCommand(
                 "cmake", Arguments,
-                [ this, &ConfiguringTime, &GeneratingTime ]( auto& s ) {
-                    spdlog::info( "exec_stream : - {} -", s );
+                [ this, &ConfiguringTime, &GeneratingTime ]( const auto& CommandLog ) {
+                    spdlog::info( "exec_stream : - {} -", CommandLog );
                     std::regex  GeneratingPattern( R"(Generating done \((\d+\.\d+)s\))" );
                     std::smatch GeneratingMatch;
-                    if ( std::regex_search( s, GeneratingMatch, GeneratingPattern ) )
+                    if ( std::regex_search( CommandLog, GeneratingMatch, GeneratingPattern ) )
                     {
                         GeneratingTime = std::stof( GeneratingMatch.str( 1 ) );
                     }
 
                     std::regex  ConfiguringPattern( R"(Configuring done \((\d+\.\d+)s\))" );
                     std::smatch ConfiguringMatch;
-                    if ( std::regex_search( s, ConfiguringMatch, ConfiguringPattern ) )
+                    if ( std::regex_search( CommandLog, ConfiguringMatch, ConfiguringPattern ) )
                     {
                         ConfiguringTime = std::stof( ConfiguringMatch.str( 1 ) );
                     }
 
                     std::unique_lock Lock( m_BuildThreadStrBufferMutex );
-                    m_BuildThreadStrBuffer->AddLog( "%s\n", s.c_str( ) );
+                    m_BuildThreadStrBuffer->AddLog( "%s\n", CommandLog.c_str( ) );
                 },
-                [ this, &ErrorLogs ]( auto& s ) {
-                    ErrorLogs += s + '\n';
+                [ this, &ErrorLogs ]( const auto& CommandLog ) {
+                    ErrorLogs += CommandLog + '\n';
                     std::unique_lock Lock( m_BuildThreadStrBufferMutex );
-                    m_BuildThreadStrBuffer->AddLog( "%s\n", s.c_str( ) );
+                    m_BuildThreadStrBuffer->AddLog( "%s\n", CommandLog.c_str( ) );
                 } );
 
             if ( GeneratingTime != 0 )
@@ -740,15 +740,15 @@ EditorWindow::BuildRelease( )
             std::string ErrorLogs = "";
             const auto  ExitCode  = ExternalProgram::RunCommand(
                 "cmake", Arguments,
-                [ this ]( auto& s ) {
-                    spdlog::info( "exec_stream : - {} -", s );
+                [ this ]( const auto& CommandLog ) {
+                    spdlog::info( "exec_stream : - {} -", CommandLog );
                     std::unique_lock Lock( m_BuildThreadStrBufferMutex );
-                    m_BuildThreadStrBuffer->AddLog( "%s\n", s.c_str( ) );
+                    m_BuildThreadStrBuffer->AddLog( "%s\n", CommandLog.c_str( ) );
                 },
-                [ this, &ErrorLogs ]( auto& s ) {
-                    ErrorLogs += s + '\n';
+                [ this, &ErrorLogs ]( const auto& CommandLog ) {
+                    ErrorLogs += CommandLog + '\n';
                     std::unique_lock Lock( m_BuildThreadStrBufferMutex );
-                    m_BuildThreadStrBuffer->AddLog( "%s\n", s.c_str( ) );
+                    m_BuildThreadStrBuffer->AddLog( "%s\n", CommandLog.c_str( ) );
                 } );
 
             if ( ExitCode == 0 )
