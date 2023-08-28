@@ -624,7 +624,7 @@ EditorWindow::SetBuildPath( )
     REQUIRED_IF( m_BuildStage == BuildStage::None )
     {
         const auto&           Project           = Engine::GetEngine( )->GetProject( );
-        std::filesystem::path ProjectFolderPath = Project->GetProjectPath( );
+        std::filesystem::path ProjectFolderPath = Project->GetProjectFilePath( );
         if ( !ProjectFolderPath.empty( ) )
         {
             ProjectFolderPath      = ProjectFolderPath.parent_path( );
@@ -645,7 +645,7 @@ EditorWindow::BuildReleaseConfigCmake( )
     REQUIRED_IF( !m_BuildPath.empty( ) && m_BuildStage == BuildStage::CMakeConfig && m_BuildThread != nullptr && std::this_thread::get_id( ) == m_BuildThread->get_id( ) )
     {
         const auto&           Project           = Engine::GetEngine( )->GetProject( );
-        std::filesystem::path ProjectFolderPath = Project->GetProjectPath( );
+        std::filesystem::path ProjectFolderPath = Project->GetProjectFilePath( );
         ProjectFolderPath                       = ProjectFolderPath.parent_path( );
 
         /*
@@ -787,7 +787,7 @@ EditorWindow::BuildReleaseCopyEssentialFiles( )
     REQUIRED_IF( !m_BuildPath.empty( ) && m_BuildStage == BuildStage::CopyFiles && m_BuildThread != nullptr && std::this_thread::get_id( ) == m_BuildThread->get_id( ) )
     {
         const auto&           Project           = Engine::GetEngine( )->GetProject( );
-        std::filesystem::path ProjectFolderPath = Project->GetProjectPath( );
+        std::filesystem::path ProjectFolderPath = Project->GetProjectFilePath( );
         ProjectFolderPath                       = ProjectFolderPath.parent_path( );
 
         /*
@@ -806,7 +806,7 @@ EditorWindow::BuildReleaseCopyEssentialFiles( )
             }
         }
 
-        if ( !OSFile::CopyFolder( Project->GetProjectPath( ), m_BuildPath ) )
+        if ( !OSFile::CopyFolder( Project->GetProjectFilePath( ), m_BuildPath ) )
         {
             m_BuildThread->detach( );
             m_BuildThread.reset( );

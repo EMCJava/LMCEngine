@@ -102,7 +102,7 @@ Project::~Project( )
 }
 
 const std::string&
-Project::GetProjectPath( ) const
+Project::GetProjectFilePath( ) const
 {
     return m_ProjectFilePath;
 }

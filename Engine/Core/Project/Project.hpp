@@ -35,7 +35,7 @@ public:
     GetConfig( ) -> ProjectConfig&;
 
     const std::string&
-    GetProjectPath( ) const;
+    GetProjectFilePath( ) const;
 
 private:
     ProjectConfig m_Config;
