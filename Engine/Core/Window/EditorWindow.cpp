@@ -200,11 +200,19 @@ EditorWindow::UpdateImGui( )
         ImGui::Image( reinterpret_cast<void*>( m_PreviousFrameTextureID ),
                       WindowDimensions, ImVec2( 0, 1 ), ImVec2( 1, 0 ) );
 
-        ImGui::SetCursorScreenPos( ChildStartPos );
-        ImGui::Text( "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate );
+        {
+            ImGui::SetCursorScreenPos( ChildStartPos );
+            const ImGuiWindowFlags OverlayFlag = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+            ImGui::SetNextWindowBgAlpha( 0.35f );   // Transparent background
+            ImGui::SetNextWindowPos(ChildStartPosition, ImGuiCond_Always);
+            if ( ImGui::Begin( "Example: Simple overlay", nullptr, OverlayFlag ) )
+            {
+                ImGui::Text( "%.1f FPS", io.Framerate );
+            }
+            ImGui::End( );
+        }
 
         ImGui::EndChild( );
-
         ImGui::End( );
     }
 
