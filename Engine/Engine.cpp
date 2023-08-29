@@ -13,6 +13,10 @@
 #include <GLFW/glfw3.h>
 
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/callback_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <Engine/Library/ImGui/Ext/LogGroup.hpp>
 
 #include <Engine/Core/Graphic/HotReloadFrameBuffer/HotReloadFrameBuffer.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquare.hpp>
@@ -32,6 +36,8 @@
 #include RootConceptIncludePath
 
 #include <regex>
+#include <string>
+#include <string_view>
 
 // For some reason, the following initialization will create multiple static variable for different translation unit on MAC
 // So now we are using inline in header file instead
@@ -84,6 +90,8 @@ Engine::Engine( )
 
     InitializeEnvironment( );
 
+    m_DefaultLogGroup = new LogGroup;
+
     m_AudioEngine = new AudioEngine;
 
     m_ActiveProject = new Project;
@@ -106,12 +114,27 @@ Engine::Engine( )
 
     m_MainWindowPool = new WindowPool;
 
+#ifndef HOT_RELOAD
+    auto ConsoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>( );
+    auto FileSink    = std::make_shared<spdlog::sinks::basic_file_sink_mt>( "ProjectCache/EngineLog.log" );
+    m_DefaultLogger = std::make_shared<spdlog::logger>( "EngineSink", spdlog::sinks_init_list { ConsoleSink, FileSink } );
+#else
+
+    auto ConsoleSink  = std::make_shared<spdlog::sinks::stdout_color_sink_mt>( );
+    auto FileSink     = std::make_shared<spdlog::sinks::basic_file_sink_mt>( "ProjectCache/EngineLog.log" );
+    auto CallBackSink = std::make_shared<spdlog::sinks::callback_sink_mt>( [ this ]( const spdlog::details::log_msg& msg ) {
+        m_DefaultLogGroup->AddLog( "%s\n", std::string( msg.payload.data( ), msg.payload.size( ) ).c_str( ) );
+    } );
+
+    m_DefaultLogger = std::make_shared<spdlog::logger>( "EngineSink", spdlog::sinks_init_list { ConsoleSink, FileSink, CallBackSink } );
+#endif
+
     /*
      *
      * Engine
      *
      * */
-    g_Engine = this;
+    SetEngine( this );
 
 #ifndef HOT_RELOAD
 
@@ -119,8 +142,9 @@ Engine::Engine( )
     m_MainWindow->SetRootConcept( m_RootConcept );
     glfwSetWindowSizeCallback( m_MainWindow->GetWindowHandle( ), OnWindowResize );
     SetMainWindowViewPortDimensions( m_MainWindow->GetDimensions( ) );
-
 #endif
+
+    spdlog::info( "========== Engine initialized ==========" );
 }
 
 Engine::~Engine( )
@@ -168,6 +192,11 @@ Engine::~Engine( )
     delete m_RootConcept;
     m_RootConcept = nullptr;
 #endif
+
+    delete m_DefaultLogGroup;
+    m_DefaultLogGroup = nullptr;
+
+    m_DefaultLogger.reset( );
 
     ShutdownEnvironment( );
 }
@@ -421,6 +450,11 @@ Engine::GetGLContext( )
 void
 Engine::SetEngine( Engine* EngineContext )
 {
+    REQUIRED_IF( EngineContext->m_DefaultLogger != nullptr )
+    {
+        spdlog::set_default_logger( EngineContext->m_DefaultLogger );
+    }
+
 #ifndef NDEBUG
     spdlog::set_level( spdlog::level::trace );
 #endif
@@ -480,6 +514,12 @@ void
 Engine::SetMainWindowViewPortDimensions( std::pair<int, int> Dimension )
 {
     m_MainViewPortDimensions = Dimension;
+}
+
+LogGroup*
+Engine::GetEngineDefaultLogGroup( )
+{
+    return m_DefaultLogGroup;
 }
 
 void ( *Engine::GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* )

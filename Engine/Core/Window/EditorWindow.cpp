@@ -237,6 +237,9 @@ EditorWindow::UpdateImGui( )
 
         const auto& io = ImGui::GetIO( );
         ImGui::Text( "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate );
+
+        Engine::GetEngine( )->GetEngineDefaultLogGroup( )->Draw( "Engine Log" );
+
         ImGui::End( );
     }
 
@@ -300,6 +303,11 @@ EditorWindow::UpdateImGui( )
         ImGui::End( );
     }
 
+    /*
+     *
+     * Project build overlay
+     *
+     * */
     {
         if ( ShowProjectBuild.has_value( ) )
         {

@@ -7,7 +7,12 @@
 #include <Engine/Core/Core.hpp>
 
 #include <string>
+#include <memory>
 
+namespace spdlog
+{
+class logger;
+}
 class Engine
 {
     /*
@@ -120,6 +125,14 @@ public:
 
     /*
      *
+     * Logger related
+     *
+     * */
+    struct LogGroup*
+    GetEngineDefaultLogGroup( );
+
+    /*
+     *
      * Audio related
      *
      * */
@@ -201,6 +214,14 @@ private:
     CreateImGuiContext( );
     void
     DestroyImGuiContext( );
+
+    /*
+     *
+     * Logging
+     *
+     * */
+    std::shared_ptr<spdlog::logger> m_DefaultLogger;
+    struct LogGroup*                m_DefaultLogGroup = nullptr;
 
     /*
      *
