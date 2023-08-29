@@ -327,204 +327,7 @@ EditorWindow::UpdateImGui( )
             }
         }
 
-        const ImVec2 Center = ImGui::GetMainViewport( )->GetCenter( );
-        ImGui::SetNextWindowPos( Center, ImGuiCond_Appearing, ImVec2( 0.5f, 0.5f ) );
-        if ( ImGui::BeginPopup( "Project Build", ImGuiWindowFlags_AlwaysAutoResize ) )
-        {
-            {
-                if ( m_BuildFailedAt == BuildStage::CMakeConfig )
-                {
-                    ImGui::PushStyleColor( ImGuiCol_Text, ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ) );
-                }
-
-                ImGuiGroup::BeginGroupPanel( "Cmake Settings" );
-
-                ImGui::Text( "%s", m_BuildPath.string( ).c_str( ) );
-                ImGui::SameLine( );
-                if ( ImGui::ArrowButton( "##PF", ImGuiDir_Down ) )
-                {
-                    SetBuildPath( );
-                }
-
-                ImGui::Spacing( );
-                ImGuiGroup::EndGroupPanel( );
-
-                if ( m_BuildFailedAt == BuildStage::CMakeConfig )
-                {
-                    ImGui::PopStyleColor( );
-                }
-            }
-
-            ImGui::Spacing( );
-
-            {
-                if ( m_BuildFailedAt == BuildStage::CmakeBuild )
-                {
-                    ImGui::PushStyleColor( ImGuiCol_Text, ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ) );
-                }
-
-                ImGuiGroup::BeginGroupPanel( "Build Settings" );
-
-                const uint32_t MinThread = 1;
-                ImGui::SliderScalar( "Build Threads", ImGuiDataType_U32, &m_BuildThreadAllowed, &MinThread, &m_MaxThreadAllowed );
-
-                ImGui::Spacing( );
-                ImGuiGroup::EndGroupPanel( );
-
-                if ( m_BuildFailedAt == BuildStage::CmakeBuild )
-                {
-                    ImGui::PopStyleColor( );
-                }
-            }
-
-            {
-                if ( m_BuildFailedAt == BuildStage::CopyFiles )
-                {
-                    ImGui::PushStyleColor( ImGuiCol_Text, ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ) );
-                }
-
-                ImGuiGroup::BeginGroupPanel( "Assets Settings" );
-
-                ImGui::SeparatorText( "Copy Asset Files To" );
-                ImGui::BeginDisabled( );
-                ImGui::Text( "%s", m_BuildPath.string( ).c_str( ) );
-                ImGui::EndDisabled( );
-
-                ImGui::Spacing( );
-                ImGuiGroup::EndGroupPanel( );
-
-                if ( m_BuildFailedAt == BuildStage::CopyFiles )
-                {
-                    ImGui::PopStyleColor( );
-                }
-            }
-
-            if ( ImGui::Button( "Build", ImVec2( 120, 0 ) ) )
-            {
-                ImGui::OpenPopup( "Build Progress" );
-
-                std::unique_lock Lock( m_BuildThreadStrBufferMutex );
-                m_BuildThreadStrBuffer->Clear( );
-
-                m_BuildFailedAt = BuildStage::None;
-                m_BuildStage    = BuildStage::CMakeConfig;
-                m_BuildThread   = std::make_unique<std::thread>( &EditorWindow::BuildReleaseConfigCmake, this );
-            }
-            ImGui::SetItemDefaultFocus( );
-            ImGui::SameLine( );
-            if ( ImGui::Button( "Finish", ImVec2( 120, 0 ) ) )
-            {
-                ImGui::CloseCurrentPopup( );
-            }
-
-            /*
-             *
-             * Build progress bar
-             *
-             * */
-            {
-                ImGui::SetNextWindowPos( Center, ImGuiCond_Always, ImVec2( 0.5f, 0.5f ) );
-                ImGui::SetNextWindowSize( ImVec2 { 0, 0 } );
-
-                if ( ImGui::BeginPopupModal( "Build Progress", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
-                {
-
-                    float       progress = 0;
-                    std::string StatusStr;
-                    if ( m_BuildThread == nullptr )
-                    {
-                        progress = 1;
-
-                        // Finished
-                        if ( m_BuildStage == BuildStage::None || m_BuildFailedAt != BuildStage::None )
-                        {
-
-                            StatusStr = m_BuildFailedAt != BuildStage::None ? "Failed Building" : "Finishing Building";
-                        } else
-                        {
-                            // Failed
-                            if ( m_BuildStage != BuildStage::Finished )
-                            {
-                                m_BuildFailedAt = m_BuildStage;
-                            } else
-                            {
-#ifdef LMC_WIN
-                                std::string OpenFolderSysCommand = "explorer " + m_BuildPath.string( );
-#elif defined( LMC_APPLE )
-                                std::string OpenFolderSysCommand = "open " + m_BuildPath.string( );
-#elif defined( LMC_LINUX )
-                                std::string OpenFolderSysCommand = "xdg-open " + m_BuildPath.string( );
-#else
-                                std::string OpenFolderSysCommand = "";
-#endif
-
-                                if ( !OpenFolderSysCommand.empty( ) )
-                                {
-                                    spdlog::info( "Executing command: {}({})", OpenFolderSysCommand, system( OpenFolderSysCommand.c_str( ) ) );
-                                } else
-                                {
-                                    spdlog::warn( "Unknown platform, not opening folder" );
-                                }
-                            }
-
-                            m_BuildStage = BuildStage::None;
-                        }
-                    } else
-                    {
-                        switch ( m_BuildStage )
-                        {
-                        case BuildStage::CMakeConfig:
-                            progress  = 1 / 4.F;
-                            StatusStr = "Cmake Configuration";
-                            break;
-                        case BuildStage::CmakeBuild:
-                            progress  = 2 / 4.F;
-                            StatusStr = "Project Building";
-                            break;
-                        case BuildStage::CopyFiles:
-                            progress  = 3 / 4.F;
-                            StatusStr = "Copying Project Asset Files";
-                            break;
-                        case BuildStage::Finished:
-                        case BuildStage::None:
-                            break;
-                        }
-                    }
-
-                    ImGui::ProgressBar( progress, ImVec2( m_Width / 2.F, 0.f ), StatusStr.c_str( ) );
-                    ImGui::Separator( );
-
-                    // Not finished, show build messages
-                    if ( m_BuildStage != BuildStage::Finished )
-                    {
-                        std::unique_lock Lock( m_BuildThreadStrBufferMutex );
-                        m_BuildThreadStrBuffer->Draw( "Build Logs", nullptr, m_Height / 2.F );
-                    }
-
-                    ImGui::Dummy( ImVec2( 120 /*+ ImGui::GetStyle( ).ItemSpacing.x*/, 0 ) );
-                    ImGui::Spacing( );
-
-                    if ( m_BuildStage != BuildStage::None )
-                    {
-                        ImGui::BeginDisabled( );
-                    }
-
-                    if ( ImGui::Button( "Close", ImVec2( 120, 0 ) ) )
-                    {
-                        ImGui::CloseCurrentPopup( );
-                    }
-
-                    if ( m_BuildStage != BuildStage::None )
-                    {
-                        ImGui::EndDisabled( );
-                    }
-
-                    ImGui::EndPopup( );
-                }
-            }
-
-            ImGui::EndPopup( );
-        }
+        RenderBuildOverlay( );
     }
 }
 
@@ -831,5 +634,208 @@ EditorWindow::BuildReleaseCopyEssentialFiles( )
         m_BuildStage = BuildStage::Finished;
         m_BuildThread->detach( );
         m_BuildThread.reset( );
+    }
+}
+
+void
+EditorWindow::RenderBuildOverlay( )
+{
+    const ImVec2 Center = ImGui::GetMainViewport( )->GetCenter( );
+    ImGui::SetNextWindowPos( Center, ImGuiCond_Appearing, ImVec2( 0.5f, 0.5f ) );
+    if ( ImGui::BeginPopup( "Project Build", ImGuiWindowFlags_AlwaysAutoResize ) )
+    {
+        {
+            if ( m_BuildFailedAt == BuildStage::CMakeConfig )
+            {
+                ImGui::PushStyleColor( ImGuiCol_Text, ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ) );
+            }
+
+            ImGuiGroup::BeginGroupPanel( "Cmake Settings" );
+
+            ImGui::Text( "%s", m_BuildPath.string( ).c_str( ) );
+            ImGui::SameLine( );
+            if ( ImGui::ArrowButton( "##PF", ImGuiDir_Down ) )
+            {
+                SetBuildPath( );
+            }
+
+            ImGui::Spacing( );
+            ImGuiGroup::EndGroupPanel( );
+
+            if ( m_BuildFailedAt == BuildStage::CMakeConfig )
+            {
+                ImGui::PopStyleColor( );
+            }
+        }
+
+        ImGui::Spacing( );
+
+        {
+            if ( m_BuildFailedAt == BuildStage::CmakeBuild )
+            {
+                ImGui::PushStyleColor( ImGuiCol_Text, ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ) );
+            }
+
+            ImGuiGroup::BeginGroupPanel( "Build Settings" );
+
+            const uint32_t MinThread = 1;
+            ImGui::SliderScalar( "Build Threads", ImGuiDataType_U32, &m_BuildThreadAllowed, &MinThread, &m_MaxThreadAllowed );
+
+            ImGui::Spacing( );
+            ImGuiGroup::EndGroupPanel( );
+
+            if ( m_BuildFailedAt == BuildStage::CmakeBuild )
+            {
+                ImGui::PopStyleColor( );
+            }
+        }
+
+        {
+            if ( m_BuildFailedAt == BuildStage::CopyFiles )
+            {
+                ImGui::PushStyleColor( ImGuiCol_Text, ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ) );
+            }
+
+            ImGuiGroup::BeginGroupPanel( "Assets Settings" );
+
+            ImGui::SeparatorText( "Copy Asset Files To" );
+            ImGui::BeginDisabled( );
+            ImGui::Text( "%s", m_BuildPath.string( ).c_str( ) );
+            ImGui::EndDisabled( );
+
+            ImGui::Spacing( );
+            ImGuiGroup::EndGroupPanel( );
+
+            if ( m_BuildFailedAt == BuildStage::CopyFiles )
+            {
+                ImGui::PopStyleColor( );
+            }
+        }
+
+        if ( ImGui::Button( "Build", ImVec2( 120, 0 ) ) )
+        {
+            ImGui::OpenPopup( "Build Progress" );
+
+            std::unique_lock Lock( m_BuildThreadStrBufferMutex );
+            m_BuildThreadStrBuffer->Clear( );
+
+            m_BuildFailedAt = BuildStage::None;
+            m_BuildStage    = BuildStage::CMakeConfig;
+            m_BuildThread   = std::make_unique<std::thread>( &EditorWindow::BuildReleaseConfigCmake, this );
+        }
+        ImGui::SetItemDefaultFocus( );
+        ImGui::SameLine( );
+        if ( ImGui::Button( "Finish", ImVec2( 120, 0 ) ) )
+        {
+            ImGui::CloseCurrentPopup( );
+        }
+
+        /*
+         *
+         * Build progress bar
+         *
+         * */
+        {
+            ImGui::SetNextWindowPos( Center, ImGuiCond_Always, ImVec2( 0.5f, 0.5f ) );
+            ImGui::SetNextWindowSize( ImVec2 { 0, 0 } );
+
+            if ( ImGui::BeginPopupModal( "Build Progress", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+            {
+
+                float       progress = 0;
+                std::string StatusStr;
+                if ( m_BuildThread == nullptr )
+                {
+                    progress = 1;
+
+                    // Finished
+                    if ( m_BuildStage == BuildStage::None || m_BuildFailedAt != BuildStage::None )
+                    {
+
+                        StatusStr = m_BuildFailedAt != BuildStage::None ? "Failed Building" : "Finishing Building";
+                    } else
+                    {
+                        // Failed
+                        if ( m_BuildStage != BuildStage::Finished )
+                        {
+                            m_BuildFailedAt = m_BuildStage;
+                        } else
+                        {
+#ifdef LMC_WIN
+                            std::string OpenFolderSysCommand = "explorer " + m_BuildPath.string( );
+#elif defined( LMC_APPLE )
+                            std::string OpenFolderSysCommand = "open " + m_BuildPath.string( );
+#elif defined( LMC_LINUX )
+                            std::string OpenFolderSysCommand = "xdg-open " + m_BuildPath.string( );
+#else
+                            std::string OpenFolderSysCommand = "";
+#endif
+
+                            if ( !OpenFolderSysCommand.empty( ) )
+                            {
+                                spdlog::info( "Executing command: {}({})", OpenFolderSysCommand, system( OpenFolderSysCommand.c_str( ) ) );
+                            } else
+                            {
+                                spdlog::warn( "Unknown platform, not opening folder" );
+                            }
+                        }
+
+                        m_BuildStage = BuildStage::None;
+                    }
+                } else
+                {
+                    switch ( m_BuildStage )
+                    {
+                    case BuildStage::CMakeConfig:
+                        progress  = 1 / 4.F;
+                        StatusStr = "Cmake Configuration";
+                        break;
+                    case BuildStage::CmakeBuild:
+                        progress  = 2 / 4.F;
+                        StatusStr = "Project Building";
+                        break;
+                    case BuildStage::CopyFiles:
+                        progress  = 3 / 4.F;
+                        StatusStr = "Copying Project Asset Files";
+                        break;
+                    case BuildStage::Finished:
+                    case BuildStage::None:
+                        break;
+                    }
+                }
+
+                ImGui::ProgressBar( progress, ImVec2( m_Width / 2.F, 0.f ), StatusStr.c_str( ) );
+                ImGui::Separator( );
+
+                // Not finished, show build messages
+                if ( m_BuildStage != BuildStage::Finished )
+                {
+                    std::unique_lock Lock( m_BuildThreadStrBufferMutex );
+                    m_BuildThreadStrBuffer->Draw( "Build Logs", nullptr, m_Height / 2.F );
+                }
+
+                ImGui::Dummy( ImVec2( 120 /*+ ImGui::GetStyle( ).ItemSpacing.x*/, 0 ) );
+                ImGui::Spacing( );
+
+                if ( m_BuildStage != BuildStage::None )
+                {
+                    ImGui::BeginDisabled( );
+                }
+
+                if ( ImGui::Button( "Close", ImVec2( 120, 0 ) ) )
+                {
+                    ImGui::CloseCurrentPopup( );
+                }
+
+                if ( m_BuildStage != BuildStage::None )
+                {
+                    ImGui::EndDisabled( );
+                }
+
+                ImGui::EndPopup( );
+            }
+        }
+
+        ImGui::EndPopup( );
     }
 }

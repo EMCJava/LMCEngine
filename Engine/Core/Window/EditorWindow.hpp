@@ -50,6 +50,9 @@ class EditorWindow : public GameWindow
     void
     ConceptMemoryViewGroup( const char* Name, PureConcept* Con );
 
+    void
+    RenderBuildOverlay( );
+
 
     enum class BuildStage { CMakeConfig,
                             CmakeBuild,
