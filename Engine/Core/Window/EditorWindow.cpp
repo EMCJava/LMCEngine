@@ -135,12 +135,7 @@ EditorWindow::UpdateImGui( )
 
     {
         ImGui::Begin( "Console" );
-
-        const auto& io = ImGui::GetIO( );
-        ImGui::Text( "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate );
-
-        Engine::GetEngine( )->GetEngineDefaultLogGroup( )->Draw( "Engine Log" );
-
+        Engine::GetEngine( )->GetEngineDefaultLogGroup( )->Draw( "Engine Log", false );
         ImGui::End( );
     }
 
@@ -710,7 +705,7 @@ EditorWindow::RenderBuildOverlay( )
                 if ( m_BuildStage != BuildStage::Finished )
                 {
                     std::unique_lock Lock( m_BuildThreadStrBufferMutex );
-                    m_BuildThreadStrBuffer->Draw( "Build Logs", nullptr, m_Height / 2.F );
+                    m_BuildThreadStrBuffer->Draw( "Build Logs", true, m_Height / 2.F );
                 }
 
                 ImGui::Dummy( ImVec2( 120 /*+ ImGui::GetStyle( ).ItemSpacing.x*/, 0 ) );

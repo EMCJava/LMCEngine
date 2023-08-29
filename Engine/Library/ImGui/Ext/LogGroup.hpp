@@ -40,9 +40,12 @@ struct LogGroup {
                 LineOffsets.push_back( old_size + 1 );
     }
 
-    void Draw( const char* title, bool* p_open = nullptr, float Height = 0 )
+    void Draw( const char* title, bool UseGroup = true, float Height = 0 )
     {
-        ImGuiGroup::BeginGroupPanel( title );
+        if ( UseGroup )
+        {
+            ImGuiGroup::BeginGroupPanel( title );
+        }
 
         // Options menu
         if ( ImGui::BeginPopup( "Options" ) )
@@ -124,6 +127,9 @@ struct LogGroup {
         }
         ImGui::EndChild( );
 
-        ImGuiGroup::EndGroupPanel( );
+        if ( UseGroup )
+        {
+            ImGuiGroup::EndGroupPanel( );
+        }
     }
 };
