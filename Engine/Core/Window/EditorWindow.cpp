@@ -288,6 +288,10 @@ EditorWindow::UpdateImGui( )
         // It also alows customization
         ImGui::BeginChild( "Render" );
 
+
+        ImVec2      ChildStartPos = ImGui::GetCursorScreenPos( );
+        const auto& io            = ImGui::GetIO( );
+
         const auto                WindowDimensions    = ImGui::GetContentRegionAvail( );
         const std::pair<int, int> WindowDimensionPair = { WindowDimensions.x, WindowDimensions.y };
         if ( m_MainViewPortDimension != WindowDimensionPair )
@@ -297,6 +301,9 @@ EditorWindow::UpdateImGui( )
 
         ImGui::Image( reinterpret_cast<void*>( m_PreviousFrameTextureID ),
                       WindowDimensions, ImVec2( 0, 1 ), ImVec2( 1, 0 ) );
+
+        ImGui::SetCursorScreenPos( ChildStartPos );
+        ImGui::Text( "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate );
 
         ImGui::EndChild( );
 
