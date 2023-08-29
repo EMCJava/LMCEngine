@@ -53,6 +53,9 @@ class EditorWindow : public GameWindow
     void
     RenderBuildOverlay( );
 
+    void
+    RenderMenuBar( );
+
 
     enum class BuildStage { CMakeConfig,
                             CmakeBuild,
@@ -143,6 +146,7 @@ private:
      * Build settings
      *
      * */
+    bool                         m_ShouldActivateOverlay { };
     std::filesystem::path        m_BuildPath { };
     bool                         m_ShouldBuild = true;
     std::unique_ptr<std::thread> m_BuildThread { };

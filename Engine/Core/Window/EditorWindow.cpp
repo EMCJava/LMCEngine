@@ -100,106 +100,7 @@ EditorWindow::UpdateImGui( )
         ImGui::ShowDemoWindow( );
     }
 
-    if ( ImGui::BeginMainMenuBar( ) )
-    {
-        if ( ImGui::BeginMenu( "File" ) )
-        {
-            if ( ImGui::MenuItem( "Open project" ) )
-            {
-                spdlog::info( "Open project" );
-                const auto ProjectPath = OSFile::PickFile( {
-                    {"LMCEngine project file", "lmce"}
-                } );
-                if ( ProjectPath.empty( ) )
-                {
-                    spdlog::info( "Operation cancelled" );
-                } else
-                {
-                    Engine::GetEngine( )->LoadProject( ProjectPath );
-
-                    // Load preset layout, need to do it here for the exception to be thrown
-                    const auto LayoutPath = std::filesystem::path { ProjectPath }.parent_path( ) / "Editor/layout.ini";
-                    if ( std::filesystem::exists( LayoutPath ) )
-                    {
-                        Engine::GetEngine( )->GetProject( )->GetConfig( ).editor_layout_path = LayoutPath.string( );
-                        throw ImGuiContextInvalid { };
-                    }
-                }
-            }
-
-            if ( ImGui::MenuItem( "Save project" ) )
-            {
-                spdlog::info( "Save project" );
-                Engine::GetEngine( )->GetProject( )->SaveProject( );
-            }
-
-            ImGui::Separator( );
-            if ( ImGui::MenuItem( "Close", "Alt+F4" ) )
-            {
-                glfwSetWindowShouldClose( m_Window, GL_TRUE );
-            }
-
-            ImGui::EndMenu( );
-        }
-
-        if ( ImGui::BeginMenu( "View" ) )
-        {
-            if ( ImGui::BeginMenu( "Layout" ) )
-            {
-                auto& ImGuiIO = ImGui::GetIO( );
-                if ( ImGui::MenuItem( "Save Layout", nullptr, false, ImGuiIO.WantSaveIniSettings ) )
-                {
-                    const auto& DefaultPathStr = Engine::GetEngine( )->GetProject( )->GetConfig( ).editor_layout_path;
-                    const char* DefaultPath    = nullptr;
-                    if ( !DefaultPathStr.empty( ) )
-                    {
-                        DefaultPath = DefaultPathStr.c_str( );
-                    }
-
-                    const auto SaveLocation = OSFile::SaveFile( {
-                                                                    {"Layout init file", "ini"}
-                    },
-                                                                DefaultPath );
-                    if ( !SaveLocation.empty( ) )
-                    {
-                        ImGui::SaveIniSettingsToDisk( SaveLocation.c_str( ) );
-                        ImGuiIO.WantSaveIniSettings = false;
-                    }
-                }
-
-                if ( ImGui::MenuItem( "Load Layout" ) )
-                {
-                    const auto LoadLocation = OSFile::PickFile( {
-                        {"Layout init file", "ini"}
-                    } );
-                    if ( !LoadLocation.empty( ) )
-                    {
-                        Engine::GetEngine( )->GetProject( )->GetConfig( ).editor_layout_path = LoadLocation;
-                        throw ImGuiContextInvalid { };
-                    }
-                }
-
-                ImGui::EndMenu( );
-            }
-
-            ImGui::Separator( );
-            ImGui::MenuItem( "ImGui Demo Window", nullptr, &m_ShowImGuiDemoWindow );
-
-            ImGui::EndMenu( );
-        }
-
-        if ( ImGui::BeginMenu( "Build" ) )
-        {
-            if ( ImGui::MenuItem( "Build Project" ) )
-            {
-                ShowProjectBuild = true;
-            }
-
-            ImGui::EndMenu( );
-        }
-
-        ImGui::EndMainMenuBar( );
-    }
+    RenderMenuBar( );
 
     {
         ImGui::Begin( "Hierarchy" );
@@ -316,15 +217,13 @@ EditorWindow::UpdateImGui( )
      *
      * */
     {
-        if ( ShowProjectBuild.has_value( ) )
+        if ( m_ShouldActivateOverlay )
         {
-            if ( ShowProjectBuild.value( ) )
-            {
-                SetBuildPath( );
+            SetBuildPath( );
 
-                m_BuildThreadAllowed = m_MaxThreadAllowed = std::thread::hardware_concurrency( );
-                ImGui::OpenPopup( "Project Build" );
-            }
+            m_BuildThreadAllowed = m_MaxThreadAllowed = std::thread::hardware_concurrency( );
+            ImGui::OpenPopup( "Project Build" );
+            m_ShouldActivateOverlay = false;
         }
 
         RenderBuildOverlay( );
@@ -837,5 +736,110 @@ EditorWindow::RenderBuildOverlay( )
         }
 
         ImGui::EndPopup( );
+    }
+}
+
+void
+EditorWindow::RenderMenuBar( )
+{
+    if ( ImGui::BeginMainMenuBar( ) )
+    {
+        if ( ImGui::BeginMenu( "File" ) )
+        {
+            if ( ImGui::MenuItem( "Open project" ) )
+            {
+                spdlog::info( "Open project" );
+                const auto ProjectPath = OSFile::PickFile( {
+                    {"LMCEngine project file", "lmce"}
+                } );
+                if ( ProjectPath.empty( ) )
+                {
+                    spdlog::info( "Operation cancelled" );
+                } else
+                {
+                    Engine::GetEngine( )->LoadProject( ProjectPath );
+
+                    // Load preset layout, need to do it here for the exception to be thrown
+                    const auto LayoutPath = std::filesystem::path { ProjectPath }.parent_path( ) / "Editor/layout.ini";
+                    if ( std::filesystem::exists( LayoutPath ) )
+                    {
+                        Engine::GetEngine( )->GetProject( )->GetConfig( ).editor_layout_path = LayoutPath.string( );
+                        throw ImGuiContextInvalid { };
+                    }
+                }
+            }
+
+            if ( ImGui::MenuItem( "Save project" ) )
+            {
+                spdlog::info( "Save project" );
+                Engine::GetEngine( )->GetProject( )->SaveProject( );
+            }
+
+            ImGui::Separator( );
+            if ( ImGui::MenuItem( "Close", "Alt+F4" ) )
+            {
+                glfwSetWindowShouldClose( m_Window, GL_TRUE );
+            }
+
+            ImGui::EndMenu( );
+        }
+
+        if ( ImGui::BeginMenu( "View" ) )
+        {
+            if ( ImGui::BeginMenu( "Layout" ) )
+            {
+                auto& ImGuiIO = ImGui::GetIO( );
+                if ( ImGui::MenuItem( "Save Layout", nullptr, false, ImGuiIO.WantSaveIniSettings ) )
+                {
+                    const auto& DefaultPathStr = Engine::GetEngine( )->GetProject( )->GetConfig( ).editor_layout_path;
+                    const char* DefaultPath    = nullptr;
+                    if ( !DefaultPathStr.empty( ) )
+                    {
+                        DefaultPath = DefaultPathStr.c_str( );
+                    }
+
+                    const auto SaveLocation = OSFile::SaveFile( {
+                                                                    {"Layout init file", "ini"}
+                    },
+                                                                DefaultPath );
+                    if ( !SaveLocation.empty( ) )
+                    {
+                        ImGui::SaveIniSettingsToDisk( SaveLocation.c_str( ) );
+                        ImGuiIO.WantSaveIniSettings = false;
+                    }
+                }
+
+                if ( ImGui::MenuItem( "Load Layout" ) )
+                {
+                    const auto LoadLocation = OSFile::PickFile( {
+                        {"Layout init file", "ini"}
+                    } );
+                    if ( !LoadLocation.empty( ) )
+                    {
+                        Engine::GetEngine( )->GetProject( )->GetConfig( ).editor_layout_path = LoadLocation;
+                        throw ImGuiContextInvalid { };
+                    }
+                }
+
+                ImGui::EndMenu( );
+            }
+
+            ImGui::Separator( );
+            ImGui::MenuItem( "ImGui Demo Window", nullptr, &m_ShowImGuiDemoWindow );
+
+            ImGui::EndMenu( );
+        }
+
+        if ( ImGui::BeginMenu( "Build" ) )
+        {
+            if ( ImGui::MenuItem( "Build Project" ) )
+            {
+                m_ShouldActivateOverlay = true;
+            }
+
+            ImGui::EndMenu( );
+        }
+
+        ImGui::EndMainMenuBar( );
     }
 }
