@@ -40,6 +40,11 @@ UserInput::UpdateMouse( )
         m_FunctionKey.SetPress( m_FrameCount );
     else
         m_FunctionKey.isDown = false;
+
+    double X, Y;
+    glfwGetCursorPos( m_EventWindow, &X, &Y );
+    m_CursorPosition.first  = X;
+    m_CursorPosition.second = Y;
 }
 
 void

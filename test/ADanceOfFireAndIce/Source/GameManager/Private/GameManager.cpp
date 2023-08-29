@@ -1356,6 +1356,8 @@ GameManager::Apply( )
     const auto DeltaSecond    = Engine::GetEngine( )->GetDeltaSecond( );
     const bool PlayerInteract = IsUserPrimaryInteract( );
 
+    spdlog::info( "Mouse Position: {},{}", Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( ).first, Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( ).second );
+
     if ( m_IsCheckingDeviceDelay ) [[unlikely]]
     {
         // Adjust the audio offset to the correct value

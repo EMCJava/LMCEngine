@@ -4,6 +4,7 @@
 
 #include "EditorWindow.hpp"
 
+#include <Engine/Core/Input/UserInput.hpp>
 #include <Engine/Core/Runtime/ExternalProgram/ProgramExecute.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/HotReloadFrameBuffer/HotReloadFrameBuffer.hpp>
@@ -183,7 +184,8 @@ EditorWindow::UpdateImGui( )
         // Using a Child allow to fill all the space of the window.
         // It also alows customization
         ImGui::BeginChild( "Render" );
-
+        auto ChildStartPosition = ImGui::GetWindowPos( );
+        Engine::GetEngine( )->GetUserInputHandle( )->SetCursorTopLeftPosition( { ChildStartPosition.x, ChildStartPosition.y } );
 
         ImVec2      ChildStartPos = ImGui::GetCursorScreenPos( );
         const auto& io            = ImGui::GetIO( );
