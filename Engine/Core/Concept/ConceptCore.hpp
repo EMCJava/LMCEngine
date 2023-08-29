@@ -74,6 +74,13 @@ public:                                                            \
     }                                                              \
                                                                    \
     template <typename ConceptType>                                \
+    bool                                                           \
+    CanCastV( )                                                    \
+    {                                                              \
+        return this->CanCastV( ConceptType::TypeID );              \
+    }                                                              \
+                                                                   \
+    template <typename ConceptType>                                \
     static consteval bool                                          \
     CanCastS( )                                                    \
     {                                                              \
@@ -252,17 +259,18 @@ private:
  * Most basic concepts definition, a virtual function checking static parent set
  *
  * */
-#define DEFINE_CONCEPT( class_name )                                             \
-    bool                                                                         \
-    class_name::CanCastV( uint64_t ConceptID )                                   \
-    {                                                                            \
-        return ParentSet::Contain( ConceptID );                                  \
-    }                                                                            \
-                                                                                 \
-/*                                                                               \
- *                                                                               \
- * Most basic concepts definition, a virtual function checking static parent set \
- *                                                                               \
+#define DEFINE_CONCEPT( class_name )            \
+    bool                                        \
+    class_name::CanCastV( uint64_t ConceptID )  \
+    {                                           \
+        return ParentSet::Contain( ConceptID ); \
+    }
+
+
+/*
+ *
+ * Most basic concepts definition, a virtual function checking static parent set
+ *
  * */
 #define DEFINE_CONCEPT_DS( class_name )                                               \
                                                                                       \
