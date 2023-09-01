@@ -17,6 +17,9 @@ public:
     void
     SetActiveCamera( class PureConceptCamera* ActiveCamera );
 
+    class PureConceptCamera*
+    GetActiveCamera( ) { return m_ActiveCamera; }
+
 protected:
-    class PureConceptCamera* m_ActiveCamera;
+    class PureConceptCamera* m_ActiveCamera = nullptr;
 };

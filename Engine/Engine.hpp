@@ -13,6 +13,10 @@ namespace spdlog
 {
 class logger;
 }
+
+template <class>
+class ConceptSetFetchCache;
+
 class Engine
 {
     /*
@@ -22,6 +26,9 @@ class Engine
      * */
     void
     Render( );
+
+    void
+    SetupGlobalResources( );
 
 public:
     Engine( );
@@ -147,6 +154,14 @@ public:
     class UserInput*
     GetUserInputHandle( );
 
+    /*
+     *
+     * Make sure all code are using the same instance
+     *
+     * */
+    class GlobalResourcePool*
+    GetGlobalResourcePool( );
+
     void ( *GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* );
 
 private:
@@ -225,6 +240,13 @@ private:
 
     /*
      *
+     *
+     *
+     * */
+    class GlobalResourcePool* m_GlobalResourcePool = nullptr;
+
+    /*
+     *
      * Audio
      *
      * */
@@ -235,7 +257,8 @@ private:
      * Root concept in the screen
      *
      * */
-    class RootConceptTy* m_RootConcept = nullptr;
+    class RootConceptTy*                           m_RootConcept         = nullptr;
+    ConceptSetFetchCache<class ConceptApplicable>* m_RootApplicableCache = nullptr;
 
     /*
      *

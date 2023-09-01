@@ -39,6 +39,9 @@ public:
     virtual void
     SetupSprite( ) = 0;
 
+    void
+    SetAbsolutePosition( bool Absolute = true ) { m_IsAbsolutePosition = Absolute; }
+
 protected:
     std::shared_ptr<Shader> m_Shader;
     uint32_t                m_VAO { }, m_VBO { }, m_EBO { };
@@ -49,6 +52,13 @@ protected:
      *
      * */
     bool m_ShouldDeallocateGLResources { true };
+
+    /*
+     *
+     * Use screen coordinate instead of world coordinates
+     *
+     * */
+    bool m_IsAbsolutePosition { false };
 
     ENABLE_IMGUI( Sprite )
 };

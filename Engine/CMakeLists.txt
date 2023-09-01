@@ -24,6 +24,9 @@ target_link_libraries(Engine.lib
         UserInput.lib
         PureConceptCamera.lib
         ConceptCoreRuntime.lib
+        GlobalResourcePool.lib
+        ShaderProgram.lib
+        Shader.lib
 
         SpriteSquare.lib
         )

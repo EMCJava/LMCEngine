@@ -46,18 +46,18 @@ public:
 
     template <class ConceptType>
     std::shared_ptr<PureConcept>
-    GetConcept( );
+    GetConcept( ) const;
+
+    template <class ConceptType, class ElementTy>
+    void
+    GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out ) const;
 
     template <class ConceptType>
     void
-    GetConcepts( std::vector<std::shared_ptr<PureConcept>>& Out );
-
-    template <class ConceptType>
-    void
-    GetConcepts( ConceptSetFetchCache<ConceptType>& Out );
+    GetConcepts( ConceptSetFetchCache<ConceptType>& Out ) const;
 
     bool
-    HasSubConcept( );
+    HasSubConcept( ) const;
 
     /*
      *
@@ -67,8 +67,28 @@ public:
     bool
     TransferSubConcept( PureConcept* ConceptPtr );
 
+    void
+    SetSearchThrough( bool SearchThrough = true );
+
+private:
+    /*
+     *
+     * Same as GetConcepts but will not clear the vector
+     *
+     * */
+    template <class ConceptType, class ElementTy>
+    void
+    GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out ) const;
+
 private:
     std::vector<std::shared_ptr<PureConcept>> m_SubConcepts;
+
+    /*
+     *
+     * If this is set to true, when searching for "a SET of" concepts, it will also check for its sub-concept
+     *
+     * */
+    bool m_SearchThrough = false;
 };
 
 template <class ConceptType, typename... Args>
@@ -86,7 +106,7 @@ Concept::AddConcept( Args&&... params )
 
 template <class ConceptType>
 std::shared_ptr<PureConcept>
-Concept::GetConcept( )
+Concept::GetConcept( ) const
 {
     for ( auto& Concept : m_SubConcepts )
     {
@@ -119,18 +139,56 @@ Concept::RemoveConcept( )
     return false;
 }
 
-template <class ConceptType>
+template <class ConceptType, class ElementTy>
 void
-Concept::GetConcepts( std::vector<std::shared_ptr<PureConcept>>& Out )
+Concept::GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out ) const
+{
+    const auto CheckSubConcept = [ &Out ]( const std::shared_ptr<PureConcept>& ConceptSharePtr ) {
+        const Concept* const ConceptPtr = (Concept*) ConceptSharePtr.get( );
+
+        // Need to check for sub-concept
+        if ( ConceptPtr->m_SearchThrough )
+        {
+            ConceptPtr->GetConcepts_Internal<ConceptType>( Out );
+        }
+    };
+
+    for ( const auto& ConceptSharePtr : m_SubConcepts )
+    {
+        if ( ConceptSharePtr->CanCastV( ConceptType::TypeID ) )
+        {
+            if constexpr ( std::is_same_v<PureConcept, ElementTy> )
+            {
+                Out.emplace_back( ConceptSharePtr );
+            } else
+            {
+                Out.emplace_back( std::dynamic_pointer_cast<ElementTy>( ConceptSharePtr ) );
+            }
+
+            // Can avoid calling virtual functions
+            if constexpr ( ConceptType::template CanCastS<Concept>( ) )
+            {
+                CheckSubConcept( ConceptSharePtr );
+                continue;
+            }
+        }
+
+        // No sub-concept
+        if ( !ConceptSharePtr->CanCastV( Concept::TypeID ) )
+        {
+            continue;
+        }
+
+        CheckSubConcept( ConceptSharePtr );
+    }
+}
+
+template <class ConceptType, class ElementTy>
+void
+Concept::GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out ) const
 {
     Out.clear( );
-    for ( const auto& Concept : m_SubConcepts )
-    {
-        if ( Concept->CanCastV( ConceptType::TypeID ) )
-        {
-            Out.emplace_back( Concept );
-        }
-    }
+    GetConcepts_Internal<ConceptType>( Out );
 }
 
 template <class ConceptType>
@@ -159,7 +217,7 @@ Concept::RemoveConcepts( )
 
 template <class ConceptType>
 void
-Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out )
+Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out ) const
 {
     const auto StateHash = m_ConceptsStateHash.SeekUint64( );
     if ( Out.m_CacheHash == StateHash )
@@ -169,12 +227,13 @@ Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out )
     }
 
     Out.m_CacheHash = StateHash;
-    Out.m_CachedConcepts.clear( );
-    for ( auto& Concept : m_SubConcepts )
-    {
-        if ( Concept->CanCastV( ConceptType::TypeID ) )
-        {
-            Out.m_CachedConcepts.emplace_back( std::dynamic_pointer_cast<ConceptType>( Concept ) );
-        }
-    }
+    GetConcepts<ConceptType>( Out.m_CachedConcepts );
+
+    //    for ( auto& Concept : m_SubConcepts )
+    //    {
+    //        if ( Concept->CanCastV( ConceptType::TypeID ) )
+    //        {
+    //            Out.m_CachedConcepts.emplace_back( std::dynamic_pointer_cast<ConceptType>( Concept ) );
+    //        }
+    //    }
 }

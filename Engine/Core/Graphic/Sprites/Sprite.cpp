@@ -12,7 +12,7 @@
 #include <spdlog/spdlog.h>
 
 DEFINE_CONCEPT( Sprite )
-DEFINE_SIMPLE_IMGUI_TYPE( Sprite, m_VAO, m_VBO, m_EBO, m_Shader )
+DEFINE_SIMPLE_IMGUI_TYPE( Sprite, m_VAO, m_VBO, m_EBO, m_Shader, m_IsAbsolutePosition )
 
 Sprite::~Sprite( )
 {
@@ -55,7 +55,14 @@ Sprite::SetShaderMatrix( )
         m_Shader->Bind( );
         if ( m_ActiveCamera != nullptr )
         {
-            m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
+            if ( m_IsAbsolutePosition )
+            {
+                m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrixNonOffset( ) );
+            }
+            else
+            {
+                m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
+            }
         }
 
         m_Shader->SetMat4( "modelMatrix", GetTranslationMatrix( ) * GetRotationMatrix( ) );

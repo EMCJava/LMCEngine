@@ -68,6 +68,8 @@ declare_library(
         Map.TileSpriteSet.lib
         SpriteSquareAnimatedTexture.lib
         Effect.ToleranceBar.lib
+        GlobalResourcePool.lib
+        RectButton.lib
 
         DEPS
         ConceptApplicable.lib

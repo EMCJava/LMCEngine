@@ -6,6 +6,8 @@
 #include "ToleranceBar.hpp"
 
 #include <Engine/Engine.hpp>
+#include <Engine/Core/UI/RectButton.hpp>
+#include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Utilities/StopWatch.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
@@ -1345,6 +1347,8 @@ GameManager::GameManager( )
     SetupExplosionSpriteTemplate( );
     LoadToleranceSprite( );
 
+    AddConcept<RectButton>( 100, 100 )->SetActiveCamera( m_Camera.get( ) );
+
     m_InActivePlayerSprite->SetRotation( 0, 0, glm::radians( 180.f ) );
 
     spdlog::info( "GameManager concept constructor returned" );
@@ -1355,8 +1359,6 @@ GameManager::Apply( )
 {
     const auto DeltaSecond    = Engine::GetEngine( )->GetDeltaSecond( );
     const bool PlayerInteract = IsUserPrimaryInteract( );
-
-    spdlog::info( "Mouse Position: {},{}", Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( ).first, Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( ).second );
 
     if ( m_IsCheckingDeviceDelay ) [[unlikely]]
     {
@@ -1731,10 +1733,7 @@ GameManager::SetupExplosionSpriteTemplate( )
 void
 GameManager::SetupShader( )
 {
-    auto SProgram = std::make_shared<ShaderProgram>( );
-    SProgram->Load( vertexTextureShaderSource, fragmentTextureShaderSource );
-    m_SpriteShader = std::make_shared<Shader>( );
-    m_SpriteShader->SetProgram( SProgram );
+    m_SpriteShader = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" );
 }
 
 void

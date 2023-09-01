@@ -18,10 +18,15 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <Engine/Library/ImGui/Ext/LogGroup.hpp>
 
+#include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultTextureShader.hpp>
+#include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultColorShader.hpp>
 #include <Engine/Core/Graphic/HotReloadFrameBuffer/HotReloadFrameBuffer.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquare.hpp>
+#include <Engine/Core/Graphic/Shader/ShaderProgram.hpp>
+#include <Engine/Core/Graphic/Shader/Shader.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
+#include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Environment/Environment.hpp>
 #include <Engine/Core/Window/EditorWindow.hpp>
 #include <Engine/Core/Window/WindowPool.hpp>
@@ -117,7 +122,7 @@ Engine::Engine( )
 #ifndef HOT_RELOAD
     auto ConsoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>( );
     auto FileSink    = std::make_shared<spdlog::sinks::basic_file_sink_mt>( "ProjectCache/EngineLog.log" );
-    m_DefaultLogger = std::make_shared<spdlog::logger>( "EngineSink", spdlog::sinks_init_list { ConsoleSink, FileSink } );
+    m_DefaultLogger  = std::make_shared<spdlog::logger>( "EngineSink", spdlog::sinks_init_list { ConsoleSink, FileSink } );
 #else
 
     auto ConsoleSink  = std::make_shared<spdlog::sinks::stdout_color_sink_mt>( );
@@ -136,6 +141,8 @@ Engine::Engine( )
      * */
     SetEngine( this );
 
+    SetupGlobalResources( );
+
 #ifndef HOT_RELOAD
 
     m_RootConcept = new RootConceptTy;
@@ -144,12 +151,17 @@ Engine::Engine( )
     SetMainWindowViewPortDimensions( m_MainWindow->GetDimensions( ) );
 #endif
 
+    m_RootApplicableCache = new ConceptSetFetchCache<ConceptApplicable>;
+
     spdlog::info( "========== Engine initialized ==========" );
 }
 
 Engine::~Engine( )
 {
     spdlog::info( "Engine destroying" );
+
+    delete m_RootApplicableCache;
+    m_RootApplicableCache = nullptr;
 
 #ifdef HOT_RELOAD
     // We might still need the destructor for example in the dll
@@ -162,6 +174,8 @@ Engine::~Engine( )
     delete m_RootConcept;
     m_RootConcept = nullptr;
 #endif
+
+    GlobalResourcePool::Clear( );
 
     delete m_MainWindowPool;
     m_MainWindowPool = nullptr;
@@ -233,7 +247,7 @@ Engine::UpdateRootConcept( )
     {
         auto& RootConcept = *m_RootConcept;
 
-        if ( RootConcept.ShouldReload( ) )
+        if ( RootConcept.ShouldReload( ) ) [[unlikely]]
         {
             spdlog::info( "RootConcept changes detected, hot reloading" );
             RootConcept.Reload( false );
@@ -263,10 +277,20 @@ Engine::UpdateRootConcept( )
             m_MainViewPortDimensions = { };
         }
 
+        TEST( RootConcept->PureConcept::CanCastV<ConceptApplicable>( ) )
         RootConcept.As<ConceptApplicable>( )->Apply( );
+
+        RootConcept.As<Concept>( )->GetConcepts( *m_RootApplicableCache );
+        m_RootApplicableCache->ForEach( []( std::shared_ptr<ConceptApplicable>& Applicable ) {
+            Applicable->Apply( );
+        } );
     }
 #else
     m_RootConcept->Apply( );
+    m_RootConcept->GetConcepts( *m_RootApplicableCache );
+    m_RootApplicableCache->ForEach( []( std::shared_ptr<ConceptApplicable>& Applicable ) {
+        Applicable->Apply( );
+    } );
 #endif
 }
 
@@ -520,6 +544,30 @@ LogGroup*
 Engine::GetEngineDefaultLogGroup( )
 {
     return m_DefaultLogGroup;
+}
+
+void
+Engine::SetupGlobalResources( )
+{
+    auto SProgram = std::make_shared<ShaderProgram>( );
+    SProgram->Load( DefaultColorShaderVertexSource, DefaultColorShaderFragmentSource );
+    auto SpriteShader = std::make_shared<Shader>( );
+    SpriteShader->SetProgram( SProgram );
+    GlobalResourcePool::SPush( "DefaultColorShader", std::move( SpriteShader ) );
+
+    SProgram = std::make_shared<ShaderProgram>( );
+    SProgram->Load( DefaultTextureShaderVertexSource, DefaultTextureShaderFragmentSource );
+    SpriteShader = std::make_shared<Shader>( );
+    SpriteShader->SetProgram( SProgram );
+    GlobalResourcePool::SPush( "DefaultTextureShader", std::move( SpriteShader ) );
+
+    m_GlobalResourcePool = &GlobalResourcePool::GetInstance( );
+}
+
+GlobalResourcePool*
+Engine::GetGlobalResourcePool( )
+{
+    return m_GlobalResourcePool;
 }
 
 void ( *Engine::GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* )

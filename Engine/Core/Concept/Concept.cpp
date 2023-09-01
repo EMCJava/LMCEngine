@@ -20,7 +20,7 @@ Concept::~Concept( )
 }
 
 bool
-Concept::HasSubConcept( )
+Concept::HasSubConcept( ) const
 {
     return !m_SubConcepts.empty( );
 }
@@ -69,4 +69,10 @@ Concept::TransferSubConcept( PureConcept* ConceptPtr )
     }
 
     return false;
+}
+
+void
+Concept::SetSearchThrough( bool SearchThrough )
+{
+    m_SearchThrough = SearchThrough;
 }

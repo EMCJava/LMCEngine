@@ -5,7 +5,13 @@ add_library(ConceptApplicable.lib ConceptApplicable.hpp ConceptApplicable.cpp)
 add_library(ConceptRenderable.lib ConceptRenderable.hpp ConceptRenderable.cpp)
 add_library(ConceptSetFetchCache.lib ConceptSetFetchCache.hpp ConceptFetchCache.cpp)
 
+add_library(PureConceptAABB.lib PureConceptAABB.hpp PureConceptAABB.cpp)
+add_library(PureConceptAABBBox.lib PureConceptAABBBox.hpp PureConceptAABBBox.cpp)
+
 target_link_libraries(PureConcept.lib Engine.lib ConceptCoreRuntime.lib imgui.lib)
+target_link_libraries(PureConceptAABB.lib PureConcept.lib)
+target_link_libraries(PureConceptAABBBox.lib PureConceptAABB.lib)
+
 target_link_libraries(Concept.lib ConceptSetFetchCache.lib PureConcept.lib)
 target_link_libraries(ConceptApplicable.lib Concept.lib)
 target_link_libraries(ConceptRenderable.lib Concept.lib)
