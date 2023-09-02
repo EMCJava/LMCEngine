@@ -67,3 +67,15 @@ PureConceptCamera::GetScale( ) const
 {
     return m_Scale;
 }
+
+void
+PureConceptCamera::ScreenCoordToUICoord( std::pair<FloatTy, FloatTy>& ScreenCoord ) const
+{
+    // UI has coordinate 0,0 at the center of the screen
+    ScreenCoord.first -= m_CameraWidth / 2.0F;
+    ScreenCoord.second = -( ScreenCoord.second - m_CameraHeight / 2.0F );   // Reverse Y-axis
+
+    // Camera Scale
+    ScreenCoord.first /= m_Scale;
+    ScreenCoord.second /= m_Scale;
+}

@@ -35,6 +35,9 @@ public:
     void
     UpdateProjectionMatrix( );
 
+    void
+    ScreenCoordToUICoord( std::pair<FloatTy, FloatTy>& ScreenCoord ) const;
+
 private:
     glm::mat4 m_ProjectionMatrix { 1 };
     glm::mat4 m_ProjectionMatrixNonOffset { 1 };

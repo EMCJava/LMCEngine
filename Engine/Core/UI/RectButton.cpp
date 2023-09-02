@@ -49,22 +49,13 @@ RectButton::Apply( )
 {
     if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isPressed )
     {
-        auto HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
+        std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
 
         const auto* ActiveCamera = m_SpriteSquare->GetActiveCamera( );
         REQUIRED_IF( m_SpriteSquare->GetActiveCamera( ) )
         {
-            const auto CameraDimension = ActiveCamera->GetDimensions( );
-            HitPoint.first -= CameraDimension.first / 2.0F;
-
-            // Reverse Y-axis
-            HitPoint.second = -( HitPoint.second - CameraDimension.second / 2.0F );
-
-            HitPoint.first /= ActiveCamera->GetScale( );
-            HitPoint.second /= ActiveCamera->GetScale( );
+            ActiveCamera->ScreenCoordToUICoord( HitPoint );
         }
-
-        // spdlog::info( "[Button] -> Mouse Position: {},{}", HitPoint.first, HitPoint.second );
 
         if ( m_HitBox->HitTest( HitPoint ) )
         {
