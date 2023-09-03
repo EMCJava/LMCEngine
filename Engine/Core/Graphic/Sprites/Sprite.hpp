@@ -8,6 +8,9 @@
 #include <Engine/Core/Scene/Orientation/Orientation.hpp>
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 
+#include <map>
+#include <string>
+#include <variant>
 #include <memory>
 
 class Sprite : public ConceptRenderable
@@ -16,6 +19,8 @@ class Sprite : public ConceptRenderable
     DECLARE_CONCEPT( Sprite, ConceptRenderable )
 
 public:
+    using ShaderUniformTypes = std::variant<int>;
+
     Sprite( ) = default;
 
     void
@@ -42,9 +47,14 @@ public:
     void
     SetAbsolutePosition( bool Absolute = true ) { m_IsAbsolutePosition = Absolute; }
 
+    void
+    SetShaderUniform( std::string UniformName, const ShaderUniformTypes& Value );
+
 protected:
     std::shared_ptr<Shader> m_Shader;
     uint32_t                m_VAO { }, m_VBO { }, m_EBO { };
+
+    std::map<int, ShaderUniformTypes> m_ShaderUniformSaves;
 
     /*
      *

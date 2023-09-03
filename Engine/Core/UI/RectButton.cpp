@@ -47,6 +47,13 @@ RectButton::SetActiveCamera( class PureConceptCamera* ActiveCamera )
 void
 RectButton::Apply( )
 {
+    if ( m_PressReactTimeLeft > 0 )
+    {
+        m_PressReactTimeLeft -= Engine::GetEngine( )->GetDeltaSecond( );
+    }else{
+
+    }
+
     if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isPressed )
     {
         std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );

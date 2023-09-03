@@ -58,13 +58,21 @@ Sprite::SetShaderMatrix( )
             if ( m_IsAbsolutePosition )
             {
                 m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrixNonOffset( ) );
-            }
-            else
+            } else
             {
                 m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
             }
         }
 
         m_Shader->SetMat4( "modelMatrix", GetTranslationMatrix( ) * GetRotationMatrix( ) );
+    }
+}
+
+void
+Sprite::SetShaderUniform( std::string UniformName, const Sprite::ShaderUniformTypes& Value )
+{
+    REQUIRED_IF( m_Shader != nullptr )
+    {
+        m_ShaderUniformSaves[m_Shader->GetUniformLocation( UniformName )] = Value;
     }
 }
