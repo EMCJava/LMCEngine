@@ -39,6 +39,20 @@ public:
 
     auto& GetProgram( ) { return m_ShaderProgram; }
 
+    /*
+     *
+     * For general type matching
+     *
+     * */
+    void
+    SetUniform( int UniformLocation, float Value ) const;
+
+    void
+    SetUniform( int UniformLocation, const glm::mat4& mat ) const;
+
+    void
+    SetUniform( int UniformLocation, const glm::vec4& vec ) const;
+
 private:
     std::shared_ptr<ShaderProgram> m_ShaderProgram;
 

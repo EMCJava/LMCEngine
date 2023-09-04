@@ -50,8 +50,10 @@ RectButton::Apply( )
     if ( m_PressReactTimeLeft > 0 )
     {
         m_PressReactTimeLeft -= Engine::GetEngine( )->GetDeltaSecond( );
-    }else{
-
+        m_SpriteSquare->SetShaderUniform( "fragColor", m_PressColor );
+    } else
+    {
+        m_SpriteSquare->SetShaderUniform( "fragColor", m_DefaultColor );
     }
 
     if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isPressed )
@@ -67,6 +69,7 @@ RectButton::Apply( )
         if ( m_HitBox->HitTest( HitPoint ) )
         {
             spdlog::info( "[Button] -> Point is inside hitbox" );
+            m_PressReactTimeLeft = 0.2;
 
             //            if ( m_Callback )
             //            {
@@ -74,4 +77,10 @@ RectButton::Apply( )
             //            }
         }
     }
+}
+
+void
+RectButton::SetPressReactColor( const glm::vec4& Color )
+{
+    m_PressColor = Color;
 }

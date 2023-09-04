@@ -11,6 +11,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <variant>
+
 DEFINE_CONCEPT( Sprite )
 DEFINE_SIMPLE_IMGUI_TYPE( Sprite, m_VAO, m_VBO, m_EBO, m_Shader, m_IsAbsolutePosition )
 
@@ -33,11 +35,13 @@ void
 Sprite::Render( )
 {
     SetShaderMatrix( );
+    ApplyShaderUniforms( );
 }
 
 void
 Sprite::SetShader( const std::shared_ptr<Shader>& shader )
 {
+    ClearShaderUniforms( );
     m_Shader = shader;
 }
 
@@ -73,6 +77,21 @@ Sprite::SetShaderUniform( std::string UniformName, const Sprite::ShaderUniformTy
 {
     REQUIRED_IF( m_Shader != nullptr )
     {
-        m_ShaderUniformSaves[m_Shader->GetUniformLocation( UniformName )] = Value;
+        m_ShaderUniformSaves[ m_Shader->GetUniformLocation( UniformName ) ] = Value;
     }
+}
+
+void
+Sprite::ApplyShaderUniforms( )
+{
+    for ( const auto& ShaderUniform : m_ShaderUniformSaves )
+    {
+        std::visit( [ this, Location = ShaderUniform.first ]( const auto& Value ) { m_Shader->SetUniform( Location, Value ); }, ShaderUniform.second );
+    }
+}
+
+void
+Sprite::ClearShaderUniforms( )
+{
+    m_ShaderUniformSaves.clear( );
 }

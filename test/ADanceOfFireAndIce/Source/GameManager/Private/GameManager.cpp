@@ -1347,7 +1347,9 @@ GameManager::GameManager( )
     SetupExplosionSpriteTemplate( );
     LoadToleranceSprite( );
 
-    AddConcept<RectButton>( 100, 100 )->SetActiveCamera( m_Camera.get( ) );
+    const auto& Button = AddConcept<RectButton>( 100, 100 );
+    Button->SetActiveCamera( m_Camera.get( ) );
+    Button->SetPressReactColor( glm::vec4 { 1, 0, 0, 0 } );
 
     m_InActivePlayerSprite->SetRotation( 0, 0, glm::radians( 180.f ) );
 
@@ -1655,8 +1657,8 @@ GameManager::TryAlterPlayer( )
 bool
 GameManager::IsUserPrimaryInteract( )
 {
-    return Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isPressed
-        || Engine::GetEngine( )->GetUserInputHandle( )->GetKeyState( GLFW_KEY_SPACE ).isPressed;
+    auto* UserInputHandle = Engine::GetEngine( )->GetUserInputHandle( );
+    return UserInputHandle->GetPrimaryKey( ).isPressed || UserInputHandle->GetKeyState( GLFW_KEY_SPACE ).isPressed;
 }
 
 void

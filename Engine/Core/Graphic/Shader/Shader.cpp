@@ -10,6 +10,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <fstream>
 
 DEFINE_CONCEPT_DS( Shader )
@@ -32,7 +34,7 @@ void
 Shader::SetMat4( const std::string& Name, const glm::mat4& mat ) const
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
-    gl->UniformMatrix4fv( GetUniformLocation( Name ), 1, GL_FALSE, &mat[ 0 ][ 0 ] );
+    gl->UniformMatrix4fv( GetUniformLocation( Name ), 1, GL_FALSE, glm::value_ptr( mat ) );
 }
 
 void
@@ -46,4 +48,25 @@ void
 Shader::SetProgram( std::shared_ptr<ShaderProgram>& SProgram )
 {
     m_ShaderProgram = SProgram;
+}
+
+void
+Shader::SetUniform( int UniformLocation, float Value ) const
+{
+    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+    gl->Uniform1f( UniformLocation, Value );
+}
+
+void
+Shader::SetUniform( int UniformLocation, const glm::mat4& mat ) const
+{
+    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+    gl->UniformMatrix4fv( UniformLocation, 1, GL_FALSE, glm::value_ptr( mat ) );
+}
+
+void
+Shader::SetUniform( int UniformLocation, const glm::vec4& vec ) const
+{
+    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+    gl->Uniform4fv( UniformLocation, 1, glm::value_ptr( vec ) );
 }

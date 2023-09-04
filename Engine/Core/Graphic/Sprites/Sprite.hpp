@@ -8,6 +8,8 @@
 #include <Engine/Core/Scene/Orientation/Orientation.hpp>
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 
+#include <glm/glm.hpp>
+
 #include <map>
 #include <string>
 #include <variant>
@@ -18,8 +20,11 @@ class Sprite : public ConceptRenderable
 {
     DECLARE_CONCEPT( Sprite, ConceptRenderable )
 
+    void
+    ApplyShaderUniforms( );
+
 public:
-    using ShaderUniformTypes = std::variant<int>;
+    using ShaderUniformTypes = std::variant<glm::mat4, glm::vec4, float>;
 
     Sprite( ) = default;
 
@@ -49,6 +54,9 @@ public:
 
     void
     SetShaderUniform( std::string UniformName, const ShaderUniformTypes& Value );
+
+    void
+    ClearShaderUniforms( );
 
 protected:
     std::shared_ptr<Shader> m_Shader;
