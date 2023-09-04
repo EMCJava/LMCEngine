@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <vector>
+#include <algorithm>
 
 #pragma warning( Using dynamic_pointer_cast, performance can be impacted )
 #define ConceptCasting std::dynamic_pointer_cast
