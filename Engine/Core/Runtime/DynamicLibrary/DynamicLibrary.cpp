@@ -162,7 +162,7 @@ DynamicLibrary::MakeDLLCopy( )
 
     MakeSureOperation( [ this, retry_left = 10 ]( ) mutable {
         std::error_code OperationError;
-        if ( !fs::copy_file( m_DLLPath, m_DLLTmpPath, fs::copy_options::update_existing, OperationError ) )
+        if ( !fs::copy_file( m_DLLPath, m_DLLTmpPath, fs::copy_options::overwrite_existing, OperationError ) )
         {
             // Success, but not overwriting
             if ( !OperationError.value( ) )
