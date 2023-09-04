@@ -136,12 +136,12 @@ if (WIN32)
     set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll)
 
     add_custom_target(populate_irrklang_folder
-            ${CMAKE_COMMAND} -E  make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+            ${CMAKE_COMMAND} -E  make_directory ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     )
 
     add_custom_target(
             populate_irrklang ALL
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/.
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/.
             DEPENDS populate_irrklang_folder
             COMMENT "Exporting irrKlang.dll into build tree"
     )

@@ -377,7 +377,7 @@ EditorWindow::BuildReleaseConfigCmake( )
          * */
         try
         {
-            std::string Arguments = ProjectFolderPath.string( ) /* + " -G Ninja"*/ + " -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=" + m_BuildPath.string( ) + " -DEditorBuild=false" + " -B " + ( m_BuildPath / "cmake" ).string( );
+            std::string Arguments = ProjectFolderPath.string( ) /* + " -G Ninja"*/ + " -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + m_BuildPath.string( ) + " -DEditorBuild=false" + " -B " + ( m_BuildPath / "cmake" ).string( );
             Arguments             = std::regex_replace( Arguments, std::regex( R"(\\)" ), "/" );   // Why????
 
             std::string ErrorLogs       = "";

@@ -9,10 +9,10 @@ if (NOT CMAKE_BUILD_TYPE)
     )
 endif ()
 
-if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+if (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
     message(
-            STATUS "No CMAKE_RUNTIME_OUTPUT_DIRECTORY selected, defaulting to ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+            STATUS "No CMAKE_LIBRARY_OUTPUT_DIRECTORY selected, defaulting to ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
     )
 endif ()
 
@@ -43,7 +43,7 @@ include(SourceInclude)
 
 ## ---------- Shared source (Hot reload) setting ----------
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(SHARED_BINARY_PATH_FORMAT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_SHARED_LIBRARY_PREFIX}{}.lib${CMAKE_SHARED_LIBRARY_SUFFIX}")
+set(SHARED_BINARY_PATH_FORMAT "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_SHARED_LIBRARY_PREFIX}{}.lib${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
 ## Write hot reload config in the project config file
 file(READ ${PROJECT_PATH_CONFIG_PATH} project_config_data)
@@ -59,7 +59,7 @@ add_subdirectory(Source)
 
 add_executable(ADanceOfFireAndIce main.cpp)
 if (MSVC)
-    set_target_properties(ADanceOfFireAndIce PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<0:>)
+    set_target_properties(ADanceOfFireAndIce PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/$<0:>)
 endif (MSVC)
 
 if (NOT ${EditorBuild})
