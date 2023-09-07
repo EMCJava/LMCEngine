@@ -1350,6 +1350,7 @@ GameManager::GameManager( )
     const auto& Button = AddConcept<RectButton>( 100, 100 );
     Button->SetActiveCamera( m_Camera.get( ) );
     Button->SetPressReactColor( glm::vec4 { 1, 1, 0.5, 1 } );
+    Button->SetCallback( []( ) { spdlog::info( "Button pressed." ); } );
 
     m_InActivePlayerSprite->SetRotation( 0, 0, glm::radians( 180.f ) );
 

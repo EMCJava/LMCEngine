@@ -68,13 +68,12 @@ RectButton::Apply( )
 
         if ( m_HitBox->HitTest( HitPoint ) )
         {
-            spdlog::info( "[Button] -> Point is inside hitbox" );
             m_PressReactTimeLeft = 0.2;
 
-            //            if ( m_Callback )
-            //            {
-            //                m_Callback( );
-            //            }
+            if ( m_Callback )
+            {
+                m_Callback( );
+            }
         }
     }
 }
