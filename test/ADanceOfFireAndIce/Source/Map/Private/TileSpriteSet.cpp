@@ -68,7 +68,7 @@ TileSpriteSet::RegisterSprite( uint32_t Degree, std::unique_ptr<SpriteSquareText
 void
 TileSpriteSet::AddTile( TileSpriteSet::TileMeta Tile )
 {
-    REQUIRED_IF( m_Sprites.contains( Tile.Degree ), spdlog::critical( "Missing {}", Tile.Degree ) )
+    REQUIRED_IF( m_Sprites.contains( Tile.Degree ), ( PrintTileList( ), spdlog::critical( "Missing {}", Tile.Degree ) ) )
     {
         Tile.TextureCache = m_Sprites[ Tile.Degree ].get( );
 
@@ -165,7 +165,7 @@ TileSpriteSet::PrintTileList( )
 
     for ( const auto& Tile : m_TileList )
     {
-        ss << "{" << Tile.Degree << ',' << Tile.Time << ',' << ( Tile.ReverseDirection ? "true" : "" ) << "},\n";
+        ss << "{" << Tile.Degree << ',' << Tile.Time << ( Tile.ReverseDirection ? ",true" : "" ) << "},\n";
     }
 
     spdlog::info( "{}", ss.str( ) );

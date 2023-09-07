@@ -120,7 +120,7 @@ private:
 
     bool m_WaitingForFirstBeat { true };
 
-    bool m_IsAutoPlay { false };
+    bool m_IsAutoPlay { true };
 
     /*
      *
