@@ -1696,9 +1696,10 @@ GameManager::SetupExplosionSpriteTemplate( )
 {
     REQUIRED_IF( m_SpriteShader, assert( false && "Explosion shader not loaded" ) )
     {
-        m_ExplosionSpriteTemplate = std::make_unique<SpriteSquareAnimatedTexture>( 512, 512 );
+        const auto SpriteSize = 512;
+        m_ExplosionSpriteTemplate = std::make_unique<SpriteSquareAnimatedTexture>( SpriteSize, SpriteSize );
 
-        m_ExplosionSpriteTemplate->SetOrigin( 512 / 2, 512 / 2 );
+        m_ExplosionSpriteTemplate->SetOrigin( SpriteSize / 2, SpriteSize / 2 );
         m_ExplosionSpriteTemplate->SetShader( m_SpriteShader );
         m_ExplosionSpriteTemplate->SetTexturePath( "Assets/Texture/explosion.png" );
         m_ExplosionSpriteTemplate->SetActiveCamera( m_Camera.get( ) );
