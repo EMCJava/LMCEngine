@@ -72,8 +72,18 @@ public:
      * Flow controls
      *
      * */
-    void Paused( );
-    void Resume( );
+    void
+    Paused( );
+    void
+    Resume( );
+
+    /*
+     *
+     * Audio control
+     *
+     * */
+    void
+    SetVolume( float Volume ); // Volume: [0, 1]
 
     bool SetSpeed( FloatTy Speed );
 

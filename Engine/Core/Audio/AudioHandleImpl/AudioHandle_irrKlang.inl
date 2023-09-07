@@ -55,3 +55,9 @@ AudioHandle::SetSpeed( FloatTy Speed )
 {
     return m_NativeHandle->setPlaybackSpeed( Speed );
 }
+
+void
+AudioHandle::SetVolume( float Volume )
+{
+    m_NativeHandle->setVolume( Volume );
+}

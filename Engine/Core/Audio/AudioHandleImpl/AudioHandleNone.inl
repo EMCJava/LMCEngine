@@ -46,3 +46,8 @@ AudioHandle::SetSpeed( FloatTy Speed )
 {
     return false;
 }
+
+void
+AudioHandle::SetVolume( float Volume )
+{
+}
