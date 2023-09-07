@@ -101,6 +101,10 @@ KeyState&
 KeyState::Update( uint32_t frame )
 {
     // key.isPressed might not be most up-to-date
+    static constexpr auto KeyRepeatFrame = 64;
+    static constexpr auto KeyRepeatInterval = 16;
+
+    isRepeat        = isDown && lastDownFrame <= frame - KeyRepeatFrame && ( frame - lastDownFrame ) % KeyRepeatInterval == 0;
     isPressed       = isDown && lastDownFrame == frame - 1;
     isDoublePressed = lastDoublePressedFrame == frame - 1;
 

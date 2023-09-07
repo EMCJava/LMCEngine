@@ -23,6 +23,7 @@ struct GLFWwindow;
 
 struct KeyState {
     bool     isDown                 = false;
+    bool     isRepeat               = false;
     bool     isPressed              = false;
     bool     isDoublePressed        = false;
     uint32_t lastDownFrame          = 0;
