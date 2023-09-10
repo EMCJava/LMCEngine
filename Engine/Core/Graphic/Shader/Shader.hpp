@@ -31,6 +31,10 @@ public:
     int
     GetUniformLocation( const std::string& Name ) const;
 
+    void SetVec3( const std::string& Name, const glm::vec3& mat ) const;
+
+    void SetVec4( const std::string& Name, const glm::vec4& mat ) const;
+
     void SetMat4( const std::string& Name, const glm::mat4& mat ) const;
 
     void SetFloat( const std::string& Name, float Value ) const;
@@ -52,6 +56,9 @@ public:
 
     void
     SetUniform( int UniformLocation, const glm::vec4& vec ) const;
+
+    void
+    SetUniform( int UniformLocation, const glm::vec3& vec ) const;
 
 private:
     std::shared_ptr<ShaderProgram> m_ShaderProgram;

@@ -20,6 +20,7 @@
 
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultTextureShader.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultColorShader.hpp>
+#include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultFontShader.hpp>
 #include <Engine/Core/Graphic/HotReloadFrameBuffer/HotReloadFrameBuffer.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquare.hpp>
 #include <Engine/Core/Graphic/Shader/ShaderProgram.hpp>
@@ -37,8 +38,12 @@
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 #include <Engine/Core/Audio/AudioEngine.hpp>
 #include <Engine/Core/Input/UserInput.hpp>
+#include <Engine/Core/UI/Font/Font.hpp>
 
 #include RootConceptIncludePath
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #include <regex>
 #include <string>
@@ -560,6 +565,79 @@ Engine::SetupGlobalResources( )
     SpriteShader = std::make_shared<Shader>( );
     SpriteShader->SetProgram( SProgram );
     GlobalResourcePool::SPush( "DefaultTextureShader", std::move( SpriteShader ) );
+
+    SProgram = std::make_shared<ShaderProgram>( );
+    SProgram->Load( DefaultFontShaderVertexSource, DefaultFontShaderFragmentSource );
+    SpriteShader = std::make_shared<Shader>( );
+    SpriteShader->SetProgram( SProgram );
+    GlobalResourcePool::SPush( "DefaultFontShader", std::move( SpriteShader ) );
+
+    /*
+     *
+     * Font loading
+     *
+     * */
+    {
+        auto DefaultFont = std::make_shared<Font>( );
+
+        FT_Library ft;
+        REQUIRED_IF( !FT_Init_FreeType( &ft ) )
+        {
+            FT_Face face;
+            DefaultFont->m_FontName = "FiraCode";
+            REQUIRED_IF( !FT_New_Face( ft, "Assets/Font/FiraCode.ttf", 0, &face ) )
+            {
+                FT_Set_Pixel_Sizes( face, 0, 48 );
+
+                REQUIRED_IF( !FT_Load_Char( face, 'X', FT_LOAD_RENDER ) )
+                {
+                    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+                    gl->PixelStorei( GL_UNPACK_ALIGNMENT, 1 );   // disable byte-alignment restriction
+
+                    for ( unsigned char c = 0; c < 128; c++ )
+                    {
+                        // load character glyph
+                        REQUIRED_IF( !FT_Load_Char( face, c, FT_LOAD_RENDER ) )
+                        {
+                            // generate texture
+                            unsigned int texture;
+                            gl->GenTextures( 1, &texture );
+                            gl->BindTexture( GL_TEXTURE_2D, texture );
+                            gl->TexImage2D(
+                                GL_TEXTURE_2D,
+                                0,
+                                GL_RED,
+                                face->glyph->bitmap.width,
+                                face->glyph->bitmap.rows,
+                                0,
+                                GL_RED,
+                                GL_UNSIGNED_BYTE,
+                                face->glyph->bitmap.buffer );
+                            // set texture options
+                            gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+                            gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+                            gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+                            gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+                            // now store character for later use
+
+                            Font::Character character = {
+                                texture,
+                                std::make_pair( face->glyph->bitmap.width, face->glyph->bitmap.rows ),
+                                std::make_pair( face->glyph->bitmap_left, face->glyph->bitmap_top ),
+                                face->glyph->advance.x };
+                            DefaultFont->m_Characters.insert( std::pair<char, Font::Character>( c, character ) );
+                        }
+                    }
+                }
+
+                FT_Done_Face( face );
+            }
+
+            FT_Done_FreeType( ft );
+        }
+
+        GlobalResourcePool::SPush( "DefaultFont", std::move( DefaultFont ) );
+    }
 
     m_GlobalResourcePool = &GlobalResourcePool::GetInstance( );
 }

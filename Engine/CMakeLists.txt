@@ -29,4 +29,6 @@ target_link_libraries(Engine.lib
         Shader.lib
 
         SpriteSquare.lib
+
+        freetype
         )

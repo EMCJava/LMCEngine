@@ -136,7 +136,7 @@ if (WIN32)
     set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll)
 
     add_custom_target(populate_irrklang_folder
-            ${CMAKE_COMMAND} -E  make_directory ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+            ${CMAKE_COMMAND} -E make_directory ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     )
 
     add_custom_target(
@@ -196,3 +196,7 @@ endif ()
 
 add_library(imgui_club INTERFACE)
 target_include_directories(imgui_club INTERFACE ${imgui_club_SOURCE_DIR})
+
+
+## -------------- freetype --------------
+add_subdirectory(freetype-2.13.2)

@@ -70,3 +70,24 @@ Shader::SetUniform( int UniformLocation, const glm::vec4& vec ) const
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
     gl->Uniform4fv( UniformLocation, 1, glm::value_ptr( vec ) );
 }
+
+void
+Shader::SetUniform( int UniformLocation, const glm::vec3& vec ) const
+{
+    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+    gl->Uniform4fv( UniformLocation, 1, glm::value_ptr( vec ) );
+}
+
+void
+Shader::SetVec3( const std::string& Name, const glm::vec3& vec ) const
+{
+    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+    gl->Uniform3fv( GetUniformLocation( Name ), 1, glm::value_ptr( vec ) );
+}
+
+void
+Shader::SetVec4( const std::string& Name, const glm::vec4& vec ) const
+{
+    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+    gl->Uniform4fv( GetUniformLocation( Name ), 1, glm::value_ptr( vec ) );
+}

@@ -37,6 +37,7 @@ public:
 protected:
     std::shared_ptr<class SpriteSquare>       m_SpriteSquare;
     std::shared_ptr<class PureConceptAABBBox> m_HitBox;
+    std::shared_ptr<class Text>               m_ButtonText;
 
     static constexpr glm::vec4 UnknownColor { 0.9, 0.0, 0.9, 1.0 };
     glm::vec4                  m_DefaultColor { UnknownColor }, m_PressColor { UnknownColor };

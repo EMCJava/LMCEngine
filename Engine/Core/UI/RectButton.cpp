@@ -5,6 +5,7 @@
 #include "RectButton.hpp"
 
 #include <Engine/Engine.hpp>
+#include <Engine/Core/UI/Text/Text.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Input/UserInput.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
@@ -27,6 +28,10 @@ RectButton::RectButton( int Width, int Height )
 
     m_HitBox = AddConcept<PureConceptAABBBox>( 0, 0, Width, Height );
 
+    m_ButtonText = AddConcept<Text>( "Button" );
+    m_ButtonText->SetupSprite( );
+    m_ButtonText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
+
     // To render sub-concepts
     SetSearchThrough( );
 }
@@ -35,6 +40,7 @@ const OrientationCoordinate::Coordinate&
 RectButton::SetCoordinate( FloatTy X, FloatTy Y, FloatTy Z )
 {
     m_HitBox->SetCoordinate( X, Y );
+    m_ButtonText->SetCoordinate( OrientationCoordinate::Coordinate { X, Y } );
     return m_SpriteSquare->SetCoordinate( X, Y, Z );
 }
 
@@ -42,6 +48,7 @@ void
 RectButton::SetActiveCamera( class PureConceptCamera* ActiveCamera )
 {
     m_SpriteSquare->SetActiveCamera( ActiveCamera );
+    m_ButtonText->SetActiveCamera( ActiveCamera );
 }
 
 void
