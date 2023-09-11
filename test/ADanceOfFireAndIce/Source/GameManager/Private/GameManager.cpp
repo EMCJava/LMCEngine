@@ -1342,8 +1342,6 @@ GameManager::Apply( )
     const auto DeltaSecond    = Engine::GetEngine( )->GetDeltaSecond( );
     const bool PlayerInteract = IsUserPrimaryInteract( );
 
-    return;
-
     if ( m_IsCheckingDeviceDelay ) [[unlikely]]
     {
         // Adjust the audio offset to the correct value
