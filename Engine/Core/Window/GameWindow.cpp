@@ -63,6 +63,11 @@ void
 GameWindow::SetRootConcept( class RootConceptTy* RootConcept )
 {
     m_RootConcept = RootConcept;
+#ifdef HOT_RELOAD
+    m_RootConceptFakeShared = std::shared_ptr<PureConcept>( RootConcept->As<PureConcept>( ), []( PureConcept* ) {} );
+#else
+    m_RootConceptFakeShared = std::shared_ptr<PureConcept>( RootConcept, []( PureConcept* ) {} );
+#endif
     m_ConceptRenderables.Clear( );
 }
 
@@ -76,4 +81,10 @@ GameWindow::GetConceptPtr( )
 #else
     return m_RootConcept;
 #endif
+}
+
+std::shared_ptr<PureConcept>
+GameWindow::GetConceptFakeSharedPtr( )
+{
+    return std::static_pointer_cast<PureConcept>( m_RootConceptFakeShared );
 }

@@ -29,7 +29,7 @@ class EditorWindow : public GameWindow
          * Concept for Hierarchy showing
          *
          * */
-        PureConcept* SelectedConcept { };
+        std::weak_ptr<PureConcept> SelectedConcept { };
 
         /*
          *
@@ -41,11 +41,11 @@ class EditorWindow : public GameWindow
 
     /*
      *
-     * Return true if node is selected
+     * Return true if node is selected, should only be called in EditorWindow.cpp where the definition lays
      *
      * */
     bool
-    RenderConceptHierarchy( PureConcept* Con );
+    RenderConceptHierarchy( std::shared_ptr<PureConcept>& ConShared );
 
     void
     ConceptMemoryViewGroup( const char* Name, PureConcept* Con );

@@ -86,4 +86,6 @@ void
 PureConceptCamera::RegisterAsDefaultCamera( )
 {
     Engine::GetEngine( )->GetGlobalResourcePool( )->TryPush( "DefaultCamera", shared_from_this( ) );
+
+    spdlog::critical("WTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTFWTF");
 }

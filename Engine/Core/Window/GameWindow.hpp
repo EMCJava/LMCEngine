@@ -29,10 +29,14 @@ protected:
      * */
     std::pair<int, int> m_MainViewPortDimension { };
 
-    class RootConceptTy* m_RootConcept = nullptr;
+    class RootConceptTy*         m_RootConcept = nullptr;
+    std::shared_ptr<PureConcept> m_RootConceptFakeShared { };
 
     class PureConcept*
     GetConceptPtr( );
+
+    std::shared_ptr<PureConcept>
+    GetConceptFakeSharedPtr( );
 
     ConceptSetFetchCache<ConceptRenderable> m_ConceptRenderables { };
     ConceptSetFetchCache<PureConceptCamera> m_ConceptCameras { };

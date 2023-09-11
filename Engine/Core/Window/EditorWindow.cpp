@@ -108,11 +108,11 @@ EditorWindow::UpdateImGui( )
 
         m_ConceptDragStart = m_ConceptDragEnd = nullptr;
 
-        auto* RootConcept = GetConceptPtr( );
+        auto RootConcept = GetConceptFakeSharedPtr( );
         if ( RenderConceptHierarchy( RootConcept ) )
         {
             m_ConceptInspectionCache.SelectedConceptMask.clear( );
-            m_ConceptInspectionCache.SelectedConceptMask.emplace( RootConcept );
+            m_ConceptInspectionCache.SelectedConceptMask.emplace( RootConcept.get( ) );
         }
 
         /*
@@ -143,20 +143,23 @@ EditorWindow::UpdateImGui( )
     {
         ImGui::Begin( "Details" );
 
-        if ( m_ConceptInspectionCache.SelectedConcept != nullptr )
+        if ( !m_ConceptInspectionCache.SelectedConcept.expired( ) )
         {
-            const auto* Name = m_ConceptInspectionCache.SelectedConcept->GetName( );
+            auto        SelectedConcept = m_ConceptInspectionCache.SelectedConcept.lock( );
+            const auto* Name            = SelectedConcept->GetName( );
+            
+            spdlog::info( "Usage: {}", SelectedConcept.use_count( ) );
 
             if ( ImGui::BeginTabBar( Name ) )
             {
                 if ( ImGui::BeginTabItem( Name ) )
                 {
-                    const auto ToImGuiFuncPtr = Engine::GetEngine( )->GetConceptToImGuiFuncPtr( m_ConceptInspectionCache.SelectedConcept->GetTypeIDV( ) );
+                    const auto ToImGuiFuncPtr = Engine::GetEngine( )->GetConceptToImGuiFuncPtr( SelectedConcept->GetTypeIDV( ) );
                     if ( ToImGuiFuncPtr != nullptr )
                     {
                         ImGuiGroup::BeginGroupPanel( "Property inspect", ImVec2 { -1, 0 } );
 
-                        ToImGuiFuncPtr( Name, m_ConceptInspectionCache.SelectedConcept );
+                        ToImGuiFuncPtr( Name, SelectedConcept.get( ) );
 
                         ImGui::Spacing( );
                         ImGuiGroup::EndGroupPanel( );
@@ -167,7 +170,7 @@ EditorWindow::UpdateImGui( )
 
                 if ( ImGui::BeginTabItem( "Memory" ) )
                 {
-                    ConceptMemoryViewGroup( "Memory View", m_ConceptInspectionCache.SelectedConcept );
+                    ConceptMemoryViewGroup( "Memory View", SelectedConcept.get( ) );
                     ImGui::EndTabItem( );
                 }
 
@@ -236,11 +239,11 @@ EditorWindow::UpdateImGui( )
 }
 
 bool
-EditorWindow::RenderConceptHierarchy( PureConcept* Con )
+EditorWindow::RenderConceptHierarchy( std::shared_ptr<PureConcept>& ConShared )
 {
     bool IsSelected = false;
 
-    static const auto DragAndDropOperation = [ this ]( PureConcept* Con ) {
+    static const auto DragAndDropOperation = [ this ]( std::shared_ptr<PureConcept>& ConShared ) {
         /*
          *
          * Drag and drop operations
@@ -248,7 +251,8 @@ EditorWindow::RenderConceptHierarchy( PureConcept* Con )
          * */
         if ( ImGui::BeginDragDropSource( ) )
         {
-            ImGui::SetDragDropPayload( "ConceptDAD", &Con, sizeof( PureConcept* ) );
+            auto* ConPtr = ConShared.get( );
+            ImGui::SetDragDropPayload( "ConceptDAD", &ConPtr, sizeof( PureConcept* ) );
             ImGui::Text( "Moves as sub-concept" );
             ImGui::EndDragDropSource( );
         }
@@ -258,44 +262,43 @@ EditorWindow::RenderConceptHierarchy( PureConcept* Con )
             if ( const ImGuiPayload* Payload = ImGui::AcceptDragDropPayload( "ConceptDAD" ) )
             {
                 PureConcept* PayloadConcept = *( (PureConcept**) Payload->Data );
-                spdlog::info( "Drag concept from {} to {}", PayloadConcept->GetName( ), Con->GetName( ) );
+                spdlog::info( "Drag concept from {} to {}", PayloadConcept->GetName( ), ConShared->GetName( ) );
                 m_ConceptDragStart = PayloadConcept;
-                m_ConceptDragEnd   = Con;
+                m_ConceptDragEnd   = ConShared.get( );
             }
             ImGui::EndDragDropTarget( );
         }
     };
 
-    if ( Con != nullptr )
+    if ( ConShared != nullptr )
     {
-        ImGuiTreeNodeFlags BaseFlag    = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
-        const bool         is_selected = m_ConceptInspectionCache.SelectedConceptMask.contains( Con );
-        if ( is_selected )
+        ImGuiTreeNodeFlags BaseFlag = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+        if ( m_ConceptInspectionCache.SelectedConceptMask.contains( ConShared.get( ) ) )
         {
             BaseFlag |= ImGuiTreeNodeFlags_Selected;
-            m_ConceptInspectionCache.SelectedConcept = Con;
+            m_ConceptInspectionCache.SelectedConcept = ConShared;
         }
 
-        if ( Con->CanCastV( Concept::TypeID ) && ( (Concept*) Con )->HasSubConcept( ) )
+        if ( ConShared->CanCastV( Concept::TypeID ) && ( (Concept*) ConShared.get( ) )->HasSubConcept( ) )
         {
             // Has sub node
-            bool node_open = ImGui::TreeNodeEx( Con, BaseFlag, "%s", Con->GetName( ) );
+            bool node_open = ImGui::TreeNodeEx( ConShared.get( ), BaseFlag, "%s", ConShared->GetName( ) );
             IsSelected     = ImGui::IsItemClicked( ) && !ImGui::IsItemToggledOpen( );
 
-            DragAndDropOperation( Con );
+            DragAndDropOperation( ConShared );
 
             if ( node_open )
             {
-                auto& ConceptsCache = m_ConceptInspectionCache.ConceptTree[ Con->GetHash( ) ];
-                ( (Concept*) Con )->GetConcepts( ConceptsCache, false );
+                auto& ConceptsCache = m_ConceptInspectionCache.ConceptTree[ ConShared->GetHash( ) ];
+                ( (Concept*) ConShared.get( ) )->GetConcepts( ConceptsCache, false );
 
-                ConceptsCache.ForEachIndex( [ this ]( auto Index, std::shared_ptr<PureConcept>& Con ) {
-                    ImGui::PushID( Con.get( ) );
+                ConceptsCache.ForEachIndex( [ this ]( auto Index, std::shared_ptr<PureConcept>& ConShared ) {
+                    ImGui::PushID( ConShared.get( ) );
 
-                    if ( RenderConceptHierarchy( Con.get( ) ) )
+                    if ( RenderConceptHierarchy( ConShared ) )
                     {
                         m_ConceptInspectionCache.SelectedConceptMask.clear( );
-                        m_ConceptInspectionCache.SelectedConceptMask.emplace( Con.get( ) );
+                        m_ConceptInspectionCache.SelectedConceptMask.emplace( ConShared.get( ) );
                     }
 
                     ImGui::PopID( );
@@ -307,10 +310,10 @@ EditorWindow::RenderConceptHierarchy( PureConcept* Con )
         {
             // No sub node
             BaseFlag |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-            ImGui::TreeNodeEx( Con, BaseFlag, "%s", Con->GetName( ) );
+            ImGui::TreeNodeEx( ConShared.get( ), BaseFlag, "%s", ConShared->GetName( ) );
             IsSelected = ImGui::IsItemClicked( ) && !ImGui::IsItemToggledOpen( );
 
-            DragAndDropOperation( Con );
+            DragAndDropOperation( ConShared );
         }
     }
 
