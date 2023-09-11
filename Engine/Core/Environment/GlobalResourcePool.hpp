@@ -18,9 +18,15 @@ private:
 
 public:
     template <typename Ty>
-    inline static auto SPush( const std::string& Name, std::shared_ptr<Ty>&& Element )
+    inline static auto STryPush( const std::string& Name, std::shared_ptr<Ty>&& Element )
     {
         return GetInstance( ).m_Resources.insert( std::make_pair( Name, std::move( Element ) ) );
+    }
+
+    template <typename Ty>
+    inline static auto SSet( const std::string& Name, std::shared_ptr<Ty>&& Element )
+    {
+        return GetInstance( ).m_Resources[ Name ] = std::move( Element );
     }
 
     template <typename Ty = void>
@@ -45,6 +51,18 @@ public:
         }
 
         return nullptr;
+    }
+
+    template <typename Ty>
+    inline auto TryPush( const std::string& Name, std::shared_ptr<Ty>&& Element )
+    {
+        return m_Resources.insert( std::make_pair( Name, std::move( Element ) ) );
+    }
+
+    template <typename Ty>
+    inline auto Set( const std::string& Name, std::shared_ptr<Ty>&& Element )
+    {
+        return m_Resources[ Name ] = std::move( Element );
     }
 
     template <typename Ty = void>

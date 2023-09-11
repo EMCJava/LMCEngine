@@ -4,10 +4,18 @@
 
 #include "ConceptRenderable.hpp"
 
+#include <Engine/Engine.hpp>
+#include <Engine/Core/Environment/GlobalResourcePool.hpp>
+
 DEFINE_CONCEPT_DS( ConceptRenderable )
 
 void
 ConceptRenderable::SetActiveCamera( class PureConceptCamera* ActiveCamera )
 {
     m_ActiveCamera = ActiveCamera;
+}
+
+ConceptRenderable::ConceptRenderable( )
+{
+    SetActiveCamera( Engine::GetEngine( )->GetGlobalResourcePool( )->Get<PureConceptCamera>( "DefaultCamera" ) );
 }

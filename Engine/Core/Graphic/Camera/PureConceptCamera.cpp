@@ -4,12 +4,19 @@
 
 #include "PureConceptCamera.hpp"
 
+#include <Engine/Engine.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
+#include <Engine/Core/Environment/GlobalResourcePool.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
 
 DEFINE_CONCEPT_DS( PureConceptCamera )
 DEFINE_SIMPLE_IMGUI_TYPE( PureConceptCamera, m_CameraWidth, m_CameraHeight, m_Scale )
+
+PureConceptCamera::PureConceptCamera( )
+{
+    Engine::GetEngine( )->GetGlobalResourcePool( )->TryPush( "DefaultCamera", shared_from_this( ) );
+}
 
 void
 PureConceptCamera::SetDimensions( int Width, int Height )

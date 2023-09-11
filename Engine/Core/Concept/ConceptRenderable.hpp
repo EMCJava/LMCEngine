@@ -11,6 +11,13 @@ class ConceptRenderable : public Concept
     DECLARE_CONCEPT( ConceptRenderable, Concept )
 
 public:
+    /*
+     *
+     * Try to get camera to default camera
+     *
+     * */
+    ConceptRenderable( );
+
     virtual void
     Render( ) = 0;
 

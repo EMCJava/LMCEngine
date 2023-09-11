@@ -555,19 +555,19 @@ Engine::SetupGlobalResources( )
     SProgram->Load( DefaultColorShaderVertexSource, DefaultColorShaderFragmentSource );
     auto SpriteShader = std::make_shared<Shader>( );
     SpriteShader->SetProgram( SProgram );
-    GlobalResourcePool::SPush( "DefaultColorShader", std::move( SpriteShader ) );
+    GlobalResourcePool::STryPush( "DefaultColorShader", std::move( SpriteShader ) );
 
     SProgram = std::make_shared<ShaderProgram>( );
     SProgram->Load( DefaultTextureShaderVertexSource, DefaultTextureShaderFragmentSource );
     SpriteShader = std::make_shared<Shader>( );
     SpriteShader->SetProgram( SProgram );
-    GlobalResourcePool::SPush( "DefaultTextureShader", std::move( SpriteShader ) );
+    GlobalResourcePool::STryPush( "DefaultTextureShader", std::move( SpriteShader ) );
 
     SProgram = std::make_shared<ShaderProgram>( );
     SProgram->Load( DefaultFontShaderVertexSource, DefaultFontShaderFragmentSource );
     SpriteShader = std::make_shared<Shader>( );
     SpriteShader->SetProgram( SProgram );
-    GlobalResourcePool::SPush( "DefaultFontShader", std::move( SpriteShader ) );
+    GlobalResourcePool::STryPush( "DefaultFontShader", std::move( SpriteShader ) );
 
     /*
      *
@@ -576,7 +576,7 @@ Engine::SetupGlobalResources( )
      * */
     auto DefaultFont = std::make_shared<Font>( );
     DefaultFont->LoadFont( "Assets/Font/FiraCode.ttf" );
-    GlobalResourcePool::GetInstance( ).SPush( "DefaultFont", std::move( DefaultFont ) );
+    GlobalResourcePool::GetInstance( ).STryPush( "DefaultFont", std::move( DefaultFont ) );
 
     m_GlobalResourcePool = &GlobalResourcePool::GetInstance( );
 }

@@ -12,10 +12,18 @@
 
 class PureConceptCamera : public PureConcept
     , public Orientation
+    , public std::enable_shared_from_this<PureConceptCamera>
 {
     DECLARE_CONCEPT( PureConceptCamera, PureConcept )
 
 public:
+    /*
+     *
+     * !!! First ever created camera will be set to the default camera for the engine !!!
+     *
+     * */
+    PureConceptCamera( );
+
     [[nodiscard]] const glm::mat4&
     GetProjectionMatrix( ) const;
 
