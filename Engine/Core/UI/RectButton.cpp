@@ -17,7 +17,20 @@ DEFINE_CONCEPT_DS( RectButton )
 
 RectButton::RectButton( int Width, int Height )
 {
-    m_SpriteSquare = AddConcept<SpriteSquare>( Width, Height );
+    m_ButtonText = AddConcept<Text>( "Button" );
+    m_ButtonText->SetupSprite( );
+    m_ButtonText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
+
+    spdlog::critical( "GetGlobalResourcePool: {}", fmt::ptr( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ).get( ) ) );
+
+    if ( Width != 0 )
+    {
+        m_SpriteSquare = AddConcept<SpriteSquare>( Width, Height );
+    } else
+    {
+        Width          = m_ButtonText->GetTextPixelWidth( );
+        m_SpriteSquare = AddConcept<SpriteSquare>( m_ButtonText->GetTextPixelWidth( ), Height );
+    }
 
     m_SpriteSquare->SetRotationCenter( Width / 2, Height / 2 );
     m_SpriteSquare->SetOrigin( Width / 2, Height / 2 );
@@ -28,9 +41,7 @@ RectButton::RectButton( int Width, int Height )
 
     m_HitBox = AddConcept<PureConceptAABBBox>( 0, 0, Width, Height );
 
-    m_ButtonText = AddConcept<Text>( "Button" );
-    m_ButtonText->SetupSprite( );
-    m_ButtonText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
+    m_SpriteSquare->MoveToFirstAsSubConcept( );
 
     // To render sub-concepts
     SetSearchThrough( );

@@ -68,6 +68,14 @@ public:
     bool
     TransferSubConcept( PureConcept* ConceptPtr );
 
+    /*
+     *
+     * if BelongsTo != nullptr, move this sub-concept as the first element in list (m_SubConcepts)
+     *
+     * */
+    void
+    MoveToFirstAsSubConcept( );
+
     void
     SetSearchThrough( bool SearchThrough = true );
 

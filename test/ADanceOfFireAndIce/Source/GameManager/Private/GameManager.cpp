@@ -1326,7 +1326,7 @@ GameManager::GameManager( )
     SetupExplosionSpriteTemplate( );
     LoadToleranceSprite( );
 
-    const auto& Button = AddConcept<RectButton>( 100, 100 );
+    const auto& Button = AddConcept<RectButton>( 0, 100 );
     Button->SetActiveCamera( m_Camera.get( ) );
     Button->SetPressReactColor( glm::vec4 { 1, 1, 0.5, 1 } );
     Button->SetCallback( []( ) { spdlog::info( "Button pressed." ); } );
@@ -1341,6 +1341,8 @@ GameManager::Apply( )
 {
     const auto DeltaSecond    = Engine::GetEngine( )->GetDeltaSecond( );
     const bool PlayerInteract = IsUserPrimaryInteract( );
+
+    return;
 
     if ( m_IsCheckingDeviceDelay ) [[unlikely]]
     {
@@ -1629,8 +1631,6 @@ void
 GameManager::LoadTileMap( )
 {
     auto Map = m_TileSpriteSetRef.lock( );
-    //    Map->AddTile( TmpMap[ 0 ] );
-    //    Map->AddTile( TmpMap[ 1 ] );
 
     for ( const auto& Tile : TmpMap )
     {

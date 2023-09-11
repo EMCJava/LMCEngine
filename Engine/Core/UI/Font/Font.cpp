@@ -5,6 +5,7 @@
 #include "Font.hpp"
 
 #include <Engine/Engine.hpp>
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/OpenGL.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
@@ -15,46 +16,14 @@
 
 #include <spdlog/spdlog.h>
 
-/*
-void A(){
-    QString familyName(face->family_name);
-
-    QVector<FT_SfntName> names;
-
-    for (FT_UInt i = 0; i < FT_Get_Sfnt_Name_Count(face); i++)
-    {
-        FT_SfntName name;
-        if (!FT_Get_Sfnt_Name(face, i, &name))
-        {
-            switch (name.name_id) {
-            case TT_NAME_ID_FONT_FAMILY:
-            case TT_NAME_ID_PREFERRED_FAMILY:
-                if (name.platform_id != TT_PLATFORM_MACINTOSH)
-                    names.append(name);
-                break;
-            default:
-                break;
-            }
-        }
-    }
-
-    if (!names.isEmpty())
-    {
-        std::sort(names.begin(), names.end(), nameComp);
-        foreach (const FT_SfntName& name, names)
-        {
-            QString string(decodeNameRecord(name));
-            if (!string.isEmpty())
-            {
-                familyName = string;
-                break;
-            }
-        }
-    }
-
-    return familyName;
+inline void
+ToImGuiWidget( const char* Name, Font::Character* Value )
+{
+    SIMPLE_LIST_DEFAULT_IMGUI_TYPE( TextureID, Size, Bearing, Advance );
 }
-*/
+
+DEFINE_CONCEPT_DS( Font )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( Font, PureConcept, m_FontName, m_Characters )
 
 Font::Character*
 Font::GetCharacter( char Char )
@@ -70,15 +39,13 @@ Font::GetCharacter( char Char )
 void
 Font::LoadFont( const std::string& Path )
 {
-    auto DefaultFont = std::make_shared<Font>( );
-
     FT_Library ft;
     REQUIRED_IF( !FT_Init_FreeType( &ft ) )
     {
         FT_Face face;
         REQUIRED_IF( !FT_New_Face( ft, Path.c_str( ), 0, &face ) )
         {
-            DefaultFont->m_FontName = face->family_name;
+            m_FontName = face->family_name;
 
             FT_Set_Pixel_Sizes( face, 0, 48 );
 
@@ -118,7 +85,7 @@ Font::LoadFont( const std::string& Path )
                             std::make_pair( face->glyph->bitmap.width, face->glyph->bitmap.rows ),
                             std::make_pair( face->glyph->bitmap_left, face->glyph->bitmap_top ),
                             face->glyph->advance.x };
-                        DefaultFont->m_Characters.insert( std::pair<char, Font::Character>( c, character ) );
+                        m_Characters.insert( std::pair<char, Font::Character>( c, character ) );
                     }
                 }
             }

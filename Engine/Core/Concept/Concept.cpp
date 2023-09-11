@@ -76,3 +76,24 @@ Concept::SetSearchThrough( bool SearchThrough )
 {
     m_SearchThrough = SearchThrough;
 }
+
+void
+Concept::MoveToFirstAsSubConcept( )
+{
+    if ( m_BelongsTo != nullptr )
+    {
+        TEST( m_BelongsTo->CanCastVT<Concept>( ) );
+
+        const auto pivot = std::find_if( m_BelongsTo->m_SubConcepts.begin( ),
+                                         m_BelongsTo->m_SubConcepts.end( ),
+                                         [ this ]( const std::shared_ptr<PureConcept>& C ) -> bool {
+                                             return C.get( ) == this;
+                                         } );
+
+        if ( pivot != m_BelongsTo->m_SubConcepts.end( ) )
+        {
+            std::rotate( m_BelongsTo->m_SubConcepts.begin( ), pivot, pivot + 1 );
+            m_BelongsTo->m_ConceptsStateHash.NextUint64( );
+        }
+    }
+}

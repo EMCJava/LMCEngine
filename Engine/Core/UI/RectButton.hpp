@@ -17,6 +17,11 @@ class RectButton : public ConceptApplicable
 public:
     using CallbackSignature = void( );
 
+    /*
+     *
+     * 0 for Width means auto resize to text width
+     *
+     * */
     RectButton( int Width, int Height );
 
     const OrientationCoordinate::Coordinate&
@@ -29,7 +34,7 @@ public:
     SetPressReactColor( const glm::vec4& Color );
 
     virtual void
-    Apply( );
+    Apply( ) override;
 
     void
     SetCallback( auto&& Callback ) { m_Callback = Callback; }

@@ -5,6 +5,7 @@
 #include "Text.hpp"
 
 #include <Engine/Engine.hpp>
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Graphic/API/OpenGL.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
@@ -14,6 +15,7 @@
 #include <spdlog/spdlog.h>
 
 DEFINE_CONCEPT_DS( Text )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( Text, Sprite, m_Text, m_Scale, m_TextCoordinate, m_Font )
 
 Text::Text( const std::string& Text )
 {
@@ -46,9 +48,9 @@ Text::Render( )
     auto TextXCoordinate = m_TextCoordinate.X;
 
     // iterate through all characters
-    for ( auto Char = m_Text.begin( ); Char != m_Text.end( ); Char++ )
+    for ( const char& Char : m_Text )
     {
-        const auto ch = m_Font->GetCharacter( *Char );
+        const auto ch = m_Font->GetCharacter( Char );
 
         REQUIRED_IF( ch != nullptr )
         {
@@ -102,4 +104,21 @@ Text::SetupSprite( )
 
     GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, 0 ) );
     GL_CHECK( gl->BindVertexArray( 0 ) );
+}
+
+uint32_t
+Text::GetTextPixelWidth( )
+{
+    uint32_t TotalWidth = 0;
+
+    for ( const char& Char : m_Text )
+    {
+        const auto ch = m_Font->GetCharacter( Char );
+        REQUIRED_IF( ch != nullptr )
+        {
+            TotalWidth += ( ch->Advance >> 6 ) * m_Scale;   // bitshift by 6 to get value in pixels (2^6 = 64)
+        }
+    }
+
+    return TotalWidth;
 }

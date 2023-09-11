@@ -4,11 +4,15 @@
 
 #pragma once
 
+#include <Engine/Core/Concept/PureConcept.hpp>
+
 #include <string>
 #include <map>
 
-class Font
+class Font : public PureConcept
 {
+    DECLARE_CONCEPT( Font, PureConcept )
+
 public:
     struct Character {
         unsigned int        TextureID { };   // ID handle of the glyph texture
@@ -33,4 +37,6 @@ protected:
     std::map<char, Character> m_Characters;
 
     friend class Engine;
+
+    ENABLE_IMGUI( Font )
 };

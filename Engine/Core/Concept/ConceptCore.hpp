@@ -75,7 +75,7 @@ public:                                                            \
                                                                    \
     template <typename ConceptType>                                \
     bool                                                           \
-    CanCastV( )                                                    \
+    CanCastVT( )                                                   \
     {                                                              \
         return this->CanCastV( ConceptType::TypeID );              \
     }                                                              \
