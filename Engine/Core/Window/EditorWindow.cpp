@@ -204,7 +204,7 @@ EditorWindow::UpdateImGui( )
             ImGui::SetCursorScreenPos( ChildStartPos );
             const ImGuiWindowFlags OverlayFlag = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
             ImGui::SetNextWindowBgAlpha( 0.35f );   // Transparent background
-            ImGui::SetNextWindowPos(ChildStartPosition, ImGuiCond_Always);
+            ImGui::SetNextWindowPos( ChildStartPosition, ImGuiCond_Always );
             if ( ImGui::Begin( "Example: Simple overlay", nullptr, OverlayFlag ) )
             {
                 ImGui::Text( "%.1f FPS", io.Framerate );
@@ -287,7 +287,7 @@ EditorWindow::RenderConceptHierarchy( PureConcept* Con )
             if ( node_open )
             {
                 auto& ConceptsCache = m_ConceptInspectionCache.ConceptTree[ Con->GetHash( ) ];
-                ( (Concept*) Con )->GetConcepts( ConceptsCache );
+                ( (Concept*) Con )->GetConcepts( ConceptsCache, false );
 
                 ConceptsCache.ForEachIndex( [ this ]( auto Index, std::shared_ptr<PureConcept>& Con ) {
                     ImGui::PushID( Con.get( ) );

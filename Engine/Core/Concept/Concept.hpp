@@ -51,11 +51,11 @@ public:
 
     template <class ConceptType, class ElementTy>
     void
-    GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out ) const;
+    GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough = true ) const;
 
     template <class ConceptType>
     void
-    GetConcepts( ConceptSetFetchCache<ConceptType>& Out ) const;
+    GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThrough = true ) const;
 
     bool
     HasSubConcept( ) const;
@@ -87,7 +87,7 @@ private:
      * */
     template <class ConceptType, class ElementTy>
     void
-    GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out ) const;
+    GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough = true ) const;
 
 private:
     std::vector<std::shared_ptr<PureConcept>> m_SubConcepts;
@@ -150,7 +150,7 @@ Concept::RemoveConcept( )
 
 template <class ConceptType, class ElementTy>
 void
-Concept::GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out ) const
+Concept::GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough ) const
 {
     const auto CheckSubConcept = [ &Out ]( const std::shared_ptr<PureConcept>& ConceptSharePtr ) {
         const Concept* const ConceptPtr = (Concept*) ConceptSharePtr.get( );
@@ -183,7 +183,7 @@ Concept::GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out ) co
         }
 
         // No sub-concept
-        if ( !ConceptSharePtr->CanCastV( Concept::TypeID ) )
+        if ( !CanSearchThrough || !ConceptSharePtr->CanCastV( Concept::TypeID ) )
         {
             continue;
         }
@@ -194,10 +194,10 @@ Concept::GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out ) co
 
 template <class ConceptType, class ElementTy>
 void
-Concept::GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out ) const
+Concept::GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough ) const
 {
     Out.clear( );
-    GetConcepts_Internal<ConceptType>( Out );
+    GetConcepts_Internal<ConceptType>( Out, CanSearchThrough );
 }
 
 template <class ConceptType>
@@ -226,7 +226,7 @@ Concept::RemoveConcepts( )
 
 template <class ConceptType>
 void
-Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out ) const
+Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThrough ) const
 {
     const auto StateHash = m_ConceptsStateHash.SeekUint64( );
     if ( Out.m_CacheHash == StateHash )
@@ -236,13 +236,5 @@ Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out ) const
     }
 
     Out.m_CacheHash = StateHash;
-    GetConcepts<ConceptType>( Out.m_CachedConcepts );
-
-    //    for ( auto& Concept : m_SubConcepts )
-    //    {
-    //        if ( Concept->CanCastV( ConceptType::TypeID ) )
-    //        {
-    //            Out.m_CachedConcepts.emplace_back( std::dynamic_pointer_cast<ConceptType>( Concept ) );
-    //        }
-    //    }
+    GetConcepts<ConceptType>( Out.m_CachedConcepts, CanSearchThrough );
 }
