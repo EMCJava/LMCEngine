@@ -42,9 +42,6 @@
 
 #include RootConceptIncludePath
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #include <regex>
 #include <string>
 #include <string_view>
@@ -577,8 +574,11 @@ Engine::SetupGlobalResources( )
      * Font loading
      *
      * */
-    {
-        auto DefaultFont = std::make_shared<Font>( );
+    auto DefaultFont = std::make_shared<Font>( );
+    DefaultFont->LoadFont( "Assets/Font/FiraCode.ttf" );
+    GlobalResourcePool::SPush( "DefaultFont", std::move( DefaultFont ) );
+
+    /*{
 
         FT_Library ft;
         REQUIRED_IF( !FT_Init_FreeType( &ft ) )
@@ -637,7 +637,7 @@ Engine::SetupGlobalResources( )
         }
 
         GlobalResourcePool::SPush( "DefaultFont", std::move( DefaultFont ) );
-    }
+    }*/
 
     m_GlobalResourcePool = &GlobalResourcePool::GetInstance( );
 }

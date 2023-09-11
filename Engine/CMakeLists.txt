@@ -27,8 +27,7 @@ target_link_libraries(Engine.lib
         GlobalResourcePool.lib
         ShaderProgram.lib
         Shader.lib
+        Font.lib
 
         SpriteSquare.lib
-
-        freetype
-        )
+)

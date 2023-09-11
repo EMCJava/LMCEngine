@@ -17,6 +17,9 @@ public:
         long                Advance { };     // Offset to advance to next glyph
     };
 
+    void
+    LoadFont( const std::string& Path );
+
     /*
      *
      * return nullptr if Char not exist
