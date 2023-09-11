@@ -17,13 +17,6 @@ class PureConceptCamera : public PureConcept
     DECLARE_CONCEPT( PureConceptCamera, PureConcept )
 
 public:
-    /*
-     *
-     * !!! First ever created camera will be set to the default camera for the engine !!!
-     *
-     * */
-    PureConceptCamera( );
-
     [[nodiscard]] const glm::mat4&
     GetProjectionMatrix( ) const;
 
@@ -45,6 +38,9 @@ public:
 
     void
     ScreenCoordToUICoord( std::pair<FloatTy, FloatTy>& ScreenCoord ) const;
+
+    void
+    RegisterAsDefaultCamera( );
 
 private:
     glm::mat4 m_ProjectionMatrix { 1 };

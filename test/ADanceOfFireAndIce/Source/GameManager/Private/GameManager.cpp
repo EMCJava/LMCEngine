@@ -1314,7 +1314,6 @@ GameManager::GameManager( )
     LoadAudio( );
 
     m_TileSpriteSetRef = AddConcept<TileSpriteSet>( );
-    m_TileSpriteSetRef.lock( )->SetActiveCamera( m_Camera.get( ) );
 
     SetupShader( );
 
@@ -1327,7 +1326,6 @@ GameManager::GameManager( )
     LoadToleranceSprite( );
 
     const auto& Button = AddConcept<RectButton>( 0, 100 );
-    Button->SetActiveCamera( m_Camera.get( ) );
     Button->SetPressReactColor( glm::vec4 { 1, 1, 0.5, 1 } );
     Button->SetCallback( []( ) { spdlog::info( "Button pressed." ); } );
 
@@ -1658,6 +1656,8 @@ GameManager::SetupCamera( )
     auto CameraLocked = m_Camera;
     CameraLocked->SetScale( 1 / 2.5F );
     CameraLocked->UpdateProjectionMatrix( );
+
+    CameraLocked->RegisterAsDefaultCamera( );
 }
 
 void
@@ -1671,7 +1671,6 @@ GameManager::LoadPlayerSprites( )
 
     FBSpLocked->SetShader( m_SpriteShader );
     FBSpLocked->SetTexturePath( "Assets/Texture/Player/FireBall.png" );
-    FBSpLocked->SetActiveCamera( m_Camera.get( ) );
     FBSpLocked->SetupSprite( );
 
     m_IBSp = m_ActivePlayerSprite = AddConcept<SpriteSquareTexture>( 512, 512 );
@@ -1680,7 +1679,6 @@ GameManager::LoadPlayerSprites( )
     IBSpLocked->SetOrigin( 512 / 2, 512 / 2 );
     IBSpLocked->SetShader( m_SpriteShader );
     IBSpLocked->SetTexturePath( "Assets/Texture/Player/IceBall.png" );
-    IBSpLocked->SetActiveCamera( m_Camera.get( ) );
     IBSpLocked->SetupSprite( );
 }
 
@@ -1769,7 +1767,6 @@ GameManager::SetupExplosionSpriteTemplate( )
         m_ExplosionSpriteTemplate->SetOrigin( SpriteSize / 2, SpriteSize / 2 );
         m_ExplosionSpriteTemplate->SetShader( m_SpriteShader );
         m_ExplosionSpriteTemplate->SetTexturePath( "Assets/Texture/explosion.png" );
-        m_ExplosionSpriteTemplate->SetActiveCamera( m_Camera.get( ) );
 
         // Animation setting
         m_ExplosionSpriteTemplate->SetTextureGrid( 8, 8 );
@@ -1796,6 +1793,5 @@ GameManager::LoadToleranceSprite( )
 
     m_ToleranceBar->SetShader( m_SpriteShader );
     m_ToleranceBar->SetTexturePath( "Assets/Texture/tolerance.png" );
-    m_ToleranceBar->SetActiveCamera( m_Camera.get( ) );
     m_ToleranceBar->SetupSprite( );
 }

@@ -96,7 +96,6 @@ ToleranceBar::SetupBarTemplate( )
     m_ToleranceBarStrikeTemplate->SetOrigin( m_BarSize.first / 2.F, m_BarSize.second / 2.F );
     m_ToleranceBarStrikeTemplate->SetShader( BarShader );
     m_ToleranceBarStrikeTemplate->SetImage( m_BarImage );
-    m_ToleranceBarStrikeTemplate->SetActiveCamera( m_ActiveCamera );
 
     m_ToleranceBarStrikeTemplate->SetLifeTime( 5 );
 

@@ -13,11 +13,6 @@
 DEFINE_CONCEPT_DS( PureConceptCamera )
 DEFINE_SIMPLE_IMGUI_TYPE( PureConceptCamera, m_CameraWidth, m_CameraHeight, m_Scale )
 
-PureConceptCamera::PureConceptCamera( )
-{
-    Engine::GetEngine( )->GetGlobalResourcePool( )->TryPush( "DefaultCamera", shared_from_this( ) );
-}
-
 void
 PureConceptCamera::SetDimensions( int Width, int Height )
 {
@@ -85,4 +80,10 @@ PureConceptCamera::ScreenCoordToUICoord( std::pair<FloatTy, FloatTy>& ScreenCoor
     // Camera Scale
     ScreenCoord.first /= m_Scale;
     ScreenCoord.second /= m_Scale;
+}
+
+void
+PureConceptCamera::RegisterAsDefaultCamera( )
+{
+    Engine::GetEngine( )->GetGlobalResourcePool( )->TryPush( "DefaultCamera", shared_from_this( ) );
 }
