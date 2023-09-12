@@ -147,7 +147,7 @@ EditorWindow::UpdateImGui( )
         {
             auto        SelectedConcept = m_ConceptInspectionCache.SelectedConcept.lock( );
             const auto* Name            = SelectedConcept->GetName( );
-            
+
             spdlog::info( "Usage: {}", SelectedConcept.use_count( ) );
 
             if ( ImGui::BeginTabBar( Name ) )
@@ -289,10 +289,7 @@ EditorWindow::RenderConceptHierarchy( std::shared_ptr<PureConcept>& ConShared )
 
             if ( node_open )
             {
-                auto& ConceptsCache = m_ConceptInspectionCache.ConceptTree[ ConShared->GetHash( ) ];
-                ( (Concept*) ConShared.get( ) )->GetConcepts( ConceptsCache, false );
-
-                ConceptsCache.ForEachIndex( [ this ]( auto Index, std::shared_ptr<PureConcept>& ConShared ) {
+                ( (Concept*) ConShared.get( ) )->ForEachSubConcept( [ this ]( std::shared_ptr<PureConcept>& ConShared ) {
                     ImGui::PushID( ConShared.get( ) );
 
                     if ( RenderConceptHierarchy( ConShared ) )

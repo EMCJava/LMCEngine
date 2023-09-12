@@ -57,6 +57,10 @@ public:
     void
     GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThrough = true ) const;
 
+    template <class ConceptType = PureConcept>
+    void
+    ForEachSubConcept( auto&& Func );
+
     bool
     HasSubConcept( ) const;
 
@@ -237,4 +241,23 @@ Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThro
 
     Out.m_CacheHash = StateHash;
     GetConcepts<ConceptType>( Out.m_CachedConcepts, CanSearchThrough );
+}
+
+template <class ConceptType>
+void
+Concept::ForEachSubConcept( auto&& Func )
+{
+    for ( auto& ConceptSharePtr : m_SubConcepts )
+    {
+        if ( std::is_same_v<PureConcept, ConceptType> || ConceptSharePtr->CanCastV( ConceptType::TypeID ) )
+        {
+            if constexpr ( std::is_same_v<PureConcept, ConceptType> )
+            {
+                Func( ConceptSharePtr );
+            } else
+            {
+                Func( std::dynamic_pointer_cast<ConceptType>( ConceptSharePtr ) );
+            }
+        }
+    }
 }

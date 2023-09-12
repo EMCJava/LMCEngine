@@ -22,13 +22,6 @@ class EditorWindow : public GameWindow
          * Concept for Hierarchy showing
          *
          * */
-        std::map<uint64_t, ConceptSetFetchCache<PureConcept>> ConceptTree { };
-
-        /*
-         *
-         * Concept for Hierarchy showing
-         *
-         * */
         std::weak_ptr<PureConcept> SelectedConcept { };
 
         /*
