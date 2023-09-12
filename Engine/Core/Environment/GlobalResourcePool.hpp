@@ -70,7 +70,7 @@ public:
     {
         REQUIRED_IF( m_Resources.find( Name ) != m_Resources.end( ) )
         {
-            return (Ty*) ( m_Resources[ Name ].get( ) );
+            return (Ty*) ( m_Resources.at( Name ).get( ) );
         }
 
         return nullptr;
