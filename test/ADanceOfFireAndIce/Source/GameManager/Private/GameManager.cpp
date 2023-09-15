@@ -1677,11 +1677,10 @@ GameManager::SetupCamera( )
 {
     m_Camera = AddConcept<PureConceptCamera>( );
 
-    auto CameraLocked = m_Camera;
-    CameraLocked->SetScale( 1 / 1.5F );
-    CameraLocked->UpdateProjectionMatrix( );
+    m_Camera->SetScale( 1 / 1.5F );
+    m_Camera->UpdateProjectionMatrix( );
 
-    CameraLocked->RegisterAsDefaultCamera( );
+    m_Camera->RegisterAsDefaultCamera( );
 }
 
 void
