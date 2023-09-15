@@ -66,7 +66,7 @@ GameWindow::SetRootConcept( class RootConceptTy* RootConcept )
 
     if ( RootConcept != nullptr )
     {
-#ifdef HOT_RELOAD
+#ifdef LMC_EDITOR
         m_RootConceptFakeShared = std::shared_ptr<PureConcept>( RootConcept->As<PureConcept>( ), []( PureConcept* ) {} );
 #else
         m_RootConceptFakeShared = std::shared_ptr<PureConcept>( RootConcept, []( PureConcept* ) {} );
@@ -81,7 +81,7 @@ GameWindow::GetConceptPtr( )
 {
     if ( m_RootConcept == nullptr ) return nullptr;
 
-#ifdef HOT_RELOAD
+#ifdef LMC_EDITOR
     return m_RootConcept->As<PureConcept>( );
 #else
     return m_RootConcept;

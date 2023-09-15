@@ -103,7 +103,7 @@ Engine::Engine( )
 
     m_ActiveProject = new Project;
 
-#ifndef HOT_RELOAD
+#ifndef LMC_EDITOR
 
     LoadProject( GAME_CONFIG_PATH );
 
@@ -121,7 +121,7 @@ Engine::Engine( )
 
     m_MainWindowPool = new WindowPool;
 
-#ifndef HOT_RELOAD
+#ifndef LMC_EDITOR
     auto ConsoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>( );
     auto FileSink    = std::make_shared<spdlog::sinks::basic_file_sink_mt>( "ProjectCache/EngineLog.log" );
     m_DefaultLogger  = std::make_shared<spdlog::logger>( "EngineSink", spdlog::sinks_init_list { ConsoleSink, FileSink } );
@@ -145,7 +145,7 @@ Engine::Engine( )
 
     SetupGlobalResources( );
 
-#ifndef HOT_RELOAD
+#ifndef LMC_EDITOR
 
     m_RootConcept = new RootConceptTy;
     m_MainWindow->SetRootConcept( m_RootConcept );
@@ -165,7 +165,7 @@ Engine::~Engine( )
     delete m_RootApplicableCache;
     m_RootApplicableCache = nullptr;
 
-#ifdef HOT_RELOAD
+#ifdef LMC_EDITOR
     // We might still need the destructor for example in the dll
     // We only deallocate the concept but leave the library loaded
     if ( m_RootConcept != nullptr )
@@ -202,7 +202,7 @@ Engine::~Engine( )
     delete m_AudioEngine;
     m_AudioEngine = nullptr;
 
-#ifdef HOT_RELOAD
+#ifdef LMC_EDITOR
     // After "almost" everything is deallocated
     // We then unload the dll safely
     delete m_RootConcept;
@@ -244,7 +244,7 @@ Engine::Update( )
 void
 Engine::UpdateRootConcept( )
 {
-#ifdef HOT_RELOAD
+#ifdef LMC_EDITOR
     if ( m_RootConcept != nullptr )
     {
         auto& RootConcept = *m_RootConcept;
@@ -393,7 +393,7 @@ Engine::CreateImGuiContext( )
     ImGui_ImplGlfw_InitForOpenGL( m_MainWindow->GetWindowHandle( ), true );
     ImGui_ImplOpenGL3_Init( );
 
-#ifdef HOT_RELOAD
+#ifdef LMC_EDITOR
     if ( m_RootConcept != nullptr )
     {
         m_RootConcept->SetEngineContext( this );
@@ -424,7 +424,7 @@ Engine::LoadProject( const std::string& Path )
 
     m_ActiveProject->LoadProject( Path );
 
-#ifdef HOT_RELOAD
+#ifdef LMC_EDITOR
     if ( m_RootConcept != nullptr )
     {
         delete m_RootConcept;
@@ -593,7 +593,7 @@ Engine::GetGlobalResourcePool( )
 
 void ( *Engine::GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* )
 {
-#ifdef HOT_RELOAD
+#ifdef LMC_EDITOR
 
     REQUIRED_IF( m_RootConcept != nullptr )
     {

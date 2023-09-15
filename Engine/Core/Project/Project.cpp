@@ -53,7 +53,7 @@ Project::LoadProject( const std::string& ProjectFilePath )
     ProjectPath = ProjectPath.parent_path( );
 
     // Setup project path config
-#ifdef HOT_RELOAD
+#ifdef LMC_EDITOR
     {
         auto ProjectPathConfigFile = ProjectPath / "ProjectCache/ProjectPath.config";
         auto ProjectPathConfig     = ReadJsonFile( ProjectPathConfigFile );

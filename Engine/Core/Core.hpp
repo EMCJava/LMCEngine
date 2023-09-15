@@ -6,6 +6,11 @@
 
 #include <chrono>
 
+/*
+ *
+ * Platform macros
+ *
+ * */
 #if defined( WIN32 ) || defined( _WIN32 ) || defined( __WIN32__ ) || defined( __NT__ )
 // define something for Windows (32-bit and 64-bit, this part is common)
 #    define LMC_WIN
@@ -41,6 +46,11 @@
 #    error "Unknown compiler"
 #endif
 
+/*
+ *
+ * Export macros
+ *
+ * */
 #if defined( LMC_WIN )
 #    ifdef LMC_API_STATIC
 #        ifdef __cplusplus

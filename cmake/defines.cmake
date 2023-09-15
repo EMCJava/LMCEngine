@@ -1,4 +1,5 @@
 if (${EditorBuild})
+    add_compile_definitions(LMC_EDITOR)
     add_compile_definitions(HOT_RELOAD)
     add_compile_definitions(LMC_API_EXPORTS)
     add_compile_definitions("PrimaryWindow=EditorWindow")
