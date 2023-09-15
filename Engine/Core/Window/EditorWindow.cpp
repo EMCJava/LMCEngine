@@ -148,8 +148,6 @@ EditorWindow::UpdateImGui( )
             auto        SelectedConcept = m_ConceptInspectionCache.SelectedConcept.lock( );
             const auto* Name            = SelectedConcept->GetName( );
 
-            spdlog::info( "Usage: {}", SelectedConcept.use_count( ) );
-
             if ( ImGui::BeginTabBar( Name ) )
             {
                 if ( ImGui::BeginTabItem( Name ) )
