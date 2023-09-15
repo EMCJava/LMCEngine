@@ -7,9 +7,10 @@
 inline const char* DefaultColorShaderVertexSource = "#version 330 core\n"
                                                     "layout (location = 0) in vec3 aPos;\n"
                                                     "uniform mat4 projectionMatrix;\n"
+                                                    "uniform mat4 modelMatrix;\n"
                                                     "void main()\n"
                                                     "{\n"
-                                                    "   gl_Position = projectionMatrix * vec4(aPos, 1.0);\n"
+                                                    "   gl_Position = projectionMatrix * modelMatrix * vec4(aPos, 1.0);\n"
                                                     "}\0";
 
 inline const char* DefaultColorShaderFragmentSource = "#version 330 core\n"

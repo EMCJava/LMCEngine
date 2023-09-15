@@ -47,9 +47,15 @@ public:
     void
     SetText( const std::string& Text );
 
+    // Valid value: [0, 1]
+    void
+    SetPivot( FloatTy X = 0, FloatTy Y = 0 );
+
 protected:
-    int         m_Width { }, m_Height { };
-    std::string m_ButtonTextStr = "Button";
+    int                         m_UserDefinedWidth { }, m_UserDefinedHeight { };
+    int                         m_Width { }, m_Height { };
+    std::pair<FloatTy, FloatTy> m_Pivot { };
+    std::string                 m_ButtonTextStr = "Button";
 
     std::shared_ptr<class SpriteSquare>
                                               m_SpriteSquare;

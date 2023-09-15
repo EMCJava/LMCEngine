@@ -18,8 +18,8 @@ DEFINE_CONCEPT_DS( RectButton )
 DEFINE_SIMPLE_IMGUI_TYPE( RectButton, m_DefaultColor, m_PressColor, m_TextAlignmentOffset, m_PressReactTimeLeft )
 
 RectButton::RectButton( int Width, int Height )
-    : m_Width( Width )
-    , m_Height( Height )
+    : m_UserDefinedWidth( Width )
+    , m_UserDefinedHeight( Height )
 {
     SetupButton( );
 }
@@ -27,8 +27,9 @@ RectButton::RectButton( int Width, int Height )
 const OrientationCoordinate::Coordinate&
 RectButton::SetCoordinate( FloatTy X, FloatTy Y, FloatTy Z )
 {
-    m_HitBox->SetCoordinate( X, Y );
-    m_ButtonText->SetCoordinate( OrientationCoordinate::Coordinate { X + m_TextAlignmentOffset.first, Y + m_TextAlignmentOffset.second } );
+    const std::pair<FloatTy, FloatTy> PivotOffset = { m_Pivot.first * m_Width, m_Pivot.second * m_Height };
+    m_HitBox->SetCoordinate( X - PivotOffset.first, Y - PivotOffset.second );
+    m_ButtonText->SetCoordinate( OrientationCoordinate::Coordinate { X + m_TextAlignmentOffset.first - PivotOffset.first, Y + m_TextAlignmentOffset.second - PivotOffset.second } );
     return m_SpriteSquare->SetCoordinate( X, Y, Z );
 }
 
@@ -92,31 +93,31 @@ RectButton::SetupButton( )
     m_ButtonText->SetupSprite( );
     m_ButtonText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
 
-    auto Width  = m_Width;
-    auto Height = m_Height;
+    m_Width  = m_UserDefinedWidth;
+    m_Height = m_UserDefinedHeight;
 
-    const int WidthSpacing  = Width < 0 ? -Width : 0;
-    const int HeightSpacing = Height < 0 ? -Height : 0;
+    const int WidthSpacing  = m_Width < 0 ? -m_Width : 0;
+    const int HeightSpacing = m_Height < 0 ? -m_Height : 0;
 
-    if ( Width <= 0 ) Width = m_ButtonText->GetTextPixelWidth( );
-    if ( Height <= 0 ) Height = m_ButtonText->GetTextPixelHeight( );
+    if ( m_Width <= 0 ) m_Width = m_ButtonText->GetTextPixelWidth( );
+    if ( m_Height <= 0 ) m_Height = m_ButtonText->GetTextPixelHeight( );
 
-    if ( WidthSpacing != 0 ) Width += WidthSpacing;
-    if ( HeightSpacing != 0 ) Height += HeightSpacing;
+    if ( WidthSpacing != 0 ) m_Width += WidthSpacing;
+    if ( HeightSpacing != 0 ) m_Height += HeightSpacing;
 
-    m_TextAlignmentOffset = { ( Width - (int) m_ButtonText->GetTextPixelWidth( ) ) / 2.F,
-                              ( Height - (int) m_ButtonText->GetTextPixelHeight( ) ) / 2.F };
+    m_TextAlignmentOffset = { ( m_Width - (int) m_ButtonText->GetTextPixelWidth( ) ) / 2.F,
+                              ( m_Height - (int) m_ButtonText->GetTextPixelHeight( ) ) / 2.F };
 
-    m_SpriteSquare = AddConcept<SpriteSquare>( Width, Height );
+    m_SpriteSquare = AddConcept<SpriteSquare>( m_Width, m_Height );
 
-    m_SpriteSquare->SetRotationCenter( Width / 2, Height / 2 );
-    m_SpriteSquare->SetOrigin( Width / 2, Height / 2 );
+    m_SpriteSquare->SetRotationCenter( m_Width * m_Pivot.first, m_Height * m_Pivot.second );
+    m_SpriteSquare->SetOrigin( m_Width * m_Pivot.first, m_Height * m_Pivot.second );
 
     m_SpriteSquare->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultColorShader" ) );
     m_SpriteSquare->SetAbsolutePosition( );
     m_SpriteSquare->SetupSprite( );
 
-    m_HitBox = AddConcept<PureConceptAABBBox>( 0, 0, Width, Height );
+    m_HitBox = AddConcept<PureConceptAABBBox>( 0, 0, m_Width, m_Height );
 
     m_SpriteSquare->MoveToFirstAsSubConcept( );
 
@@ -131,5 +132,12 @@ void
 RectButton::SetText( const std::string& Text )
 {
     m_ButtonTextStr = Text;
+    SetupButton( );
+}
+
+void
+RectButton::SetPivot( FloatTy X, FloatTy Y )
+{
+    m_Pivot = { X, Y };
     SetupButton( );
 }
