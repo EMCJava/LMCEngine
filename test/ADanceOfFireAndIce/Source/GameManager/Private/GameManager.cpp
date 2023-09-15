@@ -1396,7 +1396,7 @@ GameManager::Apply( )
              * */
             if ( m_CameraLerp < 1 )
             {
-                m_CameraLerp += DeltaSecond * 15;
+                m_CameraLerp += DeltaSecond * 8;
                 if ( m_CameraLerp >= 1 )
                 {
                     m_Camera->SetCoordinate( m_CameraEnd.x, m_CameraEnd.y );
@@ -1654,7 +1654,7 @@ GameManager::SetupCamera( )
     m_Camera = AddConcept<PureConceptCamera>( );
 
     auto CameraLocked = m_Camera;
-    CameraLocked->SetScale( 1 / 2.5F );
+    CameraLocked->SetScale( 1 / 1.5F );
     CameraLocked->UpdateProjectionMatrix( );
 
     CameraLocked->RegisterAsDefaultCamera( );
