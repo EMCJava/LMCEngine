@@ -92,6 +92,15 @@ public:
         GetInstance( ).m_Resources.clear( );
     }
 
+    inline void Clear( const std::string& Name )
+    {
+        const auto It = m_Resources.find( Name );
+        if ( It != m_Resources.end( ) )
+        {
+            m_Resources.erase( It );
+        }
+    }
+
     static inline GlobalResourcePool&
     GetInstance( )
     {
