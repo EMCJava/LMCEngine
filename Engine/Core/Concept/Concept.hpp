@@ -210,18 +210,18 @@ Concept::RemoveConcepts( )
 {
     auto PartIt = std::partition( m_SubConcepts.begin( ), m_SubConcepts.end( ),
                                   []( auto& SubConcept ) {
-                                      return SubConcept->template CanCast<ConceptType>( );
+                                      return SubConcept->template CanCastVT<ConceptType>( );
                                   } );
 
-    const auto RemoveCount = std::distance( PartIt, m_SubConcepts.end( ) );
+    const auto RemoveCount = std::distance( m_SubConcepts.begin( ), PartIt );
     if ( RemoveCount != 0 ) [[likely]]
     {
-        std::for_each( PartIt, m_SubConcepts.end( ), [ this ]( auto& SubConcept ) {
+        std::for_each( m_SubConcepts.begin( ), PartIt, [ this ]( auto& SubConcept ) {
             TEST( SubConcept->m_BelongsTo == this );
             SubConcept->m_BelongsTo = nullptr;
         } );
 
-        m_SubConcepts.erase( PartIt, m_SubConcepts.end( ) );
+        m_SubConcepts.erase( m_SubConcepts.begin( ), PartIt );
         m_ConceptsStateHash.NextUint64( );
     }
 
