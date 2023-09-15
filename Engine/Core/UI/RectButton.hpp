@@ -29,6 +29,9 @@ public:
      * */
     RectButton( int Width, int Height );
 
+    virtual void
+    SetEnabled( bool Enabled ) override;
+
     const OrientationCoordinate::Coordinate&
     SetCoordinate( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0 );
 
@@ -57,8 +60,7 @@ protected:
     std::pair<FloatTy, FloatTy> m_Pivot { };
     std::string                 m_ButtonTextStr = "Button";
 
-    std::shared_ptr<class SpriteSquare>
-                                              m_SpriteSquare;
+    std::shared_ptr<class SpriteSquare>       m_SpriteSquare;
     std::shared_ptr<class PureConceptAABBBox> m_HitBox;
     std::shared_ptr<class Text>               m_ButtonText;
 

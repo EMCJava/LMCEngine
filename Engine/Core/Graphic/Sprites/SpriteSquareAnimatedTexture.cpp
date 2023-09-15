@@ -59,6 +59,8 @@ SpriteSquareAnimatedTexture::AddGrid( SpriteSquareAnimatedTexture::FrameBoxListC
 void
 SpriteSquareAnimatedTexture::Render( )
 {
+    if ( !m_Enabled ) return;
+
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
 
     if ( !m_Repeat && m_AnimationFrameIndex >= m_TotalFrame - 1 )

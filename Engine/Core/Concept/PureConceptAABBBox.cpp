@@ -19,6 +19,8 @@ PureConceptAABBBox::PureConceptAABBBox( FloatTy X, FloatTy Y, FloatTy W, FloatTy
 bool
 PureConceptAABBBox::HitTest( const std::pair<FloatTy, FloatTy>& HitPoint )
 {
+    // if ( !m_Enabled ) return false;
+
     return HitPoint.first >= this->X && HitPoint.first <= this->X + this->W
         && HitPoint.second >= this->Y && HitPoint.second <= this->Y + this->H;
 }

@@ -43,6 +43,8 @@ RectButton::SetActiveCamera( class PureConceptCamera* ActiveCamera )
 void
 RectButton::Apply( )
 {
+    if ( !m_Enabled ) return;
+
     if ( m_PressReactTimeLeft > 0 )
     {
         m_PressReactTimeLeft -= Engine::GetEngine( )->GetDeltaSecond( );
@@ -140,4 +142,14 @@ RectButton::SetPivot( FloatTy X, FloatTy Y )
 {
     m_Pivot = { X, Y };
     SetupButton( );
+}
+
+void
+RectButton::SetEnabled( bool Enabled )
+{
+    PureConcept::SetEnabled( Enabled );
+
+    ForEachSubConcept( [ Enabled ]( auto& SubConcept ) {
+        SubConcept->SetEnabled( Enabled );
+    } );
 }

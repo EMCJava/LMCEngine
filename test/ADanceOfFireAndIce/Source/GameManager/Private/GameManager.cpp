@@ -1333,9 +1333,38 @@ GameManager::GameManager( )
     SetupExplosionSpriteTemplate( );
     LoadToleranceSprite( );
 
-    const auto& Button = AddConcept<RectButton>( -25, -12 );
-    Button->SetPressReactColor( glm::vec4 { 1, 1, 0.5, 1 } );
-    Button->SetCallback( []( ) { spdlog::info( "Button pressed." ); } );
+    {
+        m_StartButton = AddConcept<RectButton>( -25, -12 );
+        m_StartButton->SetPressReactColor( glm::vec4 { 1, 1, 0.5, 1 } );
+        m_StartButton->SetText( "Start" );
+        m_StartButton->SetPivot( 0.5F, 0.5F );
+        m_StartButton->SetCoordinate( 0, 70 );
+        m_StartButton->SetCallback( [ this ]( ) {
+            m_Playing = true;
+            m_MainAudioHandle.Resume( );
+
+            m_StartButton->Destroy( );
+            m_OffsetWizardButton->Destroy( );
+
+            m_StartButton.reset( );
+            m_OffsetWizardButton.reset( );
+        } );
+    }
+
+    {
+        m_OffsetWizardButton = AddConcept<RectButton>( -25, -12 );
+        m_OffsetWizardButton->SetPressReactColor( glm::vec4 { 1, 1, 0.5, 1 } );
+        m_OffsetWizardButton->SetText( "Start Offset Wizard" );
+        m_OffsetWizardButton->SetPivot( 0.5F, 0.5F );
+        m_OffsetWizardButton->SetCoordinate( 0, -70 );
+        m_OffsetWizardButton->SetCallback( [ this ]( ) {
+            m_StartButton->SetEnabled( false );
+            m_OffsetWizardButton->SetEnabled( false );
+
+            m_IsCheckingDeviceDelay = true;
+            m_DelayCheckingHandle   = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( m_DelayCheckingSoundSource, true );
+        } );
+    }
 
     m_InActivePlayerSprite->SetRotation( 0, 0, glm::radians( 180.f ) );
 
@@ -1345,29 +1374,14 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-    const auto DeltaSecond    = Engine::GetEngine( )->GetDeltaSecond( );
-    const bool PlayerInteract = IsUserPrimaryInteract( );
-
     if ( m_IsCheckingDeviceDelay ) [[unlikely]]
     {
-        // Adjust the audio offset to the correct value
-        (void) m_DelayCheckingHandle.GetCorrectedCurrentAudioOffset( );
-
-        if ( PlayerInteract )
-        {
-            UpdateDeviceOffset( );
-        }
-
-        // End of offset wizard
-        if ( m_DelayCheckingHandle.IsAudioEnded( ) )
-        {
-            spdlog::info( "End of offset wizard, final offset: {}ms", m_UserDeviceOffsetMS );
-            m_IsCheckingDeviceDelay = false;
-
-            m_MainAudioHandle.Resume( );
-        }
-    } else
+        ApplyOffsetWizard( );
+    } else if ( m_Playing )
     {
+        const auto DeltaSecond    = Engine::GetEngine( )->GetDeltaSecond( );
+        const bool PlayerInteract = IsUserPrimaryInteract( );
+
         auto TileSpriteSetShared = m_TileSpriteSetRef.lock( );
 
         const int64_t PlayPosition         = m_MainAudioHandle.GetCorrectedCurrentAudioOffset( ) - m_UserDeviceOffsetMS;
@@ -1660,8 +1674,7 @@ GameManager::LoadAudio( )
 {
     m_PlayingSpeed = 1;
 
-    auto* DDC             = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/Beats.ogg" );
-    m_DelayCheckingHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( DDC, true );
+    m_DelayCheckingSoundSource = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/Beats.ogg" );
 
     m_NoteHitSfxSource = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/NoteHit.wav" );
 
@@ -1817,4 +1830,26 @@ GameManager::LoadToleranceSprite( )
     m_ToleranceBar->SetShader( m_SpriteShader );
     m_ToleranceBar->SetTexturePath( "Assets/Texture/tolerance.png" );
     m_ToleranceBar->SetupSprite( );
+}
+
+void
+GameManager::ApplyOffsetWizard( )
+{
+    // Adjust the audio offset to the correct value
+    (void) m_DelayCheckingHandle.GetCorrectedCurrentAudioOffset( );
+
+    if ( IsUserPrimaryInteract( ) )
+    {
+        UpdateDeviceOffset( );
+    }
+
+    // End of offset wizard
+    if ( m_DelayCheckingHandle.IsAudioEnded( ) )
+    {
+        spdlog::info( "End of offset wizard, final offset: {}ms", m_UserDeviceOffsetMS );
+        m_IsCheckingDeviceDelay = false;
+
+        m_StartButton->SetEnabled( true );
+        m_OffsetWizardButton->SetEnabled( true );
+    }
 }

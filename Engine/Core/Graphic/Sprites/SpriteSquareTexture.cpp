@@ -106,6 +106,8 @@ SpriteSquareTexture::SetTexturePath( const std::string& TexturePath )
 void
 SpriteSquareTexture::Render( )
 {
+    if ( !m_Enabled ) return;
+    
     BindTexture( );
     SpriteSquare::Render( );
 }

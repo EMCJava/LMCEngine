@@ -23,8 +23,9 @@ SpriteSquare::SpriteSquare( int Width, int Height )
 void
 SpriteSquare::Render( )
 {
-    Sprite::Render( );
+    if ( !m_Enabled ) return;
 
+    Sprite::Render( );
     PureRender( );
 }
 

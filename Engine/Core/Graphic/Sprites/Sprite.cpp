@@ -34,6 +34,8 @@ Sprite::~Sprite( )
 void
 Sprite::Render( )
 {
+    if ( !m_Enabled ) return;
+
     SetShaderMatrix( );
     ApplyShaderUniforms( );
 }

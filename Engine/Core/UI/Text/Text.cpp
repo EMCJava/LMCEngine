@@ -27,6 +27,8 @@ Text::Text( const std::string& Text )
 void
 Text::Render( )
 {
+    if ( !m_Enabled ) return;
+    
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
 
     // activate corresponding render state

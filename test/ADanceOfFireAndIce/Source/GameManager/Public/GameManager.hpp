@@ -43,6 +43,19 @@ public:
     Apply( ) override;
 
 private:
+    /*
+     *
+     * Called by Apply
+     *
+     * */
+    void
+    ApplyOffsetWizard( );
+
+    /*
+     *
+     * Loaders
+     *
+     * */
     void
     LoadTileSprites( const std::set<uint32_t>& Degrees );
 
@@ -90,10 +103,12 @@ private:
 
 private:
     AudioHandle             m_DelayCheckingHandle;
+    NativeAudioSourceHandle m_DelayCheckingSoundSource;
     AudioHandle             m_MainAudioHandle;
     NativeAudioSourceHandle m_NoteHitSfxSource;
 
-    bool    m_IsCheckingDeviceDelay = true;
+    bool    m_IsCheckingDeviceDelay = false;
+    bool    m_Playing               = false;
     int64_t m_UserDeviceOffsetMS { };
 
     std::weak_ptr<TileSpriteSet> m_TileSpriteSetRef;
@@ -116,6 +131,8 @@ private:
     bool                                       m_ActivePlayerIsFire { false };
     std::shared_ptr<class SpriteSquareTexture> m_ActivePlayerSprite { };
     std::shared_ptr<class SpriteSquareTexture> m_InActivePlayerSprite { };
+    std::shared_ptr<class RectButton>          m_StartButton { };
+    std::shared_ptr<class RectButton>          m_OffsetWizardButton { };
 
     bool m_PlayerDirectionClockWise { true };
 

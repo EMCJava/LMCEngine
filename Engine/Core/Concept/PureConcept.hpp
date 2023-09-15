@@ -24,9 +24,22 @@ public:
     void
     Destroy( );
 
+    virtual void
+    SetEnabled( bool enabled ) { m_Enabled = enabled; }
+
+    [[nodiscard]] inline bool
+    IsEnabled( ) { return m_Enabled; }
+
 protected:
     FastRandom               m_ConceptsStateHash { FastRandom::FromUint64( ConceptsStateHashInit.NextUint64( ) ) };
     inline static FastRandom ConceptsStateHashInit { FastRandom::FromRand( ) };
+
+    /*
+     *
+     * Overall switch to the concept, should check before doing anything with the concept
+     *
+     * */
+    bool m_Enabled = true;
 
 private:
     /*

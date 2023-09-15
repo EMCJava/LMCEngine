@@ -46,6 +46,8 @@ ToleranceBarStrike::SetLifeTime( FloatTy LiftTime )
 void
 ToleranceBarStrike::Render( )
 {
+    if ( !m_Enabled ) return;
+
     BindTexture( );
 
     if ( m_Shader != nullptr )

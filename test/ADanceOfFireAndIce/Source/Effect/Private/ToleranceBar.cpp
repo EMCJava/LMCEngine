@@ -41,6 +41,8 @@ ToleranceBar::ToleranceBar( int Width, int Height )
 void
 ToleranceBar::Render( )
 {
+    if ( !m_Enabled ) return;
+    
     BindTexture( );
 
     if ( m_Shader != nullptr )

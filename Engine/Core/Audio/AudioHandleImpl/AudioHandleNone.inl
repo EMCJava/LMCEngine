@@ -51,3 +51,9 @@ void
 AudioHandle::SetVolume( float Volume )
 {
 }
+
+bool
+AudioHandle::SetPlayOffset( uint32_t Milliseconds )
+{
+    return false;
+}

@@ -76,6 +76,8 @@ public:
     Paused( );
     void
     Resume( );
+    bool
+    SetPlayOffset( uint32_t Milliseconds );
 
     /*
      *
@@ -83,7 +85,7 @@ public:
      *
      * */
     void
-    SetVolume( float Volume ); // Volume: [0, 1]
+    SetVolume( float Volume );   // Volume: [0, 1]
 
     bool SetSpeed( FloatTy Speed );
 

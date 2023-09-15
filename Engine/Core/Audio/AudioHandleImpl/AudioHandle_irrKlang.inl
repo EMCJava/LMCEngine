@@ -61,3 +61,9 @@ AudioHandle::SetVolume( float Volume )
 {
     m_NativeHandle->setVolume( Volume );
 }
+
+bool
+AudioHandle::SetPlayOffset( uint32_t Milliseconds )
+{
+    return m_NativeHandle->setPlayPosition( Milliseconds );
+}
