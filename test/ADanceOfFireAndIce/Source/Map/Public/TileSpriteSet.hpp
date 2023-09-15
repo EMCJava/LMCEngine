@@ -36,6 +36,9 @@ public:
     SpriteSquareTexture*
     RegisterSprite( uint32_t Degree, std::unique_ptr<SpriteSquareTexture>&& TSprite );
 
+    SpriteSquareTexture*
+    RegisterReverseSprite( std::unique_ptr<SpriteSquareTexture>&& TSprite );
+
     void
     AddTile( TileMeta Tile );
 
@@ -125,6 +128,7 @@ protected:
      *
      * */
     std::map<uint32_t, std::unique_ptr<SpriteSquareTexture>> m_Sprites;
+    std::unique_ptr<SpriteSquareTexture>                     m_ReverseSprites;
 
     ENABLE_IMGUI( TileSpriteSet )
 };

@@ -44,9 +44,15 @@ TileSpriteSet::Render( )
 
                 const auto* gl = Engine::GetEngine( )->GetGLContext( );
                 gl->ActiveTexture( GL_TEXTURE0 );
-                gl->BindTexture( GL_TEXTURE_2D, Sp->GetTextureID( ) );
 
+                gl->BindTexture( GL_TEXTURE_2D, Sp->GetTextureID( ) );
                 Sp->PureRender( );
+
+                if ( Tile.ReverseDirection )
+                {
+                    gl->BindTexture( GL_TEXTURE_2D, m_ReverseSprites->GetTextureID( ) );
+                    m_ReverseSprites->PureRender( );
+                }
             }
         }
     }
@@ -62,6 +68,14 @@ TileSpriteSet::RegisterSprite( uint32_t Degree, std::unique_ptr<SpriteSquareText
 
     auto* Backup        = TSprite.get( );
     m_Sprites[ Degree ] = std::move( TSprite );
+    return Backup;
+}
+
+SpriteSquareTexture*
+TileSpriteSet::RegisterReverseSprite( std::unique_ptr<SpriteSquareTexture>&& TSprite )
+{
+    auto* Backup     = TSprite.get( );
+    m_ReverseSprites = std::move( TSprite );
     return Backup;
 }
 
