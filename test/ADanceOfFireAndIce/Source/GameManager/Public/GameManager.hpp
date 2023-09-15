@@ -89,8 +89,9 @@ private:
     bool IsUserPrimaryInteract( );
 
 private:
-    AudioHandle m_DelayCheckingHandle;
-    AudioHandle m_MainAudioHandle;
+    AudioHandle             m_DelayCheckingHandle;
+    AudioHandle             m_MainAudioHandle;
+    NativeAudioSourceHandle m_NoteHitSfxSource;
 
     bool    m_IsCheckingDeviceDelay = true;
     int64_t m_UserDeviceOffsetMS { };

@@ -1535,6 +1535,12 @@ GameManager::Apply( )
 
                 if ( DidAdvanced )
                 {
+                    // Play note hit effect when device delay is low enough
+                    if ( std::abs( m_UserDeviceOffsetMS ) <= 100 )
+                    {
+                        Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( m_NoteHitSfxSource );
+                    }
+
                     /*
                      *
                      * Add tolerance bar
@@ -1657,9 +1663,12 @@ GameManager::LoadAudio( )
     auto* DDC             = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/Beats.ogg" );
     m_DelayCheckingHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( DDC, true );
 
+    m_NoteHitSfxSource = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/NoteHit.wav" );
+
     auto* MAC         = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/Papipupipupipa.ogg" );
     m_MainAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( MAC, true, true );
     m_MainAudioHandle.SetSpeed( m_PlayingSpeed );
+    m_MainAudioHandle.SetVolume( 0.2 );
     SetBPM( 200 * m_PlayingSpeed );
 }
 
