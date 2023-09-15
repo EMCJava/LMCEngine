@@ -14,6 +14,10 @@
 class RectButton : public ConceptApplicable
 {
     DECLARE_CONCEPT( RectButton, ConceptApplicable )
+private:
+    void
+    SetupButton( );
+
 public:
     using CallbackSignature = void( );
 
@@ -40,8 +44,15 @@ public:
     void
     SetCallback( auto&& Callback ) { m_Callback = Callback; }
 
+    void
+    SetText( const std::string& Text );
+
 protected:
-    std::shared_ptr<class SpriteSquare>       m_SpriteSquare;
+    int         m_Width { }, m_Height { };
+    std::string m_ButtonTextStr = "Button";
+
+    std::shared_ptr<class SpriteSquare>
+                                              m_SpriteSquare;
     std::shared_ptr<class PureConceptAABBBox> m_HitBox;
     std::shared_ptr<class Text>               m_ButtonText;
 

@@ -18,43 +18,10 @@ DEFINE_CONCEPT_DS( RectButton )
 DEFINE_SIMPLE_IMGUI_TYPE( RectButton, m_DefaultColor, m_PressColor, m_TextAlignmentOffset, m_PressReactTimeLeft )
 
 RectButton::RectButton( int Width, int Height )
+    : m_Width( Width )
+    , m_Height( Height )
 {
-    m_ButtonText = AddConcept<Text>( "Button" );
-    m_ButtonText->SetupSprite( );
-    m_ButtonText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
-
-    spdlog::critical( "GetGlobalResourcePool: {}", fmt::ptr( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ).get( ) ) );
-
-    const int WidthSpacing  = Width < 0 ? -Width : 0;
-    const int HeightSpacing = Height < 0 ? -Height : 0;
-
-    if ( Width <= 0 ) Width = m_ButtonText->GetTextPixelWidth( );
-    if ( Height <= 0 ) Height = m_ButtonText->GetTextPixelHeight( );
-
-    if ( WidthSpacing != 0 ) Width += WidthSpacing;
-    if ( HeightSpacing != 0 ) Height += HeightSpacing;
-
-    m_TextAlignmentOffset = { ( Width - (int) m_ButtonText->GetTextPixelWidth( ) ) / 2.F,
-                              ( Height - (int) m_ButtonText->GetTextPixelHeight( ) ) / 2.F };
-
-    m_SpriteSquare = AddConcept<SpriteSquare>( Width, Height );
-
-    m_SpriteSquare->SetRotationCenter( Width / 2, Height / 2 );
-    m_SpriteSquare->SetOrigin( Width / 2, Height / 2 );
-
-    m_SpriteSquare->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultColorShader" ) );
-    m_SpriteSquare->SetAbsolutePosition( );
-    m_SpriteSquare->SetupSprite( );
-
-    m_HitBox = AddConcept<PureConceptAABBBox>( 0, 0, Width, Height );
-
-    m_SpriteSquare->MoveToFirstAsSubConcept( );
-
-    // Set alignment by default
-    SetCoordinate( );
-
-    // To render sub-concepts
-    SetSearchThrough( );
+    SetupButton( );
 }
 
 const OrientationCoordinate::Coordinate&
@@ -110,4 +77,59 @@ void
 RectButton::SetPressReactColor( const glm::vec4& Color )
 {
     m_PressColor = Color;
+}
+
+void
+RectButton::SetupButton( )
+{
+    m_ButtonText.reset( );
+    m_SpriteSquare.reset( );
+    m_HitBox.reset( );
+
+    RemoveConcepts<PureConcept>( );
+
+    m_ButtonText = AddConcept<Text>( m_ButtonTextStr );
+    m_ButtonText->SetupSprite( );
+    m_ButtonText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
+
+    auto Width  = m_Width;
+    auto Height = m_Height;
+
+    const int WidthSpacing  = Width < 0 ? -Width : 0;
+    const int HeightSpacing = Height < 0 ? -Height : 0;
+
+    if ( Width <= 0 ) Width = m_ButtonText->GetTextPixelWidth( );
+    if ( Height <= 0 ) Height = m_ButtonText->GetTextPixelHeight( );
+
+    if ( WidthSpacing != 0 ) Width += WidthSpacing;
+    if ( HeightSpacing != 0 ) Height += HeightSpacing;
+
+    m_TextAlignmentOffset = { ( Width - (int) m_ButtonText->GetTextPixelWidth( ) ) / 2.F,
+                              ( Height - (int) m_ButtonText->GetTextPixelHeight( ) ) / 2.F };
+
+    m_SpriteSquare = AddConcept<SpriteSquare>( Width, Height );
+
+    m_SpriteSquare->SetRotationCenter( Width / 2, Height / 2 );
+    m_SpriteSquare->SetOrigin( Width / 2, Height / 2 );
+
+    m_SpriteSquare->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultColorShader" ) );
+    m_SpriteSquare->SetAbsolutePosition( );
+    m_SpriteSquare->SetupSprite( );
+
+    m_HitBox = AddConcept<PureConceptAABBBox>( 0, 0, Width, Height );
+
+    m_SpriteSquare->MoveToFirstAsSubConcept( );
+
+    // Set alignment by default
+    SetCoordinate( );
+
+    // To render sub-concepts
+    SetSearchThrough( );
+}
+
+void
+RectButton::SetText( const std::string& Text )
+{
+    m_ButtonTextStr = Text;
+    SetupButton( );
 }
