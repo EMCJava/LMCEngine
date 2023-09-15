@@ -109,6 +109,8 @@ Engine::Engine( )
 
 #endif
 
+    m_ImGuiGroupPanelLabelStack = new ImVector<ImRect>;
+
     m_MainWindow = new PrimaryWindow( 1600, 800, m_ActiveProject->GetConfig( ).project_name.c_str( ) );
     m_GLContext  = m_MainWindow->GetGLContext( );
 
@@ -198,6 +200,9 @@ Engine::~Engine( )
 
     delete m_MainWindow;
     m_MainWindow = nullptr;
+
+    delete m_ImGuiGroupPanelLabelStack;
+    m_ImGuiGroupPanelLabelStack = nullptr;
 
     delete m_ActiveProject;
     m_ActiveProject = nullptr;

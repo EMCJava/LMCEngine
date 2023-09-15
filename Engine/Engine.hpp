@@ -14,6 +14,9 @@ namespace spdlog
 class logger;
 }
 
+template <typename T>
+struct ImVector;
+
 template <class>
 class ConceptSetFetchCache;
 
@@ -164,6 +167,8 @@ public:
 
     void ( *GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* );
 
+    ImVector<struct ImRect>* GetImGuiGroupPanelLabelStack( ) { return m_ImGuiGroupPanelLabelStack; }
+
 private:
     bool m_ShouldShutdown = false;
 
@@ -214,7 +219,8 @@ private:
      * ImGui
      *
      * */
-    struct ImGuiContext* m_ImGuiContext = nullptr;
+    struct ImGuiContext*     m_ImGuiContext              = nullptr;
+    ImVector<struct ImRect>* m_ImGuiGroupPanelLabelStack = nullptr;
 
     void* ( *m_ImGuiContext_alloc_func )( size_t sz, void* user_data ) = nullptr;
     void ( *m_ImGuiContext_free_func )( void* ptr, void* user_data )   = nullptr;

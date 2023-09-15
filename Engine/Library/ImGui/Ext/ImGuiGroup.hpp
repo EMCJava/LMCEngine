@@ -4,13 +4,13 @@
 
 #pragma once
 
+#include <Engine/Engine.hpp>
+
 #include <ImGui/ImGui.hpp>
 
 // https://github.com/ocornut/imgui/issues/1496
 namespace ImGuiGroup
 {
-inline ImVector<ImRect> s_GroupPanelLabelStack;
-
 inline void
 BeginGroupPanel( const char* name, const ImVec2& size = ImVec2 { -1, 0 } )
 {
@@ -56,7 +56,7 @@ BeginGroupPanel( const char* name, const ImVec2& size = ImVec2 { -1, 0 } )
     auto itemWidth = ImGui::CalcItemWidth( );
     ImGui::PushItemWidth( ImMax( 0.0f, itemWidth - frameHeight ) );
 
-    s_GroupPanelLabelStack.push_back( ImRect( labelMin, labelMax ) );
+    Engine::GetEngine( )->GetImGuiGroupPanelLabelStack( )->push_back( ImRect( labelMin, labelMax ) );
 }
 
 inline void
@@ -87,8 +87,9 @@ EndGroupPanel( )
     auto itemMax = ImGui::GetItemRectMax( );
     // ImGui::GetWindowDrawList()->AddRectFilled(itemMin, itemMax, IM_COL32(255, 0, 0, 64), 4.0f);
 
-    auto labelRect = s_GroupPanelLabelStack.back( );
-    s_GroupPanelLabelStack.pop_back( );
+    auto* ImGuiGroupPanelLabelStack = Engine::GetEngine( )->GetImGuiGroupPanelLabelStack( );
+    auto  labelRect                 = ImGuiGroupPanelLabelStack->back( );
+    ImGuiGroupPanelLabelStack->pop_back( );
 
     ImVec2 halfFrame = ImVec2( frameHeight * 0.25f, frameHeight ) * 0.5f;
     ImRect frameRect = ImRect( itemMin + halfFrame, itemMax - ImVec2( halfFrame.x, 0.0f ) );
