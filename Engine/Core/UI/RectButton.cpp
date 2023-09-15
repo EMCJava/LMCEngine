@@ -23,14 +23,10 @@ RectButton::RectButton( int Width, int Height )
 
     spdlog::critical( "GetGlobalResourcePool: {}", fmt::ptr( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ).get( ) ) );
 
-    if ( Width != 0 )
-    {
-        m_SpriteSquare = AddConcept<SpriteSquare>( Width, Height );
-    } else
-    {
-        Width          = m_ButtonText->GetTextPixelWidth( );
-        m_SpriteSquare = AddConcept<SpriteSquare>( m_ButtonText->GetTextPixelWidth( ), Height );
-    }
+    if ( Width == 0 ) Width = m_ButtonText->GetTextPixelWidth( );
+    if ( Height == 0 ) Height = m_ButtonText->GetTextPixelHeight( );
+
+    m_SpriteSquare = AddConcept<SpriteSquare>( Width, Height );
 
     m_SpriteSquare->SetRotationCenter( Width / 2, Height / 2 );
     m_SpriteSquare->SetOrigin( Width / 2, Height / 2 );

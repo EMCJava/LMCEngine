@@ -122,3 +122,20 @@ Text::GetTextPixelWidth( )
 
     return TotalWidth;
 }
+
+uint32_t
+Text::GetTextPixelHeight( )
+{
+    uint32_t MaxHeight = 0;
+
+    for ( const char& Char : m_Text )
+    {
+        const auto ch = m_Font->GetCharacter( Char );
+        REQUIRED_IF( ch != nullptr )
+        {
+            MaxHeight = std::max( static_cast<uint32_t>( ch->Height * m_Scale ), MaxHeight );   // bitshift by 6 to get value in pixels (2^6 = 64)
+        }
+    }
+
+    return MaxHeight;
+}

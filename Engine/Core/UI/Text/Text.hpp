@@ -32,6 +32,9 @@ public:
     uint32_t
     GetTextPixelWidth( );
 
+    uint32_t
+    GetTextPixelHeight( );
+
 protected:
     std::string                       m_Text;
     FloatTy                           m_Scale { 1 };

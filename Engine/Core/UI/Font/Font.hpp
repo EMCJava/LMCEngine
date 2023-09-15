@@ -19,6 +19,7 @@ public:
         std::pair<int, int> Size { };        // Size of glyph
         std::pair<int, int> Bearing { };     // Offset from baseline to left/top of glyph
         long                Advance { };     // Offset to advance to next glyph
+        uint32_t            Height { };
     };
 
     void

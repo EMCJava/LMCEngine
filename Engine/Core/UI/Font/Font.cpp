@@ -80,11 +80,16 @@ Font::LoadFont( const std::string& Path )
                         gl->TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
                         // now store character for later use
 
+                        FT_Bitmap *bitmap = &(face->glyph->bitmap);
+                        int top = (face->ascender >> 6) - face->glyph->bitmap_top;
+                        if (top < 0) top = 0;
+
                         Font::Character character = {
                             texture,
                             std::make_pair( face->glyph->bitmap.width, face->glyph->bitmap.rows ),
                             std::make_pair( face->glyph->bitmap_left, face->glyph->bitmap_top ),
-                            face->glyph->advance.x };
+                            face->glyph->advance.x,
+                            top + bitmap->rows};
                         m_Characters.insert( std::pair<char, Font::Character>( c, character ) );
                     }
                 }

@@ -1333,7 +1333,7 @@ GameManager::GameManager( )
     SetupExplosionSpriteTemplate( );
     LoadToleranceSprite( );
 
-    const auto& Button = AddConcept<RectButton>( 0, 100 );
+    const auto& Button = AddConcept<RectButton>( 0, 0 );
     Button->SetPressReactColor( glm::vec4 { 1, 1, 0.5, 1 } );
     Button->SetCallback( []( ) { spdlog::info( "Button pressed." ); } );
 
