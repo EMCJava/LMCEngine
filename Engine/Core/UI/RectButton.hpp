@@ -20,6 +20,7 @@ public:
     /*
      *
      * 0 for Width means auto resize to text width
+     * < 0 means auto resize with additional space abs(val)
      *
      * */
     RectButton( int Width, int Height );
