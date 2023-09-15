@@ -66,11 +66,31 @@ ToImGuiWidget( const char* Name, float* Value )
     ImGui::InputScalar( Name, ImGuiDataType_Float, Value );
 }
 
+namespace
+{
+
+static int
+InputTextCallback( ImGuiInputTextCallbackData* data )
+{
+    if ( data->EventFlag == ImGuiInputTextFlags_CallbackResize )
+    {
+        // Resize string callback
+        // If for some reason we refuse the new length (BufTextLen) and/or capacity (BufSize) we need to set them back to what we want.
+        auto* str = (std::string*) data->UserData;
+        IM_ASSERT( data->Buf == str->c_str( ) );
+        str->resize( data->BufTextLen );
+        data->Buf = (char*) str->c_str( );
+    }
+
+    return 0;
+}
+}   // namespace
+
 inline void
 ToImGuiWidget( const char* Name, std::string* Value )
 {
-    Value->reserve( Value->size( ) * 2 );
-    ImGui::InputText( Name, Value->data( ), Value->capacity( ) + 1 );
+    ImGuiInputTextFlags flags = ImGuiInputTextFlags_CallbackResize;
+    ImGui::InputText( Name, (char*) Value->c_str( ), Value->capacity( ) + 1, flags, ::InputTextCallback, Value );
 }
 
 inline void
