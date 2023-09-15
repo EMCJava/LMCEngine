@@ -162,6 +162,9 @@ Engine::~Engine( )
 {
     spdlog::info( "Engine destroying" );
 
+    // Remove concepts caches
+    m_MainWindow->SetRootConcept( nullptr );
+
     delete m_RootApplicableCache;
     m_RootApplicableCache = nullptr;
 
@@ -177,7 +180,7 @@ Engine::~Engine( )
     m_RootConcept = nullptr;
 #endif
 
-    GlobalResourcePool::Clear( );
+    GetGlobalResourcePool( )->Clear( );
 
     delete m_MainWindowPool;
     m_MainWindowPool = nullptr;
@@ -252,7 +255,7 @@ Engine::UpdateRootConcept( )
         if ( RootConcept.ShouldReload( ) ) [[unlikely]]
         {
             spdlog::info( "RootConcept changes detected, hot reloading" );
-            m_MainWindow->SetRootConcept( nullptr ); // Make sure all destructor are called before unloading library
+            m_MainWindow->SetRootConcept( nullptr );   // Make sure all destructor are called before unloading library
             RootConcept.Reload( false );
 
             spdlog::info( "Resetting Runtime GetGlobalResourcePool" );

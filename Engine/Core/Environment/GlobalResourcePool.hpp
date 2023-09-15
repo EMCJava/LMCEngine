@@ -87,9 +87,14 @@ public:
         return nullptr;
     }
 
-    inline static void Clear( )
+    inline static void SClear( )
     {
         GetInstance( ).m_Resources.clear( );
+    }
+
+    inline void Clear( )
+    {
+        m_Resources.clear( );
     }
 
     inline void Clear( const std::string& Name )
