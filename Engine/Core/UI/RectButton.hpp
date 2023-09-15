@@ -47,7 +47,12 @@ protected:
     static constexpr glm::vec4 UnknownColor { 0.9, 0.0, 0.9, 1.0 };
     glm::vec4                  m_DefaultColor { UnknownColor }, m_PressColor { UnknownColor };
 
+    // Used to center text in button
+    std::pair<FloatTy, FloatTy> m_TextAlignmentOffset;
+
     std::function<CallbackSignature> m_Callback { };
 
     FloatTy m_PressReactTimeLeft = 0;
+
+    ENABLE_IMGUI( RectButton )
 };

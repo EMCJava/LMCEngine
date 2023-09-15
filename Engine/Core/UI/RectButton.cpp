@@ -12,8 +12,10 @@
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
 #include <Engine/Core/Concept/PureConceptAABBBox.hpp>
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
 DEFINE_CONCEPT_DS( RectButton )
+DEFINE_SIMPLE_IMGUI_TYPE( RectButton, m_SpriteSquare, m_HitBox, m_ButtonText, m_DefaultColor, m_PressColor, m_TextAlignmentOffset, m_PressReactTimeLeft )
 
 RectButton::RectButton( int Width, int Height )
 {
@@ -23,8 +25,17 @@ RectButton::RectButton( int Width, int Height )
 
     spdlog::critical( "GetGlobalResourcePool: {}", fmt::ptr( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ).get( ) ) );
 
-    if ( Width == 0 ) Width = m_ButtonText->GetTextPixelWidth( );
-    if ( Height == 0 ) Height = m_ButtonText->GetTextPixelHeight( );
+    const int WidthSpacing  = Width < 0 ? -Width : 0;
+    const int HeightSpacing = Height < 0 ? -Height : 0;
+
+    if ( Width <= 0 ) Width = m_ButtonText->GetTextPixelWidth( );
+    if ( Height <= 0 ) Height = m_ButtonText->GetTextPixelHeight( );
+
+    if ( WidthSpacing != 0 ) Width += WidthSpacing;
+    if ( HeightSpacing != 0 ) Height += HeightSpacing;
+
+    m_TextAlignmentOffset = { ( Width - (int) m_ButtonText->GetTextPixelWidth( ) ) / 2.F,
+                              ( Height - (int) m_ButtonText->GetTextPixelHeight( ) ) / 2.F };
 
     m_SpriteSquare = AddConcept<SpriteSquare>( Width, Height );
 
@@ -39,6 +50,9 @@ RectButton::RectButton( int Width, int Height )
 
     m_SpriteSquare->MoveToFirstAsSubConcept( );
 
+    // Set alignment by default
+    SetCoordinate( );
+
     // To render sub-concepts
     SetSearchThrough( );
 }
@@ -47,7 +61,7 @@ const OrientationCoordinate::Coordinate&
 RectButton::SetCoordinate( FloatTy X, FloatTy Y, FloatTy Z )
 {
     m_HitBox->SetCoordinate( X, Y );
-    m_ButtonText->SetCoordinate( OrientationCoordinate::Coordinate { X, Y } );
+    m_ButtonText->SetCoordinate( OrientationCoordinate::Coordinate { X + m_TextAlignmentOffset.first, Y + m_TextAlignmentOffset.second } );
     return m_SpriteSquare->SetCoordinate( X, Y, Z );
 }
 
