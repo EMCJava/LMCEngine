@@ -145,5 +145,7 @@ private:
 
     std::shared_ptr<class ToleranceBar> m_ToleranceBar { };
 
+    static constexpr auto m_ManualMapping = false;
+
     ENABLE_IMGUI( GameManager )
 };
