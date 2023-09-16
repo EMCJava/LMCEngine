@@ -160,7 +160,15 @@ elseif (APPLE)
 
     add_custom_target(populate_irrklang)
 elseif (UNIX)
-    message(FATAL_ERROR " Platform not tested")
+    # set_target_properties(irrklang PROPERTIES IMPORTED_IMPLIB ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so)
+    set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION libIrrKlang.so)
+
+    add_custom_target(
+            populate_irrklang ALL
+            COMMENT "Exporting libIrrKlang.so into build tree"
+    )
+
+    file(COPY ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 else ()
     message(FATAL_ERROR "No supported platform was detected ")
 endif ()
@@ -174,7 +182,7 @@ if (NOT ${no_irrklang})
 
     target_compile_definitions(audio.base.lib INTERFACE USE_IRRKLANG)
 
-    message(" Using irrklang")
+    message("Using irrklang")
 
 else ()
     target_compile_definitions(audio.base.lib INTERFACE NO_AUDIO_ENGINE)

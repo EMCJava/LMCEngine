@@ -4,7 +4,11 @@
 
 #include <Engine/Core/Core.hpp>
 
-#if !defined( LMC_WIN ) && !defined( LMC_APPLE )
+#if defined( LMC_LINUX ) || defined( LMC_APPLE )
+#    define LMC_UNIX
+#endif
+
+#if !defined( LMC_WIN ) && !defined( LMC_UNIX )
 static_assert( false, "Platform not defined" );
 #endif
 
@@ -14,7 +18,7 @@ static_assert( false, "Platform not defined" );
 #ifdef LMC_WIN
 #    include <windows.h>
 #    define SHARING_VIOLATION 32L
-#elif defined( LMC_APPLE )   // Should be working also on linux platform, not yet tried
+#elif defined( LMC_UNIX )   // Should be working also on linux platform, not yet tried
 #    include <dlfcn.h>
 #    define SHARING_VIOLATION EBUSY
 #endif
@@ -45,7 +49,7 @@ PrintSysCallError( std::string_view message )
 
     // Free the Win32's string's buffer.
     LocalFree( messageBuffer );
-#elif defined( LMC_APPLE )
+#elif defined( LMC_UNIX )
     std::string DLErrorString = dlerror( );
     spdlog::error( "{}: {}", message, DLErrorString );
 #endif
@@ -93,7 +97,7 @@ DynamicLibrary::Load( const std::string_view& Path )
 
 #ifdef LMC_WIN
     m_DLLHandle = LoadLibrary( m_DLLLoadPath.c_str( ) );
-#elif defined( LMC_APPLE )
+#elif defined( LMC_UNIX )
     m_DLLHandle = dlopen( m_DLLLoadPath.c_str( ), RTLD_LAZY );
 #endif
 
@@ -118,7 +122,7 @@ DynamicLibrary::Unload( )
     {
 #ifdef LMC_WIN
         if ( !FreeLibrary( static_cast<HMODULE>( m_DLLHandle ) ) )
-#elif defined( LMC_APPLE )
+#elif defined( LMC_UNIX )
         if ( dlclose( m_DLLHandle ) )
 #endif
         {
@@ -142,7 +146,7 @@ DynamicLibrary::LoadSymbol( const std::string& Name )
 {
 #ifdef LMC_WIN
     void* result = (void*) GetProcAddress( static_cast<HMODULE>( m_DLLHandle ), Name.c_str( ) );
-#elif defined( LMC_APPLE )
+#elif defined( LMC_UNIX )
     void* result = (void*) dlsym( m_DLLHandle, Name.c_str( ) );
 #endif
     if ( result == nullptr )
