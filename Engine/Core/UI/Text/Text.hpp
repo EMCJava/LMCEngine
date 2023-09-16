@@ -29,6 +29,9 @@ public:
     void
     SetFont( std::shared_ptr<class Font> Font ) { m_Font = Font; }
 
+    void
+    SetColor( const glm::vec3& Color ) { m_Color = Color; }
+
     uint32_t
     GetTextPixelWidth( );
 
@@ -39,6 +42,7 @@ protected:
     std::string                       m_Text;
     FloatTy                           m_Scale { 1 };
     OrientationCoordinate::Coordinate m_TextCoordinate;
+    glm::vec3                         m_Color { 0 };
 
     std::shared_ptr<class Font> m_Font;
 

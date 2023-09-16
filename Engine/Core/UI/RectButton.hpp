@@ -40,6 +40,10 @@ public:
 
     void
     SetPressReactColor( const glm::vec4& Color );
+    void
+    SetDefaultColor( const glm::vec4& Color );
+    void
+    SetTextColor( const glm::vec3& Color );
 
     virtual void
     Apply( ) override;
@@ -66,6 +70,7 @@ protected:
 
     static constexpr glm::vec4 UnknownColor { 0.9, 0.0, 0.9, 1.0 };
     glm::vec4                  m_DefaultColor { UnknownColor }, m_PressColor { UnknownColor };
+    glm::vec3                  m_TextColor { 0 };
 
     // Used to center text in button
     std::pair<FloatTy, FloatTy> m_TextAlignmentOffset;

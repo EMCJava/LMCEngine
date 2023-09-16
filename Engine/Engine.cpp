@@ -260,11 +260,15 @@ Engine::UpdateRootConcept( )
         if ( RootConcept.ShouldReload( ) ) [[unlikely]]
         {
             spdlog::info( "RootConcept changes detected, hot reloading" );
-            m_MainWindow->SetRootConcept( nullptr );   // Make sure all destructor are called before unloading library
-            RootConcept.Reload( false );
+
+            // Make sure all destructor are called before unloading library
+            m_RootApplicableCache->Clear();
+            m_MainWindow->SetRootConcept( nullptr );
 
             spdlog::info( "Resetting Runtime GetGlobalResourcePool" );
             GetGlobalResourcePool( )->Clear( "DefaultCamera" );
+
+            RootConcept.Reload( false );
 
             spdlog::info( "Reloading Audio engine" );
 

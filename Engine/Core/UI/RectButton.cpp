@@ -94,6 +94,7 @@ RectButton::SetupButton( )
     m_ButtonText = AddConcept<Text>( m_ButtonTextStr );
     m_ButtonText->SetupSprite( );
     m_ButtonText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
+    m_ButtonText->SetColor( m_TextColor );
 
     m_Width  = m_UserDefinedWidth;
     m_Height = m_UserDefinedHeight;
@@ -152,4 +153,16 @@ RectButton::SetEnabled( bool Enabled )
     ForEachSubConcept( [ Enabled ]( auto& SubConcept ) {
         SubConcept->SetEnabled( Enabled );
     } );
+}
+
+void
+RectButton::SetDefaultColor( const glm::vec4& Color )
+{
+    m_DefaultColor = Color;
+}
+
+void
+RectButton::SetTextColor( const glm::vec3& Color )
+{
+    m_TextColor = Color;
 }

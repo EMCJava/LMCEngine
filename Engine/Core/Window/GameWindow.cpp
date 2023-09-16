@@ -73,6 +73,7 @@ GameWindow::SetRootConcept( class RootConceptTy* RootConcept )
 #endif
     }
 
+    m_ConceptCameras.Clear( );
     m_ConceptRenderables.Clear( );
 }
 

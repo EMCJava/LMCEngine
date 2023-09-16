@@ -15,7 +15,7 @@
 #include <spdlog/spdlog.h>
 
 DEFINE_CONCEPT_DS( Text )
-DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( Text, Sprite, m_Text, m_Scale, m_TextCoordinate, m_Font )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( Text, Sprite, m_Text, m_Scale, m_Color, m_TextCoordinate, m_Font )
 
 Text::Text( const std::string& Text )
 {
@@ -28,7 +28,7 @@ void
 Text::Render( )
 {
     if ( !m_Enabled ) return;
-    
+
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
 
     // activate corresponding render state
@@ -40,8 +40,7 @@ Text::Render( )
             m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrixNonOffset( ) );
         }
 
-        glm::vec3 color { 1, 0, 0 };
-        m_Shader->SetVec3( "textColor", color );
+        m_Shader->SetVec3( "textColor", m_Color );
     }
 
     gl->ActiveTexture( GL_TEXTURE0 );

@@ -1335,7 +1335,9 @@ GameManager::GameManager( )
 
     {
         m_StartButton = AddConcept<RectButton>( -25, -12 );
-        m_StartButton->SetPressReactColor( glm::vec4 { 1, 1, 0.5, 1 } );
+        m_StartButton->SetPressReactColor( glm::vec4 { 0.9, 0.9, 0.9, 1 } );
+        m_StartButton->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
+        m_StartButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
         m_StartButton->SetText( "Start" );
         m_StartButton->SetPivot( 0.5F, 0.5F );
         m_StartButton->SetCoordinate( 0, 70 );
@@ -1353,7 +1355,9 @@ GameManager::GameManager( )
 
     {
         m_OffsetWizardButton = AddConcept<RectButton>( -25, -12 );
-        m_OffsetWizardButton->SetPressReactColor( glm::vec4 { 1, 1, 0.5, 1 } );
+        m_OffsetWizardButton->SetPressReactColor( glm::vec4 { 0.9, 0.9, 0.9, 1 } );
+        m_OffsetWizardButton->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
+        m_OffsetWizardButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
         m_OffsetWizardButton->SetText( "Start Offset Wizard" );
         m_OffsetWizardButton->SetPivot( 0.5F, 0.5F );
         m_OffsetWizardButton->SetCoordinate( 0, -70 );
