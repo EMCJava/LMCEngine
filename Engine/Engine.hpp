@@ -14,7 +14,7 @@ namespace spdlog
 class logger;
 }
 
-template <typename T>
+template <typename>
 struct ImVector;
 
 template <class>
