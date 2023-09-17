@@ -26,3 +26,18 @@ function(declare_library)
     target_link_libraries(${PARSED_ARGS_NAME}.lib PUBLIC ${PARSED_ARGS_DEPS})
     target_link_libraries(${PARSED_ARGS_NAME}.lib PRIVATE ${PARSED_ARGS_P_DEPS})
 endfunction()
+
+function(declare_main_executable)
+    add_executable(${ARGN} main.cpp)
+    if (MSVC)
+        set_target_properties(${ARGN} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/$<0:>)
+    endif (MSVC)
+
+    if (NOT ${EditorBuild})
+        target_link_libraries(GameWindow.lib PRIVATE ${ROOT_CONCEPT_LIB})
+        target_link_libraries(Engine.lib ${ROOT_CONCEPT_LIB})
+    endif ()
+
+    target_link_libraries(${ARGN} ${ROOT_CONCEPT_LIB})
+    target_link_libraries(${ARGN} Engine.lib)
+endfunction()
