@@ -280,8 +280,13 @@ EditorWindow::RenderConceptHierarchy( std::shared_ptr<PureConcept>& ConShared )
         if ( ConShared->CanCastV( Concept::TypeID ) && ( (Concept*) ConShared.get( ) )->HasSubConcept( ) )
         {
             // Has sub node
+            const bool Enabled = ConShared->IsEnabled( );
+
+            if ( !Enabled ) ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle( ).Alpha * ImGui::GetStyle( ).DisabledAlpha );
             bool node_open = ImGui::TreeNodeEx( ConShared.get( ), BaseFlag, "%s", ConShared->GetName( ) );
-            IsSelected     = ImGui::IsItemClicked( ) && !ImGui::IsItemToggledOpen( );
+            if ( !Enabled ) ImGui::PopStyleVar( );
+
+            IsSelected = ImGui::IsItemClicked( ) && !ImGui::IsItemToggledOpen( );
 
             DragAndDropOperation( ConShared );
 
@@ -305,7 +310,12 @@ EditorWindow::RenderConceptHierarchy( std::shared_ptr<PureConcept>& ConShared )
         {
             // No sub node
             BaseFlag |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+            const bool Enabled = ConShared->IsEnabled( );
+
+            if ( !Enabled ) ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle( ).Alpha * ImGui::GetStyle( ).DisabledAlpha );
             ImGui::TreeNodeEx( ConShared.get( ), BaseFlag, "%s", ConShared->GetName( ) );
+            if ( !Enabled ) ImGui::PopStyleVar( );
+
             IsSelected = ImGui::IsItemClicked( ) && !ImGui::IsItemToggledOpen( );
 
             DragAndDropOperation( ConShared );

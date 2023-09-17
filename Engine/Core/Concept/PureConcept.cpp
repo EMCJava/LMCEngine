@@ -8,7 +8,7 @@
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
 DEFINE_CONCEPT( PureConcept )
-DEFINE_SIMPLE_IMGUI_TYPE( PureConcept, m_ConceptsStateHash )
+DEFINE_SIMPLE_IMGUI_TYPE( PureConcept, m_Enabled, m_ConceptsStateHash )
 
 PureConcept::~PureConcept( )
 {

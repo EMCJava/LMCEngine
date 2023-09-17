@@ -15,7 +15,7 @@
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
 DEFINE_CONCEPT_DS( RectButton )
-DEFINE_SIMPLE_IMGUI_TYPE( RectButton, m_DefaultColor, m_PressColor, m_TextAlignmentOffset, m_PressReactTimeLeft )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RectButton, PureConcept, m_DefaultColor, m_PressColor, m_TextAlignmentOffset, m_PressReactTimeLeft )
 
 RectButton::RectButton( int Width, int Height )
     : m_UserDefinedWidth( Width )
