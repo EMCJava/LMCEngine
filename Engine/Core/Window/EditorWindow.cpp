@@ -92,8 +92,6 @@ EditorWindow::UpdateImGui( )
     gl->ClearColor( 0, 0, 0, 0 );
     gl->Clear( GL_COLOR_BUFFER_BIT );
 
-    std::optional<bool> ShowProjectBuild;
-
     ImGui::DockSpaceOverViewport( ImGui::GetMainViewport( ) );
 
     if ( m_ShowImGuiDemoWindow )

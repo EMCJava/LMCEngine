@@ -6,8 +6,6 @@
 
 #include "Engine/Core/Runtime/Assertion/Assertion.hpp"
 
-#include "test/ADanceOfFireAndIce/build/debug/_deps/spdlog-src/include/spdlog/spdlog.h"
-
 #include <irrKlang.h>
 using namespace irrklang;
 

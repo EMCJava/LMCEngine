@@ -18,6 +18,9 @@ if (NOT DEFINED EditorBuild)
 endif ()
 message(STATUS "EditorBuild: ${EditorBuild}")
 
+## For spdlog
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 include(functions)
 include(defines)
 include(hot_reload)
