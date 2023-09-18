@@ -11,7 +11,7 @@ class SaControlNode
 {
 public:
     virtual ~SaControlNode( ) = default;
-    SaControlNode( ) = default;
+    SaControlNode( )          = default;
 
     SaEffect GetEffect( )
     {
