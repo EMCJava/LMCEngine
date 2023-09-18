@@ -37,3 +37,26 @@ SaBaseBoard::GetEffect( SaEffect& Result )
 SaBaseBoard::SaBaseBoard( )
 {
 }
+
+void
+SaBaseBoard::AddDemoData( )
+{
+
+    MosaickedControlNode.reserve( 4 );
+    MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
+    MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
+    MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
+    MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
+
+    REQUIRED( MosaickedControlNode.size( ) <= MaxMosaickedControlNode )
+
+    constexpr SaCombineMethod CombMix = SaCombineMethod::CombineMethodMix;
+    RunOrder                          = {
+        {                         0,                              1, CombMix},
+        {                         0,                              1, CombMix},
+        {                         0,                              1, CombMix},
+        {                         0,                              1, CombMix},
+        {                         0,                              1, CombMix},
+        {SecondaryControlNodeOffset, SecondaryControlNodeOffset + 1, CombMix},
+    };
+}

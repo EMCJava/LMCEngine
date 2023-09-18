@@ -7,12 +7,24 @@
 
 #include <vector>
 #include <memory>
+#include <cmath>
 
-constexpr uint32_t MaxMosaickedControlNode = 1;
+constexpr uint32_t MaxMosaickedControlNode = 4;
 
 // For any index bigger than SecondaryControlNodeOffset
 // it refer to result of previous mixed effect, namely index of MosaickedControlNode
-constexpr uint32_t SecondaryControlNodeOffset = 1 << MaxMosaickedControlNode;
+constexpr int
+countBits( uint32_t num )
+{
+    int count = 0;
+    while ( num != 0 )
+    {
+        num >>= 1;
+        count++;
+    }
+    return count;
+}
+constexpr uint32_t SecondaryControlNodeOffset = (uint32_t) 1 << ( countBits( MaxMosaickedControlNode ) + 1 );
 
 class SaBaseBoard : public SaControlNode
 {
@@ -38,23 +50,5 @@ public:
 
     virtual void GetEffect( SaEffect& Result ) override;
 
-    void AddDemoData( )
-    {
-
-        MosaickedControlNode.reserve( 4 );
-        MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
-        MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
-        MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
-        MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
-
-        constexpr SaCombineMethod CombMix = SaCombineMethod::CombineMethodMix;
-        RunOrder                          = {
-            {                         0,                              1, CombMix},
-            {                         0,                              1, CombMix},
-            {                         0,                              1, CombMix},
-            {                         0,                              1, CombMix},
-            {                         0,                              1, CombMix},
-            {SecondaryControlNodeOffset, SecondaryControlNodeOffset + 1, CombMix},
-        };
-    }
+    void AddDemoData( );
 };
