@@ -12,6 +12,11 @@ CombineRight( const SaEffect& A, const SaEffect& B, SaEffect& Result )
 
     Result.IsModifier = B.IsModifier;
 
+    for ( size_t i = 0; i < Result.ElementCount.size( ); ++i )
+    {
+        Result.ElementCount[ i ] = A.ElementCount[ i ] + B.ElementCount[ i ];
+    }
+
     return true;
 }
 
