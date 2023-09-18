@@ -8,6 +8,7 @@
 #include <Engine/Core/Scene/Orientation/OrientationCoordinate.hpp>
 #include <Engine/Core/Math/Random/FastRandom.hpp>
 
+#include <map>
 #include <memory>
 #include <type_traits>
 
@@ -61,6 +62,12 @@ ToImGuiWidget( const char* Name, int32_t* Value )
 }
 
 inline void
+ToImGuiWidget( const char* Name, uint8_t* Value )
+{
+    ImGui::InputScalar( Name, ImGuiDataType_U8, Value );
+}
+
+inline void
 ToImGuiWidget( const char* Name, float* Value )
 {
     ImGui::InputScalar( Name, ImGuiDataType_Float, Value );
@@ -106,7 +113,7 @@ ToImGuiWidget( const char* Name, FastRandom* Value )
  *
  * */
 template <typename Ty1, typename Ty2>
-void
+inline void
 ToImGuiWidget( const char* Name, std::pair<Ty1, Ty2>* Value )
 {
     std::string NameStr = Name;
@@ -116,7 +123,7 @@ ToImGuiWidget( const char* Name, std::pair<Ty1, Ty2>* Value )
 }
 
 template <typename Ty>
-void
+inline void
 ToImGuiWidget( const char* Name, std::weak_ptr<Ty>* Value )
 {
     if ( Value->expired( ) )
@@ -128,14 +135,14 @@ ToImGuiWidget( const char* Name, std::weak_ptr<Ty>* Value )
 }
 
 template <typename Ty>
-void
+inline void
 ToImGuiWidget( const char* Name, std::shared_ptr<Ty>* Value )
 {
     ToImGuiPointerSwitch( Name, Value->get( ) );
 }
 
 template <typename Ty>
-void
+inline void
 ToImGuiWidget( const char* Name, std::unique_ptr<Ty>* Value )
 {
     ToImGuiPointerSwitch( Name, Value->get( ) );
@@ -151,7 +158,7 @@ template <template <typename, typename, typename, typename> class Container,
           typename VTy,
           typename Comparator = std::less<KTy>,
           typename Allocator  = std::allocator<std::pair<KTy, VTy>>>
-void
+inline void
 ToImGuiWidget( const char* Name, Container<KTy, VTy, Comparator, Allocator>* Value )
 {
     // FIXME: put this in engine or anything other than here
@@ -216,11 +223,15 @@ ToImGuiWidget( const char* Name, Container<KTy, VTy, Comparator, Allocator>* Val
     }
 }
 
-template <template <typename, typename> class Container,
-          typename Ty,
-          typename Allocator = std::allocator<Ty>>
-void
-ToImGuiWidget( const char* Name, Container<Ty, Allocator>* Value )
+template <typename T>
+concept VecLikeContainer = requires( T* Vec ) {
+    Vec->size( );
+    Vec->at( (size_t) 0 );
+};
+
+template <VecLikeContainer Container>
+inline void
+ToImGuiWidget( const char* Name, Container* Value )
 {
     static std::string NameStrWithIndex;
     std::string        NameStr = NameStrWithIndex = Name;
