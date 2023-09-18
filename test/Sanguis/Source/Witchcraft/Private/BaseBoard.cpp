@@ -1,4 +1,5 @@
 ﻿#include "BaseBoard.h"
+#include "ControlNodeSimpleEffect.hpp"
 
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
@@ -43,7 +44,7 @@ SaBaseBoard::AddDemoData( )
 {
 
     MosaickedControlNode.reserve( 4 );
-    MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
+    MosaickedControlNode.emplace_back( std::make_unique<ControlNodeSimpleEffect>( SaEffect { true, Fire } ) );
     MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
     MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
     MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );

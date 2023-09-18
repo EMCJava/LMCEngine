@@ -50,6 +50,23 @@ declare_library(
 
 declare_library(
         NAME
+        Witchcraft.ControlNodeSimpleEffect
+
+        SRCS
+        Witchcraft/Private/ControlNodeSimpleEffect.cpp
+
+        P_DEPS
+        Engine.lib
+
+        DEPS
+        Witchcraft.ControlNode.lib
+        spdlog::spdlog
+
+        STATIC
+)
+
+declare_library(
+        NAME
         Witchcraft.BaseBoard
 
         SRCS
@@ -59,6 +76,7 @@ declare_library(
         Engine.lib
         Witchcraft.EffectMixer.lib
         Witchcraft.ControlNode.lib
+        Witchcraft.ControlNodeSimpleEffect.lib
 
 
         DEPS

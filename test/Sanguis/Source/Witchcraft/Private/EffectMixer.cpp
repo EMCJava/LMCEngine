@@ -30,7 +30,12 @@ CombineLeft( const SaEffect& A, const SaEffect& B, SaEffect& Result )
 bool
 CombineMix( const SaEffect& A, const SaEffect& B, SaEffect& Result )
 {
-    return false;
+    for ( size_t i = 0; i < Result.ElementCount.size( ); ++i )
+    {
+        Result.ElementCount[ i ] = A.ElementCount[ i ] + B.ElementCount[ i ];
+    }
+
+    return true;
 }
 
 SaEffect

@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "BasicElement/AllElement.h"
@@ -16,6 +14,8 @@ class SaEffect
 public:
     SaEffect( )  = default;
     ~SaEffect( ) = default;
+
+    SaEffect( bool IsModifier, Element Element, int ElementDensity = 1 );
 
     // Can only modify other SaEffect, not used directly
     bool     IsModifier = true;
