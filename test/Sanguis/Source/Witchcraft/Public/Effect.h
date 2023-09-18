@@ -4,6 +4,8 @@
 
 #include "BasicElement/AllElement.h"
 
+#include <Engine/Core/Concept/ConceptCoreRuntime.hpp>
+
 #include <array>
 
 /**
@@ -12,15 +14,14 @@
 class SaEffect
 {
 public:
-    SaEffect( );
-    ~SaEffect( );
+    SaEffect( )  = default;
+    ~SaEffect( ) = default;
 
     // Can only modify other SaEffect, not used directly
     bool     IsModifier = true;
     uint32_t Iteration  = 0;
 
     std::array<uint8_t, NumOfElement> ElementCount { };
-};
 
-void
-ToImGuiWidget( const char* Name, SaEffect* Value );
+    ENABLE_IMGUI( SaEffect )
+};
