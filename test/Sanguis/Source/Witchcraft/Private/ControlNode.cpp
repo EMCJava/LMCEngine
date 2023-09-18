@@ -2,7 +2,3 @@
 
 
 #include "ControlNode.h"
-
-SaControlNode::SaControlNode( )
-{
-}
