@@ -13,6 +13,4 @@ enum class SaCombineMethod
 	CombineMethodMix = CombineMethodRight | CombineMethodLeft,
 };
 
-ENUM_CLASS_FLAGS(SaCombineMethod)
-
-SaEffect Combine(const SaCombineMethod Method, const SaEffect& A, const SaEffect& B);
+SaEffect Combine(SaCombineMethod Method, const SaEffect& A, const SaEffect& B);

@@ -2,9 +2,11 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "Witchcraft/ControlNode.h"
-#include "Witchcraft/EffectMixer.h"
+#include "ControlNode.h"
+#include "EffectMixer.h"
+
+#include <vector>
+#include <memory>
 
 constexpr uint32_t MaxMosaickedControlNode = 1;
 
@@ -15,46 +17,44 @@ constexpr uint32_t SecondaryControlNodeOffset = 1 << MaxMosaickedControlNode;
 class SaBaseBoard : public SaControlNode
 {
 public:
-	struct SaRunOrder
-	{
-		// Please read comment of SecondaryControlNodeOffset
-		int32           FirstIndex, SecondIndex;
-		SaCombineMethod CombineMethod;
-	};
+    struct SaRunOrder {
+        // Please read comment of SecondaryControlNodeOffset
+        int32_t         FirstIndex, SecondIndex;
+        SaCombineMethod CombineMethod;
+    };
 
-	SaBaseBoard(const SaBaseBoard& Other)                = delete;
-	SaBaseBoard(SaBaseBoard&& Other) noexcept            = delete;
-	SaBaseBoard& operator=(const SaBaseBoard& Other)     = delete;
-	SaBaseBoard& operator=(SaBaseBoard&& Other) noexcept = delete;
+    SaBaseBoard( const SaBaseBoard& Other )                = delete;
+    SaBaseBoard( SaBaseBoard&& Other ) noexcept            = delete;
+    SaBaseBoard& operator=( const SaBaseBoard& Other )     = delete;
+    SaBaseBoard& operator=( SaBaseBoard&& Other ) noexcept = delete;
 
 protected:
-	TArray<SaRunOrder> RunOrder;
+    std::vector<SaRunOrder> RunOrder;
 
-	TArray<TUniquePtr<SaControlNode>> MosaickedControlNode;
+    std::vector<std::unique_ptr<SaControlNode>> MosaickedControlNode;
 
 public:
-	SaBaseBoard();
+    SaBaseBoard( );
 
-	virtual void GetEffect(SaEffect& Result) override;
+    virtual void GetEffect( SaEffect& Result ) override;
 
-	void AddDemoData()
-	{
-		UE_LOG(LogTemp, Log, TEXT("Using Demo data for SaBaseBoard"));
+    void AddDemoData( )
+    {
 
-		MosaickedControlNode.Empty(4);
-		MosaickedControlNode.Add(MakeUnique<SaBaseBoard>());
-		MosaickedControlNode.Add(MakeUnique<SaBaseBoard>());
-		MosaickedControlNode.Add(MakeUnique<SaBaseBoard>());
-		MosaickedControlNode.Add(MakeUnique<SaBaseBoard>());
+        MosaickedControlNode.reserve( 4 );
+        MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
+        MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
+        MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
+        MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
 
-		constexpr SaCombineMethod CombMix = SaCombineMethod::CombineMethodMix;
-		RunOrder                          = {
-			{0, 1, CombMix},
-			{0, 1, CombMix},
-			{0, 1, CombMix},
-			{0, 1, CombMix},
-			{0, 1, CombMix},
-			{SecondaryControlNodeOffset, SecondaryControlNodeOffset + 1, CombMix},
-		};
-	}
+        constexpr SaCombineMethod CombMix = SaCombineMethod::CombineMethodMix;
+        RunOrder                          = {
+            {                         0,                              1, CombMix},
+            {                         0,                              1, CombMix},
+            {                         0,                              1, CombMix},
+            {                         0,                              1, CombMix},
+            {                         0,                              1, CombMix},
+            {SecondaryControlNodeOffset, SecondaryControlNodeOffset + 1, CombMix},
+        };
+    }
 };

@@ -1,38 +1,39 @@
-﻿#include "Witchcraft/BaseBoard.h"
+﻿#include "BaseBoard.h"
 
-void SaBaseBoard::GetEffect(SaEffect& Result)
+#include <Engine/Core/Runtime/Assertion/Assertion.hpp>
+
+void
+SaBaseBoard::GetEffect( SaEffect& Result )
 {
-	TArray<SaEffect> EffectCache;
-	EffectCache.SetNum(RunOrder.Num());
+    std::vector<SaEffect> EffectCache;
+    EffectCache.resize( RunOrder.size( ) );
 
-	for (int32 i = 0; i < RunOrder.Num(); ++i)
-	{
-		SaEffect FirstEffect;
-		if (RunOrder[i].FirstIndex >= SecondaryControlNodeOffset)
-		{
-			ensureAlwaysMsgf(RunOrder[i].FirstIndex >> MaxMosaickedControlNode < i, TEXT("Inpossibe EffectCache index"));
-			FirstEffect = EffectCache[RunOrder[i].FirstIndex >> MaxMosaickedControlNode];
-		}
-		else
-		{
-			FirstEffect = MosaickedControlNode[RunOrder[i].FirstIndex]->GetEffect();
-		}
+    for ( size_t i = 0; i < RunOrder.size( ); ++i )
+    {
+        SaEffect FirstEffect;
+        if ( RunOrder[ i ].FirstIndex >= SecondaryControlNodeOffset )
+        {
+            REQUIRED( RunOrder[ i ].FirstIndex >> MaxMosaickedControlNode < i, spdlog::critical( "Impossible EffectCache index" ); throw std::runtime_error( "Impossible EffectCache index" ); );
+            FirstEffect = EffectCache[ RunOrder[ i ].FirstIndex >> MaxMosaickedControlNode ];
+        } else
+        {
+            FirstEffect = MosaickedControlNode[ RunOrder[ i ].FirstIndex ]->GetEffect( );
+        }
 
-		SaEffect SecondEffect;
-		if (RunOrder[i].FirstIndex >= SecondaryControlNodeOffset)
-		{
-			ensureAlwaysMsgf(RunOrder[i].SecondIndex >> MaxMosaickedControlNode < i, TEXT("Inpossibe EffectCache index"));
-			SecondEffect = EffectCache[RunOrder[i].SecondIndex >> MaxMosaickedControlNode];
-		}
-		else
-		{
-			SecondEffect = MosaickedControlNode[RunOrder[i].SecondIndex]->GetEffect();
-		}
+        SaEffect SecondEffect;
+        if ( RunOrder[ i ].FirstIndex >= SecondaryControlNodeOffset )
+        {
+            REQUIRED( RunOrder[ i ].SecondIndex >> MaxMosaickedControlNode < i, spdlog::critical( "Impossible EffectCache index" ); throw std::runtime_error( "Impossible EffectCache index" ); );
+            SecondEffect = EffectCache[ RunOrder[ i ].SecondIndex >> MaxMosaickedControlNode ];
+        } else
+        {
+            SecondEffect = MosaickedControlNode[ RunOrder[ i ].SecondIndex ]->GetEffect( );
+        }
 
-		Result = EffectCache[i] = Combine(RunOrder[i].CombineMethod, FirstEffect, SecondEffect);
-	}
+        Result = EffectCache[ i ] = Combine( RunOrder[ i ].CombineMethod, FirstEffect, SecondEffect );
+    }
 }
 
-SaBaseBoard::SaBaseBoard()
+SaBaseBoard::SaBaseBoard( )
 {
 }

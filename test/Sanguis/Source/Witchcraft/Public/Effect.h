@@ -1,20 +1,23 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
+
 #include "BasicElement/AllElement.h"
 
+#include <array>
+
 /**
- * 
+ *
  */
-class SANGUIS_API SaEffect
+class SaEffect
 {
 public:
-	SaEffect();
-	~SaEffect();
+    SaEffect( );
+    ~SaEffect( );
 
-	// Only can modify other SaEffect, not used directly
-	bool     IsModifier = true;
-	uint32_t Iteration  = 0;
+    // Can only modify other SaEffect, not used directly
+    bool     IsModifier = true;
+    uint32_t Iteration  = 0;
 
-	TStaticArray<uint8, NumOfElement> ElementCount;
+    std::array<uint8_t, NumOfElement> ElementCount;
 };

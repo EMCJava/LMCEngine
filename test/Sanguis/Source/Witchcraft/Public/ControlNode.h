@@ -2,24 +2,23 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Effect.h"
 
 /**
  *
  */
-class SANGUIS_API SaControlNode
+class SaControlNode
 {
 public:
-	virtual ~SaControlNode() = default;
-	SaControlNode();
+    virtual ~SaControlNode( ) = default;
+    SaControlNode( );
 
-	SaEffect GetEffect()
-	{
-		SaEffect Result;
-		GetEffect(Result);
-		return Result;
-	}
+    SaEffect GetEffect( )
+    {
+        SaEffect Result;
+        GetEffect( Result );
+        return Result;
+    }
 
-	virtual void GetEffect(SaEffect& Result) = 0;
+    virtual void GetEffect( SaEffect& Result ) = 0;
 };

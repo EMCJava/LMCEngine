@@ -2,4 +2,6 @@
 
 #pragma once
 
-inline constexpr uint32 NumOfElement = 5;
+#include <stdint.h>
+
+inline constexpr uint32_t NumOfElement = 5;

@@ -1,5 +1,75 @@
 declare_library(
         NAME
+        Witchcraft.Effect
+
+        SRCS
+        Witchcraft/Private/Effect.cpp
+
+        P_DEPS
+        Engine.lib
+
+        DEPS
+        spdlog::spdlog
+
+        STATIC
+)
+
+declare_library(
+        NAME
+        Witchcraft.EffectMixer
+
+        SRCS
+        Witchcraft/Private/EffectMixer.cpp
+
+        P_DEPS
+        Engine.lib
+
+
+        DEPS
+        Witchcraft.Effect.lib
+        spdlog::spdlog
+
+        STATIC
+)
+
+declare_library(
+        NAME
+        Witchcraft.ControlNode
+
+        SRCS
+        Witchcraft/Private/ControlNode.cpp
+
+        P_DEPS
+        Engine.lib
+
+        DEPS
+        spdlog::spdlog
+
+        STATIC
+)
+
+declare_library(
+        NAME
+        Witchcraft.BaseBoard
+
+        SRCS
+        Witchcraft/Private/BaseBoard.cpp
+
+        P_DEPS
+        Engine.lib
+        Witchcraft.EffectMixer.lib
+        Witchcraft.ControlNode.lib
+
+
+        DEPS
+        Witchcraft.Effect.lib
+        spdlog::spdlog
+
+        STATIC
+)
+
+declare_library(
+        NAME
         GameManager.GameManager
 
         SRCS
@@ -7,6 +77,7 @@ declare_library(
 
         P_DEPS
         Engine.lib
+        Witchcraft.BaseBoard.lib
 
 
         DEPS
