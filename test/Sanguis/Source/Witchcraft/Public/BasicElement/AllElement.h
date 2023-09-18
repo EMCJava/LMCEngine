@@ -4,7 +4,7 @@
 
 #include <cstdint>
 
-enum Element {
+enum Element : uint8_t {
     Water  = 0,
     Earth  = 1,
     Fire   = 2,

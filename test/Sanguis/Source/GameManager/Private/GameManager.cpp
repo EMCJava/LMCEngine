@@ -5,25 +5,28 @@
 #include "GameManager.hpp"
 #include "BaseBoard.h"
 
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
+
+// To export symbol, used for runtime inspection
+#include <Engine/Core/Concept/ConceptCoreRuntime.inl>
+
 #include <spdlog/spdlog.h>
 
 DEFINE_CONCEPT_DS_MA_SE( GameManager )
-DEFINE_NECESSARY_IMGUI_TYPE( GameManager )
-void
-GameManager::ToImGuiWidgetInternal( const char*, GameManager*, bool )
-{ }
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, PureConcept, m_Effect )
 
 GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
 
+    m_Effect = std::make_unique<SaEffect>( );
+
     SaBaseBoard BB;
     BB.AddDemoData( );
 
-    SaEffect Effect;
-    BB.GetEffect( Effect );
+    BB.GetEffect( *m_Effect );
 
-    spdlog::info( "Effect.Iteration : {}", Effect.Iteration );
+    spdlog::info( "Effect.Iteration : {}", m_Effect->Iteration );
 
     spdlog::info( "GameManager concept constructor returned" );
 }

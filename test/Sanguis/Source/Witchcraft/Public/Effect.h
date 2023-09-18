@@ -19,5 +19,8 @@ public:
     bool     IsModifier = true;
     uint32_t Iteration  = 0;
 
-    std::array<uint8_t, NumOfElement> ElementCount;
+    std::array<uint8_t, NumOfElement> ElementCount { };
 };
+
+void
+ToImGuiWidget( const char* Name, SaEffect* Value );

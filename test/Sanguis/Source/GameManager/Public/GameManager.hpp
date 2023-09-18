@@ -16,5 +16,8 @@ public:
     void
     Apply( ) override;
 
+private:
+    std::unique_ptr<class SaEffect> m_Effect;
+
     ENABLE_IMGUI( GameManager )
 };
