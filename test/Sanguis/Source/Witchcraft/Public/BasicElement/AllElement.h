@@ -2,6 +2,13 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
-inline constexpr uint32_t NumOfElement = 5;
+enum Element {
+    Water  = 0,
+    Earth  = 1,
+    Fire   = 2,
+    Air    = 3,
+    Aether = 4,
+    NumOfElement
+};
