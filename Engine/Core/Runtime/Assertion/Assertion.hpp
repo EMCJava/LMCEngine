@@ -6,6 +6,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <source_location>
+
 #ifndef NDEBUG
 
 /*
@@ -34,11 +36,12 @@
  * Required is for both debug and release, which is vital
  *
  * */
-#define REQUIRED( x, ... )                                                          \
-    if ( !( x ) ) [[unlikely]]                                                      \
-    {                                                                               \
-        spdlog::critical( "Required failed: {} at {}:{}", #x, __FILE__, __LINE__ ); \
-        __VA_ARGS__;                                                                \
+#define REQUIRED( x, ... )                                                                                                             \
+    if ( !( x ) ) [[unlikely]]                                                                                                         \
+    {                                                                                                                                  \
+        const auto SL = std::source_location::current( );                                                                              \
+        spdlog::critical( "Required failed: {} at {}({}:{}) `{}`", #x, SL.file_name( ), SL.line( ), SL.line( ), SL.function_name( ) ); \
+        __VA_ARGS__;                                                                                                                   \
     }
 
 /*
@@ -49,6 +52,7 @@
 #define REQUIRED_IF( x, ... )                                                       \
     if ( !( x ) ) [[unlikely]]                                                      \
     {                                                                               \
-        spdlog::critical( "Required failed: {} at {}:{}", #x, __FILE__, __LINE__ ); \
+        const auto SL = std::source_location::current( );                                                                              \
+        spdlog::critical( "Required failed: {} at {}({}:{}) `{}`", #x, SL.file_name( ), SL.line( ), SL.line( ), SL.function_name( ) ); \
         __VA_ARGS__;                                                                \
     } else
