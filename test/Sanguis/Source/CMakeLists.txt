@@ -67,6 +67,23 @@ declare_library(
 
 declare_library(
         NAME
+        Witchcraft.ControlNodePlaceholder
+
+        SRCS
+        Witchcraft/Private/ControlNodePlaceholder.cpp
+
+        P_DEPS
+        Engine.lib
+
+        DEPS
+        Witchcraft.ControlNode.lib
+        spdlog::spdlog
+
+        STATIC
+)
+
+declare_library(
+        NAME
         Witchcraft.BaseBoard
 
         SRCS
@@ -77,6 +94,7 @@ declare_library(
         Witchcraft.EffectMixer.lib
         Witchcraft.ControlNode.lib
         Witchcraft.ControlNodeSimpleEffect.lib
+        Witchcraft.ControlNodePlaceholder.lib
         nlohmann_json::nlohmann_json
 
         DEPS

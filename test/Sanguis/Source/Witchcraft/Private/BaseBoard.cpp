@@ -1,5 +1,6 @@
 ﻿#include "BaseBoard.h"
 #include "ControlNodeSimpleEffect.hpp"
+#include "ControlNodePlaceholder.hpp"
 
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
@@ -56,6 +57,11 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
 {
     auto BoardTemplate = nlohmann::json::parse( JsonStr );
 
+    /*
+     *
+     * Read configuration
+     *
+     * */
     MosaickedControlNode.clear( );
     std::vector<std::string> SlotIDs = BoardTemplate[ "slots" ];
     MosaickedControlNode.resize( SlotIDs.size( ) );
@@ -63,13 +69,28 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
     std::map<std::string, ParseCompose> EffectCompose    = BoardTemplate[ "compose" ];
     std::vector<std::string>            EffectiveCompose = BoardTemplate[ "effective_compose" ];
 
+    /*
+     *
+     * Push necessary effects
+     *
+     * */
     std::deque<std::string> LeftCompose;
     for ( auto it = EffectiveCompose.rbegin( ); it != EffectiveCompose.rend( ); ++it )
         LeftCompose.push_back( *it );
 
+    /*
+     *
+     * Record base slot (not composed)
+     *
+     * */
     for ( const auto& slot : SlotIDs )
         EffectCompose[ slot ] = { .fromSlot = true, .id = slot };
 
+    /*
+     *
+     * Arrange all effects, make sure all sub-effects are calculated first
+     *
+     * */
     std::list<std::string> ExecuteOrderTmp, ExecuteOrder;
     while ( !LeftCompose.empty( ) )
     {
@@ -111,9 +132,15 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
         }
     }
 
+    /*
+     *
+     * Generate final run order in index
+     *
+     * */
     RunOrder.clear( );
     std::map<std::string, size_t> RunOrderIndex;
 
+    // Make sure all base slot runs first
     auto SlotExtraction = ExecuteOrderTmp
         | std::views::filter( [ &SlotIDs ]( const auto& id ) { return std::find( SlotIDs.begin( ), SlotIDs.end( ), id ) != SlotIDs.end( ); } )
         | std::views::reverse;
@@ -125,6 +152,7 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
         RunOrder.push_back( SaRunOrder { Index, Index, SaCombineMethod::CombineMethodNone } );
     }
 
+    // Finish by combining all the compose effects
     auto ComposeExtraction = ExecuteOrderTmp
         | std::views::filter( [ &SlotIDs ]( const auto& id ) { return std::find( SlotIDs.begin( ), SlotIDs.end( ), id ) == SlotIDs.end( ); } )
         | std::views::reverse;
@@ -137,9 +165,14 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
         RunOrder.push_back( SaRunOrder { RunOrderIndex[ Compose.first_id ], RunOrderIndex[ Compose.second_id ], Compose.method } );
     }
 
+    /*
+     *
+     * Fill all slot with empty
+     *
+     * */
     for ( size_t i = 0; i < MosaickedControlNode.size( ); ++i )
     {
-        SetSlot( i, std::make_shared<SaBaseBoard>( ) );
+        SetSlot( i, std::make_shared<SaControlNodePlaceholder>( ) );
     }
 }
 
