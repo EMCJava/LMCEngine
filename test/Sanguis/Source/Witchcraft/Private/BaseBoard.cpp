@@ -3,6 +3,11 @@
 
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
+#include <nlohmann/json.hpp>
+
+#include <ranges>
+#include <deque>
+
 void
 SaBaseBoard::GetEffect( SaEffect& Result )
 {
@@ -11,27 +16,17 @@ SaBaseBoard::GetEffect( SaEffect& Result )
 
     for ( size_t i = 0; i < RunOrder.size( ); ++i )
     {
-        SaEffect FirstEffect;
-        if ( RunOrder[ i ].FirstIndex >= SecondaryControlNodeOffset )
+        if ( RunOrder[ i ].CombineMethod == SaCombineMethod::CombineMethodNone )
         {
-            REQUIRED( RunOrder[ i ].FirstIndex >> MaxMosaickedControlNode < i, spdlog::critical( "Impossible EffectCache index" ); throw std::runtime_error( "Impossible EffectCache index" ); );
-            FirstEffect = EffectCache[ RunOrder[ i ].FirstIndex >> MaxMosaickedControlNode ];
+            TEST( RunOrder[ i ].FirstIndex == RunOrder[ i ].SecondIndex && RunOrder[ i ].FirstIndex < MosaickedControlNode.size( ) );
+            Result = EffectCache[ i ] = MosaickedControlNode[ RunOrder[ i ].FirstIndex ]->GetEffect( );
         } else
         {
-            FirstEffect = MosaickedControlNode[ RunOrder[ i ].FirstIndex ]->GetEffect( );
-        }
+            SaEffect FirstEffect  = EffectCache[ RunOrder[ i ].FirstIndex ];
+            SaEffect SecondEffect = EffectCache[ RunOrder[ i ].SecondIndex ];
 
-        SaEffect SecondEffect;
-        if ( RunOrder[ i ].FirstIndex >= SecondaryControlNodeOffset )
-        {
-            REQUIRED( RunOrder[ i ].SecondIndex >> MaxMosaickedControlNode < i, spdlog::critical( "Impossible EffectCache index" ); throw std::runtime_error( "Impossible EffectCache index" ); );
-            SecondEffect = EffectCache[ RunOrder[ i ].SecondIndex >> MaxMosaickedControlNode ];
-        } else
-        {
-            SecondEffect = MosaickedControlNode[ RunOrder[ i ].SecondIndex ]->GetEffect( );
+            Result = EffectCache[ i ] = Combine( RunOrder[ i ].CombineMethod, FirstEffect, SecondEffect );
         }
-
-        Result = EffectCache[ i ] = Combine( RunOrder[ i ].CombineMethod, FirstEffect, SecondEffect );
     }
 }
 
@@ -39,25 +34,117 @@ SaBaseBoard::SaBaseBoard( )
 {
 }
 
+struct ParseCompose {
+
+    bool            fromSlot = false;
+    std::string     id;
+    std::string     first_id;
+    std::string     second_id;
+    SaCombineMethod method;
+};
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE( ParseCompose, id, first_id, second_id, method )
+NLOHMANN_JSON_SERIALIZE_ENUM( SaCombineMethod, {
+                                                   { SaCombineMethod::CombineMethodNone,  "none"},
+                                                   {SaCombineMethod::CombineMethodRight, "right"},
+                                                   { SaCombineMethod::CombineMethodLeft,  "left"},
+                                                   {  SaCombineMethod::CombineMethodMix,   "mix"},
+} )
+
 void
-SaBaseBoard::AddDemoData( )
+SaBaseBoard::Serialize( const std::string& JsonStr )
 {
+    auto BoardTemplate = nlohmann::json::parse( JsonStr );
 
-    MosaickedControlNode.reserve( 4 );
-    MosaickedControlNode.emplace_back( std::make_unique<ControlNodeSimpleEffect>( SaEffect { true, Fire } ) );
-    MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
-    MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
-    MosaickedControlNode.emplace_back( std::make_unique<SaBaseBoard>( ) );
+    MosaickedControlNode.clear( );
+    std::vector<std::string> SlotIDs = BoardTemplate[ "slots" ];
+    MosaickedControlNode.resize( SlotIDs.size( ) );
 
-    REQUIRED( MosaickedControlNode.size( ) <= MaxMosaickedControlNode )
+    std::map<std::string, ParseCompose> EffectCompose    = BoardTemplate[ "compose" ];
+    std::vector<std::string>            EffectiveCompose = BoardTemplate[ "effective_compose" ];
 
-    constexpr SaCombineMethod CombMix = SaCombineMethod::CombineMethodMix;
-    RunOrder                          = {
-        {                         0,                              1, CombMix},
-        {                         0,                              1, CombMix},
-        {                         0,                              1, CombMix},
-        {                         0,                              1, CombMix},
-        {                         0,                              1, CombMix},
-        {SecondaryControlNodeOffset, SecondaryControlNodeOffset + 1, CombMix},
-    };
+    std::deque<std::string> LeftCompose;
+    for ( auto it = EffectiveCompose.rbegin( ); it != EffectiveCompose.rend( ); ++it )
+        LeftCompose.push_back( *it );
+
+    for ( const auto& slot : SlotIDs )
+        EffectCompose[ slot ] = { .fromSlot = true, .id = slot };
+
+    std::list<std::string> ExecuteOrderTmp, ExecuteOrder;
+    while ( !LeftCompose.empty( ) )
+    {
+        auto&         ID      = LeftCompose.front( );
+        ParseCompose& Compose = EffectCompose.at( ID );
+
+        if ( Compose.fromSlot )
+        {
+            if ( std::find( ExecuteOrderTmp.begin( ), ExecuteOrderTmp.end( ), Compose.id ) == ExecuteOrderTmp.end( ) )
+                ExecuteOrderTmp.push_back( Compose.id );
+            LeftCompose.pop_front( );
+            continue;
+        }
+
+        //        if ( std::find( ExecuteOrderTmp.begin( ), ExecuteOrderTmp.end( ), Compose.id ) != ExecuteOrderTmp.end( ) )
+        //        {
+        //            // Already added
+        //            continue;
+        //        }
+
+        const auto FirstIt  = std::find( ExecuteOrderTmp.begin( ), ExecuteOrderTmp.end( ), Compose.first_id );
+        const auto SecondIt = std::find( ExecuteOrderTmp.begin( ), ExecuteOrderTmp.end( ), Compose.second_id );
+
+        if ( FirstIt == ExecuteOrderTmp.end( ) )
+        {
+            LeftCompose.push_front( Compose.first_id );
+        }
+
+        if ( SecondIt == ExecuteOrderTmp.end( ) )
+        {
+            LeftCompose.push_front( Compose.second_id );
+        }
+
+        if ( FirstIt != ExecuteOrderTmp.end( ) && SecondIt != ExecuteOrderTmp.end( ) )
+        {
+            const auto EarliestIt = ( std::distance( ExecuteOrderTmp.begin( ), FirstIt ) < std::distance( ExecuteOrderTmp.begin( ), SecondIt ) ) ? FirstIt : SecondIt;
+            ExecuteOrderTmp.insert( EarliestIt, Compose.id );
+            LeftCompose.pop_front( );
+        }
+    }
+
+    RunOrder.clear( );
+    std::map<std::string, size_t> RunOrderIndex;
+
+    auto SlotExtraction = ExecuteOrderTmp
+        | std::views::filter( [ &SlotIDs ]( const auto& id ) { return std::find( SlotIDs.begin( ), SlotIDs.end( ), id ) != SlotIDs.end( ); } )
+        | std::views::reverse;
+
+    for ( const auto& Slot : SlotExtraction )
+    {
+        const size_t Index    = std::distance( SlotIDs.begin( ), std::find( SlotIDs.begin( ), SlotIDs.end( ), Slot ) );
+        RunOrderIndex[ Slot ] = RunOrder.size( );
+        RunOrder.push_back( SaRunOrder { Index, Index, SaCombineMethod::CombineMethodNone } );
+    }
+
+    auto ComposeExtraction = ExecuteOrderTmp
+        | std::views::filter( [ &SlotIDs ]( const auto& id ) { return std::find( SlotIDs.begin( ), SlotIDs.end( ), id ) == SlotIDs.end( ); } )
+        | std::views::reverse;
+
+    for ( const auto& ComposeID : ComposeExtraction )
+    {
+        // All sub-Compose should be in RunOrderIndex
+        const auto& Compose        = EffectCompose[ ComposeID ];
+        RunOrderIndex[ ComposeID ] = RunOrder.size( );
+        RunOrder.push_back( SaRunOrder { RunOrderIndex[ Compose.first_id ], RunOrderIndex[ Compose.second_id ], Compose.method } );
+    }
+
+    for ( size_t i = 0; i < MosaickedControlNode.size( ); ++i )
+    {
+        SetSlot( i, std::make_shared<SaBaseBoard>( ) );
+    }
+}
+
+void
+SaBaseBoard::SetSlot( size_t Index, std::shared_ptr<SaControlNode> ControlNode )
+{
+    MosaickedControlNode[ Index ] = std::move( ControlNode );
 }

@@ -12,6 +12,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <fstream>
+
 DEFINE_CONCEPT_DS_MA_SE( GameManager )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, PureConcept, m_Effect )
 
@@ -22,7 +24,14 @@ GameManager::GameManager( )
     m_Effect = std::make_unique<SaEffect>( );
 
     SaBaseBoard BB;
-    BB.AddDemoData( );
+
+    {
+        std::ifstream     BoardTemp( "Assets/Boards/StarterBoard.json" );
+        std::stringstream buffer;
+        buffer << BoardTemp.rdbuf( );
+
+        BB.Serialize( buffer.str( ) );
+    }
 
     BB.GetEffect( *m_Effect );
 

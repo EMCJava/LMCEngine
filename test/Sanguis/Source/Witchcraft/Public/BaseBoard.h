@@ -7,29 +7,11 @@
 #include <memory>
 #include <cmath>
 
-constexpr uint32_t MaxMosaickedControlNode = 4;
-
-// For any index bigger than SecondaryControlNodeOffset
-// it refer to result of previous mixed effect, namely index of MosaickedControlNode
-constexpr int
-countBits( uint32_t num )
-{
-    int count = 0;
-    while ( num != 0 )
-    {
-        num >>= 1;
-        count++;
-    }
-    return count;
-}
-constexpr uint32_t SecondaryControlNodeOffset = (uint32_t) 1 << ( countBits( MaxMosaickedControlNode ) + 1 );
-
 class SaBaseBoard : public SaControlNode
 {
 public:
     struct SaRunOrder {
-        // Please read comment of SecondaryControlNodeOffset
-        int32_t         FirstIndex, SecondIndex;
+        size_t          FirstIndex, SecondIndex;
         SaCombineMethod CombineMethod;
     };
 
@@ -39,14 +21,18 @@ public:
     SaBaseBoard& operator=( SaBaseBoard&& Other ) noexcept = delete;
 
 protected:
-    std::vector<SaRunOrder> RunOrder;
-
-    std::vector<std::unique_ptr<SaControlNode>> MosaickedControlNode;
+    std::vector<SaRunOrder>                     RunOrder;
+    std::vector<std::shared_ptr<SaControlNode>> MosaickedControlNode;
 
 public:
     SaBaseBoard( );
 
-    virtual void GetEffect( SaEffect& Result ) override;
+    virtual void
+    GetEffect( SaEffect& Result ) override;
 
-    void AddDemoData( );
+    void
+    SetSlot( size_t Index, std::shared_ptr<SaControlNode> ControlNode );
+
+    void
+    Serialize( const std::string& JsonStr );
 };

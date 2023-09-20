@@ -1,0 +1,42 @@
+{
+  "slots": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E"
+  ],
+  "compose": {
+    "0": {
+      "id": "0",
+      "first_id": "A",
+      "second_id": "B",
+      "method": "mix"
+    },
+    "1": {
+      "id": "1",
+      "first_id": "0",
+      "second_id": "C",
+      "method": "right"
+    },
+    "2": {
+      "id": "2",
+      "first_id": "0",
+      "second_id": "1",
+      "method": "left"
+    },
+    "f": {
+      "id": "f",
+      "first_id": "1",
+      "second_id": "0",
+      "method": "mix"
+    }
+  },
+  "effective_compose": [
+    "A",
+    "f"
+  ],
+  "description": "",
+  "name": "StarterBoard",
+  "id": 1
+}

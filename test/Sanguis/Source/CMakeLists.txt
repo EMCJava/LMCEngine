@@ -77,7 +77,7 @@ declare_library(
         Witchcraft.EffectMixer.lib
         Witchcraft.ControlNode.lib
         Witchcraft.ControlNodeSimpleEffect.lib
-
+        nlohmann_json::nlohmann_json
 
         DEPS
         Witchcraft.Effect.lib
