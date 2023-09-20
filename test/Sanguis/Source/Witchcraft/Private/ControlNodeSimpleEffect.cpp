@@ -1,5 +1,5 @@
 #include "ControlNodeSimpleEffect.hpp"
 
-ControlNodeSimpleEffect::ControlNodeSimpleEffect( const SaEffect& Effect )
+SaControlNodeSimpleEffect::SaControlNodeSimpleEffect( const SaEffect& Effect )
     : m_Effect( Effect )
 { }

@@ -6,11 +6,11 @@
 
 #include <ControlNode.h>
 
-class ControlNodeSimpleEffect : public SaControlNode
+class SaControlNodeSimpleEffect : public SaControlNode
 {
 public:
-    ControlNodeSimpleEffect( ) = default;
-    ControlNodeSimpleEffect( const SaEffect& Effect );
+    SaControlNodeSimpleEffect( ) = default;
+    SaControlNodeSimpleEffect( const SaEffect& Effect );
 
 public:
     void GetEffect( SaEffect& Result ) override
