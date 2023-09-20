@@ -4,6 +4,7 @@
 
 #include "GameManager.hpp"
 #include "BaseBoard.h"
+#include "ControlNodeSimpleEffect.hpp"
 
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
@@ -31,6 +32,15 @@ GameManager::GameManager( )
         buffer << BoardTemp.rdbuf( );
 
         BB.Serialize( buffer.str( ) );
+
+        auto BBS = std::make_shared<SaBaseBoard>( );
+        BBS->Serialize( buffer.str( ) );
+
+        BB.SetSlot( 0, std::move( BBS ) );
+        BB.SetSlot( 1, std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
+        BB.SetSlot( 2, std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
+        BB.SetSlot( 3, std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
+        BB.SetSlot( 4, std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
     }
 
     BB.GetEffect( *m_Effect );
