@@ -153,6 +153,7 @@ Engine::Engine( )
     m_MainWindow->SetRootConcept( m_RootConcept );
     glfwSetWindowSizeCallback( m_MainWindow->GetWindowHandle( ), OnWindowResize );
     SetMainWindowViewPortDimensions( m_MainWindow->GetDimensions( ) );
+    ResetTimer( );
 #endif
 
     m_RootApplicableCache = new ConceptSetFetchCache<ConceptApplicable>;
@@ -262,7 +263,7 @@ Engine::UpdateRootConcept( )
             spdlog::info( "RootConcept changes detected, hot reloading" );
 
             // Make sure all destructor are called before unloading library
-            m_RootApplicableCache->Clear();
+            m_RootApplicableCache->Clear( );
             m_MainWindow->SetRootConcept( nullptr );
 
             spdlog::info( "Resetting Runtime GetGlobalResourcePool" );
