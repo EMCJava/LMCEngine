@@ -25,8 +25,12 @@ public:
     void
     SetAngularVelocity( const FloatTy& min, const FloatTy& max );
 
+    void
+    SetLinearScale( const glm::vec3& min, const glm::vec3& max );
+
 private:
     glm::vec3 m_VelocityMin { }, m_VelocityMax { };
+    glm::vec3 m_LinearScaleMin { 1 }, m_LinearScaleMax { 1 };
     FloatTy   m_AngularVelocityMin { }, m_AngularVelocityMax { };
 
     std::mt19937                     m_Engine;

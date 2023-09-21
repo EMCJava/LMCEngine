@@ -9,6 +9,8 @@
 
 #include <Engine/Core/Graphic/API/OpenGL.hpp>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 DEFINE_CONCEPT_DS( ParticlePool )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( ParticlePool, ConceptApplicable, m_StartIndex, m_EndIndex, m_Sprite, m_EndIndex )
 
@@ -56,7 +58,8 @@ public:
             ShaderPtr->Bind( );
             int        Index      = 0;
             const auto RenderFunc = [ this, &Index ]( Particle& P ) {
-                m_ModelMatrices[ Index++ ] = P.GetOrientation( ).GetTranslationMatrix( ) * P.GetOrientation( ).GetRotationMatrix( );
+                const auto& Scale          = P.GetScale( );
+                m_ModelMatrices[ Index++ ] = glm::scale( glm::mat4( 1 ), { Scale.X, Scale.Y, Scale.Z } ) * P.GetOrientation( ).GetTranslationMatrix( ) * P.GetOrientation( ).GetRotationMatrix( );
             };
 
             m_ParticlePool.ForEach( RenderFunc );

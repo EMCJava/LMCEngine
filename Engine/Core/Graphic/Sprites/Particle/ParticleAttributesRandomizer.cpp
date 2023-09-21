@@ -35,6 +35,10 @@ ParticleAttributesRandomizer::Apply( Particle& P )
 {
     P.GetVelocity( )        = RandVec( m_VelocityMin, m_VelocityMax, m_NormalDist, m_Engine );
     P.GetAngularVelocity( ) = static_cast<FloatTy>( m_AngularVelocityMin + ( m_AngularVelocityMax - m_AngularVelocityMin ) * m_NormalDist( m_Engine ) );
+
+    const auto Scale = m_LinearScaleMin + ( m_LinearScaleMax - m_LinearScaleMin ) * (float) m_NormalDist( m_Engine );
+    P.GetScale( )    = OrientationCoordinate::Coordinate {
+        Scale.x, Scale.y, Scale.z};
 }
 
 void
@@ -49,4 +53,11 @@ ParticleAttributesRandomizer::SetAngularVelocity( const FloatTy& min, const Floa
 {
     m_AngularVelocityMin = min;
     m_AngularVelocityMax = max;
+}
+
+void
+ParticleAttributesRandomizer::SetLinearScale( const glm::vec3& min, const glm::vec3& max )
+{
+    m_LinearScaleMin = min;
+    m_LinearScaleMax = max;
 }

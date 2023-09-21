@@ -21,6 +21,9 @@ public:
     OrientationCoordinate::Coordinate&
     GetVelocity( ) { return m_Velocity; }
 
+    OrientationCoordinate::Coordinate&
+    GetScale( ) { return m_Scale; }
+
     FloatTy&
     GetAngularVelocity( ) { return m_AngularVelocity; }
 
@@ -29,5 +32,6 @@ private:
 
     FloatTy                           m_AngularVelocity { };
     OrientationCoordinate::Coordinate m_Velocity { };
+    OrientationCoordinate::Coordinate m_Scale { 1, 1, 1 };
     Orientation                       m_Orientation { };
 };

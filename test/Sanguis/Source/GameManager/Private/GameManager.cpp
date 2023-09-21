@@ -36,12 +36,13 @@ GameManager::GameManager( )
         Sp->SetTexturePath( "Assets/Texture/Particle/star.png" );
         Sp->SetupSprite( );
 
-        m_ParticlePools.push_back(AddConcept<ParticlePool>( ));
-        auto& PP = m_ParticlePools.back();
+        m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
+        auto& PP = m_ParticlePools.back( );
         PP->SetSprite( Sp );
 
         ParticleAttributesRandomizer PAR;
-        PAR.SetVelocity( { -20, -20, 0 }, { 0, 0, 0 } );
+        PAR.SetLinearScale( { 0.01, 0.01, 0.01 }, { 0.1, 0.1, 0.1 } );
+        PAR.SetVelocity( { -20, -20, 0 }, { 20, 0, 0 } );
         PAR.SetAngularVelocity( -31.415F, 31.415F );
 
         const auto AddParticle = [ &PP, &PAR ]( ) {
@@ -51,7 +52,7 @@ GameManager::GameManager( )
             Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
         };
 
-        for ( int i = 0; i < 5000; ++i )
+        for ( int i = 0; i < 30; ++i )
         {
             AddParticle( );
         }
@@ -63,12 +64,13 @@ GameManager::GameManager( )
         Sp->SetTexturePath( "Assets/Texture/Particle/ring.png" );
         Sp->SetupSprite( );
 
-        m_ParticlePools.push_back(AddConcept<ParticlePool>( ));
-        auto& PP = m_ParticlePools.back();
+        m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
+        auto& PP = m_ParticlePools.back( );
         PP->SetSprite( Sp );
 
         ParticleAttributesRandomizer PAR;
-        PAR.SetVelocity( { 20, 20, 0 }, { 0, 0, 0 } );
+        PAR.SetLinearScale( { 0.01, 0.01, 0.01 }, { 0.1, 0.1, 0.1 } );
+        PAR.SetVelocity( { -20, 20, 0 }, { 20, 0, 0 } );
         PAR.SetAngularVelocity( -31.415F, 31.415F );
 
         const auto AddParticle = [ &PP, &PAR ]( ) {
@@ -78,7 +80,7 @@ GameManager::GameManager( )
             Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
         };
 
-        for ( int i = 0; i < 5000; ++i )
+        for ( int i = 0; i < 30; ++i )
         {
             AddParticle( );
         }
