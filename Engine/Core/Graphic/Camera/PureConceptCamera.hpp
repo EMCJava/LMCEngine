@@ -46,7 +46,7 @@ private:
     glm::mat4 m_ProjectionMatrix { 1 };
     glm::mat4 m_ProjectionMatrixNonOffset { 1 };
     FloatTy   m_CameraWidth { }, m_CameraHeight { };
-    FloatTy   m_Scale { };
+    FloatTy   m_Scale { 1 };
 
     ENABLE_IMGUI( PureConceptCamera )
 };
