@@ -58,7 +58,7 @@ public:
             ShaderPtr->Bind( );
             int        Index      = 0;
             const auto RenderFunc = [ this, &Index ]( Particle& P ) {
-                m_ModelMatrices[ Index++ ] = P.GetOrientation( ).GetModelMatrix();
+                m_ModelMatrices[ Index++ ] = P.GetOrientation( ).GetModelMatrix( );
             };
 
             m_ParticlePool.ForEach( RenderFunc );
@@ -131,6 +131,9 @@ ParticlePool::SetSprite( const std::shared_ptr<SpriteSquareTexture>& Sprite )
 void
 ParticlePool::ForEach( auto&& Func )
 {
+    // Empty
+    if ( m_EndIndex == m_StartIndex ) return;
+
     if ( m_EndIndex > m_StartIndex )
     {
         for ( size_t i = m_StartIndex; i != m_EndIndex; i++ )
