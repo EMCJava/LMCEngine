@@ -1,4 +1,4 @@
 {
-  "project_name": "Sanguis",
-  "root_concept": "GameManager.GameManager"
+    "project_name": "Sanguis",
+    "root_concept": "GameManager.GameManager"
 }
