@@ -116,7 +116,7 @@ declare_library(
         Witchcraft.BaseBoard.lib
         ParticlePool.lib
         SpriteSquareTexture.lib
-
+        ParticleAttributesRandomizer.lib
 
         DEPS
         spdlog::spdlog
