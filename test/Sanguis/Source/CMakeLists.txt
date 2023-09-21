@@ -114,6 +114,8 @@ declare_library(
         P_DEPS
         Engine.lib
         Witchcraft.BaseBoard.lib
+        ParticlePool.lib
+        SpriteSquareTexture.lib
 
 
         DEPS

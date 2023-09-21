@@ -6,6 +6,11 @@
 #include "BaseBoard.h"
 #include "ControlNodeSimpleEffect.hpp"
 
+#include <Engine/Core/Input/UserInput.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
+#include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
+#include <Engine/Core/Environment/GlobalResourcePool.hpp>
+#include <Engine/Core/Graphic/Sprites/Particle/ParticlePool.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
 // To export symbol, used for runtime inspection
@@ -22,7 +27,30 @@ GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
 
-    m_Effect = std::make_unique<SaEffect>( );
+    AddConcept<PureConceptCamera>( )->RegisterAsDefaultCamera( );
+
+    {
+        m_ParticlePool = AddConcept<ParticlePool>( );
+
+        auto Sp = std::make_shared<SpriteSquareTexture>( 512, 512 );
+        Sp->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" ) );
+        Sp->SetTexturePath( "Assets/Texture/Particle/ring.png" );
+        Sp->SetupSprite( );
+
+        m_ParticlePool->SetSprite( Sp );
+
+        auto* Pa                  = &m_ParticlePool->AddParticle( );
+        Pa->GetAngularVelocity( ) = 31.415F;
+        Pa->GetVelocity( )        = { -20, -20 };
+        Pa->GetOrientation( ).SetRotationCenter( 512 / 2, 512 / 2 );
+        Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
+
+        Pa                        = &m_ParticlePool->AddParticle( );
+        Pa->GetAngularVelocity( ) = -31.415F;
+        Pa->GetVelocity( )        = { 20, 20 };
+        Pa->GetOrientation( ).SetRotationCenter( 512 / 2, 512 / 2 );
+        Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
+    }
 
     SaBaseBoard BB;
 
@@ -43,6 +71,7 @@ GameManager::GameManager( )
         BB.SetSlot( 4, std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
     }
 
+    m_Effect = std::make_unique<SaEffect>( );
     BB.GetEffect( *m_Effect );
 
     spdlog::info( "Effect.Iteration : {}", m_Effect->Iteration );
@@ -53,4 +82,7 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
+    if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isPressed )
+    {
+    }
 }
