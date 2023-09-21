@@ -16,12 +16,9 @@ public:
     struct Coordinate {
         FloatTy X = 0, Y = 0, Z = 0;
 
-        Coordinate( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0 )
-        {
-            this->X = X;
-            this->Y = Y;
-            this->Z = Z;
-        }
+        Coordinate( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0 );
+        Coordinate operator+( const Coordinate& other ) const;
+        Coordinate operator*( const FloatTy& other ) const;
     };
 
     const Coordinate&
@@ -47,6 +44,9 @@ public:
 
     const Coordinate&
     AlterOrigin( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0 );
+
+    const Coordinate&
+    AlterCoordinate( const OrientationCoordinate::Coordinate& DeltaCoordinate );
 
     /*
      *

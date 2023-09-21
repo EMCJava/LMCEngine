@@ -25,6 +25,18 @@ OrientationCoordinate::AlterCoordinate( FloatTy X, FloatTy Y, FloatTy Z )
 }
 
 const OrientationCoordinate::Coordinate&
+OrientationCoordinate::AlterCoordinate( const OrientationCoordinate::Coordinate& DeltaCoordinate )
+{
+    m_Coordinate.X += DeltaCoordinate.X;
+    m_Coordinate.Y += DeltaCoordinate.Y;
+    m_Coordinate.Z += DeltaCoordinate.Z;
+
+    UpdateTranslationMatrix( );
+
+    return m_Coordinate;
+}
+
+const OrientationCoordinate::Coordinate&
 OrientationCoordinate::SetCoordinate( FloatTy X, FloatTy Y, FloatTy Z )
 {
     m_Coordinate.X = X;
@@ -86,4 +98,23 @@ OrientationCoordinate::SetCoordinate( OrientationCoordinate::Coordinate Coor )
     UpdateTranslationMatrix( );
 
     return m_Coordinate;
+}
+
+OrientationCoordinate::Coordinate::Coordinate( FloatTy X, FloatTy Y, FloatTy Z )
+{
+    this->X = X;
+    this->Y = Y;
+    this->Z = Z;
+}
+
+OrientationCoordinate::Coordinate
+OrientationCoordinate::Coordinate::operator+( const OrientationCoordinate::Coordinate& other ) const
+{
+    return { this->X + other.X, this->Y + other.Y, this->Z + other.Z };
+}
+
+OrientationCoordinate::Coordinate
+OrientationCoordinate::Coordinate::operator*( const FloatTy& other ) const
+{
+    return { this->X * other, this->Y * other, this->Z * other };
 }
