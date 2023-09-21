@@ -168,7 +168,8 @@ elseif (UNIX)
             COMMENT "Exporting libIrrKlang.so into build tree"
     )
 
-    file(COPY ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+    # file(COPY ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+    configure_file(${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} COPYONLY)
 else ()
     message(FATAL_ERROR "No supported platform was detected ")
 endif ()
