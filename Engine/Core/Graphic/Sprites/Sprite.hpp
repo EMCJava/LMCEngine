@@ -59,6 +59,13 @@ public:
     void
     ClearShaderUniforms( );
 
+    [[nodiscard]] uint32_t
+    GetVAO( ) const { return m_VAO; }
+    [[nodiscard]] uint32_t
+    GetVBO( ) const { return m_VBO; }
+    [[nodiscard]] uint32_t
+    GetEBO( ) const { return m_EBO; }
+
 protected:
     std::shared_ptr<Shader> m_Shader;
     uint32_t                m_VAO { }, m_VBO { }, m_EBO { };

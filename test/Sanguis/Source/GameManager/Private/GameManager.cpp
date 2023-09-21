@@ -32,26 +32,56 @@ GameManager::GameManager( )
 
     {
         auto Sp = std::make_shared<SpriteSquareTexture>( 512, 512 );
-        Sp->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" ) );
-        Sp->SetTexturePath( "Assets/Texture/Particle/ring.png" );
+        Sp->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShaderInstancing" ) );
+        Sp->SetTexturePath( "Assets/Texture/Particle/star.png" );
         Sp->SetupSprite( );
 
-        m_ParticlePool = AddConcept<ParticlePool>( );
-        m_ParticlePool->SetSprite( Sp );
+        m_ParticlePools.push_back(AddConcept<ParticlePool>( ));
+        auto& PP = m_ParticlePools.back();
+        PP->SetSprite( Sp );
 
         ParticleAttributesRandomizer PAR;
-        PAR.SetVelocity( { -20, -20, 0 }, { 20, 20, 0 } );
+        PAR.SetVelocity( { -20, -20, 0 }, { 0, 0, 0 } );
         PAR.SetAngularVelocity( -31.415F, 31.415F );
 
-        const auto AddParticle = [ this, &PAR ]( ) {
-            auto* Pa = &m_ParticlePool->AddParticle( );
+        const auto AddParticle = [ &PP, &PAR ]( ) {
+            auto* Pa = &PP->AddParticle( );
             PAR.Apply( *Pa );
             Pa->GetOrientation( ).SetRotationCenter( 512 / 2, 512 / 2 );
             Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
         };
 
-        for ( int i = 0; i < 2000; ++i )
+        for ( int i = 0; i < 5000; ++i )
+        {
             AddParticle( );
+        }
+    }
+
+    {
+        auto Sp = std::make_shared<SpriteSquareTexture>( 512, 512 );
+        Sp->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShaderInstancing" ) );
+        Sp->SetTexturePath( "Assets/Texture/Particle/ring.png" );
+        Sp->SetupSprite( );
+
+        m_ParticlePools.push_back(AddConcept<ParticlePool>( ));
+        auto& PP = m_ParticlePools.back();
+        PP->SetSprite( Sp );
+
+        ParticleAttributesRandomizer PAR;
+        PAR.SetVelocity( { 20, 20, 0 }, { 0, 0, 0 } );
+        PAR.SetAngularVelocity( -31.415F, 31.415F );
+
+        const auto AddParticle = [ &PP, &PAR ]( ) {
+            auto* Pa = &PP->AddParticle( );
+            PAR.Apply( *Pa );
+            Pa->GetOrientation( ).SetRotationCenter( 512 / 2, 512 / 2 );
+            Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
+        };
+
+        for ( int i = 0; i < 5000; ++i )
+        {
+            AddParticle( );
+        }
     }
 
     SaBaseBoard BB;

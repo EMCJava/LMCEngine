@@ -18,6 +18,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <Engine/Library/ImGui/Ext/LogGroup.hpp>
 
+#include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultTextureShaderInstancing.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultTextureShader.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultColorShader.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultFontShader.hpp>
@@ -585,6 +586,12 @@ Engine::SetupGlobalResources( )
     SpriteShader = std::make_shared<Shader>( );
     SpriteShader->SetProgram( SProgram );
     GlobalResourcePool::STryPush( "DefaultFontShader", std::move( SpriteShader ) );
+
+    SProgram = std::make_shared<ShaderProgram>( );
+    SProgram->Load( DefaultTextureShaderInstancingVertexSource, DefaultTextureShaderInstancingFragmentSource );
+    SpriteShader = std::make_shared<Shader>( );
+    SpriteShader->SetProgram( SProgram );
+    GlobalResourcePool::STryPush( "DefaultTextureShaderInstancing", std::move( SpriteShader ) );
 
     /*
      *

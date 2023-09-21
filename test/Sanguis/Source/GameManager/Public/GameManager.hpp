@@ -19,7 +19,7 @@ public:
 private:
     std::unique_ptr<class SaEffect> m_Effect;
 
-    std::shared_ptr<class ParticlePool> m_ParticlePool;
+    std::vector<std::shared_ptr<class ParticlePool>> m_ParticlePools;
 
     ENABLE_IMGUI( GameManager )
 };

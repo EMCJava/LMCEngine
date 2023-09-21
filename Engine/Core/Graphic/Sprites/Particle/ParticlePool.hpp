@@ -47,5 +47,7 @@ protected:
 
     size_t m_StartIndex = 0, m_EndIndex = 0;
 
+    std::shared_ptr<class SpriteSquareTexture> m_Sprite;
+
     ENABLE_IMGUI( ParticlePool )
 };

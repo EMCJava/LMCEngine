@@ -7,8 +7,10 @@
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
 
+#include <Engine/Core/Graphic/API/OpenGL.hpp>
+
 DEFINE_CONCEPT_DS( ParticlePool )
-DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( ParticlePool, ConceptApplicable, m_StartIndex, m_EndIndex )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( ParticlePool, ConceptApplicable, m_StartIndex, m_EndIndex, m_Sprite, m_EndIndex )
 
 class ParticlePoolConceptRender : public ConceptRenderable
 {
@@ -18,7 +20,22 @@ public:
     explicit ParticlePoolConceptRender( ParticlePool& particlePool, const std::shared_ptr<SpriteSquareTexture>& spriteTexture )
         : m_ParticlePool( particlePool )
         , m_SpriteTexture( spriteTexture )
-    { }
+    {
+        const auto* gl = Engine::GetEngine( )->GetGLContext( );
+
+        GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
+        gl->GenBuffers( 1, &m_MatrixInstancingBuffer );
+        gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer );
+
+        const auto MatricesLocation = 2;
+        for ( unsigned int i = 0; i < 4; i++ )
+        {
+            gl->EnableVertexAttribArray( MatricesLocation + i );
+            gl->VertexAttribPointer( MatricesLocation + i, 4, GL_FLOAT, GL_FALSE, sizeof( glm::mat4 ),
+                                     (const GLvoid*) ( sizeof( GLfloat ) * i * 4 ) );
+            gl->VertexAttribDivisor( MatricesLocation + i, 1 );
+        }
+    }
 
     void
     Render( ) override
@@ -30,27 +47,45 @@ public:
         m_SpriteTexture->SetShaderMatrix( );
         m_SpriteTexture->ApplyShaderUniforms( );
 
-        auto*             ShaderPtr  = m_SpriteTexture->GetShader( );
-        static const auto RenderFunc = [ this, ShaderPtr ]( Particle& P ) {
-            if ( ShaderPtr != nullptr )
-            {
-                ShaderPtr->Bind( );
+        auto* ShaderPtr = m_SpriteTexture->GetShader( );
+        if ( ShaderPtr == nullptr ) [[unlikely]]
+        {
+            m_SpriteTexture->PureRender( );   // lol
+        } else
+        {
+            ShaderPtr->Bind( );
+            int        Index      = 0;
+            const auto RenderFunc = [ this, &Index ]( Particle& P ) {
+                m_ModelMatrices[ Index++ ] = P.GetOrientation( ).GetTranslationMatrix( ) * P.GetOrientation( ).GetRotationMatrix( );
+            };
 
-                const auto ModelMatrix = P.GetOrientation( ).GetTranslationMatrix( ) * P.GetOrientation( ).GetRotationMatrix( );
-                ShaderPtr->SetMat4( "modelMatrix", ModelMatrix );
-            }
+            m_ParticlePool.ForEach( RenderFunc );
 
-            m_SpriteTexture->PureRender( );
-        };
+            const auto* gl = Engine::GetEngine( )->GetGLContext( );
+            GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
+            GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer ) )
+            GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, Index * sizeof( glm::mat4 ), m_ModelMatrices.data( ), GL_DYNAMIC_DRAW ) )
 
-        m_ParticlePool.ForEach( RenderFunc );
+            GL_CHECK( gl->DrawElementsInstanced( GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, Index ) )
+        }
     }
 
 private:
     ParticlePool&                        m_ParticlePool;
     std::shared_ptr<SpriteSquareTexture> m_SpriteTexture;
+
+    unsigned int                                       m_MatrixInstancingBuffer { };
+    std::array<glm::mat4, ParticlePool::MAX_PARTICLES> m_ModelMatrices;
 };
-DEFINE_CONCEPT_DS( ParticlePoolConceptRender )
+ParticlePoolConceptRender::~ParticlePoolConceptRender( )
+{
+    if ( m_MatrixInstancingBuffer != 0 )
+    {
+        const auto* gl = Engine::GetEngine( )->GetGLContext( );
+        GL_CHECK( gl->DeleteBuffers( 1, &m_MatrixInstancingBuffer ) )
+    }
+}
+DEFINE_CONCEPT( ParticlePoolConceptRender )
 
 ParticlePool::ParticlePool( )
 {
@@ -88,7 +123,7 @@ void
 ParticlePool::SetSprite( const std::shared_ptr<SpriteSquareTexture>& Sprite )
 {
     RemoveConcepts<PureConcept>( );
-    AddConcept<ParticlePoolConceptRender>( *this, Sprite );
+    AddConcept<ParticlePoolConceptRender>( *this, m_Sprite = Sprite );
 }
 
 void
@@ -117,6 +152,8 @@ ParticlePool::ForEach( auto&& Func )
 void
 ParticlePool::Apply( )
 {
+    if ( !IsEnabled( ) ) return;
+
     const auto DeltaTime = Engine::GetEngine( )->GetDeltaSecond( );
 
     ForEach( [ &DeltaTime ]( Particle& P ) {
