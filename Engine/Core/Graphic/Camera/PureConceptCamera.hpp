@@ -6,12 +6,11 @@
 
 #include <Engine/Core/Core.hpp>
 #include <Engine/Core/Concept/PureConcept.hpp>
-#include <Engine/Core/Scene/Orientation/Orientation.hpp>
+#include <Engine/Core/Scene/Orientation/Vec3.hpp>
 
 #include <glm/glm.hpp>
 
 class PureConceptCamera : public PureConcept
-    , public Orientation
     , public std::enable_shared_from_this<PureConceptCamera>
 {
     DECLARE_CONCEPT( PureConceptCamera, PureConcept )
@@ -42,11 +41,18 @@ public:
     void
     RegisterAsDefaultCamera( );
 
+    void
+    SetCoordinate( FloatTy X, FloatTy Y, FloatTy = 0 );
+
+    const Vec3&
+    GetCoordinate( );
+
 private:
     glm::mat4 m_ProjectionMatrix { 1 };
     glm::mat4 m_ProjectionMatrixNonOffset { 1 };
     FloatTy   m_CameraWidth { }, m_CameraHeight { };
     FloatTy   m_Scale { 1 };
+    Vec3      m_Coordinate;
 
     ENABLE_IMGUI( PureConceptCamera )
 };

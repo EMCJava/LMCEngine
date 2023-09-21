@@ -14,11 +14,17 @@ DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( ToleranceBarStrike, SpriteSquareTexture, m_Lif
 ToleranceBarStrike&
 ToleranceBarStrike::operator<<( ToleranceBarStrike& Other )
 {
-    m_Origin = Other.m_Origin;
+    m_Coordinate        = Other.m_Coordinate;
+    m_TranslationOrigin = Other.m_TranslationOrigin;
     UpdateTranslationMatrix( );
 
-    m_Rotation = Other.m_Rotation;
+    m_Rotation       = Other.m_Rotation;
+    m_RotationOrigin = Other.m_RotationOrigin;
     UpdateRotationMatrix( );
+
+    m_Scale       = Other.m_Scale;
+    m_ScaleOrigin = Other.m_ScaleOrigin;
+    UpdateScaleMatrix( );
 
     m_LifeTimeTotal  = Other.m_LifeTimeTotal;
     m_LifeTimeRemain = Other.m_LifeTimeRemain;

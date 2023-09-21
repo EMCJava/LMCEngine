@@ -18,8 +18,11 @@ public:
 
 private:
     std::unique_ptr<class SaEffect> m_Effect;
-
     std::vector<std::shared_ptr<class ParticlePool>> m_ParticlePools;
+
+    std::unique_ptr<class ParticleAttributesRandomizer> m_PAR;
+
+    std::shared_ptr<class PureConceptCamera> m_Camera;
 
     ENABLE_IMGUI( GameManager )
 };

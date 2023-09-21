@@ -18,7 +18,7 @@ ParticleAttributesRandomizer::ParticleAttributesRandomizer( )
 
 namespace
 {
-OrientationCoordinate::Coordinate
+Vec3
 RandVec( const auto& min, const auto max, auto& dis, auto& gen )
 {
     glm::vec3 randomVec;
@@ -26,7 +26,7 @@ RandVec( const auto& min, const auto max, auto& dis, auto& gen )
     randomVec.y = min.y + dis( gen ) * ( max.y - min.y );
     randomVec.z = min.z + dis( gen ) * ( max.z - min.z );
 
-    return { randomVec.x, randomVec.y, randomVec.z };
+    return Vec3 { randomVec.x, randomVec.y, randomVec.z };
 }
 }   // namespace
 
@@ -37,8 +37,7 @@ ParticleAttributesRandomizer::Apply( Particle& P )
     P.GetAngularVelocity( ) = static_cast<FloatTy>( m_AngularVelocityMin + ( m_AngularVelocityMax - m_AngularVelocityMin ) * m_NormalDist( m_Engine ) );
 
     const auto Scale = m_LinearScaleMin + ( m_LinearScaleMax - m_LinearScaleMin ) * (float) m_NormalDist( m_Engine );
-    P.GetScale( )    = OrientationCoordinate::Coordinate {
-        Scale.x, Scale.y, Scale.z};
+    P.GetOrientation( ).SetScale( Scale.x, Scale.y, Scale.z );
 }
 
 void

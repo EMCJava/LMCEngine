@@ -28,7 +28,13 @@ GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
 
-    AddConcept<PureConceptCamera>( )->RegisterAsDefaultCamera( );
+    m_PAR = std::make_unique<ParticleAttributesRandomizer>( );
+    m_PAR->SetLinearScale( { 0.01, 0.01, 0.01 }, { 0.1, 0.1, 0.1 } );
+    m_PAR->SetVelocity( { -20, -20, 0 }, { 20, 20, 0 } );
+    m_PAR->SetAngularVelocity( -31.415F, 31.415F );
+
+    m_Camera = AddConcept<PureConceptCamera>( );
+    m_Camera->RegisterAsDefaultCamera( );
 
     {
         auto Sp = std::make_shared<SpriteSquareTexture>( 512, 512 );
@@ -39,23 +45,6 @@ GameManager::GameManager( )
         m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
         auto& PP = m_ParticlePools.back( );
         PP->SetSprite( Sp );
-
-        ParticleAttributesRandomizer PAR;
-        PAR.SetLinearScale( { 0.01, 0.01, 0.01 }, { 0.1, 0.1, 0.1 } );
-        PAR.SetVelocity( { -20, -20, 0 }, { 20, 0, 0 } );
-        PAR.SetAngularVelocity( -31.415F, 31.415F );
-
-        const auto AddParticle = [ &PP, &PAR ]( ) {
-            auto* Pa = &PP->AddParticle( );
-            PAR.Apply( *Pa );
-            Pa->GetOrientation( ).SetRotationCenter( 512 / 2, 512 / 2 );
-            Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
-        };
-
-        for ( int i = 0; i < 30; ++i )
-        {
-            AddParticle( );
-        }
     }
 
     {
@@ -67,23 +56,6 @@ GameManager::GameManager( )
         m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
         auto& PP = m_ParticlePools.back( );
         PP->SetSprite( Sp );
-
-        ParticleAttributesRandomizer PAR;
-        PAR.SetLinearScale( { 0.01, 0.01, 0.01 }, { 0.1, 0.1, 0.1 } );
-        PAR.SetVelocity( { -20, 20, 0 }, { 20, 0, 0 } );
-        PAR.SetAngularVelocity( -31.415F, 31.415F );
-
-        const auto AddParticle = [ &PP, &PAR ]( ) {
-            auto* Pa = &PP->AddParticle( );
-            PAR.Apply( *Pa );
-            Pa->GetOrientation( ).SetRotationCenter( 512 / 2, 512 / 2 );
-            Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
-        };
-
-        for ( int i = 0; i < 30; ++i )
-        {
-            AddParticle( );
-        }
     }
 
     SaBaseBoard BB;
@@ -116,7 +88,29 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-    if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isPressed )
+    if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isDown )
     {
+        std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
+        m_Camera->ScreenCoordToUICoord( HitPoint );
+
+        auto& PP = m_ParticlePools[ 0 ];
+
+        auto* Pa = &PP->AddParticle( );
+        m_PAR->Apply( *Pa );
+        Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
+        Pa->GetOrientation( ).SetCoordinate( HitPoint.first, HitPoint.second );
+    }
+
+    if ( Engine::GetEngine( )->GetUserInputHandle( )->GetSecondaryKey( ).isDown )
+    {
+        std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
+        m_Camera->ScreenCoordToUICoord( HitPoint );
+
+        auto& PP = m_ParticlePools[ 1 ];
+
+        auto* Pa = &PP->AddParticle( );
+        m_PAR->Apply( *Pa );
+        Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
+        Pa->GetOrientation( ).SetCoordinate( HitPoint.first, HitPoint.second );
     }
 }

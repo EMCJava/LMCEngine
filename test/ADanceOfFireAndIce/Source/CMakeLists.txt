@@ -10,7 +10,6 @@ declare_library(
         Engine.lib
 
         DEPS
-        OrientationCoordinate.lib
 
         STATIC
 )
@@ -73,7 +72,6 @@ declare_library(
 
         DEPS
         ConceptApplicable.lib
-        OrientationCoordinate.lib
         spdlog::spdlog
         Audio.lib
 )

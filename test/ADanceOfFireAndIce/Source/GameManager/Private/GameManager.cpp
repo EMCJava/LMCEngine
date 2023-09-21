@@ -1646,7 +1646,7 @@ GameManager::LoadTileSprites( const std::set<uint32_t>& Degrees )
         Sp->SetupSprite( );
     };
 
-    m_TileSpriteSetRef.lock( )->SetSpritesOrigin( { 512 / 2, 512 / 2 } );
+    m_TileSpriteSetRef.lock( )->SetSpritesOrigin( Vec3 { 512 / 2, 512 / 2 } );
 
     for ( auto Degree : Degrees )
     {
@@ -1706,7 +1706,6 @@ GameManager::LoadPlayerSprites( )
     m_FBSp = m_InActivePlayerSprite = AddConcept<SpriteSquareTexture>( 512, 512 );
 
     auto FBSpLocked = m_FBSp.lock( );
-    FBSpLocked->SetRotationCenter( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
     FBSpLocked->SetOrigin( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
 
     FBSpLocked->SetShader( m_SpriteShader );
@@ -1725,16 +1724,11 @@ GameManager::LoadPlayerSprites( )
 bool
 GameManager::TryAlterPlayer( )
 {
-
-    m_ActivePlayerSprite->SetRotationCenter( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
-    m_ActivePlayerSprite->SetOrigin( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
-
-    m_InActivePlayerSprite->SetRotation( );
-    m_InActivePlayerSprite->SetRotationCenter( );
-    m_InActivePlayerSprite->SetOrigin( 512 / 2, 512 / 2 );
-
     m_ActivePlayerIsFire = !m_ActivePlayerIsFire;
     std::swap( m_ActivePlayerSprite, m_InActivePlayerSprite );
+
+    m_InActivePlayerSprite->SetOrigin( 512 / 2 - TileSpriteSet::TileDistance, 512 / 2 );
+    m_ActivePlayerSprite->SetOrigin( 512 / 2, 512 / 2 );
 
     return true;
 }
@@ -1828,7 +1822,6 @@ GameManager::LoadToleranceSprite( )
 {
     m_ToleranceBar = AddConcept<ToleranceBar>( 400, 30 );
 
-    m_ToleranceBar->SetRotationCenter( 400 / 2, 30 / 2 );
     m_ToleranceBar->SetOrigin( 400 / 2, 30 / 2 );
 
     m_ToleranceBar->SetShader( m_SpriteShader );

@@ -58,8 +58,7 @@ public:
             ShaderPtr->Bind( );
             int        Index      = 0;
             const auto RenderFunc = [ this, &Index ]( Particle& P ) {
-                const auto& Scale          = P.GetScale( );
-                m_ModelMatrices[ Index++ ] = glm::scale( glm::mat4( 1 ), { Scale.X, Scale.Y, Scale.Z } ) * P.GetOrientation( ).GetTranslationMatrix( ) * P.GetOrientation( ).GetRotationMatrix( );
+                m_ModelMatrices[ Index++ ] = P.GetOrientation( ).GetModelMatrix();
             };
 
             m_ParticlePool.ForEach( RenderFunc );

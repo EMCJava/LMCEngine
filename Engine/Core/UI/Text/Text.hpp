@@ -5,7 +5,6 @@
 #pragma once
 
 #include <Engine/Core/Graphic/Sprites/Sprite.hpp>
-#include <Engine/Core/Scene/Orientation/OrientationCoordinate.hpp>
 
 #include <memory>
 #include <string>
@@ -41,7 +40,7 @@ public:
 protected:
     std::string                       m_Text;
     FloatTy                           m_Scale { 1 };
-    OrientationCoordinate::Coordinate m_TextCoordinate;
+    Vec3 m_TextCoordinate;
     glm::vec3                         m_Color { 0 };
 
     std::shared_ptr<class Font> m_Font;

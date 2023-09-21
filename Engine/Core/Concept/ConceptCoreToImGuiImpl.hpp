@@ -5,7 +5,7 @@
 #pragma once
 
 #include <ImGui/Ext/ImGuiGroup.hpp>
-#include <Engine/Core/Scene/Orientation/OrientationCoordinate.hpp>
+#include <Engine/Core/Scene/Orientation/Vec3.hpp>
 #include <Engine/Core/Math/Random/FastRandom.hpp>
 
 #include <map>
@@ -30,9 +30,9 @@ inline typename std::enable_if_t<!std::is_pointer_v<Ty>, void>
 ToImGuiPointerSwitch( const char* Name, Ty& Value );
 
 inline void
-ToImGuiWidget( const char* Name, OrientationCoordinate::Coordinate* Value )
+ToImGuiWidget( const char* Name, Vec3* Value )
 {
-    static_assert( sizeof( OrientationCoordinate::Coordinate ) == sizeof( float ) * 3 );
+    static_assert( sizeof( Vec3 ) == sizeof( float ) * 3 );
     static_assert( std::is_same_v<FloatTy, float> );
     ImGui::InputFloat3( Name, (FloatTy*) Value );
 }

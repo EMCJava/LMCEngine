@@ -117,6 +117,8 @@ declare_library(
         ParticlePool.lib
         SpriteSquareTexture.lib
         ParticleAttributesRandomizer.lib
+        UserInput.lib
+        Orientation.lib
 
         DEPS
         spdlog::spdlog

@@ -194,11 +194,17 @@ SpriteSquareAnimatedTexture::SetRepeat( bool Repeat, bool DestroyAfterFinish )
 SpriteSquareAnimatedTexture&
 SpriteSquareAnimatedTexture::operator<<( SpriteSquareAnimatedTexture& Other )
 {
-    m_Origin = Other.m_Origin;
+    m_Coordinate        = Other.m_Coordinate;
+    m_TranslationOrigin = Other.m_TranslationOrigin;
     UpdateTranslationMatrix( );
 
-    m_Rotation = Other.m_Rotation;
+    m_Rotation       = Other.m_Rotation;
+    m_RotationOrigin = Other.m_RotationOrigin;
     UpdateRotationMatrix( );
+
+    m_Scale       = Other.m_Scale;
+    m_ScaleOrigin = Other.m_ScaleOrigin;
+    UpdateScaleMatrix( );
 
     m_Repeat               = Other.m_Repeat;
     m_AnimationFrameIndex  = Other.m_AnimationFrameIndex;

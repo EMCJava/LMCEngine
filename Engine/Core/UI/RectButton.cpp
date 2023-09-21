@@ -24,12 +24,12 @@ RectButton::RectButton( int Width, int Height )
     SetupButton( );
 }
 
-const OrientationCoordinate::Coordinate&
+const Vec3&
 RectButton::SetCoordinate( FloatTy X, FloatTy Y, FloatTy Z )
 {
     const std::pair<FloatTy, FloatTy> PivotOffset = { m_Pivot.first * m_Width, m_Pivot.second * m_Height };
     m_HitBox->SetCoordinate( X - PivotOffset.first, Y - PivotOffset.second );
-    m_ButtonText->SetCoordinate( OrientationCoordinate::Coordinate { X + m_TextAlignmentOffset.first - PivotOffset.first, Y + m_TextAlignmentOffset.second - PivotOffset.second } );
+    m_ButtonText->SetCoordinate( Vec3 { X + m_TextAlignmentOffset.first - PivotOffset.first, Y + m_TextAlignmentOffset.second - PivotOffset.second } );
     return m_SpriteSquare->SetCoordinate( X, Y, Z );
 }
 
@@ -113,7 +113,6 @@ RectButton::SetupButton( )
 
     m_SpriteSquare = AddConcept<SpriteSquare>( m_Width, m_Height );
 
-    m_SpriteSquare->SetRotationCenter( m_Width * m_Pivot.first, m_Height * m_Pivot.second );
     m_SpriteSquare->SetOrigin( m_Width * m_Pivot.first, m_Height * m_Pivot.second );
 
     m_SpriteSquare->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultColorShader" ) );

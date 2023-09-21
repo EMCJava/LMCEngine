@@ -18,11 +18,8 @@ public:
     Orientation&
     GetOrientation( ) { return m_Orientation; }
 
-    OrientationCoordinate::Coordinate&
+    Vec3&
     GetVelocity( ) { return m_Velocity; }
-
-    OrientationCoordinate::Coordinate&
-    GetScale( ) { return m_Scale; }
 
     FloatTy&
     GetAngularVelocity( ) { return m_AngularVelocity; }
@@ -30,8 +27,7 @@ public:
 private:
     bool m_IsAlive { false };
 
-    FloatTy                           m_AngularVelocity { };
-    OrientationCoordinate::Coordinate m_Velocity { };
-    OrientationCoordinate::Coordinate m_Scale { 1, 1, 1 };
-    Orientation                       m_Orientation { };
+    FloatTy     m_AngularVelocity { };
+    Vec3        m_Velocity { };
+    Orientation m_Orientation { };
 };

@@ -107,14 +107,14 @@ TileSpriteSet::AddTile( TileSpriteSet::TileMeta Tile )
             Orientation TmpOrientation;
             TmpOrientation.SetCoordinate( TileDistance, 0 );
 
-            TmpOrientation.SetRotationCenter( 512 / 2, 512 / 2 );
+            TmpOrientation.SetRotationOrigin( Vec3 { 512 / 2, 512 / 2 } );
             TmpOrientation.SetRotation( 0, 0, glm::radians( 180 - FloatTy( LastTile.Degree ) ) );
 
             Tile.ModelMatrixCache = LastTile.ModelMatrixCache * TmpOrientation.GetRotationMatrix( ) * TmpOrientation.GetTranslationMatrix( );
         } else
         {
             Orientation TmpOrientation;
-            TmpOrientation.SetOrigin( m_SpritesOrigin.X, m_SpritesOrigin.Y, m_SpritesOrigin.Z );
+            TmpOrientation.SetTranslationOrigin( Vec3 { m_SpritesOrigin.X, m_SpritesOrigin.Y, m_SpritesOrigin.Z } );
 
             Tile.ModelMatrixCache = TmpOrientation.GetTranslationMatrix( );
         }
@@ -124,7 +124,7 @@ TileSpriteSet::AddTile( TileSpriteSet::TileMeta Tile )
 }
 
 void
-TileSpriteSet::SetSpritesOrigin( OrientationCoordinate::Coordinate Origin )
+TileSpriteSet::SetSpritesOrigin( Vec3 Origin )
 {
     m_SpritesOrigin = Origin;
 }

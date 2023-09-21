@@ -87,3 +87,16 @@ PureConceptCamera::RegisterAsDefaultCamera( )
 {
     Engine::GetEngine( )->GetGlobalResourcePool( )->TryPush( "DefaultCamera", shared_from_this( ) );
 }
+
+void
+PureConceptCamera::SetCoordinate( FloatTy X, FloatTy Y, FloatTy )
+{
+    m_Coordinate.X = X;
+    m_Coordinate.Y = Y;
+}
+
+const Vec3&
+PureConceptCamera::GetCoordinate( )
+{
+    return m_Coordinate;
+}

@@ -45,7 +45,7 @@ public:
     void RemoveLastTile( );
 
     void
-    SetSpritesOrigin( OrientationCoordinate::Coordinate Origin );
+    SetSpritesOrigin( Vec3 Origin );
 
     /*
      *
@@ -120,7 +120,7 @@ protected:
     size_t                m_TileListPointer { 0 };
     std::vector<TileMeta> m_TileList;
 
-    OrientationCoordinate::Coordinate m_SpritesOrigin { };
+    Vec3 m_SpritesOrigin { };
 
     /*
      *
