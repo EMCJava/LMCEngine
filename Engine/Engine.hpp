@@ -87,6 +87,8 @@ public:
 
     static void
     OnKeyboardInput( struct GLFWwindow* window, int key, int scancode, int action, int mods );
+    static void
+    OnMouseButtonInput( struct GLFWwindow* window, int button, int action, int mods );
 
     static void
     OnWindowResize( struct GLFWwindow* window, int Width, int Height );

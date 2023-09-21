@@ -79,6 +79,18 @@ Engine::OnKeyboardInput( GLFWwindow* window, int key, int scancode, int action, 
 }
 
 void
+Engine::OnMouseButtonInput( struct GLFWwindow* window, int button, int action, int mods )
+{
+    (void) mods;
+    static const auto* EnginePtr = Engine::GetEngine( );
+
+    if ( action != GLFW_REPEAT )
+    {
+        EnginePtr->m_UserInput->RegisterKeyUpdate( action == GLFW_PRESS, button );
+    }
+}
+
+void
 Engine::OnWindowResize( struct GLFWwindow* /*unused*/, int Width, int Height )
 {
     Engine::GetEngine( )->SetMainWindowViewPortDimensions( { Width, Height } );
@@ -118,6 +130,7 @@ Engine::Engine( )
     m_UserInput = new UserInput( m_MainWindow->GetWindowHandle( ) );
 
     glfwSetKeyCallback( m_MainWindow->GetWindowHandle( ), OnKeyboardInput );
+    glfwSetMouseButtonCallback( m_MainWindow->GetWindowHandle( ), OnMouseButtonInput );
 
     // Setup Dear ImGui context
     CreateImGuiContext( );

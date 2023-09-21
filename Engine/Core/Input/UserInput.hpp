@@ -52,9 +52,9 @@ public:
 
     void Update( );
 
-    [[nodiscard]] inline KeyState GetPrimaryKey( ) const { return m_PrimaryKey; }
-    [[nodiscard]] inline KeyState GetSecondaryKey( ) const { return m_SecondaryKey; }
-    [[nodiscard]] inline KeyState GetFunctionKey( ) const { return m_FunctionKey; }
+    [[nodiscard]] KeyState& GetPrimaryKey( );
+    [[nodiscard]] KeyState& GetSecondaryKey( );
+    [[nodiscard]] KeyState& GetFunctionKey( );
 
     [[nodiscard]] inline FloatTy             GetCursorSensitivity( ) const { return m_CursorSensitivity; }
     [[nodiscard]] inline std::pair<int, int> GetCursorPosition( ) const { return m_CursorPosition - m_CursorTopLeftPosition; }

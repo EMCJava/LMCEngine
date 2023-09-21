@@ -23,24 +23,6 @@ UserInput::Update( )
 void
 UserInput::UpdateMouse( )
 {
-    m_PrimaryKey.isPressed = false;
-    if ( glfwGetMouseButton( m_EventWindow, GLFW_MOUSE_BUTTON_LEFT ) == GLFW_PRESS )
-        m_PrimaryKey.SetPress( m_FrameCount );
-    else
-        m_PrimaryKey.isDown = false;
-
-    m_SecondaryKey.isPressed = false;
-    if ( glfwGetMouseButton( m_EventWindow, GLFW_MOUSE_BUTTON_RIGHT ) == GLFW_PRESS )
-        m_SecondaryKey.SetPress( m_FrameCount );
-    else
-        m_SecondaryKey.isDown = false;
-
-    m_FunctionKey.isPressed = false;
-    if ( glfwGetMouseButton( m_EventWindow, GLFW_MOUSE_BUTTON_MIDDLE ) == GLFW_PRESS )
-        m_FunctionKey.SetPress( m_FrameCount );
-    else
-        m_FunctionKey.isDown = false;
-
     double X, Y;
     glfwGetCursorPos( m_EventWindow, &X, &Y );
     m_CursorPosition.first  = X;
@@ -67,6 +49,22 @@ KeyState&
 UserInput::GetKeyState( KeyIDTY id )
 {
     return m_OtherKeysStates[ id ].Update( m_FrameCount );
+}
+
+KeyState&
+UserInput::GetPrimaryKey( )
+{
+    return GetKeyState( GLFW_MOUSE_BUTTON_LEFT );
+}
+KeyState&
+UserInput::GetSecondaryKey( )
+{
+    return GetKeyState( GLFW_MOUSE_BUTTON_RIGHT );
+}
+KeyState&
+UserInput::GetFunctionKey( )
+{
+    return GetKeyState( GLFW_MOUSE_BUTTON_MIDDLE );
 }
 
 void
@@ -101,7 +99,7 @@ KeyState&
 KeyState::Update( uint32_t frame )
 {
     // key.isPressed might not be most up-to-date
-    static constexpr auto KeyRepeatFrame = 64;
+    static constexpr auto KeyRepeatFrame    = 64;
     static constexpr auto KeyRepeatInterval = 16;
 
     isRepeat        = isDown && lastDownFrame <= frame - KeyRepeatFrame && ( frame - lastDownFrame ) % KeyRepeatInterval == 0;
