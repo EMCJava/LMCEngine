@@ -32,6 +32,7 @@ GameManager::GameManager( )
     m_PAR->SetLinearScale( { 0.01, 0.01, 0.01 }, { 0.1, 0.1, 0.1 } );
     m_PAR->SetVelocity( { -20, -20, 0 }, { 20, 20, 0 } );
     m_PAR->SetAngularVelocity( -31.415F, 31.415F );
+    m_PAR->SetAlphaVelocity( -1, -1 / 5.F );
 
     m_Camera = AddConcept<PureConceptCamera>( );
     m_Camera->RegisterAsDefaultCamera( );

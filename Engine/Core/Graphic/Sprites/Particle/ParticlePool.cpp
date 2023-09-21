@@ -25,6 +25,11 @@ public:
     {
         const auto* gl = Engine::GetEngine( )->GetGLContext( );
 
+        /*
+         *
+         * Model matrix Buffer
+         *
+         * */
         GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
         gl->GenBuffers( 1, &m_MatrixInstancingBuffer );
         gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer );
@@ -37,6 +42,19 @@ public:
                                      (const GLvoid*) ( sizeof( GLfloat ) * i * 4 ) );
             gl->VertexAttribDivisor( MatricesLocation + i, 1 );
         }
+
+        /*
+         *
+         * Alpha Buffer
+         *
+         * */
+        GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
+        gl->GenBuffers( 1, &m_AlphaInstancingBuffer );
+        gl->BindBuffer( GL_ARRAY_BUFFER, m_AlphaInstancingBuffer );
+
+        gl->EnableVertexAttribArray( MatricesLocation + 4 );
+        gl->VertexAttribPointer( MatricesLocation + 4, 1, GL_FLOAT, GL_FALSE, sizeof( float ), (const GLvoid*) nullptr );
+        gl->VertexAttribDivisor( MatricesLocation + 4, 1 );
     }
 
     void
@@ -58,7 +76,8 @@ public:
             ShaderPtr->Bind( );
             int        Index      = 0;
             const auto RenderFunc = [ this, &Index ]( Particle& P ) {
-                m_ModelMatrices[ Index++ ] = P.GetOrientation( ).GetModelMatrix( );
+                m_ModelMatrices[ Index ] = P.GetOrientation( ).GetModelMatrix( );
+                m_Alphas[ Index++ ]      = 1 - P.GetAlpha( );
             };
 
             m_ParticlePool.ForEach( RenderFunc );
@@ -67,6 +86,8 @@ public:
             GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
             GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer ) )
             GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, Index * sizeof( glm::mat4 ), m_ModelMatrices.data( ), GL_DYNAMIC_DRAW ) )
+            GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_AlphaInstancingBuffer ) )
+            GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, Index * sizeof( float ), m_Alphas.data( ), GL_DYNAMIC_DRAW ) )
 
             GL_CHECK( gl->DrawElementsInstanced( GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, Index ) )
         }
@@ -77,15 +98,17 @@ private:
     std::shared_ptr<SpriteSquareTexture> m_SpriteTexture;
 
     unsigned int                                       m_MatrixInstancingBuffer { };
+    unsigned int                                       m_AlphaInstancingBuffer { };
     std::array<glm::mat4, ParticlePool::MAX_PARTICLES> m_ModelMatrices;
+    std::array<float, ParticlePool::MAX_PARTICLES>     m_Alphas;
 };
 ParticlePoolConceptRender::~ParticlePoolConceptRender( )
 {
-    if ( m_MatrixInstancingBuffer != 0 )
-    {
-        const auto* gl = Engine::GetEngine( )->GetGLContext( );
-        GL_CHECK( gl->DeleteBuffers( 1, &m_MatrixInstancingBuffer ) )
-    }
+    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+    if ( m_MatrixInstancingBuffer != 0 ) GL_CHECK( gl->DeleteBuffers( 1, &m_MatrixInstancingBuffer ) )
+    if ( m_AlphaInstancingBuffer != 0 ) GL_CHECK( gl->DeleteBuffers( 1, &m_AlphaInstancingBuffer ) )
+
+    m_MatrixInstancingBuffer = m_AlphaInstancingBuffer = 0;
 }
 DEFINE_CONCEPT( ParticlePoolConceptRender )
 
@@ -108,6 +131,7 @@ ParticlePool::AddParticle( )
     }
 
     NewParticle.SetAlive( );
+    NewParticle.GetAlpha( ) = 1;
     return NewParticle;
 }
 
@@ -165,5 +189,14 @@ ParticlePool::Apply( )
         auto& Ori = P.GetOrientation( );
         Ori.AlterCoordinate( P.GetVelocity( ) * DeltaTime );
         Ori.AlterRotation( 0, 0, P.GetAngularVelocity( ) * DeltaTime );
+
+        P.GetAlpha( ) += P.GetAlphaVelocity( ) * DeltaTime;
     } );
+
+    // Not empty, and first is not "dead"
+    while ( m_EndIndex != m_StartIndex && m_Particles[ m_StartIndex ].GetAlpha( ) <= 0 )
+    {
+        m_Particles[ m_StartIndex ].SetAlive( false );
+        m_StartIndex = ( m_StartIndex + 1 ) % MAX_PARTICLES;
+    }
 }
