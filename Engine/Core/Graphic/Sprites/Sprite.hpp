@@ -20,9 +20,6 @@ class Sprite : public ConceptRenderable
 {
     DECLARE_CONCEPT( Sprite, ConceptRenderable )
 
-    void
-    ApplyShaderUniforms( );
-
 public:
     using ShaderUniformTypes = std::variant<glm::mat4, glm::vec4, float>;
 
@@ -54,6 +51,10 @@ public:
 
     void
     SetShaderUniform( std::string UniformName, const ShaderUniformTypes& Value );
+
+    // All user defined uniforms
+    void
+    ApplyShaderUniforms( );
 
     void
     ClearShaderUniforms( );
