@@ -32,7 +32,9 @@ GameManager::GameManager( )
     m_PAR->SetLinearScale( { 0.01, 0.01, 0.01 }, { 0.1, 0.1, 0.1 } );
     m_PAR->SetVelocity( { -20, -20, 0 }, { 20, 20, 0 } );
     m_PAR->SetAngularVelocity( -31.415F, 31.415F );
-    m_PAR->SetAlphaVelocity( -1, -1 / 5.F );
+    m_PAR->SetStartLinearColor( glm::vec4( 1, 0, 0, 0.9 ), glm::vec4( 1, 0.2, 0, 1 ) );
+    m_PAR->SetEndLinearColor( glm::vec4( 1, 0.6, 0.4, 0 ), glm::vec4( 1, 0.8, 0.6, 0 ) );
+    m_PAR->SetLifetime( 1, 5 );
 
     m_Camera = AddConcept<PureConceptCamera>( );
     m_Camera->RegisterAsDefaultCamera( );

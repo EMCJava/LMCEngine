@@ -5,7 +5,13 @@
 #include "Particle.hpp"
 
 void
-Particle::SetAlive( bool Alive )
+Particle::SetLifeTime( FloatTy Lifetime )
 {
-    m_IsAlive = Alive;
+    m_LifeTime = Lifetime;
+}
+
+void
+Particle::AlterLifeTime( FloatTy DeltaLifetime )
+{
+    m_LifeTime += DeltaLifetime;
 }

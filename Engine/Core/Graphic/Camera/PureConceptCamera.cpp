@@ -31,10 +31,10 @@ PureConceptCamera::GetProjectionMatrix( ) const
 void
 PureConceptCamera::UpdateProjectionMatrix( )
 {
-    m_ProjectionMatrix = glm::ortho<FloatTy>( -m_CameraWidth / m_Scale / 2 + m_Coordinate.X,
-                                              m_CameraWidth / m_Scale / 2 + m_Coordinate.X,
-                                              -m_CameraHeight / m_Scale / 2 + m_Coordinate.Y,
-                                              m_CameraHeight / m_Scale / 2 + m_Coordinate.Y,
+    m_ProjectionMatrix = glm::ortho<FloatTy>( -m_CameraWidth / m_Scale / 2 + m_Coordinate.x,
+                                              m_CameraWidth / m_Scale / 2 + m_Coordinate.x,
+                                              -m_CameraHeight / m_Scale / 2 + m_Coordinate.y,
+                                              m_CameraHeight / m_Scale / 2 + m_Coordinate.y,
                                               -1, 1 );
 
     m_ProjectionMatrixNonOffset = glm::ortho<FloatTy>( -m_CameraWidth / m_Scale / 2,
@@ -91,11 +91,11 @@ PureConceptCamera::RegisterAsDefaultCamera( )
 void
 PureConceptCamera::SetCoordinate( FloatTy X, FloatTy Y, FloatTy )
 {
-    m_Coordinate.X = X;
-    m_Coordinate.Y = Y;
+    m_Coordinate.x = X;
+    m_Coordinate.y = Y;
 }
 
-const Vec3&
+const glm::vec3&
 PureConceptCamera::GetCoordinate( )
 {
     return m_Coordinate;

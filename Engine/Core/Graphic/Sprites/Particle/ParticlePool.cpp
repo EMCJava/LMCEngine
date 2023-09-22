@@ -45,15 +45,15 @@ public:
 
         /*
          *
-         * Alpha Buffer
+         * Color Buffer
          *
          * */
         GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
-        gl->GenBuffers( 1, &m_AlphaInstancingBuffer );
-        gl->BindBuffer( GL_ARRAY_BUFFER, m_AlphaInstancingBuffer );
+        gl->GenBuffers( 1, &m_ColorInstancingBuffer );
+        gl->BindBuffer( GL_ARRAY_BUFFER, m_ColorInstancingBuffer );
 
         gl->EnableVertexAttribArray( MatricesLocation + 4 );
-        gl->VertexAttribPointer( MatricesLocation + 4, 1, GL_FLOAT, GL_FALSE, sizeof( float ), (const GLvoid*) nullptr );
+        gl->VertexAttribPointer( MatricesLocation + 4, 4, GL_FLOAT, GL_FALSE, 4 * sizeof( float ), (const GLvoid*) nullptr );
         gl->VertexAttribDivisor( MatricesLocation + 4, 1 );
     }
 
@@ -77,7 +77,7 @@ public:
             int        Index      = 0;
             const auto RenderFunc = [ this, &Index ]( Particle& P ) {
                 m_ModelMatrices[ Index ] = P.GetOrientation( ).GetModelMatrix( );
-                m_Alphas[ Index++ ]      = 1 - P.GetAlpha( );
+                m_Colors[ Index++ ]      = P.GetColor( );
             };
 
             m_ParticlePool.ForEach( RenderFunc );
@@ -86,8 +86,8 @@ public:
             GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
             GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer ) )
             GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, Index * sizeof( glm::mat4 ), m_ModelMatrices.data( ), GL_DYNAMIC_DRAW ) )
-            GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_AlphaInstancingBuffer ) )
-            GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, Index * sizeof( float ), m_Alphas.data( ), GL_DYNAMIC_DRAW ) )
+            GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_ColorInstancingBuffer ) )
+            GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, Index * sizeof( glm::vec4 ), m_Colors.data( ), GL_DYNAMIC_DRAW ) )
 
             GL_CHECK( gl->DrawElementsInstanced( GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, Index ) )
         }
@@ -98,17 +98,17 @@ private:
     std::shared_ptr<SpriteSquareTexture> m_SpriteTexture;
 
     unsigned int                                       m_MatrixInstancingBuffer { };
-    unsigned int                                       m_AlphaInstancingBuffer { };
+    unsigned int                                       m_ColorInstancingBuffer { };
     std::array<glm::mat4, ParticlePool::MAX_PARTICLES> m_ModelMatrices;
-    std::array<float, ParticlePool::MAX_PARTICLES>     m_Alphas;
+    std::array<glm::vec4, ParticlePool::MAX_PARTICLES> m_Colors;
 };
 ParticlePoolConceptRender::~ParticlePoolConceptRender( )
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
     if ( m_MatrixInstancingBuffer != 0 ) GL_CHECK( gl->DeleteBuffers( 1, &m_MatrixInstancingBuffer ) )
-    if ( m_AlphaInstancingBuffer != 0 ) GL_CHECK( gl->DeleteBuffers( 1, &m_AlphaInstancingBuffer ) )
+    if ( m_ColorInstancingBuffer != 0 ) GL_CHECK( gl->DeleteBuffers( 1, &m_ColorInstancingBuffer ) )
 
-    m_MatrixInstancingBuffer = m_AlphaInstancingBuffer = 0;
+    m_MatrixInstancingBuffer = m_ColorInstancingBuffer = 0;
 }
 DEFINE_CONCEPT( ParticlePoolConceptRender )
 
@@ -127,11 +127,9 @@ ParticlePool::AddParticle( )
     if ( m_StartIndex == m_EndIndex )
     {
         m_StartIndex = ( m_StartIndex + 1 ) % MAX_PARTICLES;
-        m_Particles[ m_EndIndex ].SetAlive( false );
+        m_Particles[ m_EndIndex ].SetLifeTime( 0 );
     }
 
-    NewParticle.SetAlive( );
-    NewParticle.GetAlpha( ) = 1;
     return NewParticle;
 }
 
@@ -141,7 +139,7 @@ ParticlePool::RemoveFirstParticle( )
     // Empty
     if ( m_StartIndex == m_EndIndex ) return;
 
-    m_Particles[ m_StartIndex ].SetAlive( false );
+    m_Particles[ m_StartIndex ].SetLifeTime( 0 );
     m_StartIndex = ( m_StartIndex + 1 ) % MAX_PARTICLES;
 }
 
@@ -190,13 +188,13 @@ ParticlePool::Apply( )
         Ori.AlterCoordinate( P.GetVelocity( ) * DeltaTime );
         Ori.AlterRotation( 0, 0, P.GetAngularVelocity( ) * DeltaTime );
 
-        P.GetAlpha( ) += P.GetAlphaVelocity( ) * DeltaTime;
+        P.GetColor( ) += P.GetLinearColorVelocity( ) * DeltaTime;
+        P.AlterLifeTime( -DeltaTime );
     } );
 
     // Not empty, and first is not "dead"
-    while ( m_EndIndex != m_StartIndex && m_Particles[ m_StartIndex ].GetAlpha( ) <= 0 )
+    while ( m_EndIndex != m_StartIndex && !m_Particles[ m_StartIndex ].IsAlive( ) )
     {
-        m_Particles[ m_StartIndex ].SetAlive( false );
         m_StartIndex = ( m_StartIndex + 1 ) % MAX_PARTICLES;
     }
 }

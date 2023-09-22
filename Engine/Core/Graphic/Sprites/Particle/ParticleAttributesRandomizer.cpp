@@ -18,7 +18,7 @@ ParticleAttributesRandomizer::ParticleAttributesRandomizer( )
 
 namespace
 {
-Vec3
+glm::vec3
 RandVec( const auto& min, const auto max, auto& dis, auto& gen )
 {
     glm::vec3 randomVec;
@@ -26,7 +26,7 @@ RandVec( const auto& min, const auto max, auto& dis, auto& gen )
     randomVec.y = min.y + dis( gen ) * ( max.y - min.y );
     randomVec.z = min.z + dis( gen ) * ( max.z - min.z );
 
-    return Vec3 { randomVec.x, randomVec.y, randomVec.z };
+    return randomVec;
 }
 }   // namespace
 
@@ -35,10 +35,16 @@ ParticleAttributesRandomizer::Apply( Particle& P )
 {
     P.GetVelocity( )        = RandVec( m_VelocityMin, m_VelocityMax, m_NormalDist, m_Engine );
     P.GetAngularVelocity( ) = static_cast<FloatTy>( m_AngularVelocityMin + ( m_AngularVelocityMax - m_AngularVelocityMin ) * m_NormalDist( m_Engine ) );
-    P.GetAlphaVelocity( ) = static_cast<FloatTy>( m_AlphaVelocityMin + ( m_AlphaVelocityMax - m_AlphaVelocityMin ) * m_NormalDist( m_Engine ) );
 
     const auto Scale = m_LinearScaleMin + ( m_LinearScaleMax - m_LinearScaleMin ) * (float) m_NormalDist( m_Engine );
     P.GetOrientation( ).SetScale( Scale.x, Scale.y, Scale.z );
+
+    const auto& LifeTime = m_LifetimeMin + ( m_LifetimeMax - m_LifetimeMin ) * (float) m_NormalDist( m_Engine );
+    P.SetLifeTime( LifeTime );
+
+    P.GetColor( )               = m_StartLinearColorMin + ( m_StartLinearColorMax - m_StartLinearColorMin ) * (float) m_NormalDist( m_Engine );
+    const auto EndColor         = m_EndLinearColorMin + ( m_EndLinearColorMax - m_EndLinearColorMin ) * (float) m_NormalDist( m_Engine );
+    P.GetLinearColorVelocity( ) = ( EndColor - P.GetColor( ) ) / LifeTime;
 }
 
 void
@@ -63,8 +69,22 @@ ParticleAttributesRandomizer::SetLinearScale( const glm::vec3& min, const glm::v
 }
 
 void
-ParticleAttributesRandomizer::SetAlphaVelocity( const FloatTy& min, const FloatTy& max )
+ParticleAttributesRandomizer::SetStartLinearColor( const glm::vec4& min, const glm::vec4& max )
 {
-    m_AlphaVelocityMin = min;
-    m_AlphaVelocityMax = max;
+    m_StartLinearColorMin = min;
+    m_StartLinearColorMax = max;
+}
+
+void
+ParticleAttributesRandomizer::SetLifetime( const FloatTy& min, const FloatTy& max )
+{
+    m_LifetimeMin = min;
+    m_LifetimeMax = max;
+}
+
+void
+ParticleAttributesRandomizer::SetEndLinearColor( const glm::vec4& min, const glm::vec4& max )
+{
+    m_EndLinearColorMin = min;
+    m_EndLinearColorMax = max;
 }

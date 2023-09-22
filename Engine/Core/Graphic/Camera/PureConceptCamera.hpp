@@ -6,7 +6,6 @@
 
 #include <Engine/Core/Core.hpp>
 #include <Engine/Core/Concept/PureConcept.hpp>
-#include <Engine/Core/Scene/Orientation/Vec3.hpp>
 
 #include <glm/glm.hpp>
 
@@ -44,7 +43,7 @@ public:
     void
     SetCoordinate( FloatTy X, FloatTy Y, FloatTy = 0 );
 
-    const Vec3&
+    const glm::vec3&
     GetCoordinate( );
 
 private:
@@ -52,7 +51,7 @@ private:
     glm::mat4 m_ProjectionMatrixNonOffset { 1 };
     FloatTy   m_CameraWidth { }, m_CameraHeight { };
     FloatTy   m_Scale { 1 };
-    Vec3      m_Coordinate;
+    glm::vec3 m_Coordinate;
 
     ENABLE_IMGUI( PureConceptCamera )
 };

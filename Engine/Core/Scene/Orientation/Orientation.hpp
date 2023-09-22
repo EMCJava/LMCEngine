@@ -4,9 +4,11 @@
 
 #pragma once
 
-#include "Vec3.hpp"
+#include <Engine/Core/Core.hpp>
 
 #include <glm/glm.hpp>
+
+#include <spdlog/fmt/fmt.h>
 
 class Orientation
 {
@@ -16,15 +18,15 @@ public:
      * Only allow user to modify the orientation using setter for a easier life to update the marrix
      *
      * */
-    const Vec3&
+    const glm::vec3&
     SetCoordinate( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-    const Vec3&
-    SetCoordinate( Vec3 Coor, bool UpdateMatrix = true );
-    const Vec3&
+    const glm::vec3&
+    SetCoordinate( glm::vec3 Coor, bool UpdateMatrix = true );
+    const glm::vec3&
     AlterCoordinate( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-    const Vec3&
-    AlterCoordinate( const Vec3& DeltaCoordinate, bool UpdateMatrix = true );
-    const Vec3&
+    const glm::vec3&
+    AlterCoordinate( const glm::vec3& DeltaCoordinate, bool UpdateMatrix = true );
+    const glm::vec3&
     GetCoordinate( ) const;
 
     /*
@@ -32,9 +34,9 @@ public:
      * Only allow user to modify the orientation using setter for a easier life to update the matrix
      *
      * */
-    const Vec3&
+    const glm::vec3&
     SetOrigin( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-    const Vec3&
+    const glm::vec3&
     AlterOrigin( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
 
 
@@ -43,11 +45,11 @@ public:
      * Only allow user to modify the orientation using setter for a easier life to update the matrix
      *
      * */
-    const Vec3&
+    const glm::vec3&
     SetRotation( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-    const Vec3&
+    const glm::vec3&
     AlterRotation( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-    const Vec3&
+    const glm::vec3&
     GetRotation( ) const;
 
     /*
@@ -55,19 +57,19 @@ public:
      * Only allow user to modify the orientation using setter for a easier life to update the matrix
      *
      * */
-    const Vec3&
+    const glm::vec3&
     SetScale( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-    const Vec3&
+    const glm::vec3&
     AlterScale( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-    const Vec3&
+    const glm::vec3&
     GetScale( ) const;
 
-    const Vec3&
-    SetTranslationOrigin( const Vec3& TranslationOrigin, bool UpdateMatrix = true );
-    const Vec3&
-    SetRotationOrigin( const Vec3& RotationOrigin, bool UpdateMatrix = true );
-    const Vec3&
-    SetScaleOrigin( const Vec3& ScaleOrigin, bool UpdateMatrix = true );
+    const glm::vec3&
+    SetTranslationOrigin( const glm::vec3& TranslationOrigin, bool UpdateMatrix = true );
+    const glm::vec3&
+    SetRotationOrigin( const glm::vec3& RotationOrigin, bool UpdateMatrix = true );
+    const glm::vec3&
+    SetScaleOrigin( const glm::vec3& ScaleOrigin, bool UpdateMatrix = true );
 
 
     void       UpdateTranslationMatrix( );
@@ -82,17 +84,25 @@ public:
     void       UpdateModelMatrix( );
     glm::mat4& GetModelMatrix( );
 
-    Vec3
+    glm::vec3
     GetWorldCoordinate( ) const;
 
 protected:
-    Vec3 m_TranslationOrigin { }, m_RotationOrigin { }, m_ScaleOrigin { };
-    Vec3 m_Coordinate { }, m_Rotation { }, m_Scale { 1, 1, 1 };
+    glm::vec3 m_TranslationOrigin { }, m_RotationOrigin { }, m_ScaleOrigin { };
+    glm::vec3 m_Coordinate { }, m_Rotation { }, m_Scale { 1, 1, 1 };
 
     glm::mat4 m_TranslationMatrix { 1 }, m_RotationMatrix { 1 }, m_ScaleMatrix { 1 };
     glm::mat4 m_ModelMatrix { 1 };
 };
 
+template <>
+struct fmt::formatter<glm::vec3> : fmt::formatter<std::string> {
+    static auto
+    format( const glm::vec3& C, format_context& ctx ) -> decltype( ctx.out( ) )
+    {
+        return fmt::format_to( ctx.out( ), "[Coordinate X={} Y={} Z={}]", C.x, C.y, C.z );
+    }
+};
 template <>
 struct fmt::formatter<Orientation> : fmt::formatter<std::string> {
     static auto
