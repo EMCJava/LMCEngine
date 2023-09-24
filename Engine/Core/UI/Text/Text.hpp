@@ -38,10 +38,10 @@ public:
     GetTextPixelHeight( );
 
 protected:
-    std::string                       m_Text;
-    FloatTy                           m_Scale { 1 };
-    Vec3 m_TextCoordinate;
-    glm::vec3                         m_Color { 0 };
+    std::string m_Text;
+    FloatTy     m_Scale { 1 };
+    glm::vec3   m_TextCoordinate;
+    glm::vec3   m_Color { 0 };
 
     std::shared_ptr<class Font> m_Font;
 

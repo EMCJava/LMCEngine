@@ -46,7 +46,7 @@ Text::Render( )
     gl->ActiveTexture( GL_TEXTURE0 );
     gl->BindVertexArray( m_VAO );
 
-    auto TextXCoordinate = m_TextCoordinate.X;
+    auto TextXCoordinate = m_TextCoordinate.x;
 
     // iterate through all characters
     for ( const char& Char : m_Text )
@@ -56,7 +56,7 @@ Text::Render( )
         REQUIRED_IF( ch != nullptr )
         {
             float xpos = TextXCoordinate + ch->Bearing.first * m_Scale;
-            float ypos = m_TextCoordinate.Y - ( ch->Size.second - ch->Bearing.second ) * m_Scale;
+            float ypos = m_TextCoordinate.y - ( ch->Size.second - ch->Bearing.second ) * m_Scale;
 
             float w = ch->Size.first * m_Scale;
             float h = ch->Size.second * m_Scale;

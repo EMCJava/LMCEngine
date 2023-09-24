@@ -24,12 +24,12 @@ RectButton::RectButton( int Width, int Height )
     SetupButton( );
 }
 
-const Vec3&
+const glm::vec3&
 RectButton::SetCoordinate( FloatTy X, FloatTy Y, FloatTy Z )
 {
     const std::pair<FloatTy, FloatTy> PivotOffset = { m_Pivot.first * m_Width, m_Pivot.second * m_Height };
     m_HitBox->SetCoordinate( X - PivotOffset.first, Y - PivotOffset.second );
-    m_ButtonText->SetCoordinate( Vec3 { X + m_TextAlignmentOffset.first - PivotOffset.first, Y + m_TextAlignmentOffset.second - PivotOffset.second } );
+    m_ButtonText->SetCoordinate( glm::vec3 { X + m_TextAlignmentOffset.first - PivotOffset.first, Y + m_TextAlignmentOffset.second - PivotOffset.second, 0 } );
     return m_SpriteSquare->SetCoordinate( X, Y, Z );
 }
 
