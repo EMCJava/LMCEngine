@@ -93,6 +93,8 @@ Engine::OnMouseButtonInput( struct GLFWwindow* window, int button, int action, i
 void
 Engine::OnWindowResize( struct GLFWwindow* /*unused*/, int Width, int Height )
 {
+    // Should only be used when in non editor mode.
+    // Editor mode will override it.
     Engine::GetEngine( )->SetMainWindowViewPortDimensions( { Width, Height } );
 }
 
