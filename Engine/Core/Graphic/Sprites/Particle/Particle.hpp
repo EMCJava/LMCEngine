@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <Engine/Core/Core.hpp>
 #include <Engine/Core/Scene/Orientation/Orientation.hpp>
 
 class Particle
@@ -11,32 +12,33 @@ class Particle
 
 public:
     void
-    SetAlive( bool Alive = true );
+    SetLifeTime( FloatTy Lifetime );
+    void
+    AlterLifeTime( FloatTy DeltaLifetime );
     [[nodiscard]] bool
-    IsAlive( ) const { return m_IsAlive; }
+    IsAlive( ) const { return m_LifeTime > 0; }
 
-    Orientation&
+    auto&
     GetOrientation( ) { return m_Orientation; }
 
-    FloatTy&
-    GetAlpha( ) { return m_Alpha; }
+    auto&
+    GetColor( ) { return m_Color; }
 
-    Vec3&
+    auto&
     GetVelocity( ) { return m_Velocity; }
 
-    FloatTy&
+    auto&
     GetAngularVelocity( ) { return m_AngularVelocity; }
 
-    FloatTy&
-    GetAlphaVelocity( ) { return m_AlphaVelocity; }
+    auto&
+    GetLinearColorVelocity( ) { return m_LinearColorVelocity; }
 
 private:
-    bool m_IsAlive { false };
-
-    FloatTy m_Alpha { 1 };
-
-    FloatTy     m_AngularVelocity { };
-    FloatTy     m_AlphaVelocity { };
-    Vec3        m_Velocity { };
+    FloatTy     m_LifeTime { 0 };
     Orientation m_Orientation { };
+    glm::vec4   m_Color;
+
+    FloatTy   m_AngularVelocity { };
+    glm::vec4 m_LinearColorVelocity { };
+    glm::vec3 m_Velocity { };
 };

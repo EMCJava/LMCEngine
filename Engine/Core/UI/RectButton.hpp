@@ -5,7 +5,6 @@
 #pragma once
 
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
-#include <Engine/Core/Scene/Orientation/Vec3.hpp>
 
 #include <glm/glm.hpp>
 
@@ -32,7 +31,7 @@ public:
     virtual void
     SetEnabled( bool Enabled ) override;
 
-    const Vec3&
+    const glm::vec3&
     SetCoordinate( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0 );
 
     void

@@ -6,27 +6,27 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-Vec3
+glm::vec3
 Orientation::GetWorldCoordinate( ) const
 {
     const auto ModelMatrix = m_TranslationMatrix * m_RotationMatrix * m_ScaleMatrix;
     glm::vec3  WorldOffset { ModelMatrix[ 3 ] };
 
-    return Vec3 { WorldOffset.x, WorldOffset.y, WorldOffset.z };
+    return glm::vec3 { WorldOffset.x, WorldOffset.y, WorldOffset.z };
 }
 
 auto
-Orientation::GetCoordinate( ) const -> const Vec3&
+Orientation::GetCoordinate( ) const -> const glm::vec3&
 {
     return m_Coordinate;
 }
 
-const Vec3&
+const glm::vec3&
 Orientation::AlterCoordinate( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
 {
-    m_Coordinate.X += X;
-    m_Coordinate.Y += Y;
-    m_Coordinate.Z += Z;
+    m_Coordinate.x += X;
+    m_Coordinate.y += Y;
+    m_Coordinate.z += Z;
 
     if ( UpdateMatrix )
     {
@@ -37,12 +37,10 @@ Orientation::AlterCoordinate( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix
     return m_Coordinate;
 }
 
-const Vec3&
-Orientation::AlterCoordinate( const Vec3& DeltaCoordinate, bool UpdateMatrix )
+const glm::vec3&
+Orientation::AlterCoordinate( const glm::vec3& DeltaCoordinate, bool UpdateMatrix )
 {
-    m_Coordinate.X += DeltaCoordinate.X;
-    m_Coordinate.Y += DeltaCoordinate.Y;
-    m_Coordinate.Z += DeltaCoordinate.Z;
+    m_Coordinate += DeltaCoordinate;
 
     if ( UpdateMatrix )
     {
@@ -53,12 +51,12 @@ Orientation::AlterCoordinate( const Vec3& DeltaCoordinate, bool UpdateMatrix )
     return m_Coordinate;
 }
 
-const Vec3&
+const glm::vec3&
 Orientation::SetCoordinate( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
 {
-    m_Coordinate.X = X;
-    m_Coordinate.Y = Y;
-    m_Coordinate.Z = Z;
+    m_Coordinate.x = X;
+    m_Coordinate.y = Y;
+    m_Coordinate.z = Z;
 
     if ( UpdateMatrix )
     {
@@ -69,20 +67,20 @@ Orientation::SetCoordinate( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
     return m_Coordinate;
 }
 
-const Vec3&
+const glm::vec3&
 Orientation::AlterOrigin( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
 {
-    m_TranslationOrigin.X += X;
-    m_TranslationOrigin.Y += Y;
-    m_TranslationOrigin.Z += Z;
+    m_TranslationOrigin.x += X;
+    m_TranslationOrigin.y += Y;
+    m_TranslationOrigin.z += Z;
 
-    m_RotationOrigin.X += X;
-    m_RotationOrigin.Y += Y;
-    m_RotationOrigin.Z += Z;
+    m_RotationOrigin.x += X;
+    m_RotationOrigin.y += Y;
+    m_RotationOrigin.z += Z;
 
-    m_ScaleOrigin.X += X;
-    m_ScaleOrigin.Y += Y;
-    m_ScaleOrigin.Z += Z;
+    m_ScaleOrigin.x += X;
+    m_ScaleOrigin.y += Y;
+    m_ScaleOrigin.z += Z;
 
     if ( UpdateMatrix )
     {
@@ -95,12 +93,12 @@ Orientation::AlterOrigin( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
     return m_TranslationOrigin;
 }
 
-const Vec3&
+const glm::vec3&
 Orientation::SetOrigin( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
 {
-    m_TranslationOrigin.X = X;
-    m_TranslationOrigin.Y = Y;
-    m_TranslationOrigin.Z = Z;
+    m_TranslationOrigin.x = X;
+    m_TranslationOrigin.y = Y;
+    m_TranslationOrigin.z = Z;
 
     m_RotationOrigin = m_ScaleOrigin = m_TranslationOrigin;
 
@@ -115,12 +113,10 @@ Orientation::SetOrigin( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
     return m_TranslationOrigin;
 }
 
-const Vec3&
-Orientation::SetTranslationOrigin( const Vec3& TranslationOrigin, bool UpdateMatrix )
+const glm::vec3&
+Orientation::SetTranslationOrigin( const glm::vec3& TranslationOrigin, bool UpdateMatrix )
 {
-    m_TranslationOrigin.X += TranslationOrigin.X;
-    m_TranslationOrigin.Y += TranslationOrigin.Y;
-    m_TranslationOrigin.Z += TranslationOrigin.Z;
+    m_TranslationOrigin += TranslationOrigin;
 
     if ( UpdateMatrix )
     {
@@ -131,12 +127,10 @@ Orientation::SetTranslationOrigin( const Vec3& TranslationOrigin, bool UpdateMat
     return m_TranslationOrigin;
 }
 
-const Vec3&
-Orientation::SetRotationOrigin( const Vec3& RotationOrigin, bool UpdateMatrix )
+const glm::vec3&
+Orientation::SetRotationOrigin( const glm::vec3& RotationOrigin, bool UpdateMatrix )
 {
-    m_RotationOrigin.X = RotationOrigin.X;
-    m_RotationOrigin.Y = RotationOrigin.Y;
-    m_RotationOrigin.Z = RotationOrigin.Z;
+    m_RotationOrigin = RotationOrigin;
 
     if ( UpdateMatrix )
     {
@@ -147,12 +141,10 @@ Orientation::SetRotationOrigin( const Vec3& RotationOrigin, bool UpdateMatrix )
     return m_RotationOrigin;
 }
 
-const Vec3&
-Orientation::SetScaleOrigin( const Vec3& ScaleOrigin, bool UpdateMatrix )
+const glm::vec3&
+Orientation::SetScaleOrigin( const glm::vec3& ScaleOrigin, bool UpdateMatrix )
 {
-    m_ScaleOrigin.X = ScaleOrigin.X;
-    m_ScaleOrigin.Y = ScaleOrigin.Y;
-    m_ScaleOrigin.Z = ScaleOrigin.Z;
+    m_ScaleOrigin = ScaleOrigin;
 
     if ( UpdateMatrix )
     {
@@ -172,11 +164,11 @@ Orientation::GetTranslationMatrix( )
 void
 Orientation::UpdateTranslationMatrix( )
 {
-    m_TranslationMatrix = glm::translate( glm::mat4( 1 ), glm::vec3( m_Coordinate.X, m_Coordinate.Y, m_Coordinate.Z ) - glm::vec3( m_TranslationOrigin.X, m_TranslationOrigin.Y, m_TranslationOrigin.Z ) );
+    m_TranslationMatrix = glm::translate( glm::mat4( 1 ), m_Coordinate - m_TranslationOrigin );
 }
 
-const Vec3&
-Orientation::SetCoordinate( Vec3 Coor, bool UpdateMatrix )
+const glm::vec3&
+Orientation::SetCoordinate( glm::vec3 Coor, bool UpdateMatrix )
 {
     m_Coordinate = Coor;
 
@@ -189,18 +181,18 @@ Orientation::SetCoordinate( Vec3 Coor, bool UpdateMatrix )
     return m_Coordinate;
 }
 
-const Vec3&
+const glm::vec3&
 Orientation::GetRotation( ) const
 {
     return m_Rotation;
 }
 
-const Vec3&
+const glm::vec3&
 Orientation::AlterRotation( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
 {
-    m_Rotation.X += X;
-    m_Rotation.Y += Y;
-    m_Rotation.Z += Z;
+    m_Rotation.x += X;
+    m_Rotation.y += Y;
+    m_Rotation.z += Z;
 
     if ( UpdateMatrix )
     {
@@ -212,12 +204,12 @@ Orientation::AlterRotation( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
 }
 
 
-const Vec3&
+const glm::vec3&
 Orientation::SetRotation( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
 {
-    m_Rotation.X = X;
-    m_Rotation.Y = Y;
-    m_Rotation.Z = Z;
+    m_Rotation.x = X;
+    m_Rotation.y = Y;
+    m_Rotation.z = Z;
 
     if ( UpdateMatrix )
     {
@@ -237,29 +229,29 @@ Orientation::GetRotationMatrix( )
 void
 Orientation::UpdateRotationMatrix( )
 {
-    m_RotationMatrix = glm::translate( glm::mat4( 1 ), glm::vec3( m_RotationOrigin.X, m_RotationOrigin.Y, m_RotationOrigin.Z ) );
+    m_RotationMatrix = glm::translate( glm::mat4( 1 ), m_RotationOrigin );
 
     // Apply rotation on X-axis
-    if ( m_Rotation.X != 0 )
-        m_RotationMatrix = glm::rotate( m_RotationMatrix, m_Rotation.X, glm::vec3( 1.0f, 0.0f, 0.0f ) );
+    if ( m_Rotation.x != 0 )
+        m_RotationMatrix = glm::rotate( m_RotationMatrix, m_Rotation.x, glm::vec3( 1.0f, 0.0f, 0.0f ) );
 
     // Apply rotation on Y-axis
-    if ( m_Rotation.Y != 0 )
-        m_RotationMatrix = glm::rotate( m_RotationMatrix, m_Rotation.Y, glm::vec3( 0.0f, 1.0f, 0.0f ) );
+    if ( m_Rotation.y != 0 )
+        m_RotationMatrix = glm::rotate( m_RotationMatrix, m_Rotation.y, glm::vec3( 0.0f, 1.0f, 0.0f ) );
 
     // Apply rotation on Z-axis
-    if ( m_Rotation.Z != 0 )
-        m_RotationMatrix = glm::rotate( m_RotationMatrix, m_Rotation.Z, glm::vec3( 0.0f, 0.0f, 1.0f ) );
+    if ( m_Rotation.z != 0 )
+        m_RotationMatrix = glm::rotate( m_RotationMatrix, m_Rotation.z, glm::vec3( 0.0f, 0.0f, 1.0f ) );
 
-    m_RotationMatrix = glm::translate( m_RotationMatrix, -glm::vec3( m_RotationOrigin.X, m_RotationOrigin.Y, m_RotationOrigin.Z ) );
+    m_RotationMatrix = glm::translate( m_RotationMatrix, -m_RotationOrigin );
 }
 
-const Vec3&
+const glm::vec3&
 Orientation::SetScale( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
 {
-    m_Scale.X = X;
-    m_Scale.Y = Y;
-    m_Scale.Z = Z;
+    m_Scale.x = X;
+    m_Scale.y = Y;
+    m_Scale.z = Z;
 
     if ( UpdateMatrix )
     {
@@ -270,12 +262,12 @@ Orientation::SetScale( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
     return m_Scale;
 }
 
-const Vec3&
+const glm::vec3&
 Orientation::AlterScale( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
 {
-    m_Scale.X += X;
-    m_Scale.Y += Y;
-    m_Scale.Z += Z;
+    m_Scale.x += X;
+    m_Scale.y += Y;
+    m_Scale.z += Z;
 
     if ( UpdateMatrix )
     {
@@ -286,7 +278,7 @@ Orientation::AlterScale( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
     return m_Scale;
 }
 
-const Vec3&
+const glm::vec3&
 Orientation::GetScale( ) const
 {
     return m_Scale;
@@ -295,9 +287,9 @@ Orientation::GetScale( ) const
 void
 Orientation::UpdateScaleMatrix( )
 {
-    m_ScaleMatrix = glm::translate( glm::mat4( 1 ), glm::vec3( m_ScaleOrigin.X, m_ScaleOrigin.Y, m_ScaleOrigin.Z ) );
-    m_ScaleMatrix = glm::scale( m_ScaleMatrix, glm::vec3( m_Scale.X, m_Scale.Y, m_Scale.Z ) );
-    m_ScaleMatrix = glm::translate( m_ScaleMatrix, -glm::vec3( m_ScaleOrigin.X, m_ScaleOrigin.Y, m_ScaleOrigin.Z ) );
+    m_ScaleMatrix = glm::translate( glm::mat4( 1 ), m_ScaleOrigin );
+    m_ScaleMatrix = glm::scale( m_ScaleMatrix, m_Scale );
+    m_ScaleMatrix = glm::translate( m_ScaleMatrix, -m_ScaleOrigin );
 }
 
 glm::mat4&

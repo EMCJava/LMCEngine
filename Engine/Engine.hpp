@@ -130,10 +130,15 @@ public:
      *
      * */
     std::pair<int, int>
-    GetMainWindowViewPortDimensions( ) const;
-
+    GetPhysicalMainWindowViewPortDimensions( ) const;
     void
-    SetMainWindowViewPortDimensions( std::pair<int, int> Dimension );
+    SetPhysicalMainWindowViewPortDimensions( std::pair<int, int> Dimension );
+
+    std::pair<int, int>
+    GetLogicalMainWindowViewPortDimensions( ) const;
+
+    std::pair<int, int>
+    GetMainWindowViewPortDimensions( ) const;
 
     /*
      *
@@ -194,12 +199,15 @@ private:
 
     /*
      *
-     * Main view port size
-     * ImGui window size on editor build
-     * Game window size in stand-alone build
+     * If m_ViewportLogicalDimensionSetting is 0 (default), game viewport size will be actual pixel size (m_ViewportPhysicalDimension)
+     * else game viewport size will rescale within m_ViewportPhysicalDimension with same aspect ratio
      *
      * */
-    std::pair<float, float> m_MainViewPortDimensions { };
+    std::pair<int, int> m_ViewportLogicalDimensionSetting { 1920, 1080 };
+    std::pair<int, int> m_ViewportLogicalDimension { };   // Avoid checking every frame
+
+    std::pair<int, int> m_ViewportPhysicalDimension { };
+    std::pair<int, int> m_ViewportDimension { };
 
     /*
      *

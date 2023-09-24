@@ -27,7 +27,8 @@ protected:
      * Main viewport setup
      *
      * */
-    std::pair<int, int> m_MainViewPortDimension { };
+    std::pair<int, int> m_ViewportLogicalDimension { };
+    std::pair<int, int> m_ViewportPhysicalDimension { };
 
     class RootConceptTy*         m_RootConcept = nullptr;
     std::shared_ptr<PureConcept> m_RootConceptFakeShared { };

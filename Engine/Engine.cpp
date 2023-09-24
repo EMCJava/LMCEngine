@@ -93,7 +93,9 @@ Engine::OnMouseButtonInput( struct GLFWwindow* window, int button, int action, i
 void
 Engine::OnWindowResize( struct GLFWwindow* /*unused*/, int Width, int Height )
 {
-    Engine::GetEngine( )->SetMainWindowViewPortDimensions( { Width, Height } );
+    // Should only be used when in non editor mode.
+    // Editor mode will override it.
+    Engine::GetEngine( )->SetPhysicalMainWindowViewPortDimensions( { Width, Height } );
 }
 
 Engine::Engine( )
@@ -307,7 +309,7 @@ Engine::UpdateRootConcept( )
              * Make sure new root concept reset camera
              *
              * */
-            m_MainViewPortDimensions = { };
+            m_ViewportPhysicalDimension = { };
         }
 
         TEST( RootConcept->CanCastVT<ConceptApplicable>( ) )
@@ -550,9 +552,9 @@ Engine::MakeMainWindowCurrentContext( )
 }
 
 std::pair<int, int>
-Engine::GetMainWindowViewPortDimensions( ) const
+Engine::GetPhysicalMainWindowViewPortDimensions( ) const
 {
-    return m_MainViewPortDimensions;
+    return m_ViewportPhysicalDimension;
 }
 
 AudioEngine*
@@ -568,9 +570,25 @@ Engine::GetUserInputHandle( )
 }
 
 void
-Engine::SetMainWindowViewPortDimensions( std::pair<int, int> Dimension )
+Engine::SetPhysicalMainWindowViewPortDimensions( std::pair<int, int> Dimension )
 {
-    m_MainViewPortDimensions = Dimension;
+    m_ViewportPhysicalDimension = Dimension;
+
+    if ( m_ViewportLogicalDimensionSetting.first == 0 || m_ViewportLogicalDimensionSetting.second == 0 )
+    {
+        m_ViewportDimension = m_ViewportLogicalDimension = m_ViewportPhysicalDimension;
+    } else
+    {
+        const auto WidthFollowHeight = ( static_cast<FloatTy>( m_ViewportLogicalDimensionSetting.first ) / m_ViewportLogicalDimensionSetting.second ) * m_ViewportPhysicalDimension.second;
+        if ( WidthFollowHeight <= m_ViewportPhysicalDimension.first )
+        {
+            m_ViewportDimension = { WidthFollowHeight, m_ViewportPhysicalDimension.second };
+        } else
+        {
+            m_ViewportDimension = { m_ViewportPhysicalDimension.first, ( static_cast<FloatTy>( m_ViewportLogicalDimensionSetting.second ) / m_ViewportLogicalDimensionSetting.first ) * m_ViewportPhysicalDimension.first };
+        }
+        m_ViewportLogicalDimension = m_ViewportLogicalDimensionSetting;
+    }
 }
 
 LogGroup*
@@ -622,6 +640,16 @@ GlobalResourcePool*
 Engine::GetGlobalResourcePool( )
 {
     return m_GlobalResourcePool;
+}
+std::pair<int, int>
+Engine::GetLogicalMainWindowViewPortDimensions( ) const
+{
+    return m_ViewportLogicalDimension;
+}
+std::pair<int, int>
+Engine::GetMainWindowViewPortDimensions( ) const
+{
+    return m_ViewportDimension;
 }
 
 void ( *Engine::GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* )
