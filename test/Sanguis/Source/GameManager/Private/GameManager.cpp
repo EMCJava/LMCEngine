@@ -61,6 +61,22 @@ GameManager::GameManager( )
         PP->SetSprite( Sp );
     }
 
+    {
+        auto Sp = AddConcept<SpriteSquareTexture>( 1928, 1080 );
+        Sp->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" ) );
+        Sp->SetTexturePath( "Assets/Texture/UI/Inv.png" );
+        Sp->SetupSprite( );
+
+        Sp->SetCoordinate( -1928 / 2, -1080 / 2 );
+    }
+
+    {
+        auto Sp = AddConcept<SpriteSquareTexture>( 512, 512 );
+        Sp->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" ) );
+        Sp->SetTexturePath( "Assets/Texture/UI/wand.png" );
+        Sp->SetupSprite( );
+    }
+
     SaBaseBoard BB;
 
     {
