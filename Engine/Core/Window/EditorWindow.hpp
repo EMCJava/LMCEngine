@@ -111,7 +111,8 @@ private:
      * Main viewport setup
      *
      * */
-    uint32_t m_PreviousFrameTextureID { };
+    uint32_t            m_PreviousFrameTextureID { };
+    std::pair<int, int> m_FrameBufferDimension { };
 
     /*
      *

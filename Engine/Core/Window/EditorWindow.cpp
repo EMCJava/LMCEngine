@@ -29,11 +29,12 @@ void
 EditorWindow::Update( )
 {
     m_HRFrameBuffer->BindFrameBuffer( );
-    const auto WindowDimension = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
-    if ( m_MainViewPortDimension != WindowDimension )
+    const auto MainWindowViewPortDimensions = Engine::GetEngine( )->GetLogicalMainWindowViewPortDimensions( );
+    if ( m_FrameBufferDimension != MainWindowViewPortDimensions )
     {
+        m_FrameBufferDimension = MainWindowViewPortDimensions;
         // Size changed, need to recreate the frame buffer
-        m_HRFrameBuffer->RescaleFrameBuffer( WindowDimension.first, WindowDimension.second );
+        m_HRFrameBuffer->RescaleFrameBuffer( m_FrameBufferDimension.first, m_FrameBufferDimension.second );
     }
 
     // Render main game
@@ -191,13 +192,18 @@ EditorWindow::UpdateImGui( )
 
         const auto                WindowDimensions    = ImGui::GetContentRegionAvail( );
         const std::pair<int, int> WindowDimensionPair = { WindowDimensions.x, WindowDimensions.y };
-        if ( m_MainViewPortDimension != WindowDimensionPair )
+        if ( m_ViewportPhysicalDimension != WindowDimensionPair )
         {
-            Engine::GetEngine( )->SetMainWindowViewPortDimensions( WindowDimensionPair );
+            Engine::GetEngine( )->SetPhysicalMainWindowViewPortDimensions( m_ViewportPhysicalDimension = WindowDimensionPair );
         }
 
+        const auto ImageSize = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
+
+        ImGui::SetCursorPosX( ( WindowDimensions.x - ImageSize.first ) * 0.5f );
+        ImGui::SetCursorPosY( ( WindowDimensions.y - ImageSize.second ) * 0.5f );
+
         ImGui::Image( reinterpret_cast<void*>( m_PreviousFrameTextureID ),
-                      WindowDimensions, ImVec2( 0, 1 ), ImVec2( 1, 0 ) );
+                      ImVec2( ImageSize.first, ImageSize.second ), ImVec2( 0, 1 ), ImVec2( 1, 0 ) );
 
         {
             ImGui::SetCursorScreenPos( ChildStartPos );
