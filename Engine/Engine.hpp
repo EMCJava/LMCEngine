@@ -89,7 +89,6 @@ public:
     OnKeyboardInput( struct GLFWwindow* window, int key, int scancode, int action, int mods );
     static void
     OnMouseButtonInput( struct GLFWwindow* window, int button, int action, int mods );
-
     static void
     OnWindowResize( struct GLFWwindow* window, int Width, int Height );
 
@@ -136,6 +135,10 @@ public:
 
     std::pair<int, int>
     GetLogicalMainWindowViewPortDimensions( ) const;
+
+    // Set preferred resolution/ratio
+    void
+    SetLogicalMainWindowViewPortDimensions( std::pair<int, int> Dimension );
 
     std::pair<int, int>
     GetMainWindowViewPortDimensions( ) const;
