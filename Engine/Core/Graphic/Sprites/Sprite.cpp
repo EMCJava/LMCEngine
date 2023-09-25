@@ -14,7 +14,7 @@
 #include <variant>
 
 DEFINE_CONCEPT( Sprite )
-DEFINE_SIMPLE_IMGUI_TYPE( Sprite, m_VAO, m_VBO, m_EBO, m_Shader, m_IsAbsolutePosition )
+DEFINE_SIMPLE_IMGUI_TYPE( Sprite, m_VAO, m_VBO, m_EBO, m_Shader, m_IsAbsolutePosition, SetupSprite )
 
 Sprite::~Sprite( )
 {
