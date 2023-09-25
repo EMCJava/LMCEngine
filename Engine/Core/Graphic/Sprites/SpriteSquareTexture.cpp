@@ -107,7 +107,7 @@ void
 SpriteSquareTexture::Render( )
 {
     if ( !m_Enabled ) return;
-    
+
     BindTexture( );
     SpriteSquare::Render( );
 }
@@ -178,4 +178,12 @@ void
 SpriteSquareTexture::SetImage( std::shared_ptr<struct PureConceptImage> Image )
 {
     m_TextureImage = Image;
+}
+
+SpriteSquareTexture::SpriteSquareTexture( const std::shared_ptr<Shader>& Sha, const std::shared_ptr<struct PureConceptImage>& Img )
+    : SpriteSquare( Img->GetImageDimension( ).first, Img->GetImageDimension( ).second )
+{
+    SetImage( Img );
+    SetShader( Sha );
+    SpriteSquareTexture::SetupSprite( );
 }

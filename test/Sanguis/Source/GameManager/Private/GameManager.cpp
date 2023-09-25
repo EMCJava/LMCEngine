@@ -7,6 +7,7 @@
 #include "ControlNodeSimpleEffect.hpp"
 
 #include <Engine/Core/Input/UserInput.hpp>
+#include <Engine/Core/Graphic/Image/PureConceptImage.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
@@ -28,6 +29,16 @@ DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, PureConcept, m_Effect, TestInvoka
 GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
+    auto DefaultShader = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" );
+    auto DefaultShaderInstancing = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShaderInstancing" );
+
+    {
+        m_Camera = AddConcept<PureConceptCamera>( );
+        m_Camera->RegisterAsDefaultCamera( );
+    }
+
+    AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/Inv.png" ) )->SetCoordinate( -1928 / 2, -1080 / 2 );
+    AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/wand.png" ) );
 
     {
         m_PAR = std::make_unique<ParticleAttributesRandomizer>( );
@@ -37,49 +48,11 @@ GameManager::GameManager( )
         m_PAR->SetStartLinearColor( glm::vec4( 1, 0, 0, 0.9 ), glm::vec4( 1, 0.2, 0, 1 ) );
         m_PAR->SetEndLinearColor( glm::vec4( 1, 0.6, 0.4, 0 ), glm::vec4( 1, 0.8, 0.6, 0 ) );
         m_PAR->SetLifetime( 1, 5 );
-    }
-
-    {
-        m_Camera = AddConcept<PureConceptCamera>( );
-        m_Camera->RegisterAsDefaultCamera( );
-    }
-
-    {
-        auto Sp = AddConcept<SpriteSquareTexture>( 1928, 1080 );
-        Sp->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" ) );
-        Sp->SetTexturePath( "Assets/Texture/UI/Inv.png" );
-        Sp->SetupSprite( );
-
-        Sp->SetCoordinate( -1928 / 2, -1080 / 2 );
-    }
-
-    {
-        auto Sp = AddConcept<SpriteSquareTexture>( 512, 512 );
-        Sp->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" ) );
-        Sp->SetTexturePath( "Assets/Texture/UI/wand.png" );
-        Sp->SetupSprite( );
-    }
-
-    {
-        auto Sp = std::make_shared<SpriteSquareTexture>( 512, 512 );
-        Sp->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShaderInstancing" ) );
-        Sp->SetTexturePath( "Assets/Texture/Particle/star.png" );
-        Sp->SetupSprite( );
 
         m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
-        auto& PP = m_ParticlePools.back( );
-        PP->SetSprite( Sp );
-    }
-
-    {
-        auto Sp = std::make_shared<SpriteSquareTexture>( 512, 512 );
-        Sp->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShaderInstancing" ) );
-        Sp->SetTexturePath( "Assets/Texture/Particle/ring.png" );
-        Sp->SetupSprite( );
-
+        m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::make_shared<PureConceptImage>( "Assets/Texture/Particle/star.png" ) ) );
         m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
-        auto& PP = m_ParticlePools.back( );
-        PP->SetSprite( Sp );
+        m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::make_shared<PureConceptImage>( "Assets/Texture/Particle/ring.png" ) ) );
     }
 
     SaBaseBoard BB;

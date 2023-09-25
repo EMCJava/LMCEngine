@@ -13,6 +13,13 @@ class SpriteSquareTexture : public SpriteSquare
 public:
     using SpriteSquare::SpriteSquare;
 
+    /*
+     *
+     * This will set size to the image and SetupSprite will be called
+     *
+     * */
+    SpriteSquareTexture( const std::shared_ptr<Shader>& Sha, const std::shared_ptr<class PureConceptImage>& Img );
+
     void
     SetTexturePath( const std::string& TexturePath );
 
