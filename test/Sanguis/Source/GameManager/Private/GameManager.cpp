@@ -20,6 +20,7 @@
 #include <spdlog/spdlog.h>
 
 #include <fstream>
+#include <sstream>
 
 DEFINE_CONCEPT_DS_MA_SE( GameManager )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, PureConcept, m_Effect, TestInvokable )

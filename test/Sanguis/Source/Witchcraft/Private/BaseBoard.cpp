@@ -8,6 +8,7 @@
 
 #include <ranges>
 #include <deque>
+#include <list>
 
 void
 SaBaseBoard::GetEffect( SaEffect& Result )
