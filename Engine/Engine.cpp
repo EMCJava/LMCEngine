@@ -577,15 +577,18 @@ Engine::SetPhysicalMainWindowViewPortDimensions( std::pair<int, int> Dimension )
     if ( m_ViewportLogicalDimensionSetting.first == 0 || m_ViewportLogicalDimensionSetting.second == 0 )
     {
         m_ViewportDimension = m_ViewportLogicalDimension = m_ViewportPhysicalDimension;
+        m_UserInput->SetCursorPositionScale( 1 );
     } else
     {
         const auto WidthFollowHeight = ( static_cast<FloatTy>( m_ViewportLogicalDimensionSetting.first ) / m_ViewportLogicalDimensionSetting.second ) * m_ViewportPhysicalDimension.second;
         if ( WidthFollowHeight <= m_ViewportPhysicalDimension.first )
         {
             m_ViewportDimension = { WidthFollowHeight, m_ViewportPhysicalDimension.second };
+            m_UserInput->SetCursorPositionScale( static_cast<FloatTy>( m_ViewportLogicalDimensionSetting.second ) / m_ViewportPhysicalDimension.second );
         } else
         {
             m_ViewportDimension = { m_ViewportPhysicalDimension.first, ( static_cast<FloatTy>( m_ViewportLogicalDimensionSetting.second ) / m_ViewportLogicalDimensionSetting.first ) * m_ViewportPhysicalDimension.first };
+            m_UserInput->SetCursorPositionScale( static_cast<FloatTy>( m_ViewportLogicalDimensionSetting.first ) / m_ViewportPhysicalDimension.first );
         }
         m_ViewportLogicalDimension = m_ViewportLogicalDimensionSetting;
     }

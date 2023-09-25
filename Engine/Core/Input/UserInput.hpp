@@ -12,10 +12,17 @@
 
 namespace
 {
-inline std::pair<double, double>
-operator-( const std::pair<double, double>& A, const std::pair<double, double>& B )
+template <typename Ty>
+inline std::pair<Ty, Ty>
+operator-( const std::pair<Ty, Ty>& A, const std::pair<Ty, Ty>& B )
 {
     return { A.first - B.first, A.second - B.second };
+}
+template <typename Ty, typename ScTy>
+inline std::pair<Ty, Ty>
+operator*( const std::pair<Ty, Ty>& A, const ScTy& B )
+{
+    return { A.first * B, A.second * B };
 }
 }   // namespace
 
@@ -46,6 +53,7 @@ public:
     inline void SetEventWindow( GLFWwindow* window ) { m_EventWindow = window; }
     inline void SetCursorSensitivity( float mouseSensitivity ) { m_CursorSensitivity = mouseSensitivity; }
     inline void SetCursorTopLeftPosition( const std::pair<int, int>& CursorTopLeftPosition ) { m_CursorTopLeftPosition = CursorTopLeftPosition; }
+    inline void SetCursorPositionScale( FloatTy Scale ) { m_CursorPositionScale = Scale; }
 
     void      RegisterKeyUpdate( bool pressed, KeyIDTY id );
     KeyState& GetKeyState( KeyIDTY id );
@@ -57,7 +65,9 @@ public:
     [[nodiscard]] KeyState& GetFunctionKey( );
 
     [[nodiscard]] inline FloatTy             GetCursorSensitivity( ) const { return m_CursorSensitivity; }
-    [[nodiscard]] inline std::pair<int, int> GetCursorPosition( ) const { return m_CursorPosition - m_CursorTopLeftPosition; }
+    [[nodiscard]] inline std::pair<int, int> GetCursorPosition( ) const { return ( m_CursorPosition - m_CursorTopLeftPosition ) * m_CursorPositionScale; }
+    [[nodiscard]] inline std::pair<int, int> GetCursorTopLeftPosition( ) const { return m_CursorTopLeftPosition; }
+    [[nodiscard]] inline FloatTy             GetCursorPositionScale( ) const { return m_CursorPositionScale; }
     [[nodiscard]] inline uint32_t            GetFrameCount( ) const { return m_FrameCount; }
     [[nodiscard]] inline int32_t             GetKeyPressCount( ) const { return m_KeyPressingCount; }
 
@@ -68,6 +78,7 @@ private:
     KeyState            m_PrimaryKey;
     KeyState            m_SecondaryKey;
     KeyState            m_FunctionKey;
+    FloatTy             m_CursorPositionScale { 1 };
     std::pair<int, int> m_CursorTopLeftPosition;
     std::pair<int, int> m_CursorPosition;
 

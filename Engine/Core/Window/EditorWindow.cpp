@@ -29,7 +29,7 @@ void
 EditorWindow::Update( )
 {
     m_HRFrameBuffer->BindFrameBuffer( );
-    const auto MainWindowViewPortDimensions = Engine::GetEngine( )->GetLogicalMainWindowViewPortDimensions( );
+    const auto MainWindowViewPortDimensions = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
     if ( m_FrameBufferDimension != MainWindowViewPortDimensions )
     {
         m_FrameBufferDimension = MainWindowViewPortDimensions;
@@ -185,7 +185,6 @@ EditorWindow::UpdateImGui( )
         // It also alows customization
         ImGui::BeginChild( "Render" );
         auto ChildStartPosition = ImGui::GetWindowPos( );
-        Engine::GetEngine( )->GetUserInputHandle( )->SetCursorTopLeftPosition( { ChildStartPosition.x, ChildStartPosition.y } );
 
         ImVec2      ChildStartPos = ImGui::GetCursorScreenPos( );
         const auto& io            = ImGui::GetIO( );
@@ -199,8 +198,13 @@ EditorWindow::UpdateImGui( )
 
         const auto ImageSize = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
 
-        ImGui::SetCursorPosX( ( WindowDimensions.x - ImageSize.first ) * 0.5f );
-        ImGui::SetCursorPosY( ( WindowDimensions.y - ImageSize.second ) * 0.5f );
+        const FloatTy XOffset = ( WindowDimensions.x - ImageSize.first ) * 0.5f;
+        const FloatTy YOffset = ( WindowDimensions.y - ImageSize.second ) * 0.5f;
+
+        ImGui::SetCursorPosX( XOffset );
+        ImGui::SetCursorPosY( YOffset );
+
+        Engine::GetEngine( )->GetUserInputHandle( )->SetCursorTopLeftPosition( { ChildStartPosition.x + XOffset, ChildStartPosition.y + YOffset } );
 
         ImGui::Image( reinterpret_cast<void*>( m_PreviousFrameTextureID ),
                       ImVec2( ImageSize.first, ImageSize.second ), ImVec2( 0, 1 ), ImVec2( 1, 0 ) );

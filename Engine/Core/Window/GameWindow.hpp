@@ -29,6 +29,7 @@ protected:
      * */
     std::pair<int, int> m_ViewportLogicalDimension { };
     std::pair<int, int> m_ViewportPhysicalDimension { };
+    std::pair<int, int> m_ViewportDimension { };
 
     class RootConceptTy*         m_RootConcept = nullptr;
     std::shared_ptr<PureConcept> m_RootConceptFakeShared { };

@@ -27,12 +27,16 @@ GameWindow::Update( )
 
             if ( m_ConceptRenderables.NotEmpty( ) )
             {
-                const auto LogicalMainWindowViewPortDimensions = Engine::GetEngine( )->GetLogicalMainWindowViewPortDimensions( );
+                const auto MainWindowViewPortDimensions = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
 
                 // we update the camera to new viewport size here
-                if ( LogicalMainWindowViewPortDimensions != m_ViewportLogicalDimension )
+                if ( MainWindowViewPortDimensions != m_ViewportDimension )
                 {
-                    m_ViewportLogicalDimension = LogicalMainWindowViewPortDimensions;
+                    m_ViewportDimension        = MainWindowViewPortDimensions;
+                    m_ViewportLogicalDimension = Engine::GetEngine( )->GetLogicalMainWindowViewPortDimensions( );
+
+                    spdlog::info( "Viewport dimensions changed to {}x{}", m_ViewportDimension.first, m_ViewportDimension.second );
+                    spdlog::info( "Camera dimensions changed to {}x{}", m_ViewportLogicalDimension.first, m_ViewportLogicalDimension.second );
 
                     ( (Concept*) RootConcept )->GetConcepts( m_ConceptCameras );
                     m_ConceptCameras.ForEach( [ this ]( std::shared_ptr<PureConceptCamera>& item ) {
@@ -45,7 +49,7 @@ GameWindow::Update( )
                  * Render every registered ConceptRenderable
                  *
                  * */
-                m_GLContext->Viewport( 0, 0, m_ViewportLogicalDimension.first, m_ViewportLogicalDimension.second );
+                m_GLContext->Viewport( 0, 0, m_ViewportDimension.first, m_ViewportDimension.second );
                 m_GLContext->Enable( GL_BLEND );
                 m_GLContext->BlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
                 m_GLContext->ClearColor( 0.F, 0.F, 0.F, 1.0f );
