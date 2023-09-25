@@ -70,7 +70,7 @@ Sprite::SetShaderMatrix( )
             }
         }
 
-        m_Shader->SetMat4( "modelMatrix", GetTranslationMatrix( ) * GetRotationMatrix( ) );
+        m_Shader->SetMat4( "modelMatrix", GetModelMatrix() );
     }
 }
 
