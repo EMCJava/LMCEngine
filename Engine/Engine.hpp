@@ -89,7 +89,6 @@ public:
     OnKeyboardInput( struct GLFWwindow* window, int key, int scancode, int action, int mods );
     static void
     OnMouseButtonInput( struct GLFWwindow* window, int button, int action, int mods );
-
     static void
     OnWindowResize( struct GLFWwindow* window, int Width, int Height );
 
@@ -136,6 +135,10 @@ public:
 
     std::pair<int, int>
     GetLogicalMainWindowViewPortDimensions( ) const;
+
+    // Set preferred resolution/ratio
+    void
+    SetLogicalMainWindowViewPortDimensions( std::pair<int, int> Dimension );
 
     std::pair<int, int>
     GetMainWindowViewPortDimensions( ) const;
@@ -199,8 +202,9 @@ private:
 
     /*
      *
+     * m_ViewportDimension is the actual display size by pixel, always maintain same aspect ratio with m_ViewportLogicalDimensionSetting
+     *
      * If m_ViewportLogicalDimensionSetting is 0 (default), game viewport size will be actual pixel size (m_ViewportPhysicalDimension)
-     * else game viewport size will rescale within m_ViewportPhysicalDimension with same aspect ratio
      *
      * */
     std::pair<int, int> m_ViewportLogicalDimensionSetting { 1920, 1080 };

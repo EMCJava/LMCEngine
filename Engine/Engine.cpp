@@ -168,7 +168,7 @@ Engine::Engine( )
     m_RootConcept = new RootConceptTy;
     m_MainWindow->SetRootConcept( m_RootConcept );
     glfwSetWindowSizeCallback( m_MainWindow->GetWindowHandle( ), OnWindowResize );
-    SetPhysicalMainWindowViewPortDimensions( m_MainWindow->GetDimensions( ) );
+    SetLogicalMainWindowViewPortDimensions( { 1920, 1080 } );   // default resolution
     ResetTimer( );
 #endif
 
@@ -653,6 +653,15 @@ std::pair<int, int>
 Engine::GetMainWindowViewPortDimensions( ) const
 {
     return m_ViewportDimension;
+}
+
+void
+Engine::SetLogicalMainWindowViewPortDimensions( std::pair<int, int> Dimension )
+{
+    m_ViewportLogicalDimensionSetting = Dimension;
+
+    // Attempt to reset viewport
+    SetPhysicalMainWindowViewPortDimensions( m_MainWindow->GetDimensions( ) );
 }
 
 void ( *Engine::GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* )
