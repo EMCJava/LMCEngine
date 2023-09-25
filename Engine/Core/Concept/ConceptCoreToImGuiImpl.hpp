@@ -17,6 +17,18 @@
 
 /*
  *
+ * Is invokable switches
+ *
+ * */
+template <typename Ty, typename MemPtr>
+inline typename std::enable_if_t<std::is_member_function_pointer_v<std::remove_pointer_t<MemPtr>>, void>
+ToImGuInvokableSwitch( const char* Name, Ty Value, MemPtr MemberPtr );
+template <typename Ty, typename MemPtr>
+inline typename std::enable_if_t<std::is_member_object_pointer_v<std::remove_pointer_t<MemPtr>>, void>
+ToImGuInvokableSwitch( const char* Name, Ty Value, MemPtr MemberPtr );
+
+/*
+ *
  * Is a pointer switches
  *
  * */
@@ -36,6 +48,14 @@ ToImGuiWidget( const char* Name, glm::vec3* Value )
     static_assert( sizeof( glm::vec3 ) == sizeof( float ) * 3 );
     static_assert( std::is_same_v<FloatTy, float> );
     ImGui::InputFloat3( Name, (FloatTy*) Value );
+}
+
+inline void
+ToImGuiWidget( const char* Name, glm::vec4* Value )
+{
+    static_assert( sizeof( glm::vec4 ) == sizeof( float ) * 4 );
+    static_assert( std::is_same_v<FloatTy, float> );
+    ImGui::InputFloat4( Name, (FloatTy*) Value );
 }
 
 inline void
@@ -312,4 +332,31 @@ inline typename std::enable_if_t<!std::is_pointer_v<Ty>, void>
 ToImGuiPointerSwitch( const char* Name, Ty& Value )
 {
     ToImGuiWidget( Name, &Value );
+}
+
+/*
+ *
+ * Is a invokable member function
+ *
+ * */
+template <typename Ty, typename MemPtr>
+inline typename std::enable_if_t<std::is_member_function_pointer_v<std::remove_pointer_t<MemPtr>>, void>
+ToImGuInvokableSwitch( const char* Name, Ty Value, MemPtr MemberPtr )
+{
+    if ( ImGui::Button( Name ) )
+    {
+        ( Value->*( MemberPtr ) )( );
+    }
+}
+
+/*
+ *
+ * Is a member object
+ *
+ * */
+template <typename Ty, typename MemPtr>
+inline typename std::enable_if_t<std::is_member_object_pointer_v<std::remove_pointer_t<MemPtr>>, void>
+ToImGuInvokableSwitch( const char* Name, Ty Value, MemPtr MemberPtr )
+{
+    ToImGuiPointerSwitch( Name, Value->*MemberPtr );
 }

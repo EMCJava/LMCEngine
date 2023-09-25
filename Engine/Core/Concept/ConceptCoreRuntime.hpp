@@ -286,9 +286,11 @@
 #define LMCENGINE_FOREACH( func, ... )         LMCENGINE_EXPAND( LMCENGINE_PASTE( func, __VA_ARGS__ ) )
 #define LMCENGINE_FOREACH_2( func, arg1, ... ) LMCENGINE_EXPAND( LMCENGINE_PASTE_2( func, arg1, __VA_ARGS__ ) )
 
-#define SIMPLE_DEFAULT_IMGUI_TYPE( VAR ) ToImGuiPointerSwitch( #VAR, &Value->VAR );
+#define SIMPLE_DEFAULT_IMGUI_TYPE( VAR )                        ToImGuiPointerSwitch( #VAR, &Value->VAR );
+#define SIMPLE_DEFAULT_IMGUI_TYPE_MEMBER_PTR( class_name, VAR ) ToImGuInvokableSwitch( #VAR, Value, &class_name::VAR );
 
-#define SIMPLE_LIST_DEFAULT_IMGUI_TYPE( ... ) LMCENGINE_FOREACH( SIMPLE_DEFAULT_IMGUI_TYPE, __VA_ARGS__ )
+#define SIMPLE_LIST_DEFAULT_IMGUI_TYPE( ... )                        LMCENGINE_FOREACH( SIMPLE_DEFAULT_IMGUI_TYPE, __VA_ARGS__ )
+#define SIMPLE_LIST_DEFAULT_IMGUI_TYPE_MEMBER_PTR( class_name, ... ) LMCENGINE_FOREACH_2( SIMPLE_DEFAULT_IMGUI_TYPE_MEMBER_PTR, class_name, __VA_ARGS__ )
 
 #define DEFINE_DLL_TYPE_TO_IMGUI( class_name )                               \
     LMC_API void ToImGuiWidget_##class_name( const char* Name, void* Value ) \
@@ -315,7 +317,7 @@
         {                                                                                                  \
             ImGuiGroup::BeginGroupPanel( Name, ImVec2 { -1, 0 } );                                         \
         }                                                                                                  \
-        SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ );                                                     \
+        SIMPLE_LIST_DEFAULT_IMGUI_TYPE_MEMBER_PTR( class_name, __VA_ARGS__ );                              \
         if ( !ShouldAddSeparator )                                                                         \
         {                                                                                                  \
             ImGui::Spacing( );                                                                             \
@@ -341,7 +343,7 @@
         {                                                                                                  \
             ImGuiGroup::BeginGroupPanel( Name, ImVec2 { -1, 0 } );                                         \
         }                                                                                                  \
-        SIMPLE_LIST_DEFAULT_IMGUI_TYPE( __VA_ARGS__ )                                                      \
+        SIMPLE_LIST_DEFAULT_IMGUI_TYPE_MEMBER_PTR( class_name, __VA_ARGS__ );                              \
         chain_target::ToImGuiWidgetInternal( Name, Value, ShouldAddSeparator );                            \
         if ( !ShouldAddSeparator )                                                                         \
         {                                                                                                  \
