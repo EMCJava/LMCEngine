@@ -168,7 +168,7 @@ Engine::Engine( )
     m_RootConcept = new RootConceptTy;
     m_MainWindow->SetRootConcept( m_RootConcept );
     glfwSetWindowSizeCallback( m_MainWindow->GetWindowHandle( ), OnWindowResize );
-    SetMainWindowViewPortDimensions( m_MainWindow->GetDimensions( ) );
+    SetPhysicalMainWindowViewPortDimensions( m_MainWindow->GetDimensions( ) );
     ResetTimer( );
 #endif
 
