@@ -43,7 +43,8 @@ GameManager::GameManager( )
 
     {
         auto Sp = AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/wand.png" ) );
-        Sp->SetScale( 0.5, 0.5 );
+        Sp->SetScale( 0.7, 0.7 );
+        Sp->SetCoordinate( 800, 181.6 );
     }
 
     {
