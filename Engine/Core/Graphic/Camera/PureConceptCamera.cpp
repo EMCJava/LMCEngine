@@ -77,6 +77,10 @@ PureConceptCamera::ScreenCoordToUICoord( std::pair<FloatTy, FloatTy>& ScreenCoor
     ScreenCoord.first -= m_CameraWidth / 2.0F;
     ScreenCoord.second = -( ScreenCoord.second - m_CameraHeight / 2.0F );   // Reverse Y-axis
 
+    // Reverse camera offset
+    ScreenCoord.first += m_Coordinate.x;
+    ScreenCoord.second += m_Coordinate.y;
+
     // Camera Scale
     ScreenCoord.first /= m_Scale;
     ScreenCoord.second /= m_Scale;

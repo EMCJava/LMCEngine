@@ -29,16 +29,22 @@ DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, PureConcept, m_Effect, TestInvoka
 GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
-    auto DefaultShader = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" );
+    auto DefaultShader           = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" );
     auto DefaultShaderInstancing = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShaderInstancing" );
 
     {
         m_Camera = AddConcept<PureConceptCamera>( );
         m_Camera->RegisterAsDefaultCamera( );
+
+        m_Camera->SetCoordinate( 1920 / 2, 1080 / 2 );
     }
 
-    AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/Inv.png" ) )->SetCoordinate( -1928 / 2, -1080 / 2 );
-    AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/wand.png" ) );
+    AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/Inv.png" ) );
+
+    {
+        auto Sp = AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/wand.png" ) );
+        Sp->SetScale( 0.5, 0.5 );
+    }
 
     {
         m_PAR = std::make_unique<ParticleAttributesRandomizer>( );
