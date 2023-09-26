@@ -6,3 +6,7 @@ set(SHARED_BINARY_PATH_FORMAT "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_SHARED_
 file(READ ${PROJECT_PATH_CONFIG_PATH} project_config_data)
 string(JSON project_new_config_data SET "${project_config_data}" "shared_library_path_${CMAKE_BUILD_TYPE}_format" "\"${SHARED_BINARY_PATH_FORMAT}\"")
 file(WRITE ${PROJECT_PATH_CONFIG_PATH} "${project_new_config_data}")
+
+## Constants for runtime library loading
+set(HOT_RELOAD_TMP_PATH "HotReloadDLLBackup")
+add_compile_definitions("HOT_RELOAD_TMP_PATH=\"${HOT_RELOAD_TMP_PATH}\"")

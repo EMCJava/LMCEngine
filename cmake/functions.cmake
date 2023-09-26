@@ -19,6 +19,11 @@ function(declare_library)
 
     if (${EditorBuild} AND NOT PARSED_ARGS_STATIC)
         add_library(${PARSED_ARGS_NAME}.lib SHARED ${PARSED_ARGS_SRCS})
+
+        if (MSVC AND WIN32 AND NOT MSVC_VERSION VERSION_LESS 142)
+            target_link_options(${PARSED_ARGS_NAME}.lib PRIVATE /PDBALTPATH:$<TARGET_PDB_FILE_NAME:${PARSED_ARGS_NAME}.lib>)
+        endif ()
+
     else ()
         add_library(${PARSED_ARGS_NAME}.lib STATIC ${PARSED_ARGS_SRCS})
     endif ()

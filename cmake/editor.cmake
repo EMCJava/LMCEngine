@@ -21,6 +21,6 @@ message(STATUS "EditorBuild: ${EditorBuild}")
 ## For spdlog
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-include(functions)
 include(defines)
 include(hot_reload)
+include(functions)

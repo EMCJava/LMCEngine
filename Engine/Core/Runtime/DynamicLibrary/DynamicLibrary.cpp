@@ -28,8 +28,6 @@ static_assert( false, "Platform not defined" );
 #include <algorithm>
 #include <filesystem>
 
-namespace
-{
 namespace fs = std::filesystem;
 
 inline void
@@ -62,8 +60,6 @@ MakeSureOperation( auto&& Operation )
     while ( !Operation( ) )
         ;
 }
-
-}   // namespace
 
 DynamicLibrary::DynamicLibrary( bool MakeCopyOnLoad )
 {
@@ -162,7 +158,14 @@ DynamicLibrary::MakeDLLCopy( )
 {
     RemoveDLLCopy( );
 
-    m_DLLLoadPath = m_DLLTmpPath = m_DLLPath + ".tmp";
+    fs::path   OriginalDLLPath        = m_DLLPath;
+    const auto OriginalDLLParentPath  = OriginalDLLPath.parent_path( );
+    const auto HotReloadDLLParentPath = OriginalDLLParentPath / HOT_RELOAD_TMP_PATH;
+
+    if ( !fs::exists( HotReloadDLLParentPath ) ) fs::create_directories( HotReloadDLLParentPath );
+    const auto HotReloadDLLPath = HotReloadDLLParentPath / ( OriginalDLLPath.filename( ) );
+
+    m_DLLLoadPath = m_DLLTmpPath = HotReloadDLLPath.string( );
 
     MakeSureOperation( [ this, retry_left = 10 ]( ) mutable {
         std::error_code OperationError;
@@ -189,20 +192,49 @@ DynamicLibrary::MakeDLLCopy( )
         return true;
     } );
 
-    const std::filesystem::path DLLFilePath             = m_DLLPath;
-    const auto&                 DLLFilename             = DLLFilePath.stem( );
-    const auto&                 DLLFileWithoutExtension = DLLFilePath.parent_path( ) / DLLFilename;
+    const auto& DLLFilename             = OriginalDLLPath.stem( );
+    const auto& DLLFileWithoutExtension = OriginalDLLParentPath / DLLFilename;
 
-    const fs::path DLLFileDebugInfo = DLLFileWithoutExtension.string( ) + ".pdb";
+    const fs::path DLLFileDebugInfo          = DLLFileWithoutExtension.string( ) + ".pdb";
+    const fs::path DLLFileHotReloadDebugInfo = HotReloadDLLParentPath / DLLFileDebugInfo.filename( );
 
-    if ( fs::exists( DLLFileDebugInfo ) && false )
+    if ( fs::exists( DLLFileDebugInfo ) )
     {
-        spdlog::info( "DynamicLibrary::MakeDLLCopy: Removing debug info for hot-reloading: {}", DLLFileDebugInfo.string( ) );
-        MakeSureOperation( [ &DLLFileDebugInfo, retry_left = 10 ]( ) mutable {
+        if ( fs::exists( DLLFileHotReloadDebugInfo ) )
+        {
+            spdlog::info( "DynamicLibrary::MakeDLLCopy: Removing debug info for hot-reloading: {}", DLLFileDebugInfo.string( ) );
+            MakeSureOperation( [ &DLLFileHotReloadDebugInfo, retry_left = 10 ]( ) mutable {
+                std::error_code OperationError;
+                if ( !fs::remove( DLLFileHotReloadDebugInfo, OperationError ) )
+                {
+                    spdlog::error( "DynamicLibrary::MakeDLLCopy: Failed to remove debug info, further hot reloading may fail, {}({})", OperationError.message( ), OperationError.value( ) );
+                    if ( retry_left >= 1 && SHARING_VIOLATION == OperationError.value( ) )
+                    {
+                        spdlog::error( "DynamicLibrary::MakeDLLCopy: File accessing by another process, retry remaining #{}", retry_left );
+                        std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
+                        retry_left--;
+                        return false;
+                    }
+
+                    // Gave up
+                }
+
+                return true;
+            } );
+        }
+
+        spdlog::info( "DynamicLibrary::MakeDLLCopy: Copying debug info for hot-reloading: {}", DLLFileDebugInfo.string( ) );
+        MakeSureOperation( [ this, &DLLFileDebugInfo, &DLLFileHotReloadDebugInfo, retry_left = 10 ]( ) mutable {
             std::error_code OperationError;
-            if ( !fs::remove( DLLFileDebugInfo, OperationError ) )
+            if ( !fs::copy_file( DLLFileDebugInfo, DLLFileHotReloadDebugInfo, fs::copy_options::overwrite_existing, OperationError ) )
             {
-                spdlog::error( "DynamicLibrary::MakeDLLCopy: Failed to remove debug info, further hot reloading may fail, {}({})", OperationError.message( ), OperationError.value( ) );
+                // Success, but not overwriting
+                if ( !OperationError.value( ) )
+                {
+                    return true;
+                }
+
+                spdlog::error( "DynamicLibrary::MakeDLLCopy: Not copying file, {}({})", OperationError.message( ), OperationError.value( ) );
                 if ( retry_left >= 1 && SHARING_VIOLATION == OperationError.value( ) )
                 {
                     spdlog::error( "DynamicLibrary::MakeDLLCopy: File accessing by another process, retry remaining #{}", retry_left );
