@@ -354,6 +354,7 @@ EditorWindow::SetRootConcept( RootConceptTy* RootConcept )
     GameWindow::SetRootConcept( RootConcept );
 
     m_ConceptInspectionCache = { };
+    m_FrameBufferDimension   = { };
 }
 
 void

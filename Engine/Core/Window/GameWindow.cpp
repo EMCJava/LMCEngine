@@ -79,6 +79,8 @@ GameWindow::SetRootConcept( class RootConceptTy* RootConcept )
 
     m_ConceptCameras.Clear( );
     m_ConceptRenderables.Clear( );
+
+    m_ViewportLogicalDimension = m_ViewportPhysicalDimension = m_ViewportDimension = { };
 }
 
 class PureConcept*
