@@ -89,9 +89,9 @@ public:
             // Map buffer to calculate in-place
             GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
             GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer ) )
-            REQUIRED( m_ModelMatricesGPUMap = static_cast<glm::mat4*>( gl->MapBufferRange( GL_ARRAY_BUFFER, 0, m_ParticlePool.MAX_PARTICLES * sizeof( glm::mat4 ), MapFlags ) ) )
+            REQUIRED( m_ModelMatricesGPUMap = static_cast<glm::mat4*>( gl->MapBufferRange( GL_ARRAY_BUFFER, 0, ParticleCount * sizeof( glm::mat4 ), MapFlags ) ) )
             GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_ColorInstancingBuffer ) )
-            REQUIRED( m_ColorsGPUMap = static_cast<glm::vec4*>( gl->MapBufferRange( GL_ARRAY_BUFFER, 0, m_ParticlePool.MAX_PARTICLES * sizeof( glm::vec4 ), MapFlags ) ) )
+            REQUIRED( m_ColorsGPUMap = static_cast<glm::vec4*>( gl->MapBufferRange( GL_ARRAY_BUFFER, 0, ParticleCount * sizeof( glm::vec4 ), MapFlags ) ) )
 
             // Update buffer
             m_ParticlePool.ForEach( RenderFunc );
