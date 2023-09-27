@@ -75,9 +75,9 @@
 #    endif
 #elif defined( LMC_LINUX )
 #    ifdef __cplusplus
-#        define LMC_API extern "C" inline
+#        define LMC_API extern "C" __attribute__((visibility("default")))
 #    else
-#        define LMC_API inline
+#        define LMC_API
 #    endif
 #elif defined( LMC_APPLE )
 #    ifdef __cplusplus
