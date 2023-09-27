@@ -20,8 +20,11 @@ class ParticlePool : public ConceptApplicable
     void
     ForEach( auto&& Func );
 
+    void
+    ForEachRange( auto&& Func, size_t Start, size_t End );
+
 public:
-    static constexpr size_t MAX_PARTICLES = 80000;
+    static constexpr size_t MAX_PARTICLES = 100000;
 
     ParticlePool( );
 

@@ -61,14 +61,14 @@ GameManager::GameManager( )
         m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
         m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::make_shared<PureConceptImage>( "Assets/Texture/Particle/ring.png" ) ) );
 
-        for ( int i = 0; i < 80000; ++i )
+        for ( int i = 0; i < 100000; ++i )
         {
             auto* Pa = &m_ParticlePools[ 0 ]->AddParticle( );
             m_PAR->Apply( *Pa );
             Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
             Pa->GetOrientation( ).SetCoordinate( 1920 / 2, 1080 / 2 );
         }
-        for ( int i = 0; i < 80000; ++i )
+        for ( int i = 0; i < 100000; ++i )
         {
             auto* Pa = &m_ParticlePools[ 1 ]->AddParticle( );
             m_PAR->Apply( *Pa );

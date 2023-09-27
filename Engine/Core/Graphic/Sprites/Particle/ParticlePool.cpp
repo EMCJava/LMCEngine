@@ -9,8 +9,6 @@
 
 #include <Engine/Core/Graphic/API/OpenGL.hpp>
 
-#include <glm/gtc/matrix_transform.hpp>
-
 DEFINE_CONCEPT_DS( ParticlePool )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( ParticlePool, ConceptApplicable, m_StartIndex, m_EndIndex, m_Sprite, m_EndIndex )
 
@@ -77,12 +75,6 @@ public:
             const auto     ParticleCount = m_ParticlePool.GetParticleCount( );
             constexpr auto MapFlags      = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
 
-            int        Index      = 0;
-            const auto RenderFunc = [ this, &Index ]( Particle& P ) {
-                P.GetOrientation( ).CalculateModelMatrix( &m_ModelMatricesGPUMap[ Index ] );
-                m_ColorsGPUMap[ Index++ ] = P.GetColor( );
-            };
-
             const auto* gl = Engine::GetEngine( )->GetGLContext( );
             GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
 
@@ -94,8 +86,52 @@ public:
             REQUIRED( m_ColorsGPUMap = static_cast<glm::vec4*>( gl->MapBufferRange( GL_ARRAY_BUFFER, 0, ParticleCount * sizeof( glm::vec4 ), MapFlags ) ) )
 
             // Update buffer
-            m_ParticlePool.ForEach( RenderFunc );
+            {
+                const auto MaxThreads = 16;
+                char       ThreadBuffer[ sizeof( std::thread ) * MaxThreads ];
+                auto*      Threads = reinterpret_cast<std::thread*>( ThreadBuffer );
 
+                const auto ParticlePreThread = ParticleCount / MaxThreads;
+
+                const auto RunThreadInRange = [ this, ParticlePreThread ]( std::thread* Threads, size_t StartIndex, size_t EndIndex, size_t ThreadCount ) {
+                    if ( ThreadCount == 0 ) return;
+                    for ( int i = 0; i < ThreadCount - 1; ++i )
+                    {
+                        new ( Threads + i ) std::thread( [ this, Start = StartIndex + i * ( ParticlePreThread ), End = StartIndex + ( i + 1 ) * ( ParticlePreThread ) ]( ) {
+                            const auto RenderFunc = [ this ]( size_t Index, Particle& P ) {
+                                P.GetOrientation( ).CalculateModelMatrix( &m_ModelMatricesGPUMap[ Index ] );
+                                m_ColorsGPUMap[ Index ] = P.GetColor( );
+                            };
+                            m_ParticlePool.ForEachRange( RenderFunc, Start, End );
+                        } );
+                    }
+
+                    new ( Threads + ( ThreadCount - 1 ) ) std::thread( [ this, Start = StartIndex + ( ThreadCount - 1 ) * ( ParticlePreThread ), End = EndIndex ]( ) {
+                        const auto RenderFunc = [ this ]( size_t Index, Particle& P ) {
+                            P.GetOrientation( ).CalculateModelMatrix( &m_ModelMatricesGPUMap[ Index ] );
+                            m_ColorsGPUMap[ Index ] = P.GetColor( );
+                        };
+                        m_ParticlePool.ForEachRange( RenderFunc, Start, End );
+                    } );
+                };
+
+                if ( m_ParticlePool.m_StartIndex > m_ParticlePool.m_EndIndex )
+                {
+                    // Wrap
+                    const auto FirstThreadCount = std::min( (int) std::round( FloatTy( m_ParticlePool.MAX_PARTICLES - m_ParticlePool.m_StartIndex ) / ParticlePreThread ), MaxThreads );
+                    RunThreadInRange( Threads, m_ParticlePool.m_StartIndex, m_ParticlePool.MAX_PARTICLES, FirstThreadCount );
+                    RunThreadInRange( Threads + FirstThreadCount, 0, m_ParticlePool.m_EndIndex, MaxThreads - FirstThreadCount );
+                } else
+                {
+                    RunThreadInRange( Threads, m_ParticlePool.m_StartIndex, m_ParticlePool.m_EndIndex, MaxThreads );
+                }
+
+                for ( int i = 0; i < MaxThreads; ++i )
+                {
+                    if ( Threads[ i ].joinable( ) ) Threads[ i ].join( );
+                    Threads[ i ].~thread( );
+                }
+            }
             // Unmap buffer
             GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer ) )
             gl->UnmapBuffer( GL_ARRAY_BUFFER );
@@ -117,6 +153,7 @@ private:
     glm::mat4*   m_ModelMatricesGPUMap = nullptr;
     glm::vec4*   m_ColorsGPUMap        = nullptr;
 };
+
 ParticlePoolConceptRender::~ParticlePoolConceptRender( )
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
@@ -222,4 +259,13 @@ ParticlePool::GetParticleCount( ) const
 
     // Wrap around
     return MAX_PARTICLES + m_EndIndex - m_StartIndex;
+}
+
+void
+ParticlePool::ForEachRange( auto&& Func, size_t Start, size_t End )
+{
+    for ( size_t i = Start; i < End; i++ )
+    {
+        Func( i, m_Particles[ i ] );
+    }
 }
