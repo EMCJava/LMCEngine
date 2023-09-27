@@ -33,6 +33,7 @@ public:
         GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
         gl->GenBuffers( 1, &m_MatrixInstancingBuffer );
         gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer );
+        GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, m_ParticlePool.MAX_PARTICLES * sizeof( glm::mat4 ), nullptr, GL_DYNAMIC_DRAW ) )
 
         const auto MatricesLocation = 2;
         for ( unsigned int i = 0; i < 4; i++ )
@@ -51,6 +52,7 @@ public:
         GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
         gl->GenBuffers( 1, &m_ColorInstancingBuffer );
         gl->BindBuffer( GL_ARRAY_BUFFER, m_ColorInstancingBuffer );
+        GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, m_ParticlePool.MAX_PARTICLES * sizeof( glm::vec4 ), nullptr, GL_DYNAMIC_DRAW ) )
 
         gl->EnableVertexAttribArray( MatricesLocation + 4 );
         gl->VertexAttribPointer( MatricesLocation + 4, 4, GL_FLOAT, GL_FALSE, 4 * sizeof( float ), (const GLvoid*) nullptr );
@@ -76,8 +78,9 @@ public:
             ShaderPtr->Bind( );
             int        Index      = 0;
             const auto RenderFunc = [ this, &Index ]( Particle& P ) {
-                m_ModelMatrices[ Index ] = P.GetOrientation( ).GetModelMatrix( );
-                m_Colors[ Index++ ]      = P.GetColor( );
+                // m_ModelMatrices[ Index ] = P.GetOrientation( ).GetModelMatrix( );
+                P.GetOrientation( ).CalculateModelMatrix( &m_ModelMatrices[ Index ] );
+                m_Colors[ Index++ ] = P.GetColor( );
             };
 
             m_ParticlePool.ForEach( RenderFunc );
@@ -85,9 +88,9 @@ public:
             const auto* gl = Engine::GetEngine( )->GetGLContext( );
             GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
             GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer ) )
-            GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, Index * sizeof( glm::mat4 ), m_ModelMatrices.data( ), GL_DYNAMIC_DRAW ) )
+            GL_CHECK( gl->BufferSubData( GL_ARRAY_BUFFER, 0, Index * sizeof( glm::mat4 ), m_ModelMatrices.data( ) ) );
             GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_ColorInstancingBuffer ) )
-            GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, Index * sizeof( glm::vec4 ), m_Colors.data( ), GL_DYNAMIC_DRAW ) )
+            GL_CHECK( gl->BufferSubData( GL_ARRAY_BUFFER, 0, Index * sizeof( glm::vec4 ), m_Colors.data( ) ) );
 
             GL_CHECK( gl->DrawElementsInstanced( GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, Index ) )
         }
@@ -185,8 +188,8 @@ ParticlePool::Apply( )
 
     ForEach( [ &DeltaTime ]( Particle& P ) {
         auto& Ori = P.GetOrientation( );
-        Ori.AlterCoordinate( P.GetVelocity( ) * DeltaTime );
-        Ori.AlterRotation( 0, 0, P.GetAngularVelocity( ) * DeltaTime );
+        Ori.AlterCoordinate( P.GetVelocity( ) * DeltaTime, false );
+        Ori.AlterRotation( 0, 0, P.GetAngularVelocity( ) * DeltaTime, false );
 
         P.GetColor( ) += P.GetLinearColorVelocity( ) * DeltaTime;
         P.AlterLifeTime( -DeltaTime );

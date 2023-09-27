@@ -84,12 +84,27 @@ public:
     void       UpdateModelMatrix( );
     glm::mat4& GetModelMatrix( );
 
+    /*
+     *
+     * Calculate matrix realtime in place
+     *
+     * */
+    void
+    CalculateModelMatrix( glm::mat4* Result ) const;
+
     glm::vec3
     GetWorldCoordinate( ) const;
 
 protected:
     glm::vec3 m_TranslationOrigin { }, m_RotationOrigin { }, m_ScaleOrigin { };
     glm::vec3 m_Coordinate { }, m_Rotation { }, m_Scale { 1, 1, 1 };
+
+    /*
+     *
+     * Useful when calculating the final model matrix, save two translation
+     *
+     * */
+    bool m_SameRotationScaleOrigin = false;
 
     glm::mat4 m_TranslationMatrix { 1 }, m_RotationMatrix { 1 }, m_ScaleMatrix { 1 };
     glm::mat4 m_ModelMatrix { 1 };

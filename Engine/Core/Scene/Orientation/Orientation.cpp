@@ -6,6 +6,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <new>
+
 glm::vec3
 Orientation::GetWorldCoordinate( ) const
 {
@@ -101,6 +103,7 @@ Orientation::SetOrigin( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
     m_TranslationOrigin.z = Z;
 
     m_RotationOrigin = m_ScaleOrigin = m_TranslationOrigin;
+    m_SameRotationScaleOrigin        = true;
 
     if ( UpdateMatrix )
     {
@@ -132,6 +135,8 @@ Orientation::SetRotationOrigin( const glm::vec3& RotationOrigin, bool UpdateMatr
 {
     m_RotationOrigin = RotationOrigin;
 
+    m_SameRotationScaleOrigin = m_RotationOrigin == m_ScaleOrigin;
+
     if ( UpdateMatrix )
     {
         UpdateRotationMatrix( );
@@ -145,6 +150,8 @@ const glm::vec3&
 Orientation::SetScaleOrigin( const glm::vec3& ScaleOrigin, bool UpdateMatrix )
 {
     m_ScaleOrigin = ScaleOrigin;
+
+    m_SameRotationScaleOrigin = m_RotationOrigin == m_ScaleOrigin;
 
     if ( UpdateMatrix )
     {
@@ -308,4 +315,33 @@ glm::mat4&
 Orientation::GetModelMatrix( )
 {
     return m_ModelMatrix;
+}
+
+void
+Orientation::CalculateModelMatrix( glm::mat4* Result ) const
+{
+    // Construct inplace (set as identical matrix)
+    new ( Result ) glm::mat4( 1 );
+
+    *Result = glm::translate( *Result, ( m_Coordinate - m_TranslationOrigin ) + m_RotationOrigin );
+
+    // Apply rotation on X-axis
+    if ( m_Rotation.x != 0 )
+        *Result = glm::rotate( *Result, m_Rotation.x, glm::vec3( 1.0f, 0.0f, 0.0f ) );
+
+    // Apply rotation on Y-axis
+    if ( m_Rotation.y != 0 )
+        *Result = glm::rotate( *Result, m_Rotation.y, glm::vec3( 0.0f, 1.0f, 0.0f ) );
+
+    // Apply rotation on Z-axis
+    if ( m_Rotation.z != 0 )
+        *Result = glm::rotate( *Result, m_Rotation.z, glm::vec3( 0.0f, 0.0f, 1.0f ) );
+
+    if ( !m_SameRotationScaleOrigin )
+    {
+        *Result = glm::translate( *Result, -m_RotationOrigin + m_ScaleOrigin );
+    }
+
+    *Result = glm::scale( *Result, m_Scale );
+    *Result = glm::translate( *Result, -m_ScaleOrigin );
 }

@@ -54,12 +54,27 @@ GameManager::GameManager( )
         m_PAR->SetAngularVelocity( -31.415F, 31.415F );
         m_PAR->SetStartLinearColor( glm::vec4( 1, 0, 0, 0.9 ), glm::vec4( 1, 0.2, 0, 1 ) );
         m_PAR->SetEndLinearColor( glm::vec4( 1, 0.6, 0.4, 0 ), glm::vec4( 1, 0.8, 0.6, 0 ) );
-        m_PAR->SetLifetime( 1, 5 );
+        m_PAR->SetLifetime( 100, 500 );
 
         m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
         m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::make_shared<PureConceptImage>( "Assets/Texture/Particle/star.png" ) ) );
         m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
         m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::make_shared<PureConceptImage>( "Assets/Texture/Particle/ring.png" ) ) );
+
+        for ( int i = 0; i < 40000; ++i )
+        {
+            auto* Pa = &m_ParticlePools[ 0 ]->AddParticle( );
+            m_PAR->Apply( *Pa );
+            Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
+            Pa->GetOrientation( ).SetCoordinate( 1920 / 2, 1080 / 2 );
+        }
+        for ( int i = 0; i < 40000; ++i )
+        {
+            auto* Pa = &m_ParticlePools[ 1 ]->AddParticle( );
+            m_PAR->Apply( *Pa );
+            Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
+            Pa->GetOrientation( ).SetCoordinate( 1920 / 2, 1080 / 2 );
+        }
     }
 
     SaBaseBoard BB;
