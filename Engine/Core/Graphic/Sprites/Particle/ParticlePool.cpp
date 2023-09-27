@@ -31,10 +31,10 @@ public:
          *
          * */
         GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
-        gl->GenBuffers( 1, &m_MatrixInstancingBuffer );
+
+        gl->CreateBuffers( 1, &m_MatrixInstancingBuffer );
+        gl->NamedBufferStorage( m_MatrixInstancingBuffer, m_ParticlePool.MAX_PARTICLES * sizeof( glm::mat4 ), nullptr, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT );
         gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer );
-        // GL_CHECK( gl->BufferStorage( GL_ARRAY_BUFFER, m_ParticlePool.MAX_PARTICLES * sizeof( glm::mat4 ), nullptr, GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT ) )
-        GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, m_ParticlePool.MAX_PARTICLES * sizeof( glm::mat4 ), nullptr, GL_DYNAMIC_DRAW ) )
 
         const auto MatricesLocation = 2;
         for ( unsigned int i = 0; i < 4; i++ )
@@ -51,14 +51,18 @@ public:
          *
          * */
         GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
-        gl->GenBuffers( 1, &m_ColorInstancingBuffer );
+
+        gl->CreateBuffers( 1, &m_ColorInstancingBuffer );
+        gl->NamedBufferStorage( m_ColorInstancingBuffer, m_ParticlePool.MAX_PARTICLES * sizeof( glm::vec4 ), nullptr, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT );
         gl->BindBuffer( GL_ARRAY_BUFFER, m_ColorInstancingBuffer );
-        // GL_CHECK( gl->BufferStorage( GL_ARRAY_BUFFER, m_ParticlePool.MAX_PARTICLES * sizeof( glm::vec4 ), nullptr, GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT ) )
-        GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, m_ParticlePool.MAX_PARTICLES * sizeof( glm::vec4 ), nullptr, GL_DYNAMIC_DRAW ) )
 
         gl->EnableVertexAttribArray( MatricesLocation + 4 );
         gl->VertexAttribPointer( MatricesLocation + 4, 4, GL_FLOAT, GL_FALSE, 4 * sizeof( float ), (const GLvoid*) nullptr );
         gl->VertexAttribDivisor( MatricesLocation + 4, 1 );
+
+        constexpr auto MapFlags = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
+        REQUIRED( m_ModelMatricesGPUMap = static_cast<glm::mat4*>( gl->MapNamedBufferRange( m_MatrixInstancingBuffer, 0, m_ParticlePool.MAX_PARTICLES * sizeof( glm::mat4 ), MapFlags ) ) )
+        REQUIRED( m_ColorsGPUMap = static_cast<glm::vec4*>( gl->MapNamedBufferRange( m_ColorInstancingBuffer, 0, m_ParticlePool.MAX_PARTICLES * sizeof( glm::vec4 ), MapFlags ) ) )
     }
 
     void
@@ -77,18 +81,9 @@ public:
             m_SpriteTexture->PureRender( );   // lol
         } else
         {
-            ShaderPtr->Bind( );
+            const auto ParticleCount = m_ParticlePool.GetParticleCount( );
 
-            const auto* gl    = Engine::GetEngine( )->GetGLContext( );
-            int         Index = 0;
-
-            // GL_MAP_WRITE_BIT GL_MAP_INVALIDATE_BUFFER_BIT GL_MAP_UNSYNCHRONIZED_BIT;
-            GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
-            GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer ) )
-            REQUIRED( m_ModelMatricesGPUMap = static_cast<glm::mat4*>( gl->MapBuffer( GL_ARRAY_BUFFER, GL_READ_WRITE ) ) )
-            GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_ColorInstancingBuffer ) )
-            REQUIRED( m_ColorsGPUMap = static_cast<glm::vec4*>( gl->MapBuffer( GL_ARRAY_BUFFER, GL_READ_WRITE ) ) )
-
+            int        Index      = 0;
             const auto RenderFunc = [ this, &Index ]( Particle& P ) {
                 P.GetOrientation( ).CalculateModelMatrix( &m_ModelMatricesGPUMap[ Index ] );
                 m_ColorsGPUMap[ Index++ ] = P.GetColor( );
@@ -96,12 +91,11 @@ public:
 
             m_ParticlePool.ForEach( RenderFunc );
 
-            GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer ) )
-            gl->UnmapBuffer( GL_ARRAY_BUFFER );
-            GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_ColorInstancingBuffer ) )
-            gl->UnmapBuffer( GL_ARRAY_BUFFER );
+            const auto* gl = Engine::GetEngine( )->GetGLContext( );
+            GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
 
-            GL_CHECK( gl->DrawElementsInstanced( GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, Index ) )
+            ShaderPtr->Bind( );
+            GL_CHECK( gl->DrawElementsInstanced( GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, ParticleCount ) )
         }
     }
 
@@ -119,24 +113,22 @@ ParticlePoolConceptRender::~ParticlePoolConceptRender( )
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
     if ( m_MatrixInstancingBuffer != 0 )
     {
-//        if ( m_ModelMatricesGPUMap != nullptr )
-//        {
-//            m_ModelMatricesGPUMap = nullptr;
-//            GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer ) )
-//            GL_CHECK( gl->UnmapBuffer( m_MatrixInstancingBuffer ) )
-//        }
+        if ( m_ModelMatricesGPUMap != nullptr )
+        {
+            m_ModelMatricesGPUMap = nullptr;
+            GL_CHECK( gl->UnmapNamedBuffer( m_MatrixInstancingBuffer ) )
+        }
 
         GL_CHECK( gl->DeleteBuffers( 1, &m_MatrixInstancingBuffer ) )
     }
 
     if ( m_ColorInstancingBuffer != 0 )
     {
-//        if ( m_ColorsGPUMap != nullptr )
-//        {
-//            m_ColorsGPUMap = nullptr;
-//            GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_ColorInstancingBuffer ) )
-//            GL_CHECK( gl->UnmapBuffer( m_ColorInstancingBuffer ) )
-//        }
+        if ( m_ColorsGPUMap != nullptr )
+        {
+            m_ColorsGPUMap = nullptr;
+            GL_CHECK( gl->UnmapNamedBuffer( m_ColorInstancingBuffer ) )
+        }
 
         GL_CHECK( gl->DeleteBuffers( 1, &m_ColorInstancingBuffer ) )
     }
@@ -231,4 +223,13 @@ ParticlePool::Apply( )
     {
         m_StartIndex = ( m_StartIndex + 1 ) % MAX_PARTICLES;
     }
+}
+
+size_t
+ParticlePool::GetParticleCount( ) const
+{
+    if ( m_EndIndex >= m_StartIndex ) return m_EndIndex - m_StartIndex;
+
+    // Wrap around
+    return MAX_PARTICLES + m_EndIndex - m_StartIndex;
 }

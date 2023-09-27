@@ -37,6 +37,9 @@ public:
     void
     SetSprite( const std::shared_ptr<class SpriteSquareTexture>& Sprite );
 
+    size_t
+    GetParticleCount( ) const;
+
 protected:
     /*
      *
