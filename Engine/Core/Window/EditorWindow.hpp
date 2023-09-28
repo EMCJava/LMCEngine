@@ -141,6 +141,7 @@ private:
      *
      * */
     bool                         m_ShouldActivateOverlay { };
+    std::string                  m_PreferredCompiler { };
     std::filesystem::path        m_BuildPath { };
     bool                         m_ShouldBuild = true;
     std::unique_ptr<std::thread> m_BuildThread { };
