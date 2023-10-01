@@ -26,8 +26,10 @@ public:
     virtual void
     GetEffect( SaEffect& Result ) override;
 
-    void
+    bool
     SetSlot( size_t Index, std::shared_ptr<SaControlNode> ControlNode );
+    bool
+    SetSlot( const std::string& ID, std::shared_ptr<SaControlNode> ControlNode );
 
     void
     Serialize( const std::string& JsonStr );

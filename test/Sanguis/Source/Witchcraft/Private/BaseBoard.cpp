@@ -9,6 +9,7 @@
 #include <ranges>
 #include <deque>
 #include <list>
+#include <utility>
 
 void
 SaBaseBoard::GetEffect( SaEffect& Result )
@@ -240,8 +241,24 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
     }
 }
 
-void
+bool
 SaBaseBoard::SetSlot( size_t Index, std::shared_ptr<SaControlNode> ControlNode )
 {
+    if ( Index >= m_MosaickedControlNode.size( ) ) return false;
+
     m_MosaickedControlNode[ Index ] = std::move( ControlNode );
+    return true;
+}
+
+bool
+SaBaseBoard::SetSlot( const std::string& ID, std::shared_ptr<SaControlNode> ControlNode )
+{
+    const auto It = m_MosaickedControlNodeNameMap.find( ID );
+
+    if ( It != m_MosaickedControlNodeNameMap.end( ) )
+    {
+        return SetSlot( It->second, std::move( ControlNode ) );
+    }
+
+    return false;
 }
