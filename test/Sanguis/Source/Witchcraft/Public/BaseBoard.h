@@ -20,10 +20,6 @@ public:
     SaBaseBoard& operator=( const SaBaseBoard& Other )     = delete;
     SaBaseBoard& operator=( SaBaseBoard&& Other ) noexcept = delete;
 
-protected:
-    std::vector<SaRunOrder>                     RunOrder;
-    std::vector<std::shared_ptr<SaControlNode>> MosaickedControlNode;
-
 public:
     SaBaseBoard( );
 
@@ -35,4 +31,9 @@ public:
 
     void
     Serialize( const std::string& JsonStr );
+
+protected:
+    std::vector<SaRunOrder>                     m_RunOrder;
+    std::vector<std::shared_ptr<SaControlNode>> m_MosaickedControlNode;
+    std::map<std::string, size_t>               m_MosaickedControlNodeNameMap;
 };

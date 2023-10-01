@@ -14,20 +14,20 @@ void
 SaBaseBoard::GetEffect( SaEffect& Result )
 {
     std::vector<SaEffect> EffectCache;
-    EffectCache.resize( RunOrder.size( ) );
+    EffectCache.resize( m_RunOrder.size( ) );
 
-    for ( size_t i = 0; i < RunOrder.size( ); ++i )
+    for ( size_t i = 0; i < m_RunOrder.size( ); ++i )
     {
-        if ( RunOrder[ i ].CombineMethod == SaCombineMethod::CombineMethodNone )
+        if ( m_RunOrder[ i ].CombineMethod == SaCombineMethod::CombineMethodNone )
         {
-            TEST( RunOrder[ i ].FirstIndex == RunOrder[ i ].SecondIndex && RunOrder[ i ].FirstIndex < MosaickedControlNode.size( ) );
-            Result = EffectCache[ i ] = MosaickedControlNode[ RunOrder[ i ].FirstIndex ]->GetEffect( );
+            TEST( m_RunOrder[ i ].FirstIndex == m_RunOrder[ i ].SecondIndex && m_RunOrder[ i ].FirstIndex < m_MosaickedControlNode.size( ) );
+            Result = EffectCache[ i ] = m_MosaickedControlNode[ m_RunOrder[ i ].FirstIndex ]->GetEffect( );
         } else
         {
-            SaEffect FirstEffect  = EffectCache[ RunOrder[ i ].FirstIndex ];
-            SaEffect SecondEffect = EffectCache[ RunOrder[ i ].SecondIndex ];
+            SaEffect FirstEffect  = EffectCache[ m_RunOrder[ i ].FirstIndex ];
+            SaEffect SecondEffect = EffectCache[ m_RunOrder[ i ].SecondIndex ];
 
-            Result = EffectCache[ i ] = Combine( RunOrder[ i ].CombineMethod, FirstEffect, SecondEffect );
+            Result = EffectCache[ i ] = Combine( m_RunOrder[ i ].CombineMethod, FirstEffect, SecondEffect );
         }
     }
 }
@@ -125,9 +125,9 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
      * Read configuration
      *
      * */
-    MosaickedControlNode.clear( );
+    m_MosaickedControlNode.clear( );
     auto SlotIDs = BoardTemplate[ "slots" ].as<std::vector<std::string>>( );
-    MosaickedControlNode.resize( SlotIDs.size( ) );
+    m_MosaickedControlNode.resize( SlotIDs.size( ) );
 
     auto EffectCompose    = BoardTemplate[ "compose" ].as<std::map<std::string, ParseCompose>>( );
     auto EffectiveCompose = BoardTemplate[ "effective_compose" ].as<std::vector<std::string>>( );
@@ -200,8 +200,8 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
      * Generate final run order in index
      *
      * */
-    RunOrder.clear( );
-    std::map<std::string, size_t> RunOrderIndex;
+    m_RunOrder.clear( );
+    std::map<std::string, size_t> m_RunOrderIndex;
 
     // Make sure all base slot runs first
     auto SlotExtraction = ExecuteOrderTmp
@@ -210,9 +210,9 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
 
     for ( const auto& Slot : SlotExtraction )
     {
-        const size_t Index    = std::distance( SlotIDs.begin( ), std::find( SlotIDs.begin( ), SlotIDs.end( ), Slot ) );
-        RunOrderIndex[ Slot ] = RunOrder.size( );
-        RunOrder.push_back( SaRunOrder { Index, Index, SaCombineMethod::CombineMethodNone } );
+        const size_t Index      = std::distance( SlotIDs.begin( ), std::find( SlotIDs.begin( ), SlotIDs.end( ), Slot ) );
+        m_RunOrderIndex[ Slot ] = m_RunOrder.size( );
+        m_RunOrder.push_back( SaRunOrder { Index, Index, SaCombineMethod::CombineMethodNone } );
     }
 
     // Finish by combining all the compose effects
@@ -222,10 +222,10 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
 
     for ( const auto& ComposeID : ComposeExtraction )
     {
-        // All sub-Compose should be in RunOrderIndex
-        const auto& Compose        = EffectCompose[ ComposeID ];
-        RunOrderIndex[ ComposeID ] = RunOrder.size( );
-        RunOrder.push_back( SaRunOrder { RunOrderIndex[ Compose.first_id ], RunOrderIndex[ Compose.second_id ], Compose.method } );
+        // All sub-Compose should be in m_RunOrderIndex
+        const auto& Compose          = EffectCompose[ ComposeID ];
+        m_RunOrderIndex[ ComposeID ] = m_RunOrder.size( );
+        m_RunOrder.push_back( SaRunOrder { m_RunOrderIndex[ Compose.first_id ], m_RunOrderIndex[ Compose.second_id ], Compose.method } );
     }
 
     /*
@@ -233,14 +233,15 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
      * Fill all slot with empty
      *
      * */
-    for ( size_t i = 0; i < MosaickedControlNode.size( ); ++i )
+    for ( size_t i = 0; i < m_MosaickedControlNode.size( ); ++i )
     {
         SetSlot( i, std::make_shared<SaControlNodePlaceholder>( ) );
+        m_MosaickedControlNodeNameMap[ SlotIDs[ i ] ] = i;
     }
 }
 
 void
 SaBaseBoard::SetSlot( size_t Index, std::shared_ptr<SaControlNode> ControlNode )
 {
-    MosaickedControlNode[ Index ] = std::move( ControlNode );
+    m_MosaickedControlNode[ Index ] = std::move( ControlNode );
 }
