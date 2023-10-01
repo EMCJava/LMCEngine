@@ -1495,7 +1495,7 @@ GameManager::Apply( )
                 {
                     m_CameraLerp              = 0;
                     const auto CameraLocation = m_Camera->GetCoordinate( );
-                    m_CameraStart             = glm::vec2 { CameraLocation.X, CameraLocation.Y };
+                    m_CameraStart             = glm::vec2 { CameraLocation.x, CameraLocation.y };
                     const auto TileTransform  = TileSpriteSetShared->GetCurrentTileTransform( );
                     m_CameraEnd               = TileTransform;
                 }
@@ -1612,7 +1612,7 @@ GameManager::Apply( )
                      * */
                     m_CameraLerp              = 0;
                     const auto CameraLocation = m_Camera->GetCoordinate( );
-                    m_CameraStart             = glm::vec2 { CameraLocation.X, CameraLocation.Y };
+                    m_CameraStart             = glm::vec2 { CameraLocation.x, CameraLocation.y };
                     m_CameraEnd               = TileTransform;
 
                     /*
@@ -1646,7 +1646,7 @@ GameManager::LoadTileSprites( const std::set<uint32_t>& Degrees )
         Sp->SetupSprite( );
     };
 
-    m_TileSpriteSetRef.lock( )->SetSpritesOrigin( Vec3 { 512 / 2, 512 / 2 } );
+    m_TileSpriteSetRef.lock( )->SetSpritesOrigin( glm::vec3 { 512 / 2, 512 / 2, 0 } );
 
     for ( auto Degree : Degrees )
     {

@@ -45,7 +45,7 @@ public:
     void RemoveLastTile( );
 
     void
-    SetSpritesOrigin( Vec3 Origin );
+    SetSpritesOrigin( glm::vec3 Origin );
 
     /*
      *
@@ -120,7 +120,7 @@ protected:
     size_t                m_TileListPointer { 0 };
     std::vector<TileMeta> m_TileList;
 
-    Vec3 m_SpritesOrigin { };
+    glm::vec3 m_SpritesOrigin { };
 
     /*
      *
