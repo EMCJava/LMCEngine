@@ -4,7 +4,7 @@
 
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
-#include <nlohmann/json.hpp>
+#include <yaml-cpp/yaml.h>
 
 #include <ranges>
 #include <deque>
@@ -38,25 +38,87 @@ SaBaseBoard::SaBaseBoard( )
 
 struct ParseCompose {
 
-    bool            fromSlot = false;
+    // Set at runtime
+    bool            base_slot = false;
     std::string     id;
     std::string     first_id;
     std::string     second_id;
     SaCombineMethod method;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE( ParseCompose, id, first_id, second_id, method )
-NLOHMANN_JSON_SERIALIZE_ENUM( SaCombineMethod, {
-                                                   { SaCombineMethod::CombineMethodNone,  "none"},
-                                                   {SaCombineMethod::CombineMethodRight, "right"},
-                                                   { SaCombineMethod::CombineMethodLeft,  "left"},
-                                                   {  SaCombineMethod::CombineMethodMix,   "mix"},
-} )
+namespace YAML
+{
+template <>
+struct convert<SaCombineMethod> {
+    static Node encode( const SaCombineMethod& rhs )
+    {
+        switch ( rhs )
+        {
+        case SaCombineMethod::CombineMethodNone: return Node( "none" );
+        case SaCombineMethod::CombineMethodRight: return Node( "right" );
+        case SaCombineMethod::CombineMethodLeft: return Node( "left" );
+        case SaCombineMethod::CombineMethodMix: return Node( "mix" );
+        }
+    }
+
+    static bool decode( const Node& node, SaCombineMethod& rhs )
+    {
+        const auto str = node.as<std::string>( );
+
+        if ( str == "none" )
+        {
+            rhs = SaCombineMethod::CombineMethodNone;
+            return true;
+        } else if ( str == "right" )
+        {
+            rhs = SaCombineMethod::CombineMethodRight;
+            return true;
+        } else if ( str == "left" )
+        {
+            rhs = SaCombineMethod::CombineMethodLeft;
+            return true;
+        } else if ( str == "mix" )
+        {
+            rhs = SaCombineMethod::CombineMethodMix;
+            return true;
+        }
+
+        return false;
+    }
+};
+
+template <>
+struct convert<ParseCompose> {
+    static Node encode( const ParseCompose& rhs )
+    {
+        Node node;
+        node[ "id" ]        = rhs.id;
+        node[ "first_id" ]  = rhs.first_id;
+        node[ "second_id" ] = rhs.second_id;
+        node[ "method" ]    = rhs.method;
+        return node;
+    }
+
+    static bool decode( const Node& node, ParseCompose& rhs )
+    {
+        if ( !node.IsMap( ) || node.size( ) != 4 )
+        {
+            return false;
+        }
+
+        rhs.id        = node[ "id" ].as<std::string>( );
+        rhs.first_id  = node[ "first_id" ].as<std::string>( );
+        rhs.second_id = node[ "second_id" ].as<std::string>( );
+        rhs.method    = node[ "method" ].as<SaCombineMethod>( );
+        return true;
+    }
+};
+}   // namespace YAML
 
 void
 SaBaseBoard::Serialize( const std::string& JsonStr )
 {
-    auto BoardTemplate = nlohmann::json::parse( JsonStr );
+    auto BoardTemplate = YAML::Load( JsonStr );
 
     /*
      *
@@ -64,11 +126,11 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
      *
      * */
     MosaickedControlNode.clear( );
-    std::vector<std::string> SlotIDs = BoardTemplate[ "slots" ];
+    auto SlotIDs = BoardTemplate[ "slots" ].as<std::vector<std::string>>( );
     MosaickedControlNode.resize( SlotIDs.size( ) );
 
-    std::map<std::string, ParseCompose> EffectCompose    = BoardTemplate[ "compose" ];
-    std::vector<std::string>            EffectiveCompose = BoardTemplate[ "effective_compose" ];
+    auto EffectCompose    = BoardTemplate[ "compose" ].as<std::map<std::string, ParseCompose>>( );
+    auto EffectiveCompose = BoardTemplate[ "effective_compose" ].as<std::vector<std::string>>( );
 
     /*
      *
@@ -76,8 +138,8 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
      *
      * */
     std::deque<std::string> LeftCompose;
-    for ( auto it = EffectiveCompose.rbegin( ); it != EffectiveCompose.rend( ); ++it )
-        LeftCompose.push_back( *it );
+    for ( auto& it : std::ranges::reverse_view( EffectiveCompose ) )
+        LeftCompose.push_back( it );
 
     /*
      *
@@ -85,7 +147,7 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
      *
      * */
     for ( const auto& slot : SlotIDs )
-        EffectCompose[ slot ] = { .fromSlot = true, .id = slot };
+        EffectCompose[ slot ] = { .base_slot = true, .id = slot };
 
     /*
      *
@@ -98,7 +160,7 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
         auto&         ID      = LeftCompose.front( );
         ParseCompose& Compose = EffectCompose.at( ID );
 
-        if ( Compose.fromSlot )
+        if ( Compose.base_slot )
         {
             if ( std::find( ExecuteOrderTmp.begin( ), ExecuteOrderTmp.end( ), Compose.id ) == ExecuteOrderTmp.end( ) )
                 ExecuteOrderTmp.push_back( Compose.id );

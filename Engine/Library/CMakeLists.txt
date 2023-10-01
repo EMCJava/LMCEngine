@@ -60,6 +60,14 @@ if (APPLE)
     target_link_libraries(nfd PRIVATE "-framework AppKit" "-framework UniformTypeIdentifiers")
 endif ()
 
+## -------------- yaml-cpp --------------
+FetchContent_Declare(
+        cppyaml
+        URL https://github.com/jbeder/yaml-cpp/archive/refs/tags/0.8.0.zip
+)
+
+FetchContent_MakeAvailable(cppyaml)
+
 ## -------------- spdlog --------------
 FetchContent_Declare(
         spdlog

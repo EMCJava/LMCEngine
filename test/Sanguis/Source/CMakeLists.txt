@@ -95,7 +95,7 @@ declare_library(
         Witchcraft.ControlNode.lib
         Witchcraft.ControlNodeSimpleEffect.lib
         Witchcraft.ControlNodePlaceholder.lib
-        nlohmann_json::nlohmann_json
+        yaml-cpp::yaml-cpp
 
         DEPS
         Witchcraft.Effect.lib
