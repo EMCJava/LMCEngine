@@ -6,9 +6,14 @@
 
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
 
+#include <glm/vec3.hpp>
+
 class GameManager : public ConceptApplicable
 {
     DECLARE_CONCEPT( GameManager, ConceptApplicable )
+
+    void
+    AddSlotHighlightUI( );
 
 public:
     GameManager( );
@@ -28,6 +33,18 @@ private:
     std::unique_ptr<class ParticleAttributesRandomizer> m_PAR;
 
     std::shared_ptr<class PureConceptCamera> m_Camera;
+    std::shared_ptr<class Concept>           m_BaseSlotParticleParent;
+
+    const glm::vec3 m_EditingAreaCoord = { 600, 30, 0 };
+    const FloatTy   m_EditorAreaScale  = 0.7F;
+    glm::vec3       m_BoardDimensions { };
+
+    /*
+     *
+     * Game Logics
+     *
+     * */
+    std::unique_ptr<class SaBaseBoard> m_BaseBoard;
 
     ENABLE_IMGUI( GameManager )
 };

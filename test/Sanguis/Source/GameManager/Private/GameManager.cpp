@@ -51,25 +51,13 @@ GameManager::GameManager( )
 
     AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/Inv.png" ) );
 
-    const glm::vec3 EditingAreaCoord = { 600, 30, 0 };
-    const FloatTy   EditorAreaScale  = 0.7F;
-    glm::vec3       BoardDimensions { };
-
     {
-        auto Sp         = AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/Boards/StarterBoard.png" ) );
-        BoardDimensions = { Sp->GetSpriteDimensions( ).first, Sp->GetSpriteDimensions( ).second, 0 };
+        auto Sp           = AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/Boards/StarterBoard.png" ) );
+        m_BoardDimensions = { Sp->GetSpriteDimensions( ).first, Sp->GetSpriteDimensions( ).second, 0 };
         Sp->SetCenterAsOrigin( );
 
-        Sp->SetScale( EditorAreaScale, EditorAreaScale );
-        Sp->SetCoordinate( EditingAreaCoord + BoardDimensions / 2.F );
-    }
-
-    {
-        auto Sp = AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/wand.png" ) );
-        Sp->SetCenterAsOrigin( );
-
-        Sp->SetScale( EditorAreaScale, EditorAreaScale );
-        Sp->SetCoordinate( EditingAreaCoord + BoardDimensions / 2.F );
+        Sp->SetScale( m_EditorAreaScale, m_EditorAreaScale );
+        Sp->SetCoordinate( m_EditingAreaCoord + m_BoardDimensions / 2.F );
     }
 
     {
@@ -87,62 +75,35 @@ GameManager::GameManager( )
         m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::make_shared<PureConceptImage>( "Assets/Texture/Particle/ring.png" ) ) );
     }
 
-    SaBaseBoard BB;
-
     {
         std::ifstream     BoardTemp( "Assets/Boards/StarterBoard.yaml" );
         std::stringstream buffer;
         buffer << BoardTemp.rdbuf( );
 
-        auto BBS = std::make_shared<SaBaseBoard>( );
-        BB.Serialize( buffer.str( ) );
+        m_BaseBoard = std::make_unique<SaBaseBoard>( );
+        auto BBS    = std::make_shared<SaBaseBoard>( );
+        m_BaseBoard->Serialize( buffer.str( ) );
         BBS->Serialize( buffer.str( ) );
 
-        {
-            auto SlotPAR = std::make_unique<ParticleAttributesRandomizer>( );
-            SlotPAR->SetAngularVelocity( -10, 10 );
+        AddSlotHighlightUI( );
 
-            const auto SlotBaseScale = glm::vec3( 0.45F * EditorAreaScale, 0.45F * EditorAreaScale, 1 );
-            SlotPAR->SetLinearScale( SlotBaseScale - glm::vec3( 0.05F ), SlotBaseScale + glm::vec3( 0.05F ) );
+        m_BaseBoard->SetSlot( "A", std::move( BBS ) );
+        m_BaseBoard->SetSlot( "B", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
+        m_BaseBoard->SetSlot( "C", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
+        m_BaseBoard->SetSlot( "D", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
+        m_BaseBoard->SetSlot( "E", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
+    }
 
-            const auto SlotParticleCount         = 10;
-            const auto ControlNodeSpriteLocation = BB.GetControlNodeSpriteLocation( );
-            for ( const auto& [ ID, Location ] : ControlNodeSpriteLocation )
-            {
-                auto ScaledLocation = std::pair<FloatTy, FloatTy> { 0.5F, 0.5F } - Location;
-                ScaledLocation      = { ScaledLocation.first * EditorAreaScale, ScaledLocation.second * EditorAreaScale };
-                ScaledLocation      = std::pair<FloatTy, FloatTy> { 0.5F, 0.5F } - ScaledLocation;
+    {
+        auto Sp = AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/wand.png" ) );
+        Sp->SetCenterAsOrigin( );
 
-                auto& PP = m_ParticlePools[ 1 ];
-
-                const auto SlotCoordinate = EditingAreaCoord + BoardDimensions * glm::vec3( ScaledLocation.first, ScaledLocation.second, 1 );
-                for ( int i = 0; i < SlotParticleCount; ++i )
-                {
-                    auto* Pa = &PP->AddParticle( );
-                    SlotPAR->Apply( *Pa );
-
-                    Pa->SetLifeTime( std::numeric_limits<FloatTy>::infinity( ) );
-                    Pa->GetColor( ) = glm::vec4( 1 );
-                    Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
-                    Pa->GetOrientation( ).SetCoordinate( SlotCoordinate );
-                }
-
-                // Hit box
-                const auto ActualSize    = SlotBaseScale * 512.F;
-                m_BaseSlotHitBoxes[ ID ] = AddConcept<PureConceptAABBSquare>( SlotCoordinate.x - ActualSize.x / 2, SlotCoordinate.y - ActualSize.y / 2, ActualSize.x, ActualSize.y );
-                spdlog::info( "HitBox: {}, {}", SlotCoordinate.x - 512 / 2, SlotCoordinate.y - 512 / 2 );
-            }
-        }
-
-        BB.SetSlot( "A", std::move( BBS ) );
-        BB.SetSlot( "B", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
-        BB.SetSlot( "C", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
-        BB.SetSlot( "D", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
-        BB.SetSlot( "E", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
+        Sp->SetScale( m_EditorAreaScale, m_EditorAreaScale );
+        Sp->SetCoordinate( m_EditingAreaCoord + m_BoardDimensions / 2.F );
     }
 
     m_Effect = std::make_unique<SaEffect>( );
-    BB.GetEffect( *m_Effect );
+    m_BaseBoard->GetEffect( *m_Effect );
 
     spdlog::info( "Effect.Iteration : {}", m_Effect->Iteration );
 
@@ -189,4 +150,50 @@ GameManager::TestInvokable( )
     m_PAR->Apply( *Pa );
     Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
     Pa->GetOrientation( ).SetCoordinate( 0, 0 );
+}
+
+void
+GameManager::AddSlotHighlightUI( )
+{
+    if ( m_BaseSlotParticleParent )
+    {
+        m_BaseSlotParticleParent->Destroy( );
+    }
+
+    m_BaseSlotHitBoxes.clear( );
+    m_BaseSlotParticleParent = AddConcept<Concept>( );
+
+    auto SlotPAR = std::make_unique<ParticleAttributesRandomizer>( );
+    SlotPAR->SetAngularVelocity( -10, 10 );
+
+    const auto SlotBaseScale = glm::vec3( 0.45F * m_EditorAreaScale, 0.45F * m_EditorAreaScale, 1 );
+    SlotPAR->SetLinearScale( SlotBaseScale - glm::vec3( 0.05F ), SlotBaseScale + glm::vec3( 0.05F ) );
+
+    const auto SlotParticleCount         = 10;
+    const auto ControlNodeSpriteLocation = m_BaseBoard->GetControlNodeSpriteLocation( );
+    for ( const auto& [ ID, Location ] : ControlNodeSpriteLocation )
+    {
+        auto ScaledLocation = std::pair<FloatTy, FloatTy> { 0.5F, 0.5F } - Location;
+        ScaledLocation      = { ScaledLocation.first * m_EditorAreaScale, ScaledLocation.second * m_EditorAreaScale };
+        ScaledLocation      = std::pair<FloatTy, FloatTy> { 0.5F, 0.5F } - ScaledLocation;
+
+        auto& PP = m_ParticlePools[ 1 ];
+
+        const auto SlotCoordinate = m_EditingAreaCoord + m_BoardDimensions * glm::vec3( ScaledLocation.first, ScaledLocation.second, 1 );
+        for ( int i = 0; i < SlotParticleCount; ++i )
+        {
+            auto* Pa = &PP->AddParticle( );
+            SlotPAR->Apply( *Pa );
+
+            Pa->SetLifeTime( std::numeric_limits<FloatTy>::infinity( ) );
+            Pa->GetColor( ) = glm::vec4( 1 );
+            Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
+            Pa->GetOrientation( ).SetCoordinate( SlotCoordinate );
+        }
+
+        // Hit box
+        const auto ActualSize    = SlotBaseScale * 512.F;
+        m_BaseSlotHitBoxes[ ID ] = m_BaseSlotParticleParent->AddConcept<PureConceptAABBSquare>( SlotCoordinate.x - ActualSize.x / 2, SlotCoordinate.y - ActualSize.y / 2, ActualSize.x, ActualSize.y );
+        spdlog::info( "HitBox: {}, {}", SlotCoordinate.x - 512 / 2, SlotCoordinate.y - 512 / 2 );
+    }
 }
