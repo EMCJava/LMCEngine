@@ -146,14 +146,10 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-
-
     if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isDown )
     {
         std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
         m_Camera->ScreenCoordToUICoord( HitPoint );
-
-        spdlog::info( "HitPoint.first : {}, HitPoint.second : {}", HitPoint.first, HitPoint.second );
 
         auto& PP = m_ParticlePools[ 0 ];
 

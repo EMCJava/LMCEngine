@@ -126,7 +126,7 @@ Engine::Engine( )
 
     m_ImGuiGroupPanelLabelStack = new ImVector<ImRect>;
 
-    m_MainWindow = new PrimaryWindow( 1600, 800, m_ActiveProject->GetConfig( ).project_name.c_str( ) );
+    m_MainWindow = new PrimaryWindow( 1920, 1080, m_ActiveProject->GetConfig( ).project_name.c_str( ) );
     m_GLContext  = m_MainWindow->GetGLContext( );
 
     m_UserInput = new UserInput( m_MainWindow->GetWindowHandle( ) );
