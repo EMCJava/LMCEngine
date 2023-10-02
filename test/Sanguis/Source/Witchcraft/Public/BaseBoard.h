@@ -34,8 +34,13 @@ public:
     void
     Serialize( const std::string& JsonStr );
 
+    const auto&
+    GetControlNodeSpriteLocation( ) const { return m_ControlNodeSpriteLocation; }
+
 protected:
     std::vector<SaRunOrder>                     m_RunOrder;
     std::vector<std::shared_ptr<SaControlNode>> m_MosaickedControlNode;
     std::map<std::string, size_t>               m_MosaickedControlNodeNameMap;
+
+    std::map<std::string, std::pair<FloatTy, FloatTy>> m_ControlNodeSpriteLocation;
 };

@@ -130,6 +130,10 @@ SaBaseBoard::Serialize( const std::string& JsonStr )
     auto SlotIDs = BoardTemplate[ "slots" ].as<std::vector<std::string>>( );
     m_MosaickedControlNode.resize( SlotIDs.size( ) );
 
+    m_ControlNodeSpriteLocation = BoardTemplate[ "slot_locations" ].as<std::map<std::string, std::pair<FloatTy, FloatTy>>>( );
+    // Reverse y-axis
+    std::ranges::for_each( m_ControlNodeSpriteLocation, [ & ]( auto& pair ) { pair.second.second = 1 - pair.second.second; } );
+
     auto EffectCompose    = BoardTemplate[ "compose" ].as<std::map<std::string, ParseCompose>>( );
     auto EffectiveCompose = BoardTemplate[ "effective_compose" ].as<std::vector<std::string>>( );
 
