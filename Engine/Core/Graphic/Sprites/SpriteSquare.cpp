@@ -79,3 +79,9 @@ SpriteSquare::SetupSprite( )
     GL_CHECK( gl->BindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_EBO ) )
     GL_CHECK( gl->BufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( indices ), indices, GL_STATIC_DRAW ) )
 }
+
+void
+SpriteSquare::SetCenterAsOrigin( )
+{
+    SetOrigin( m_Width / 2.F, m_Height / 2.F );
+}

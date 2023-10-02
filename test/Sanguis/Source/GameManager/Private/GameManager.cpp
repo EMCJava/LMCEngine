@@ -41,10 +41,25 @@ GameManager::GameManager( )
 
     AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/Inv.png" ) );
 
+    const std::pair<FloatTy, FloatTy> EditingAreaCoord = { 600 + 1024 / 2, 30 + 1024 / 2 };
+
+    {
+        auto Sp = AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/Boards/StarterBoard.png" ) );
+        Sp->SetCenterAsOrigin( );
+
+        Sp->SetScale( 0.7, 0.7 );
+        Sp->SetCoordinate( EditingAreaCoord.first, EditingAreaCoord.second );
+
+        Sp->AlterRotation( 0, 0, glm::radians( 45.F ) );
+    }
+
     {
         auto Sp = AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/wand.png" ) );
+        Sp->SetCenterAsOrigin( );
+
         Sp->SetScale( 0.7, 0.7 );
-        Sp->SetCoordinate( 800, 181.6 );
+        const auto SD = Sp->GetSpriteDimensions( );
+        Sp->SetCoordinate( EditingAreaCoord.first, EditingAreaCoord.second );
     }
 
     {

@@ -28,6 +28,13 @@ public:
     void
     SetupSprite( ) override;
 
+    std::pair<int, int>
+    GetSpriteDimensions( ) { return { m_Width, m_Height }; }
+
+    void
+    SetCenterAsOrigin( );
+
+private:
 protected:
     int m_Width = 0, m_Height = 0;
 
