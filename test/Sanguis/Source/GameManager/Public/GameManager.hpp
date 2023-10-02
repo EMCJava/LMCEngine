@@ -7,6 +7,7 @@
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
 
 #include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
 
 class GameManager : public ConceptApplicable
 {
@@ -28,8 +29,6 @@ private:
     std::unique_ptr<class SaEffect>                  m_Effect;
     std::vector<std::shared_ptr<class ParticlePool>> m_ParticlePools;
 
-    std::map<std::string, std::shared_ptr<class PureConceptAABBSquare>> m_BaseSlotHitBoxes;
-
     std::unique_ptr<class ParticleAttributesRandomizer> m_PAR;
 
     std::shared_ptr<class PureConceptCamera> m_Camera;
@@ -48,14 +47,22 @@ private:
      * */
     std::unique_ptr<class SaBaseBoard> m_BaseBoard;
 
+    // Mouse Holding
+    glm::vec2            m_MouseStartPosition  = { };
+    glm::vec3            m_SpriteStartPosition = { };
+    struct SpriteHitBox* m_MenuHoldingSprite   = { };
+
     // Menu
-    std::vector<struct MenuHitBox> m_MenuItems;
+    std::vector<struct SpriteHitBox> m_MenuItems;
+    std::vector<struct SpriteHitBox> m_BaseSlots;
 
     ENABLE_IMGUI( GameManager )
 };
 
-struct MenuHitBox {
+struct SpriteHitBox {
     std::shared_ptr<class SpriteSquareTexture>   Sprite;
     std::shared_ptr<class PureConceptAABBSquare> HitBox;
-    int                                          Index;
+    std::string                                  ID;
+
+    void Swap( SpriteHitBox& Other, bool SwapCoordinate = true );
 };

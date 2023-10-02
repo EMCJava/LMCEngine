@@ -21,6 +21,9 @@ public:
     void
     SetSetDimension( FloatTy W = 0, FloatTy H = 0 );
 
+    std::pair<FloatTy, FloatTy>
+    GetCenter( ) const { return std::make_pair( X + W / 2, Y + H / 2 ); }
+
 protected:
     FloatTy X { };
     FloatTy Y { };

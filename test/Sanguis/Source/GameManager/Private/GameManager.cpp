@@ -23,6 +23,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <ranges>
 
 DEFINE_CONCEPT_DS_MA_SE( GameManager )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, PureConcept, m_Effect, TestInvokable )
@@ -111,7 +112,8 @@ GameManager::GameManager( )
         {
             auto& Record = m_MenuItems.emplace_back( );
 
-            Record.Sprite     = AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/Elements/water.png" ) );
+            auto Image        = std::make_shared<PureConceptImage>( rand( ) & 1 ? "Assets/Texture/Elements/fire.png" : "Assets/Texture/Elements/water.png" );
+            Record.Sprite     = AddConcept<SpriteSquareTexture>( DefaultShader, std::move( Image ) );
             m_BoardDimensions = { Record.Sprite->GetSpriteDimensions( ).first, Record.Sprite->GetSpriteDimensions( ).second, 0 };
             Record.Sprite->SetCenterAsOrigin( );
 
@@ -124,7 +126,7 @@ GameManager::GameManager( )
             const auto ActualSize = FinalScale * 512.F;
             Record.HitBox         = AddConcept<PureConceptAABBSquare>( MenuCoordinate.x - ActualSize / 2, MenuCoordinate.y - ActualSize / 2, ActualSize, ActualSize );
 
-            Record.Index = j * 3 + i;
+            Record.ID = std::to_string( j * 3 + i );
         }
     }
 
@@ -139,26 +141,79 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-    if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isPressed )
+    const auto& PrimaryKey = Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( );
+    if ( PrimaryKey.isPressed )
     {
+        // First press
         std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
         m_Camera->ScreenCoordToUICoord( HitPoint );
 
         spdlog::info( "HitPoint.first : {}, HitPoint.second {}", HitPoint.first, HitPoint.second );
 
-        for ( const auto& [ ID, HitBox ] : m_BaseSlotHitBoxes )
-        {
-            if ( HitBox->HitTest( HitPoint ) )
+        const auto CheckForPick = [ &HitPoint, this ]( auto& Slot ) {
+            if ( Slot.Sprite != nullptr && Slot.HitBox->HitTest( HitPoint ) )
             {
-                spdlog::info( "BaseSlot HitTest : {}", ID );
+                spdlog::info( "BaseSlot HitTest : {}", Slot.ID );
+                m_MenuHoldingSprite   = &Slot;
+                m_SpriteStartPosition = Slot.Sprite->GetCoordinate( );
+                m_MouseStartPosition  = { HitPoint.first, HitPoint.second };
             }
-        }
+        };
 
-        for ( const auto& [ Sprite, HitBox, Index ] : m_MenuItems )
+        for ( auto& Slot : m_BaseSlots )
+            CheckForPick( Slot );
+        for ( auto& Item : m_MenuItems )
+            CheckForPick( Item );
+    } else if ( PrimaryKey.isDown )
+    {
+        // Holding
+        if ( m_MenuHoldingSprite != nullptr )
         {
-            if ( HitBox->HitTest( HitPoint ) )
+            std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
+            m_Camera->ScreenCoordToUICoord( HitPoint );
+
+            glm::vec2 CurrentLocation = { HitPoint.first, HitPoint.second };
+            glm::vec2 Delta           = CurrentLocation - m_MouseStartPosition;
+
+            m_MenuHoldingSprite->Sprite->SetCoordinate( m_SpriteStartPosition + glm::vec3 { Delta, 0 } );
+        }
+    } else
+    {
+        // Possibly released
+        if ( m_MenuHoldingSprite != nullptr )
+        {
+            std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
+            m_Camera->ScreenCoordToUICoord( HitPoint );
+
+            // Reset position by default
+            m_MenuHoldingSprite->Sprite->SetCoordinate( m_SpriteStartPosition );
+
+            const auto CheckForLand = [ &HitPoint, this ]( auto& Slot ) {
+                if ( Slot.HitBox->HitTest( HitPoint ) )
+                {
+                    if ( Slot.Sprite == nullptr )
+                    {
+                        // Can't swap position automatically
+                        const auto Center = Slot.HitBox->GetCenter( );
+                        m_MenuHoldingSprite->Sprite->SetCoordinate( Center.first, Center.second );
+                    }
+
+                    m_MenuHoldingSprite->Swap( Slot );
+                    m_MenuHoldingSprite = nullptr;
+
+                    return true;
+                }
+
+                return false;
+            };
+
+            for ( auto& Slot : m_BaseSlots )
+                if ( CheckForLand( Slot ) ) break;
+
+            if ( m_MenuHoldingSprite != nullptr )
             {
-                spdlog::info( "Menu HitTest: {}", Index );
+                for ( auto& Slot : m_MenuItems )
+                    if ( CheckForLand( Slot ) ) break;
             }
         }
     }
@@ -196,7 +251,7 @@ GameManager::AddSlotHighlightUI( )
         m_BaseSlotParticleParent->Destroy( );
     }
 
-    m_BaseSlotHitBoxes.clear( );
+    m_BaseSlots.clear( );
     m_BaseSlotParticleParent = AddConcept<Concept>( );
 
     auto SlotPAR = std::make_unique<ParticleAttributesRandomizer>( );
@@ -228,7 +283,27 @@ GameManager::AddSlotHighlightUI( )
         }
 
         // Hit box
-        const auto ActualSize    = SlotBaseScale * 512.F;
-        m_BaseSlotHitBoxes[ ID ] = m_BaseSlotParticleParent->AddConcept<PureConceptAABBSquare>( SlotCoordinate.x - ActualSize.x / 2, SlotCoordinate.y - ActualSize.y / 2, ActualSize.x, ActualSize.y );
+        const auto ActualSize = SlotBaseScale * 512.F;
+        auto&      Slot       = m_BaseSlots.emplace_back( );
+        Slot.HitBox           = m_BaseSlotParticleParent->AddConcept<PureConceptAABBSquare>( SlotCoordinate.x - ActualSize.x / 2, SlotCoordinate.y - ActualSize.y / 2, ActualSize.x, ActualSize.y );
+        Slot.ID               = ID;
     }
+}
+
+void
+SpriteHitBox::Swap( SpriteHitBox& Other, bool SwapCoordinate )
+{
+    if ( SwapCoordinate && Sprite != nullptr && Other.Sprite != nullptr )
+    {
+        const auto SpriteCoordinate      = Sprite->GetCoordinate( );
+        const auto OtherSpriteCoordinate = Other.Sprite->GetCoordinate( );
+
+        Sprite->SetCoordinate( OtherSpriteCoordinate );
+        Other.Sprite->SetCoordinate( SpriteCoordinate );
+    }
+
+    std::swap( Sprite, Other.Sprite );
+    std::swap( ID, Other.ID );
+
+    // HitBox stays the same
 }
