@@ -102,6 +102,32 @@ GameManager::GameManager( )
         Sp->SetCoordinate( m_EditingAreaCoord + m_BoardDimensions / 2.F );
     }
 
+    glm::vec3 TopLeftMenu = { 230, 860, 0 };
+    glm::vec3 IconSize { 512 * m_EditorAreaScale * m_IconScale };
+
+    for ( int i = 0; i < 3; ++i )
+    {
+        for ( int j = 0; j < 6; ++j )
+        {
+            auto& Record = m_MenuItems.emplace_back( );
+
+            Record.Sprite     = AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/Elements/water.png" ) );
+            m_BoardDimensions = { Record.Sprite->GetSpriteDimensions( ).first, Record.Sprite->GetSpriteDimensions( ).second, 0 };
+            Record.Sprite->SetCenterAsOrigin( );
+
+            const auto FinalScale = m_EditorAreaScale * m_IconScale;
+            Record.Sprite->SetScale( FinalScale, FinalScale );
+
+            const auto MenuCoordinate = TopLeftMenu + IconSize * glm::vec3 { i, -j, 0 };
+            Record.Sprite->SetCoordinate( MenuCoordinate );
+
+            const auto ActualSize = FinalScale * 512.F;
+            Record.HitBox         = AddConcept<PureConceptAABBSquare>( MenuCoordinate.x - ActualSize / 2, MenuCoordinate.y - ActualSize / 2, ActualSize, ActualSize );
+
+            Record.Index = j * 3 + i;
+        }
+    }
+
     m_Effect = std::make_unique<SaEffect>( );
     m_BaseBoard->GetEffect( *m_Effect );
 
@@ -118,11 +144,21 @@ GameManager::Apply( )
         std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
         m_Camera->ScreenCoordToUICoord( HitPoint );
 
+        spdlog::info( "HitPoint.first : {}, HitPoint.second {}", HitPoint.first, HitPoint.second );
+
         for ( const auto& [ ID, HitBox ] : m_BaseSlotHitBoxes )
         {
             if ( HitBox->HitTest( HitPoint ) )
             {
                 spdlog::info( "BaseSlot HitTest : {}", ID );
+            }
+        }
+
+        for ( const auto& [ Sprite, HitBox, Index ] : m_MenuItems )
+        {
+            if ( HitBox->HitTest( HitPoint ) )
+            {
+                spdlog::info( "Menu HitTest: {}", Index );
             }
         }
     }
@@ -166,7 +202,7 @@ GameManager::AddSlotHighlightUI( )
     auto SlotPAR = std::make_unique<ParticleAttributesRandomizer>( );
     SlotPAR->SetAngularVelocity( -10, 10 );
 
-    const auto SlotBaseScale = glm::vec3( 0.45F * m_EditorAreaScale, 0.45F * m_EditorAreaScale, 1 );
+    const auto SlotBaseScale = glm::vec3( m_SlotScale * m_EditorAreaScale, m_SlotScale * m_EditorAreaScale, 1 );
     SlotPAR->SetLinearScale( SlotBaseScale - glm::vec3( 0.05F ), SlotBaseScale + glm::vec3( 0.05F ) );
 
     const auto SlotParticleCount         = 10;
@@ -194,6 +230,5 @@ GameManager::AddSlotHighlightUI( )
         // Hit box
         const auto ActualSize    = SlotBaseScale * 512.F;
         m_BaseSlotHitBoxes[ ID ] = m_BaseSlotParticleParent->AddConcept<PureConceptAABBSquare>( SlotCoordinate.x - ActualSize.x / 2, SlotCoordinate.y - ActualSize.y / 2, ActualSize.x, ActualSize.y );
-        spdlog::info( "HitBox: {}, {}", SlotCoordinate.x - 512 / 2, SlotCoordinate.y - 512 / 2 );
     }
 }

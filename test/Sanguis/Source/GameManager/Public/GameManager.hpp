@@ -37,6 +37,8 @@ private:
 
     const glm::vec3 m_EditingAreaCoord = { 600, 30, 0 };
     const FloatTy   m_EditorAreaScale  = 0.7F;
+    const FloatTy   m_SlotScale        = 0.45F;
+    const FloatTy   m_IconScale        = m_SlotScale * 0.7F;
     glm::vec3       m_BoardDimensions { };
 
     /*
@@ -46,5 +48,14 @@ private:
      * */
     std::unique_ptr<class SaBaseBoard> m_BaseBoard;
 
+    // Menu
+    std::vector<struct MenuHitBox> m_MenuItems;
+
     ENABLE_IMGUI( GameManager )
+};
+
+struct MenuHitBox {
+    std::shared_ptr<class SpriteSquareTexture>   Sprite;
+    std::shared_ptr<class PureConceptAABBSquare> HitBox;
+    int                                          Index;
 };
