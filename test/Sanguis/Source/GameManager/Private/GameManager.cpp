@@ -13,6 +13,7 @@
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Graphic/Sprites/Particle/ParticlePool.hpp>
 #include <Engine/Core/Graphic/Sprites/Particle/ParticleAttributesRandomizer.hpp>
+#include <Engine/Core/Concept/PureConceptAABBSquare.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
 // To export symbol, used for runtime inspection
@@ -125,6 +126,11 @@ GameManager::GameManager( )
                     Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
                     Pa->GetOrientation( ).SetCoordinate( SlotCoordinate );
                 }
+
+                // Hit box
+                const auto ActualSize    = SlotBaseScale * 512.F;
+                m_BaseSlotHitBoxes[ ID ] = AddConcept<PureConceptAABBSquare>( SlotCoordinate.x - ActualSize.x / 2, SlotCoordinate.y - ActualSize.y / 2, ActualSize.x, ActualSize.y );
+                spdlog::info( "HitBox: {}, {}", SlotCoordinate.x - 512 / 2, SlotCoordinate.y - 512 / 2 );
             }
         }
 
@@ -146,17 +152,18 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-    if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isDown )
+    if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isPressed )
     {
         std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
         m_Camera->ScreenCoordToUICoord( HitPoint );
 
-        auto& PP = m_ParticlePools[ 0 ];
-
-        auto* Pa = &PP->AddParticle( );
-        m_PAR->Apply( *Pa );
-        Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
-        Pa->GetOrientation( ).SetCoordinate( HitPoint.first, HitPoint.second );
+        for ( const auto& [ ID, HitBox ] : m_BaseSlotHitBoxes )
+        {
+            if ( HitBox->HitTest( HitPoint ) )
+            {
+                spdlog::info( "BaseSlot HitTest : {}", ID );
+            }
+        }
     }
 
     if ( Engine::GetEngine( )->GetUserInputHandle( )->GetSecondaryKey( ).isDown )
@@ -164,7 +171,7 @@ GameManager::Apply( )
         std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
         m_Camera->ScreenCoordToUICoord( HitPoint );
 
-        auto& PP = m_ParticlePools[ 1 ];
+        auto& PP = m_ParticlePools[ rand( ) % 2 ];
 
         auto* Pa = &PP->AddParticle( );
         m_PAR->Apply( *Pa );

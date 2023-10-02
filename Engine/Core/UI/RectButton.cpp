@@ -11,7 +11,7 @@
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
-#include <Engine/Core/Concept/PureConceptAABBBox.hpp>
+#include <Engine/Core/Concept/PureConceptAABBSquare.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
 DEFINE_CONCEPT_DS( RectButton )
@@ -119,7 +119,7 @@ RectButton::SetupButton( )
     m_SpriteSquare->SetAbsolutePosition( );
     m_SpriteSquare->SetupSprite( );
 
-    m_HitBox = AddConcept<PureConceptAABBBox>( 0, 0, m_Width, m_Height );
+    m_HitBox = AddConcept<PureConceptAABBSquare>( 0, 0, m_Width, m_Height );
 
     m_SpriteSquare->MoveToFirstAsSubConcept( );
 

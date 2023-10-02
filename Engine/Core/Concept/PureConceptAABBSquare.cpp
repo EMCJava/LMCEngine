@@ -2,13 +2,13 @@
 // Created by samsa on 8/31/2023.
 //
 
-#include "PureConceptAABBBox.hpp"
+#include "PureConceptAABBSquare.hpp"
 #include "ConceptCoreToImGuiImpl.hpp"
 
-DEFINE_CONCEPT_DS( PureConceptAABBBox )
-DEFINE_SIMPLE_IMGUI_TYPE( PureConceptAABBBox, X, Y, W, H )
+DEFINE_CONCEPT_DS( PureConceptAABBSquare )
+DEFINE_SIMPLE_IMGUI_TYPE( PureConceptAABBSquare, X, Y, W, H )
 
-PureConceptAABBBox::PureConceptAABBBox( FloatTy X, FloatTy Y, FloatTy W, FloatTy H )
+PureConceptAABBSquare::PureConceptAABBSquare( FloatTy X, FloatTy Y, FloatTy W, FloatTy H )
 {
     this->X = X;
     this->Y = Y;
@@ -17,7 +17,7 @@ PureConceptAABBBox::PureConceptAABBBox( FloatTy X, FloatTy Y, FloatTy W, FloatTy
 }
 
 bool
-PureConceptAABBBox::HitTest( const std::pair<FloatTy, FloatTy>& HitPoint )
+PureConceptAABBSquare::HitTest( const std::pair<FloatTy, FloatTy>& HitPoint )
 {
     // if ( !m_Enabled ) return false;
 
@@ -26,14 +26,14 @@ PureConceptAABBBox::HitTest( const std::pair<FloatTy, FloatTy>& HitPoint )
 }
 
 void
-PureConceptAABBBox::SetCoordinate( FloatTy X, FloatTy Y )
+PureConceptAABBSquare::SetCoordinate( FloatTy X, FloatTy Y )
 {
     this->X = X;
     this->Y = Y;
 }
 
 void
-PureConceptAABBBox::SetSetDimension( FloatTy W, FloatTy H )
+PureConceptAABBSquare::SetSetDimension( FloatTy W, FloatTy H )
 {
     this->W = W;
     this->H = H;

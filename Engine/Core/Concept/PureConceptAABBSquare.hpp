@@ -6,11 +6,11 @@
 
 #include "PureConceptAABB.hpp"
 
-class PureConceptAABBBox : public PureConceptAABB
+class PureConceptAABBSquare : public PureConceptAABB
 {
-    DECLARE_CONCEPT( PureConceptAABBBox, PureConceptAABB )
+    DECLARE_CONCEPT( PureConceptAABBSquare, PureConceptAABB )
 public:
-    PureConceptAABBBox( FloatTy X, FloatTy Y, FloatTy W, FloatTy H );
+    PureConceptAABBSquare( FloatTy X, FloatTy Y, FloatTy W, FloatTy H );
 
     virtual bool
     HitTest( const std::pair<FloatTy, FloatTy>& HitPoint );
@@ -27,5 +27,5 @@ protected:
     FloatTy W { };
     FloatTy H { };
 
-    ENABLE_IMGUI( PureConceptAABBBox )
+    ENABLE_IMGUI( PureConceptAABBSquare )
 };

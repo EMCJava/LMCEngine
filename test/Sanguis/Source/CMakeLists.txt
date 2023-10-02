@@ -117,6 +117,7 @@ declare_library(
         ParticlePool.lib
         SpriteSquareTexture.lib
         ParticleAttributesRandomizer.lib
+        PureConceptAABBSquare.lib
         UserInput.lib
         Orientation.lib
 
