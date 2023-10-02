@@ -74,11 +74,11 @@ GameManager::GameManager( )
         auto BBS = std::make_shared<SaBaseBoard>( );
         BBS->Serialize( buffer.str( ) );
 
-        BB.SetSlot( 0, std::move( BBS ) );
-        BB.SetSlot( 1, std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
-        BB.SetSlot( 2, std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
-        BB.SetSlot( 3, std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
-        BB.SetSlot( 4, std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
+        BB.SetSlot( "A", std::move( BBS ) );
+        BB.SetSlot( "B", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
+        BB.SetSlot( "C", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
+        BB.SetSlot( "D", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
+        BB.SetSlot( "E", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
     }
 
     m_Effect = std::make_unique<SaEffect>( );
