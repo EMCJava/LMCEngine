@@ -26,7 +26,8 @@
 #include <ranges>
 
 DEFINE_CONCEPT_DS_MA_SE( GameManager )
-DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, PureConcept, m_Effect, TestInvokable )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, PureConcept, m_Effect, TestInvokable, m_MenuItems, m_BaseSlots )
+DEFINE_SIMPLE_IMGUI_TYPE( SpriteHitBox, ID )
 
 namespace
 {
@@ -286,7 +287,7 @@ GameManager::AddSlotHighlightUI( )
         const auto ActualSize = SlotBaseScale * 512.F;
         auto&      Slot       = m_BaseSlots.emplace_back( );
         Slot.HitBox           = m_BaseSlotParticleParent->AddConcept<PureConceptAABBSquare>( SlotCoordinate.x - ActualSize.x / 2, SlotCoordinate.y - ActualSize.y / 2, ActualSize.x, ActualSize.y );
-        Slot.ID               = ID;
+        Slot.ID               = "EmptySlot";
     }
 }
 

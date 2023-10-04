@@ -65,4 +65,6 @@ struct SpriteHitBox {
     std::string                                  ID;
 
     void Swap( SpriteHitBox& Other, bool SwapCoordinate = true );
+
+    ENABLE_IMGUI( SpriteHitBox )
 };
