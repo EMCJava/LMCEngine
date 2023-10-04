@@ -76,6 +76,8 @@ struct SpriteHitBox {
     NodeSpritePair                               Data;
     std::shared_ptr<class PureConceptAABBSquare> HitBox;
 
+    std::string SlotName = "Nan";
+
     void Swap( SpriteHitBox& Other, bool SwapCoordinate = true );
 
     ENABLE_IMGUI( SpriteHitBox )

@@ -5,6 +5,7 @@
 #include "GameManager.hpp"
 #include "BaseBoard.h"
 #include "ControlNodeSimpleEffect.hpp"
+#include "ControlNodePlaceholder.hpp"
 
 #include <Engine/Core/Input/UserInput.hpp>
 #include <Engine/Core/Graphic/Image/PureConceptImage.hpp>
@@ -30,7 +31,7 @@ DEFINE_CONCEPT_DS_MA_SE( GameManager )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, PureConcept, m_Effect, TestInvokable, m_MenuItems, m_BaseSlots )
 
 DEFINE_SIMPLE_IMGUI_TYPE( NodeSpritePair, NodeName )
-DEFINE_SIMPLE_IMGUI_TYPE( SpriteHitBox, Data )
+DEFINE_SIMPLE_IMGUI_TYPE( SpriteHitBox, Data, SlotName )
 
 namespace
 {
@@ -120,17 +121,9 @@ GameManager::GameManager( )
         buffer << BoardTemp.rdbuf( );
 
         m_BaseBoard = std::make_unique<SaBaseBoard>( );
-        auto BBS    = std::make_shared<SaBaseBoard>( );
         m_BaseBoard->Serialize( buffer.str( ) );
-        BBS->Serialize( buffer.str( ) );
 
         AddSlotHighlightUI( );
-
-        m_BaseBoard->SetSlot( "A", std::move( BBS ) );
-        m_BaseBoard->SetSlot( "B", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
-        m_BaseBoard->SetSlot( "C", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
-        m_BaseBoard->SetSlot( "D", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
-        m_BaseBoard->SetSlot( "E", std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, Fire, 2 } ) );
     }
 
     {
@@ -184,8 +177,22 @@ GameManager::GameManager( )
         m_UpdateSlotsButton->SetCoordinate( -1920 * 5.5 / 18, -1080 * 6 / 18 );
         m_UpdateSlotsButton->SetActiveCamera( m_Camera.get( ) );
         m_UpdateSlotsButton->SetCallback( [ this ]( ) {
+            for ( const SpriteHitBox& Slot : m_BaseSlots )
+            {
+                m_BaseBoard->SetSlot( Slot.SlotName, Slot.Data.Node );
+            }
+
             m_BaseBoard->GetEffect( *m_Effect );
             spdlog::info( "Effect.Iteration : {}", m_Effect->Iteration );
+
+            std::string ResultStr;
+            std::ranges::copy(
+                m_Effect->ElementCount
+                    | std::views::transform( []( const auto& Count ) { return std::to_string( Count ); } )
+                    | std::views::join_with( ' ' ),
+                std::back_inserter( ResultStr ) );
+
+            spdlog::info( "Effect.ElementCounts : {}", ResultStr );
         } );
     }
 
@@ -338,6 +345,9 @@ GameManager::AddSlotHighlightUI( )
         const auto ActualSize = SlotBaseScale * 512.F;
         auto&      Slot       = m_BaseSlots.emplace_back( );
         Slot.HitBox           = m_BaseSlotParticleParent->AddConcept<PureConceptAABBSquare>( SlotCoordinate.x - ActualSize.x / 2, SlotCoordinate.y - ActualSize.y / 2, ActualSize.x, ActualSize.y );
+        Slot.SlotName         = ID;
+
+        Slot.Data.Node = std::make_unique<SaControlNodePlaceholder>( );
     }
 }
 

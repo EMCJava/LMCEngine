@@ -17,26 +17,40 @@ slot_locations:
 compose:
   '0':
     id: '0'
-    first_id: A
-    second_id: B
+    first_id: 'E'
+    second_id: 'F'
     method: mix
   '1':
     id: '1'
     first_id: '0'
-    second_id: C
+    second_id: 'G'
     method: right
   '2':
     id: '2'
-    first_id: '0'
-    second_id: '1'
-    method: left
+    first_id: '1'
+    second_id: 'D'
+    method: right
+  '3':
+    id: '3'
+    first_id: '2'
+    second_id: 'B'
+    method: right
+  '4':
+    id: '4'
+    first_id: '2'
+    second_id: 'C'
+    method: right
+  '5':
+    id: '5'
+    first_id: '3'
+    second_id: '4'
+    method: mix
   f:
     id: f
-    first_id: '1'
-    second_id: '0'
-    method: mix
+    first_id: '5'
+    second_id: 'A'
+    method: right
 effective_compose:
-  - A
   - f
 description: ''
 name: StarterBoard
