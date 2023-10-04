@@ -61,10 +61,20 @@ private:
     ENABLE_IMGUI( GameManager )
 };
 
+struct NodeSpritePair {
+    std::shared_ptr<class SpriteSquareTexture> Sprite;
+    std::shared_ptr<class SaControlNode>       Node;
+
+    std::string NodeName = "Empty";
+
+    void Swap( NodeSpritePair& Other, bool SwapCoordinate = true );
+
+    ENABLE_IMGUI( NodeSpritePair )
+};
+
 struct SpriteHitBox {
-    std::shared_ptr<class SpriteSquareTexture>   Sprite;
+    NodeSpritePair                               Data;
     std::shared_ptr<class PureConceptAABBSquare> HitBox;
-    std::string                                  ID;
 
     void Swap( SpriteHitBox& Other, bool SwapCoordinate = true );
 

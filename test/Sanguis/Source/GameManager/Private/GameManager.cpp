@@ -28,7 +28,9 @@
 
 DEFINE_CONCEPT_DS_MA_SE( GameManager )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, PureConcept, m_Effect, TestInvokable, m_MenuItems, m_BaseSlots )
-DEFINE_SIMPLE_IMGUI_TYPE( SpriteHitBox, ID )
+
+DEFINE_SIMPLE_IMGUI_TYPE( NodeSpritePair, NodeName )
+DEFINE_SIMPLE_IMGUI_TYPE( SpriteHitBox, Data )
 
 namespace
 {
@@ -36,6 +38,40 @@ inline std::pair<FloatTy, FloatTy>
 operator-( const std::pair<FloatTy, FloatTy>& lhs, const std::pair<FloatTy, FloatTy>& rhs )
 {
     return std::make_pair( lhs.first - rhs.first, lhs.second - rhs.second );
+}
+
+std::string
+GetTexturePath( Element ElementType )
+{
+    switch ( ElementType )
+    {
+    case Element::Fire:
+        return "Assets/Texture/Elements/fire.png";
+    case Element::Water:
+    default:
+        return "Assets/Texture/Elements/water.png";
+    }
+}
+
+std::string
+GetElementName( Element ElementType )
+{
+    switch ( ElementType )
+    {
+    case Element::Fire:
+        return "Fire";
+    case Element::Water:
+        return "Water";
+    case Earth:
+        return "Earth";
+    case Air:
+        return "Air";
+    case Aether:
+        return "Aether";
+    case NumOfElement:
+    default:
+        return "Nan";
+    }
 }
 }   // namespace
 
@@ -114,21 +150,25 @@ GameManager::GameManager( )
         {
             auto& Record = m_MenuItems.emplace_back( );
 
-            auto Image        = std::make_shared<PureConceptImage>( rand( ) & 1 ? "Assets/Texture/Elements/fire.png" : "Assets/Texture/Elements/water.png" );
-            Record.Sprite     = AddConcept<SpriteSquareTexture>( DefaultShader, std::move( Image ) );
-            m_BoardDimensions = { Record.Sprite->GetSpriteDimensions( ).first, Record.Sprite->GetSpriteDimensions( ).second, 0 };
-            Record.Sprite->SetCenterAsOrigin( );
+            const auto ElementType = Element( rand( ) & 1 );
+            const auto TexturePath = GetTexturePath( ElementType );
+
+            auto Image         = std::make_shared<PureConceptImage>( TexturePath );
+            Record.Data.Node   = std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, ElementType, 1 } );
+            Record.Data.Sprite = AddConcept<SpriteSquareTexture>( DefaultShader, std::move( Image ) );
+            m_BoardDimensions  = { Record.Data.Sprite->GetSpriteDimensions( ).first, Record.Data.Sprite->GetSpriteDimensions( ).second, 0 };
+            Record.Data.Sprite->SetCenterAsOrigin( );
 
             const auto FinalScale = m_EditorAreaScale * m_IconScale;
-            Record.Sprite->SetScale( FinalScale, FinalScale );
+            Record.Data.Sprite->SetScale( FinalScale, FinalScale );
 
             const auto MenuCoordinate = TopLeftMenu + IconSize * glm::vec3 { i, -j, 0 };
-            Record.Sprite->SetCoordinate( MenuCoordinate );
+            Record.Data.Sprite->SetCoordinate( MenuCoordinate );
 
             const auto ActualSize = FinalScale * 512.F;
             Record.HitBox         = AddConcept<PureConceptAABBSquare>( MenuCoordinate.x - ActualSize / 2, MenuCoordinate.y - ActualSize / 2, ActualSize, ActualSize );
 
-            Record.ID = std::to_string( j * 3 + i );
+            Record.Data.NodeName = ToString( ElementType );
         }
     }
 
@@ -141,7 +181,7 @@ GameManager::GameManager( )
         m_UpdateSlotsButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
         m_UpdateSlotsButton->SetText( "Update" );
         m_UpdateSlotsButton->SetPivot( 0.5F, 0.5F );
-        m_UpdateSlotsButton->SetCoordinate( 0, 70 );
+        m_UpdateSlotsButton->SetCoordinate( -1920 * 5.5 / 18, -1080 * 6 / 18 );
         m_UpdateSlotsButton->SetActiveCamera( m_Camera.get( ) );
         m_UpdateSlotsButton->SetCallback( [ this ]( ) {
             m_BaseBoard->GetEffect( *m_Effect );
@@ -162,14 +202,12 @@ GameManager::Apply( )
         std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
         m_Camera->ScreenCoordToWorldCoord( HitPoint );
 
-        spdlog::info( "HitPoint.first : {}, HitPoint.second {}", HitPoint.first, HitPoint.second );
-
         const auto CheckForPick = [ &HitPoint, this ]( auto& Slot ) {
-            if ( Slot.Sprite != nullptr && Slot.HitBox->HitTest( HitPoint ) )
+            if ( Slot.Data.Sprite != nullptr && Slot.HitBox->HitTest( HitPoint ) )
             {
-                spdlog::info( "BaseSlot HitTest : {}", Slot.ID );
+                spdlog::info( "BaseSlot HitTest : {}", Slot.Data.NodeName );
                 m_MenuHoldingSprite   = &Slot;
-                m_SpriteStartPosition = Slot.Sprite->GetCoordinate( );
+                m_SpriteStartPosition = Slot.Data.Sprite->GetCoordinate( );
                 m_MouseStartPosition  = { HitPoint.first, HitPoint.second };
             }
         };
@@ -189,7 +227,7 @@ GameManager::Apply( )
             glm::vec2 CurrentLocation = { HitPoint.first, HitPoint.second };
             glm::vec2 Delta           = CurrentLocation - m_MouseStartPosition;
 
-            m_MenuHoldingSprite->Sprite->SetCoordinate( m_SpriteStartPosition + glm::vec3 { Delta, 0 } );
+            m_MenuHoldingSprite->Data.Sprite->SetCoordinate( m_SpriteStartPosition + glm::vec3 { Delta, 0 } );
         }
     } else
     {
@@ -200,16 +238,16 @@ GameManager::Apply( )
             m_Camera->ScreenCoordToWorldCoord( HitPoint );
 
             // Reset position by default
-            m_MenuHoldingSprite->Sprite->SetCoordinate( m_SpriteStartPosition );
+            m_MenuHoldingSprite->Data.Sprite->SetCoordinate( m_SpriteStartPosition );
 
             const auto CheckForLand = [ &HitPoint, this ]( auto& Slot ) {
                 if ( Slot.HitBox->HitTest( HitPoint ) )
                 {
-                    if ( Slot.Sprite == nullptr )
+                    if ( Slot.Data.Sprite == nullptr )
                     {
                         // Can't swap position automatically
                         const auto Center = Slot.HitBox->GetCenter( );
-                        m_MenuHoldingSprite->Sprite->SetCoordinate( Center.first, Center.second );
+                        m_MenuHoldingSprite->Data.Sprite->SetCoordinate( Center.first, Center.second );
                     }
 
                     m_MenuHoldingSprite->Swap( Slot );
@@ -300,12 +338,19 @@ GameManager::AddSlotHighlightUI( )
         const auto ActualSize = SlotBaseScale * 512.F;
         auto&      Slot       = m_BaseSlots.emplace_back( );
         Slot.HitBox           = m_BaseSlotParticleParent->AddConcept<PureConceptAABBSquare>( SlotCoordinate.x - ActualSize.x / 2, SlotCoordinate.y - ActualSize.y / 2, ActualSize.x, ActualSize.y );
-        Slot.ID               = "EmptySlot";
     }
 }
 
 void
 SpriteHitBox::Swap( SpriteHitBox& Other, bool SwapCoordinate )
+{
+    Data.Swap( Other.Data, SwapCoordinate );
+
+    // HitBox stays the same
+}
+
+void
+NodeSpritePair::Swap( NodeSpritePair& Other, bool SwapCoordinate )
 {
     if ( SwapCoordinate && Sprite != nullptr && Other.Sprite != nullptr )
     {
@@ -317,7 +362,6 @@ SpriteHitBox::Swap( SpriteHitBox& Other, bool SwapCoordinate )
     }
 
     std::swap( Sprite, Other.Sprite );
-    std::swap( ID, Other.ID );
-
-    // HitBox stays the same
+    std::swap( Node, Other.Node );
+    std::swap( NodeName, Other.NodeName );
 }
