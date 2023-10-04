@@ -14,6 +14,7 @@
 #include <Engine/Core/Graphic/Sprites/Particle/ParticlePool.hpp>
 #include <Engine/Core/Graphic/Sprites/Particle/ParticleAttributesRandomizer.hpp>
 #include <Engine/Core/Concept/PureConceptAABBSquare.hpp>
+#include <Engine/Core/UI/RectButton.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
 // To export symbol, used for runtime inspection
@@ -132,9 +133,21 @@ GameManager::GameManager( )
     }
 
     m_Effect = std::make_unique<SaEffect>( );
-    m_BaseBoard->GetEffect( *m_Effect );
 
-    spdlog::info( "Effect.Iteration : {}", m_Effect->Iteration );
+    {
+        m_UpdateSlotsButton = AddConcept<RectButton>( -25, -12 );
+        m_UpdateSlotsButton->SetPressReactColor( glm::vec4 { 0.9, 0.9, 0.9, 1 } );
+        m_UpdateSlotsButton->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
+        m_UpdateSlotsButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
+        m_UpdateSlotsButton->SetText( "Update" );
+        m_UpdateSlotsButton->SetPivot( 0.5F, 0.5F );
+        m_UpdateSlotsButton->SetCoordinate( 0, 70 );
+        m_UpdateSlotsButton->SetActiveCamera( m_Camera.get( ) );
+        m_UpdateSlotsButton->SetCallback( [ this ]( ) {
+            m_BaseBoard->GetEffect( *m_Effect );
+            spdlog::info( "Effect.Iteration : {}", m_Effect->Iteration );
+        } );
+    }
 
     spdlog::info( "GameManager concept constructor returned" );
 }
@@ -147,7 +160,7 @@ GameManager::Apply( )
     {
         // First press
         std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
-        m_Camera->ScreenCoordToUICoord( HitPoint );
+        m_Camera->ScreenCoordToWorldCoord( HitPoint );
 
         spdlog::info( "HitPoint.first : {}, HitPoint.second {}", HitPoint.first, HitPoint.second );
 
@@ -171,7 +184,7 @@ GameManager::Apply( )
         if ( m_MenuHoldingSprite != nullptr )
         {
             std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
-            m_Camera->ScreenCoordToUICoord( HitPoint );
+            m_Camera->ScreenCoordToWorldCoord( HitPoint );
 
             glm::vec2 CurrentLocation = { HitPoint.first, HitPoint.second };
             glm::vec2 Delta           = CurrentLocation - m_MouseStartPosition;
@@ -184,7 +197,7 @@ GameManager::Apply( )
         if ( m_MenuHoldingSprite != nullptr )
         {
             std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
-            m_Camera->ScreenCoordToUICoord( HitPoint );
+            m_Camera->ScreenCoordToWorldCoord( HitPoint );
 
             // Reset position by default
             m_MenuHoldingSprite->Sprite->SetCoordinate( m_SpriteStartPosition );
@@ -222,7 +235,7 @@ GameManager::Apply( )
     if ( Engine::GetEngine( )->GetUserInputHandle( )->GetSecondaryKey( ).isDown )
     {
         std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
-        m_Camera->ScreenCoordToUICoord( HitPoint );
+        m_Camera->ScreenCoordToWorldCoord( HitPoint );
 
         auto& PP = m_ParticlePools[ rand( ) % 2 ];
 

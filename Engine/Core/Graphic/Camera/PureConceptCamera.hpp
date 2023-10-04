@@ -38,6 +38,9 @@ public:
     ScreenCoordToUICoord( std::pair<FloatTy, FloatTy>& ScreenCoord ) const;
 
     void
+    ScreenCoordToWorldCoord( std::pair<FloatTy, FloatTy>& ScreenCoord ) const;
+
+    void
     RegisterAsDefaultCamera( );
 
     void

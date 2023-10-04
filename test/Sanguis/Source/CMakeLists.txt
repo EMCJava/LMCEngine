@@ -120,6 +120,7 @@ declare_library(
         PureConceptAABBSquare.lib
         UserInput.lib
         Orientation.lib
+        RectButton.lib
 
         DEPS
         spdlog::spdlog

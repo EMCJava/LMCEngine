@@ -34,6 +34,8 @@ private:
     std::shared_ptr<class PureConceptCamera> m_Camera;
     std::shared_ptr<class Concept>           m_BaseSlotParticleParent;
 
+    std::shared_ptr<class RectButton> m_UpdateSlotsButton;
+
     const glm::vec3 m_EditingAreaCoord = { 600, 30, 0 };
     const FloatTy   m_EditorAreaScale  = 0.7F;
     const FloatTy   m_SlotScale        = 0.45F;
