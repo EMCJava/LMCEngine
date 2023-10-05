@@ -53,27 +53,6 @@ GetTexturePath( Element ElementType )
         return "Assets/Texture/Elements/water.png";
     }
 }
-
-std::string
-GetElementName( Element ElementType )
-{
-    switch ( ElementType )
-    {
-    case Element::Fire:
-        return "Fire";
-    case Element::Water:
-        return "Water";
-    case Earth:
-        return "Earth";
-    case Air:
-        return "Air";
-    case Aether:
-        return "Aether";
-    case NumOfElement:
-    default:
-        return "Nan";
-    }
-}
 }   // namespace
 
 GameManager::GameManager( )
@@ -81,6 +60,8 @@ GameManager::GameManager( )
     spdlog::info( "GameManager concept constructor called" );
     auto DefaultShader           = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" );
     auto DefaultShaderInstancing = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShaderInstancing" );
+
+    Engine::GetEngine( )->SetLogicalMainWindowViewPortDimensions( { 1920, 1080 } );
 
     {
         m_Camera = AddConcept<PureConceptCamera>( );
