@@ -107,7 +107,7 @@ GameManager::GameManager( )
         m_PAR->SetAngularVelocity( -31.415F, 31.415F );
         m_PAR->SetStartLinearColor( glm::vec4( 1, 0, 0, 0.9 ), glm::vec4( 1, 0.2, 0, 1 ) );
         m_PAR->SetEndLinearColor( glm::vec4( 1, 0.6, 0.4, 0 ), glm::vec4( 1, 0.8, 0.6, 0 ) );
-        m_PAR->SetLifetime( 100, 500 );
+        m_PAR->SetLifetime( 1, 5 );
 
         m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
         m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::make_shared<PureConceptImage>( "Assets/Texture/Particle/star.png" ) ) );
@@ -185,14 +185,13 @@ GameManager::GameManager( )
             m_BaseBoard->GetEffect( *m_Effect );
             spdlog::info( "Effect.Iteration : {}", m_Effect->Iteration );
 
-            std::string ResultStr;
-            std::ranges::copy(
-                m_Effect->ElementCount
-                    | std::views::transform( []( const auto& Count ) { return std::to_string( Count ); } )
-                    | std::views::join_with( ' ' ),
-                std::back_inserter( ResultStr ) );
+            std::stringstream ResultStr;
+            for ( const auto& Count : m_Effect->ElementCount )
+            {
+                ResultStr << Count << ' ';
+            }
 
-            spdlog::info( "Effect.ElementCounts : {}", ResultStr );
+            spdlog::info( "Effect.ElementCounts : {}", ResultStr.str( ) );
         } );
     }
 
