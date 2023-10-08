@@ -44,14 +44,7 @@ operator-( const std::pair<FloatTy, FloatTy>& lhs, const std::pair<FloatTy, Floa
 std::string
 GetTexturePath( Element ElementType )
 {
-    switch ( ElementType )
-    {
-    case Element::Fire:
-        return "Assets/Texture/Elements/fire.png";
-    case Element::Water:
-    default:
-        return "Assets/Texture/Elements/water.png";
-    }
+    return "Assets/Texture/Elements/" + ToString( ElementType ) + ".png";
 }
 }   // namespace
 
