@@ -117,7 +117,7 @@ GameManager::GameManager( )
         {
             auto& Record = m_MenuItems.emplace_back( );
 
-            const auto ElementType = Element( rand( ) & 1 );
+            const auto ElementType = Element( rand( ) % NumOfElement );
             const auto TexturePath = GetTexturePath( ElementType );
 
             auto Image         = std::make_shared<PureConceptImage>( TexturePath );
