@@ -82,6 +82,7 @@ DynamicLibrary::Load( const std::string_view& Path )
     if ( !fs::exists( Path ) )
     {
         spdlog::error( "DynamicLibrary::Load: File {} does not exist", Path );
+        return false;
     }
 
     m_DLLLoadPath = m_DLLPath = Path;
@@ -166,6 +167,34 @@ DynamicLibrary::MakeDLLCopy( )
     const auto HotReloadDLLPath = HotReloadDLLParentPath / ( OriginalDLLPath.filename( ) );
 
     m_DLLLoadPath = m_DLLTmpPath = HotReloadDLLPath.string( );
+
+    MakeSureOperation( [ this, retry_left = 10 ]( ) mutable {
+        std::error_code OperationError;
+
+        const auto FileSize = fs::file_size( m_DLLPath, OperationError );
+        if ( FileSize == 0 )
+        {
+            // Success, but not overwriting
+            //            if ( !OperationError.value( ) )
+            //            {
+            //                return true;
+            //            }
+
+            if ( retry_left >= 1 )
+            {
+                spdlog::error( "DynamicLibrary::MakeDLLCopy: File size 0, error code {}, retry remaining #{}", OperationError.value( ), retry_left );
+                std::this_thread::sleep_for( std::chrono::seconds ( 1 ) );
+                retry_left--;
+                return false;
+            }
+
+            // Gave up
+        }
+
+        spdlog::info( "DynamicLibrary::MakeDLLCopy: Copying {}bytes.", FileSize );
+
+        return true;
+    } );
 
     MakeSureOperation( [ this, retry_left = 10 ]( ) mutable {
         std::error_code OperationError;
