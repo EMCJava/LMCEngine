@@ -4,6 +4,8 @@
 
 #include "OSFile.hpp"
 
+#include <Engine/Core/Core.hpp>
+
 #include <stdexcept>
 
 #include <spdlog/spdlog.h>
@@ -11,6 +13,45 @@
 std::string
 OSFile::PickFile( const std::vector<nfdfilteritem_t>& filter, const char* default_path )
 {
+#ifdef LMC_LINUX
+    // NFD will crash on multiple if no all linux platform I tried
+
+    FILE* pipe;
+    if ( default_path != nullptr )
+    {
+        pipe = popen( ( "zenity --file-selection --filename=\"" + std::string( default_path ) + "\"" ).c_str( ), "r" );
+
+    } else
+    {
+        pipe = popen( "zenity --file-selection", "r" );
+    }
+    if ( !pipe )
+    {
+        spdlog::error( "Could not open pipe for zenity(file selection dialog for Linux)" );
+        return "";
+    }
+
+    char        buffer[ 1024 ];
+    std::string result = "";
+
+    while ( !feof( pipe ) )
+    {
+        if ( fgets( buffer, 1024, pipe ) != nullptr )
+        {
+            result += buffer;
+        }
+    }
+
+    pclose( pipe );
+
+    // Remove the trailing newline character, if present
+    if ( !result.empty( ) && result[ result.length( ) - 1 ] == '\n' )
+    {
+        result.pop_back( );
+    }
+
+    return result;
+#else
     nfdchar_t*  outPath = nullptr;
     nfdresult_t result  = NFD::OpenDialog( outPath, filter.data( ), filter.size( ), default_path );
 
@@ -27,6 +68,7 @@ OSFile::PickFile( const std::vector<nfdfilteritem_t>& filter, const char* defaul
     {
         throw std::runtime_error( std::string( "OSFile::PickFile error: " ) + NFD_GetError( ) );
     }
+#endif
 }
 
 std::string
