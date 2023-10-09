@@ -85,12 +85,12 @@ GameManager::GameManager( )
         m_PAR->SetLifetime( 1, 5 );
 
         auto Image = std::make_shared<PureConceptImage>( "Assets/Texture/Particle/star.png" );
-        REQUIRED( Image->GetImageDimension( ) == std::make_pair( m_ParticleScriptsize, m_ParticleScriptsize ) )
+        REQUIRED( Image->GetImageDimension( ) == ( std::pair<int32_t, int32_t>( m_ParticleScriptsize, m_ParticleScriptsize ) ) )
         m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
         m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::move( Image ) ) );
 
         Image = std::make_shared<PureConceptImage>( "Assets/Texture/Particle/ring.png" );
-        REQUIRED( Image->GetImageDimension( ) == std::make_pair( m_ParticleScriptsize, m_ParticleScriptsize ) )
+        REQUIRED( Image->GetImageDimension( ) == ( std::pair<int32_t, int32_t>( m_ParticleScriptsize, m_ParticleScriptsize ) ) )
         m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
         m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::move( Image ) ) );
     }
@@ -128,7 +128,7 @@ GameManager::GameManager( )
             const auto TexturePath = GetTexturePath( ElementType );
 
             auto Image = std::make_shared<PureConceptImage>( TexturePath );
-            REQUIRED( Image->GetImageDimension( ) == std::make_pair( UIIconSize, UIIconSize ) )
+            REQUIRED( Image->GetImageDimension( ) == ( std::pair<int32_t, int32_t>( UIIconSize, UIIconSize ) ) )
 
             Record.Data.Node   = std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, ElementType, 1 } );
             Record.Data.Sprite = AddConcept<SpriteSquareTexture>( DefaultShader, std::move( Image ) );
