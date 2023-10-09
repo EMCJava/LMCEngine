@@ -162,7 +162,7 @@ GameManager::GameManager( )
             std::stringstream ResultStr;
             for ( const auto& Count : m_Effect->ElementCount )
             {
-                ResultStr << Count << ' ';
+                ResultStr << (int) Count << ' ';
             }
 
             spdlog::info( "Effect.ElementCounts : {}", ResultStr.str( ) );
