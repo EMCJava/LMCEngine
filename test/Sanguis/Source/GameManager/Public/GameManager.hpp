@@ -42,6 +42,8 @@ private:
     const FloatTy   m_IconScale        = m_SlotScale * 0.7F;
     glm::vec3       m_BoardDimensions { };
 
+    const FloatTy m_ParticleScriptsize = 512;
+
     /*
      *
      * Game Logics

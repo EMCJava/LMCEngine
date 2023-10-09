@@ -54,13 +54,14 @@ GameManager::GameManager( )
     auto DefaultShader           = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" );
     auto DefaultShaderInstancing = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShaderInstancing" );
 
-    Engine::GetEngine( )->SetLogicalMainWindowViewPortDimensions( { 1920, 1080 } );
+    constexpr std::pair<int, int> WindowSize = { 1920, 1080 };
+    Engine::GetEngine( )->SetLogicalMainWindowViewPortDimensions( WindowSize );
 
     {
         m_Camera = AddConcept<PureConceptCamera>( );
         m_Camera->RegisterAsDefaultCamera( );
 
-        m_Camera->SetCoordinate( 1920 / 2, 1080 / 2 );
+        m_Camera->SetCoordinate( WindowSize.first / 2, WindowSize.second / 2 );
     }
 
     AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/Inv.png" ) );
@@ -83,10 +84,15 @@ GameManager::GameManager( )
         m_PAR->SetEndLinearColor( glm::vec4( 1, 0.6, 0.4, 0 ), glm::vec4( 1, 0.8, 0.6, 0 ) );
         m_PAR->SetLifetime( 1, 5 );
 
+        auto Image = std::make_shared<PureConceptImage>( "Assets/Texture/Particle/star.png" );
+        REQUIRED( Image->GetImageDimension( ) == std::make_pair( m_ParticleScriptsize, m_ParticleScriptsize ) )
         m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
-        m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::make_shared<PureConceptImage>( "Assets/Texture/Particle/star.png" ) ) );
+        m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::move( Image ) ) );
+
+        Image = std::make_shared<PureConceptImage>( "Assets/Texture/Particle/ring.png" );
+        REQUIRED( Image->GetImageDimension( ) == std::make_pair( m_ParticleScriptsize, m_ParticleScriptsize ) )
         m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
-        m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::make_shared<PureConceptImage>( "Assets/Texture/Particle/ring.png" ) ) );
+        m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::move( Image ) ) );
     }
 
     {
@@ -108,8 +114,9 @@ GameManager::GameManager( )
         Sp->SetCoordinate( m_EditingAreaCoord + m_BoardDimensions / 2.F );
     }
 
-    glm::vec3 TopLeftMenu = { 230, 860, 0 };
-    glm::vec3 IconSize { 512 * m_EditorAreaScale * m_IconScale };
+    constexpr FloatTy UIIconSize  = 512;
+    glm::vec3         TopLeftMenu = { 230, 860, 0 };
+    glm::vec3         IconSize { UIIconSize * m_EditorAreaScale * m_IconScale };
 
     for ( int i = 0; i < 3; ++i )
     {
@@ -120,7 +127,9 @@ GameManager::GameManager( )
             const auto ElementType = Element( rand( ) % NumOfElement );
             const auto TexturePath = GetTexturePath( ElementType );
 
-            auto Image         = std::make_shared<PureConceptImage>( TexturePath );
+            auto Image = std::make_shared<PureConceptImage>( TexturePath );
+            REQUIRED( Image->GetImageDimension( ) == std::make_pair( UIIconSize, UIIconSize ) )
+
             Record.Data.Node   = std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, ElementType, 1 } );
             Record.Data.Sprite = AddConcept<SpriteSquareTexture>( DefaultShader, std::move( Image ) );
             m_BoardDimensions  = { Record.Data.Sprite->GetSpriteDimensions( ).first, Record.Data.Sprite->GetSpriteDimensions( ).second, 0 };
@@ -132,7 +141,7 @@ GameManager::GameManager( )
             const auto MenuCoordinate = TopLeftMenu + IconSize * glm::vec3 { i, -j, 0 };
             Record.Data.Sprite->SetCoordinate( MenuCoordinate );
 
-            const auto ActualSize = FinalScale * 512.F;
+            const auto ActualSize = FinalScale * UIIconSize;
             Record.HitBox         = AddConcept<PureConceptAABBSquare>( MenuCoordinate.x - ActualSize / 2, MenuCoordinate.y - ActualSize / 2, ActualSize, ActualSize );
 
             Record.Data.NodeName = ToString( ElementType );
@@ -148,7 +157,7 @@ GameManager::GameManager( )
         m_UpdateSlotsButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
         m_UpdateSlotsButton->SetText( "Update" );
         m_UpdateSlotsButton->SetPivot( 0.5F, 0.5F );
-        m_UpdateSlotsButton->SetCoordinate( -1920 * 5.5 / 18, -1080 * 6 / 18 );
+        m_UpdateSlotsButton->SetCoordinate( -WindowSize.first * 5.5 / 18, -WindowSize.second * 6 / 18 );
         m_UpdateSlotsButton->SetActiveCamera( m_Camera.get( ) );
         m_UpdateSlotsButton->SetCallback( [ this ]( ) {
             for ( const SpriteHitBox& Slot : m_BaseSlots )
@@ -259,7 +268,7 @@ GameManager::Apply( )
 
         auto* Pa = &PP->AddParticle( );
         m_PAR->Apply( *Pa );
-        Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
+        Pa->GetOrientation( ).SetOrigin( m_ParticleScriptsize / 2, m_ParticleScriptsize / 2 );
         Pa->GetOrientation( ).SetCoordinate( HitPoint.first, HitPoint.second );
     }
 }
@@ -271,7 +280,7 @@ GameManager::TestInvokable( )
 
     auto* Pa = &PP->AddParticle( );
     m_PAR->Apply( *Pa );
-    Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
+    Pa->GetOrientation( ).SetOrigin( m_ParticleScriptsize / 2, m_ParticleScriptsize / 2 );
     Pa->GetOrientation( ).SetCoordinate( 0, 0 );
 }
 
@@ -310,12 +319,12 @@ GameManager::AddSlotHighlightUI( )
 
             Pa->SetLifeTime( std::numeric_limits<FloatTy>::infinity( ) );
             Pa->GetColor( ) = glm::vec4( 1 );
-            Pa->GetOrientation( ).SetOrigin( 512 / 2, 512 / 2 );
+            Pa->GetOrientation( ).SetOrigin( m_ParticleScriptsize / 2, m_ParticleScriptsize / 2 );
             Pa->GetOrientation( ).SetCoordinate( SlotCoordinate );
         }
 
         // Hit box
-        const auto ActualSize = SlotBaseScale * 512.F;
+        const auto ActualSize = SlotBaseScale * m_ParticleScriptsize;
         auto&      Slot       = m_BaseSlots.emplace_back( );
         Slot.HitBox           = m_BaseSlotParticleParent->AddConcept<PureConceptAABBSquare>( SlotCoordinate.x - ActualSize.x / 2, SlotCoordinate.y - ActualSize.y / 2, ActualSize.x, ActualSize.y );
         Slot.SlotName         = ID;
