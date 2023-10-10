@@ -4,7 +4,11 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 enum class NetType {
+    None,
     TCP,
     UDP
 };
@@ -21,11 +25,14 @@ public:
     NetController& operator=( NetController&& )      = delete;
 
     virtual bool
-    Setup( NetType Type ) = 0;
+    Setup( NetType Type, const std::string& IP, int Port ) = 0;
 
     virtual bool
-    Receive( );
+    Receive( std::vector<char>& Data ) { }
 
     virtual bool
-    Send( );
+    Send( std::vector<char>& Data ) { }
+
+protected:
+    NetType m_NetType;
 };
