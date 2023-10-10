@@ -28,7 +28,14 @@ bool
 NetClient::Setup( NetType Type, const std::string& IP, int Port )
 {
     struct sockaddr_in serv_name;
-    int                on = 1;
+
+    if ( m_SocketHandle != -1 )
+    {
+        spdlog::trace( "Recreating socket ({})", m_SocketHandle );
+
+        close( m_SocketHandle );
+        m_SocketHandle = -1;
+    }
 
     // create a socket
     m_SocketHandle = socket( AF_INET, SOCK_STREAM, 0 );
@@ -105,4 +112,15 @@ NetClient::Send( std::vector<char>& Data )
     }
 
     return false;
+}
+
+std::shared_ptr<NetClient>
+NetClient::WrapSocket( int Sock )
+{
+    return std::shared_ptr<NetClient>( new NetClient( Sock ) );
+}
+
+NetClient::NetClient( int WrapSocket )
+    : m_SocketHandle( WrapSocket )
+{
 }

@@ -13,14 +13,18 @@ ServerT( )
 {
     NetServer server;
     server.Setup( NetType::TCP, "127.0.0.1", 12333 );
-    server.Listen( 1 );
-    int Sock = server.Accept( );
+    server.Listen( 2 );
 
-    std::vector<char> Buffer( 1024, 0 );
-    server.Reveive( Sock, Buffer );
+    for ( int i = 0; i < 2; i++ )
+    {
+        auto Sock = server.Accept( );
 
-    spdlog::info( "Received {} bytes", Buffer.size( ) );
-    spdlog::info( "\n===\n{}\n===", Buffer.data( ) );
+        std::vector<char> Buffer( 1024, 0 );
+        Sock->Receive( Buffer );
+
+        spdlog::info( "Received {} bytes", Buffer.size( ) );
+        spdlog::info( "\n===\n{}\n===", Buffer.data( ) );
+    }
 }
 
 void
@@ -42,14 +46,20 @@ main( )
     spdlog::set_level( spdlog::level::trace );
 
     std::thread ServerThread( ServerT );
-    std::this_thread::sleep_for( std::chrono::seconds ( 2 ) );
+    std::this_thread::sleep_for( std::chrono::seconds( 2 ) );
     std::thread ClientThread( ClientT );
-
-    if ( ServerThread.joinable( ) )
-        ServerThread.join( );
 
     if ( ClientThread.joinable( ) )
         ClientThread.join( );
+
+    std::this_thread::sleep_for( std::chrono::seconds( 2 ) );
+    std::thread T( ClientT );
+    ClientThread.swap( T );
+    if ( ClientThread.joinable( ) )
+        ClientThread.join( );
+
+    if ( ServerThread.joinable( ) )
+        ServerThread.join( );
 
     return 0;
 

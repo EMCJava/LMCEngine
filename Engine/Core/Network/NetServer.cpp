@@ -5,6 +5,7 @@
 #include "NetServer.hpp"
 
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
+#include <Engine/Core/Network/NetClient.hpp>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -20,6 +21,14 @@ NetServer::Setup( NetType Type, const std::string& IP, int Port )
 {
     struct sockaddr_in my_addr;
     int                on = 1;
+
+    if ( m_ServerSocketHandle != -1 )
+    {
+        spdlog::trace( "Recreating socket ({})", m_ServerSocketHandle );
+
+        close( m_ServerSocketHandle );
+        m_ServerSocketHandle = -1;
+    }
 
     // create a socket
     m_ServerSocketHandle = socket( AF_INET, SOCK_STREAM, 0 );
@@ -63,7 +72,7 @@ NetServer::Listen( int ClientCount )
     return false;
 }
 
-int
+std::shared_ptr<NetClient>
 NetServer::Accept( )
 {
     REQUIRED_IF( m_NetType == NetType::TCP && m_ServerSocketHandle != -1 )
@@ -77,37 +86,11 @@ NetServer::Accept( )
 
         spdlog::trace( "Connected by {}:{}", inet_ntoa( client_addr.sin_addr ), ntohs( client_addr.sin_port ) );
 
-        return NewFD;
+        return NetClient::WrapSocket( NewFD );
     }
 
-    return -1;
+    return nullptr;
 }
-
-bool
-NetServer::Reveive( int SocketHandle, std::vector<char>& Data )
-{
-    REQUIRED_IF( SocketHandle != -1 )
-    {
-        Data.resize( Data.capacity( ) );
-        ssize_t nbytes = ::recv( SocketHandle, Data.data( ), Data.size( ), 0 );
-        if ( nbytes <= 0 )
-        {
-            close( SocketHandle );
-            SocketHandle = -1;
-
-            Data.clear( );
-            spdlog::trace( "Connection closed ({}).", strerror( errno ) );
-            return false;
-        }
-
-        Data.resize( nbytes );
-
-        return true;
-    }
-
-    return false;
-}
-
 
 NetServer::~NetServer( )
 {

@@ -17,11 +17,8 @@ public:
     bool
     Listen( int ClientCount );
 
-    int
+    std::shared_ptr<class NetClient>
     Accept( );
-
-    bool
-    Reveive( int SocketHandle, std::vector<char>& Data );
 
 private:
     int m_ServerSocketHandle = -1;
