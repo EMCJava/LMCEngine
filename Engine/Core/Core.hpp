@@ -46,6 +46,14 @@
 #    error "Unknown compiler"
 #endif
 
+#if defined( LMC_LINUX ) || defined( LMC_APPLE )
+#    define LMC_UNIX
+#endif
+
+#if !defined( LMC_WIN ) && !defined( LMC_UNIX )
+static_assert( false, "Platform not defined" );
+#endif
+
 /*
  *
  * Export macros
@@ -75,7 +83,7 @@
 #    endif
 #elif defined( LMC_LINUX )
 #    ifdef __cplusplus
-#        define LMC_API extern "C" __attribute__((visibility("default")))
+#        define LMC_API extern "C" __attribute__( ( visibility( "default" ) ) )
 #    else
 #        define LMC_API
 #    endif

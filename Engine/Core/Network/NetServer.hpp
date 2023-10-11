@@ -21,5 +21,5 @@ public:
     Accept( );
 
 private:
-    int m_ServerSocketHandle = -1;
+    SocketTy m_ServerSocketHandle = -1;
 };

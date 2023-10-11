@@ -5,15 +5,18 @@
 #include "Environment.hpp"
 
 #include <Engine/Core/Window/Window.hpp>
+#include <Engine/Core/Network/NetController.hpp>
 
 void
 InitializeEnvironment( )
 {
     InitializeWindowEnvironment( );
+    NetController::NetGlobalInitialize( );
 }
 
 void
 ShutdownEnvironment( )
 {
     ShutdownWindowEnvironment( );
+    NetController::NetGlobalShutdown( );
 }

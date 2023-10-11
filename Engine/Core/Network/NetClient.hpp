@@ -29,5 +29,6 @@ public:
     WrapSocket( int Sock );
 
 protected:
-    int m_SocketHandle = -1;
+
+    SocketTy m_SocketHandle = -1;
 };

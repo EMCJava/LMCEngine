@@ -3,18 +3,13 @@
 //
 
 #include "NetServer.hpp"
+#include "NetPlatform.hpp"
 
+#include <Engine/Core/Utilities/PlatformSysUtilities.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 #include <Engine/Core/Network/NetClient.hpp>
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#define SYS_ASSERT( x ) REQUIRED_IF( ( x ) != -1, spdlog::trace( "errno: ({})", strerror( errno ) ) )
+#define SYS_ASSERT( x ) REQUIRED_IF( ( x ) != -1, PrintSysNetError( "" ) )
 
 bool
 NetServer::Setup( NetType Type, const std::string& IP, int Port )
@@ -26,7 +21,7 @@ NetServer::Setup( NetType Type, const std::string& IP, int Port )
     {
         spdlog::trace( "Recreating socket ({})", m_ServerSocketHandle );
 
-        close( m_ServerSocketHandle );
+        NetController::CloseSocket( m_ServerSocketHandle );
         m_ServerSocketHandle = -1;
     }
 
@@ -34,12 +29,14 @@ NetServer::Setup( NetType Type, const std::string& IP, int Port )
     m_ServerSocketHandle = socket( AF_INET, SOCK_STREAM, 0 );
     SYS_ASSERT( m_ServerSocketHandle )
     {
+#ifdef LMC_UNIX
         // for "Address already in use" error message
         SYS_ASSERT( setsockopt( m_ServerSocketHandle, SOL_SOCKET, SO_REUSEADDR, &on, sizeof( int ) ) )
+#endif
         {
             // server address
             my_addr.sin_family = AF_INET;
-            inet_aton( IP.c_str( ), &my_addr.sin_addr );
+            inet_pton( AF_INET, IP.c_str( ), &my_addr.sin_addr );
             my_addr.sin_port = htons( Port );
 
             SYS_ASSERT( bind( m_ServerSocketHandle, (struct sockaddr*) &my_addr, sizeof( my_addr ) ) )
@@ -50,7 +47,7 @@ NetServer::Setup( NetType Type, const std::string& IP, int Port )
             }
         }
 
-        close( m_ServerSocketHandle );
+        NetController::CloseSocket( m_ServerSocketHandle );
         m_ServerSocketHandle = -1;
     }
 
@@ -96,7 +93,7 @@ NetServer::~NetServer( )
 {
     if ( m_ServerSocketHandle != -1 )
     {
-        close( m_ServerSocketHandle );
+        NetController::CloseSocket( m_ServerSocketHandle );
         m_ServerSocketHandle = -1;
     }
 }

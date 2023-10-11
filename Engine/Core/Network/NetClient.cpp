@@ -3,23 +3,19 @@
 //
 
 #include "NetClient.hpp"
+#include "NetPlatform.hpp"
 
+#include <Engine/Core/Core.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
+#include <Engine/Core/Utilities/PlatformSysUtilities.hpp>
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#define SYS_ASSERT( x ) REQUIRED_IF( ( x ) != -1, spdlog::trace( "errno: ({})", strerror( errno ) ) )
+#define SYS_ASSERT( x ) REQUIRED_IF( ( x ) != -1, PrintSysNetError( "" ) )
 
 NetClient::~NetClient( )
 {
     if ( m_SocketHandle != -1 )
     {
-        close( m_SocketHandle );
+        NetController::CloseSocket( m_SocketHandle );
         m_SocketHandle = -1;
     }
 }
@@ -32,8 +28,7 @@ NetClient::Setup( NetType Type, const std::string& IP, int Port )
     if ( m_SocketHandle != -1 )
     {
         spdlog::trace( "Recreating socket ({})", m_SocketHandle );
-
-        close( m_SocketHandle );
+        NetController::CloseSocket( m_SocketHandle );
         m_SocketHandle = -1;
     }
 
@@ -43,7 +38,7 @@ NetClient::Setup( NetType Type, const std::string& IP, int Port )
     {
         // server address
         serv_name.sin_family = AF_INET;
-        inet_aton( IP.c_str( ), &serv_name.sin_addr );
+        inet_pton( AF_INET, IP.c_str( ), &serv_name.sin_addr );
         serv_name.sin_port = htons( Port );
 
         SYS_ASSERT( connect( m_SocketHandle, (struct sockaddr*) &serv_name, sizeof( serv_name ) ) )
@@ -53,7 +48,7 @@ NetClient::Setup( NetType Type, const std::string& IP, int Port )
             return true;
         }
 
-        close( m_SocketHandle );
+        NetController::CloseSocket( m_SocketHandle );
         m_SocketHandle = -1;
     }
 
@@ -66,10 +61,10 @@ NetClient::Receive( std::vector<char>& Data )
     REQUIRED_IF( m_SocketHandle != -1 )
     {
         Data.resize( Data.capacity( ) );
-        ssize_t nbytes = ::recv( m_SocketHandle, Data.data( ), Data.size( ), 0 );
+        int nbytes = ::recv( m_SocketHandle, Data.data( ), Data.size( ), 0 );
         if ( nbytes <= 0 )
         {
-            close( m_SocketHandle );
+            NetController::CloseSocket( m_SocketHandle );
             m_SocketHandle = -1;
 
             Data.clear( );
@@ -93,10 +88,10 @@ NetClient::Send( std::vector<char>& Data )
         size_t DataSent = 0;
         while ( DataSent != Data.size( ) )
         {
-            ssize_t nbytes = ::send( m_SocketHandle, Data.data( ) + DataSent, Data.size( ) - DataSent, 0 );
+            int nbytes = ::send( m_SocketHandle, Data.data( ) + DataSent, Data.size( ) - DataSent, 0 );
             if ( nbytes <= 0 )
             {
-                close( m_SocketHandle );
+                NetController::CloseSocket( m_SocketHandle );
                 m_SocketHandle = -1;
 
                 Data.clear( );

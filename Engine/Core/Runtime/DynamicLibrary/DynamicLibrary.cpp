@@ -4,21 +4,13 @@
 
 #include <Engine/Core/Core.hpp>
 
-#if defined( LMC_LINUX ) || defined( LMC_APPLE )
-#    define LMC_UNIX
-#endif
-
-#if !defined( LMC_WIN ) && !defined( LMC_UNIX )
-static_assert( false, "Platform not defined" );
-#endif
-
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 #include <Engine/Core/Runtime/DynamicLibrary/DynamicConcept.hpp>
 
 #ifdef LMC_WIN
 #    include <windows.h>
 #    define SHARING_VIOLATION 32L
-#elif defined( LMC_UNIX )   // Should be working also on linux platform, not yet tried
+#elif defined( LMC_UNIX )
 #    include <dlfcn.h>
 #    define SHARING_VIOLATION EBUSY
 #endif
@@ -30,35 +22,13 @@ static_assert( false, "Platform not defined" );
 
 namespace fs = std::filesystem;
 
-inline void
-PrintSysCallError( std::string_view message )
-{
-#ifdef LMC_WIN
-    DWORD errorMessageID = ::GetLastError( );
-
-    LPSTR messageBuffer = nullptr;
-
-    // Ask Win32 to give us the string version of that message ID.
-    // The parameters we pass in, tell Win32 to create the buffer that holds the message for us (because we don't yet know how long the message string will be).
-    size_t size = FormatMessageA( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                                  nullptr, errorMessageID, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), (LPSTR) &messageBuffer, 0, nullptr );
-
-    spdlog::error( "{}: {}", message, std::string_view( messageBuffer, size - 2 ) );
-
-    // Free the Win32's string's buffer.
-    LocalFree( messageBuffer );
-#elif defined( LMC_UNIX )
-    std::string DLErrorString = dlerror( );
-    spdlog::error( "{}: {}", message, DLErrorString );
-#endif
-}
+#include <Engine/Core/Utilities/PlatformSysUtilities.hpp>
 
 void
 MakeSureOperation( auto&& Operation )
 {
-
     while ( !Operation( ) )
-        ;
+    { }
 }
 
 DynamicLibrary::DynamicLibrary( bool MakeCopyOnLoad )
@@ -100,7 +70,7 @@ DynamicLibrary::Load( const std::string_view& Path )
 
     if ( m_DLLHandle == nullptr )
     {
-        PrintSysCallError( "DynamicLibrary::Load: Can't open and load dynamic library" );
+        PrintSysLinkError( "DynamicLibrary::Load: Can't open and load dynamic library" );
         return false;
     }
 
@@ -123,7 +93,7 @@ DynamicLibrary::Unload( )
         if ( dlclose( m_DLLHandle ) )
 #endif
         {
-            PrintSysCallError( "Failed to free dynamic library" );
+            PrintSysLinkError( "Failed to free dynamic library" );
         }
 
         m_DLLHandle        = nullptr;
@@ -148,7 +118,7 @@ DynamicLibrary::LoadSymbol( const std::string& Name )
 #endif
     if ( result == nullptr )
     {
-        PrintSysCallError( "DynamicLibrary::Load: Can't load function" );
+        PrintSysLinkError( "DynamicLibrary::Load: Can't load function" );
     }
 
     return result;
@@ -183,7 +153,7 @@ DynamicLibrary::MakeDLLCopy( )
             if ( retry_left >= 1 )
             {
                 spdlog::error( "DynamicLibrary::MakeDLLCopy: File size 0, error code {}, retry remaining #{}", OperationError.value( ), retry_left );
-                std::this_thread::sleep_for( std::chrono::seconds ( 1 ) );
+                std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
                 retry_left--;
                 return false;
             }
