@@ -17,18 +17,17 @@ public:
     ~NetClient( );
 
     bool
-    Setup( NetType Type, const std::string& IP, int Port ) override;
+    Setup( NetType Type, const std::string& IP, int Port );
 
     bool
     Receive( std::vector<char>& Data ) override;
 
     bool
-    Send( std::vector<char>& Data ) override;
+    Send( const std::vector<char>& Data ) override;
 
     static std::shared_ptr<NetClient>
     WrapSocket( int Sock );
 
 protected:
-
     SocketTy m_SocketHandle = -1;
 };

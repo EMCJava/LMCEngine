@@ -25,6 +25,12 @@ NetClient::Setup( NetType Type, const std::string& IP, int Port )
 {
     struct sockaddr_in serv_name;
 
+    if ( Type != NetType::TCP )
+    {
+        spdlog::error( "NetClient::Setup: Only TCP is supported, use NetCServer if UDP is used" );
+        return false;
+    }
+
     if ( m_SocketHandle != -1 )
     {
         spdlog::trace( "Recreating socket ({})", m_SocketHandle );
@@ -68,7 +74,7 @@ NetClient::Receive( std::vector<char>& Data )
             m_SocketHandle = -1;
 
             Data.clear( );
-            spdlog::trace( "Connection closed ({}).", strerror( errno ) );
+            PrintSysNetError( "Connection closed" );
             return false;
         }
 
@@ -81,7 +87,7 @@ NetClient::Receive( std::vector<char>& Data )
 }
 
 bool
-NetClient::Send( std::vector<char>& Data )
+NetClient::Send( const std::vector<char>& Data )
 {
     REQUIRED_IF( m_SocketHandle != -1 )
     {
@@ -94,8 +100,7 @@ NetClient::Send( std::vector<char>& Data )
                 NetController::CloseSocket( m_SocketHandle );
                 m_SocketHandle = -1;
 
-                Data.clear( );
-                spdlog::trace( "Connection closed ({}).", strerror( errno ) );
+                PrintSysNetError( "Connection closed" );
                 return false;
             } else
             {

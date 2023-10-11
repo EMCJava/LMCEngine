@@ -213,7 +213,7 @@ bool check_if_english_error_messages()
         return s.find( "Incorrect function" )!=std::string::npos;
     }
 #else
-    std::string s( strerror( 1 ) );
+    std::string s( PrintSysLinkError( 1 ) );
     return s.find( "Operation not permitted" )!=std::string::npos;
 #endif
 }

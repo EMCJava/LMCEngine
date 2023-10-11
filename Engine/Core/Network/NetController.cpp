@@ -33,3 +33,30 @@ NetController::NetGlobalShutdown( )
     WSACleanup( );
 #endif
 }
+
+bool
+NetController::ReceiveFrom( std::vector<char>& Data, NetPoint& Address )
+{
+    struct sockaddr_in addr;
+
+    bool result = ReceiveFrom( Data, addr );
+    if ( result )
+    {
+        Address.IP   = inet_ntoa( addr.sin_addr );
+        Address.Port = ntohs( addr.sin_port );
+    }
+
+    return result;
+}
+
+bool
+NetController::SendTo( const std::vector<char>& Data, const NetController::NetPoint& Target )
+{
+    struct sockaddr_in addr;
+
+    addr.sin_family = AF_INET;
+    addr.sin_port   = htons( Target.Port );
+    inet_pton( AF_INET, Target.IP.c_str( ), &addr.sin_addr );
+
+    return SendTo( Data, addr );
+}

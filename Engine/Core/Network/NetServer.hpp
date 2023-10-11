@@ -11,8 +11,11 @@ class NetServer : public NetController
 public:
     ~NetServer( );
 
+    using NetController::ReceiveFrom;
+    using NetController::SendTo;
+
     bool
-    Setup( NetType Type, const std::string& IP, int Port ) override;
+    Setup( NetType Type, const std::string& IP, int Port, bool Bind = true );
 
     bool
     Listen( int ClientCount );
@@ -20,6 +23,12 @@ public:
     std::shared_ptr<class NetClient>
     Accept( );
 
-private:
+protected:
+    bool
+    ReceiveFrom( std::vector<char>& Data, struct sockaddr_in& Address ) override;
+
+    bool
+    SendTo( const std::vector<char>& Data, const struct sockaddr_in& Target ) override;
+
     SocketTy m_ServerSocketHandle = -1;
 };

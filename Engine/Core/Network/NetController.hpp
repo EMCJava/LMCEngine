@@ -26,6 +26,11 @@ enum class NetType {
 class NetController
 {
 public:
+    struct NetPoint {
+        std::string IP;
+        int         Port;
+    };
+
     NetController( )          = default;
     virtual ~NetController( ) = default;
 
@@ -35,19 +40,16 @@ public:
     NetController& operator=( NetController&& )      = delete;
 
     virtual bool
-    Setup( NetType Type, const std::string& IP, int Port ) = 0;
-
-    virtual bool
     Receive( std::vector<char>& Data ) { return false; }
 
     virtual bool
-    Send( std::vector<char>& Data ) { return false; }
+    Send( const std::vector<char>& Data ) { return false; }
 
     virtual bool
-    ReceiveFrom( std::vector<char>& Data ) { return false; }
+    ReceiveFrom( std::vector<char>& Data, NetPoint& Address );
 
     virtual bool
-    SendFrom( std::vector<char>& Data ) { return false; }
+    SendTo( const std::vector<char>& Data, const NetPoint& Target );
 
     static void
     CloseSocket( SocketTy Sock );
@@ -59,5 +61,11 @@ public:
     NetGlobalShutdown( );
 
 protected:
+    virtual bool
+    ReceiveFrom( std::vector<char>& Data, struct sockaddr_in& Address ) { return false; }
+
+    virtual bool
+    SendTo( const std::vector<char>& Data, const struct sockaddr_in& Target ) { return false; }
+
     NetType m_NetType;
 };
