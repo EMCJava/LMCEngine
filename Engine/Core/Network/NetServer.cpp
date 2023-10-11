@@ -125,8 +125,8 @@ NetServer::ReceiveFrom( std::vector<char>& Data, struct sockaddr_in& Address )
     REQUIRED_IF( m_NetType == NetType::UDP && m_ServerSocketHandle != -1 )
     {
         Data.resize( Data.capacity( ) );
-        int AddressLength = sizeof( Address );
-        int nbytes = ::recvfrom( m_ServerSocketHandle, Data.data( ), Data.size( ), 0, (struct sockaddr*) &Address, &AddressLength );
+        socklen_t AddressLength = sizeof( Address );
+        int       nbytes        = ::recvfrom( m_ServerSocketHandle, Data.data( ), Data.size( ), 0, (struct sockaddr*) &Address, &AddressLength );
         if ( nbytes <= 0 )
         {
             PrintSysNetError( "recvfrom: " );
