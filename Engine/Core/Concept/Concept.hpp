@@ -49,7 +49,7 @@ public:
     std::shared_ptr<PureConcept>
     GetConcept( ) const;
 
-    template <class ConceptType, class ElementTy>
+    template <class ConceptType = void, class ElementTy = void>
     void
     GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough = true ) const;
 
@@ -201,7 +201,15 @@ void
 Concept::GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough ) const
 {
     Out.clear( );
-    GetConcepts_Internal<ConceptType>( Out, CanSearchThrough );
+
+    // Not specified
+    if constexpr ( std::is_same_v<ConceptType, void> )
+    {
+        GetConcepts_Internal<ElementTy>( Out, CanSearchThrough );
+    } else
+    {
+        GetConcepts_Internal<ConceptType>( Out, CanSearchThrough );
+    }
 }
 
 template <class ConceptType>
