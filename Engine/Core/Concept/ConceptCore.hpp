@@ -53,77 +53,83 @@ struct ConceptValueWrapper {
 #    define DEC_CONCEPT_CHECK_ID( class_name )
 #endif
 
+#define DECLARE_CONCEPT_COMMON( class_name )                          \
+public:                                                               \
+    static constexpr uint64_t TypeID = HashString( #class_name );     \
+    DEC_CONCEPT_CHECK_ID( class_name )                                \
+    DEC_CONCEPT_NAME_COLLECTION( class_name )                         \
+                                                                      \
+public:                                                               \
+    virtual ~class_name( );                                           \
+                                                                      \
+    virtual const char* GetName( )                                    \
+    {                                                                 \
+        return #class_name;                                           \
+    }                                                                 \
+                                                                      \
+    template <typename ConceptType>                                   \
+    static consteval bool                                             \
+    CanCastS( )                                                       \
+    {                                                                 \
+        return class_name::ParentSet::Contain( ConceptType::TypeID ); \
+    }                                                                 \
+                                                                      \
+    template <uint64_t ConceptID>                                     \
+    static consteval bool                                             \
+    CanCastS( )                                                       \
+    {                                                                 \
+        return class_name::ParentSet::Contain( ConceptID );           \
+    }                                                                 \
+                                                                      \
+    static constexpr bool                                             \
+    CanCastSID( uint64_t ID )                                         \
+    {                                                                 \
+        return class_name::ParentSet::Contain( ID );                  \
+    }                                                                 \
+                                                                      \
+    template <class ConceptType>                                      \
+    bool TryCast( ConceptType*& Result )                              \
+    {                                                                 \
+        if ( CanCastV( ConceptType::TypeID ) )                        \
+        {                                                             \
+            Result = static_cast<ConceptType*>( this );               \
+            return true;                                              \
+        }                                                             \
+                                                                      \
+        return Result = nullptr;                                      \
+    }                                                                 \
+                                                                      \
+    virtual bool CanCastV( decltype( TypeID ) ConceptID );            \
+                                                                      \
+    virtual decltype( TypeID ) GetTypeIDV( )                          \
+    {                                                                 \
+        return class_name::TypeID;                                    \
+    }                                                                 \
+                                                                      \
+    virtual size_t GetSizeofV( )                                      \
+    {                                                                 \
+        return sizeof( class_name );                                  \
+    }                                                                 \
+                                                                      \
+private:
+
 /*
  *
  * Switch case of DECLARE_CONCEPT, in-cast of standalone concept
  *
  * */
-#define DECLARE_CONCEPT_BASE( class_name )                         \
-public:                                                            \
-    static constexpr uint64_t TypeID = HashString( #class_name );  \
-    using ParentSet                  = ConstexprContainer<TypeID>; \
-    DEC_CONCEPT_CHECK_ID( class_name )                             \
-    DEC_CONCEPT_NAME_COLLECTION( class_name )                      \
-                                                                   \
-public:                                                            \
-    virtual ~class_name( );                                        \
-                                                                   \
-    virtual const char* GetName( )                                 \
-    {                                                              \
-        return #class_name;                                        \
-    }                                                              \
-                                                                   \
-    template <typename ConceptType>                                \
-    bool                                                           \
-    CanCastVT( )                                                   \
-    {                                                              \
-        return this->CanCastV( ConceptType::TypeID );              \
-    }                                                              \
-                                                                   \
-    template <typename ConceptType>                                \
-    static consteval bool                                          \
-    CanCastS( )                                                    \
-    {                                                              \
-        return TypeID == ConceptType::TypeID;                      \
-    }                                                              \
-                                                                   \
-    template <uint64_t ConceptID>                                  \
-    static consteval bool                                          \
-    CanCastS( )                                                    \
-    {                                                              \
-        return TypeID == ConceptID;                                \
-    }                                                              \
-                                                                   \
-    static constexpr bool                                          \
-    CanCastSID( uint64_t ID )                                      \
-    {                                                              \
-        return TypeID == ID;                                       \
-    }                                                              \
-                                                                   \
-    template <class ConceptType>                                   \
-    bool TryCast( ConceptType*& Result )                           \
-    {                                                              \
-        if ( TypeID == ConceptType::TypeID )                       \
-        {                                                          \
-            Result = static_cast<ConceptType*>( this );            \
-            return true;                                           \
-        }                                                          \
-                                                                   \
-        return Result = nullptr;                                   \
-    }                                                              \
-                                                                   \
-    virtual bool CanCastV( decltype( TypeID ) ConceptID );         \
-                                                                   \
-    virtual decltype( TypeID ) GetTypeIDV( )                       \
-    {                                                              \
-        return class_name::TypeID;                                 \
-    }                                                              \
-                                                                   \
-    virtual size_t GetSizeofV( )                                   \
-    {                                                              \
-        return sizeof( class_name );                               \
-    }                                                              \
-                                                                   \
+#define DECLARE_CONCEPT_BASE( class_name )            \
+    DECLARE_CONCEPT_COMMON( class_name )              \
+public:                                               \
+    using ParentSet = ConstexprContainer<TypeID>;     \
+                                                      \
+    template <typename ConceptType>                   \
+    bool                                              \
+    CanCastVT( )                                      \
+    {                                                 \
+        return this->CanCastV( ConceptType::TypeID ); \
+    }                                                 \
+                                                      \
 private:
 
 /*
@@ -131,65 +137,11 @@ private:
  * Switch case of DECLARE_CONCEPT, in-cast of inheritance
  *
  * */
-#define DECLARE_CONCEPT_INHERITED( class_name, ... )                                                                                                   \
-public:                                                                                                                                                \
-    static constexpr uint64_t TypeID = HashString( #class_name );                                                                                      \
-    using ParentSet                  = CombineContainersWrapExcludeFirst<ConceptValueWrapper, ConceptParentSetWrapper, class_name, __VA_ARGS__>::type; \
-    DEC_CONCEPT_CHECK_ID( class_name )                                                                                                                 \
-    DEC_CONCEPT_NAME_COLLECTION( class_name )                                                                                                          \
-                                                                                                                                                       \
-public:                                                                                                                                                \
-    virtual ~class_name( );                                                                                                                            \
-                                                                                                                                                       \
-    virtual const char* GetName( ) override                                                                                                            \
-    {                                                                                                                                                  \
-        return #class_name;                                                                                                                            \
-    }                                                                                                                                                  \
-                                                                                                                                                       \
-    template <typename ConceptType>                                                                                                                    \
-    static consteval bool                                                                                                                              \
-    CanCastS( )                                                                                                                                        \
-    {                                                                                                                                                  \
-        return class_name::ParentSet::Contain( ConceptType::TypeID );                                                                                  \
-    }                                                                                                                                                  \
-                                                                                                                                                       \
-    template <uint64_t ConceptID>                                                                                                                      \
-    static consteval bool                                                                                                                              \
-    CanCastS( )                                                                                                                                        \
-    {                                                                                                                                                  \
-        return class_name::ParentSet::Contain( ConceptID );                                                                                            \
-    }                                                                                                                                                  \
-                                                                                                                                                       \
-    static bool                                                                                                                                        \
-    CanCastSID( uint64_t ConceptID )                                                                                                                   \
-    {                                                                                                                                                  \
-        return class_name::ParentSet::Contain( ConceptID );                                                                                            \
-    }                                                                                                                                                  \
-                                                                                                                                                       \
-    template <class ConceptType>                                                                                                                       \
-    bool TryCast( ConceptType*& Result )                                                                                                               \
-    {                                                                                                                                                  \
-        if ( CanCastV( ConceptType::TypeID ) )                                                                                                         \
-        {                                                                                                                                              \
-            Result = static_cast<ConceptType*>( this );                                                                                                \
-            return true;                                                                                                                               \
-        }                                                                                                                                              \
-                                                                                                                                                       \
-        return Result = nullptr;                                                                                                                       \
-    }                                                                                                                                                  \
-                                                                                                                                                       \
-    virtual bool CanCastV( decltype( TypeID ) ConceptID ) override;                                                                                    \
-                                                                                                                                                       \
-    virtual decltype( TypeID ) GetTypeIDV( ) override                                                                                                  \
-    {                                                                                                                                                  \
-        return class_name::TypeID;                                                                                                                     \
-    }                                                                                                                                                  \
-                                                                                                                                                       \
-    virtual size_t GetSizeofV( ) override                                                                                                              \
-    {                                                                                                                                                  \
-        return sizeof( class_name );                                                                                                                   \
-    }                                                                                                                                                  \
-                                                                                                                                                       \
+#define DECLARE_CONCEPT_INHERITED( class_name, ... )                                                                                  \
+    DECLARE_CONCEPT_COMMON( class_name )                                                                                              \
+public:                                                                                                                               \
+    using ParentSet = CombineContainersWrapExcludeFirst<ConceptValueWrapper, ConceptParentSetWrapper, class_name, __VA_ARGS__>::type; \
+                                                                                                                                      \
 private:
 
 #define DECLARE_CONCEPT_SWITCH( _0,                                               \
