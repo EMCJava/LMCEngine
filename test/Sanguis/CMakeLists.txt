@@ -25,5 +25,3 @@ add_subdirectory(${ENGINE_ROOT}/Engine Engine.Binary)
 ## ---------- Game executable ----------
 add_subdirectory(Source)
 declare_main_executable(Sanguis)
-
-target_link_libraries(Sanguis NetServerLib NetClientLib)
