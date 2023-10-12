@@ -217,3 +217,11 @@ target_include_directories(imgui_club INTERFACE ${imgui_club_SOURCE_DIR})
 
 ## -------------- freetype --------------
 add_subdirectory(freetype-2.13.2)
+
+## -------------- Catch2 --------------
+FetchContent_Declare(
+        Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG        v3.0.1 # or a later release
+)
+FetchContent_MakeAvailable(Catch2)

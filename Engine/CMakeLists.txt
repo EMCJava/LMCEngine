@@ -30,3 +30,5 @@ target_link_libraries(Engine.lib
 
         SpriteSquare.lib
 )
+
+add_subdirectory(Test)
