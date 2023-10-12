@@ -78,11 +78,11 @@ Concept::SetSearchThrough( bool SearchThrough )
 }
 
 void
-Concept::MoveToFirstAsSubConcept( )
+PureConcept::MoveToFirstAsSubConcept( )
 {
     if ( m_BelongsTo != nullptr )
     {
-        TEST( m_BelongsTo->CanCastVT<Concept>( ) );
+        TEST( m_BelongsTo->CanCastVT<Concept>( ) )
 
         const auto pivot = std::find_if( m_BelongsTo->m_SubConcepts.begin( ),
                                          m_BelongsTo->m_SubConcepts.end( ),

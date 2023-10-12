@@ -23,8 +23,6 @@ class Sprite : public ConceptRenderable
 public:
     using ShaderUniformTypes = std::variant<glm::mat4, glm::vec4, float>;
 
-    Sprite( ) = default;
-
     void
     Render( ) override;
 

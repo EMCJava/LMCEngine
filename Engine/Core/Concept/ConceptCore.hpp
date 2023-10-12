@@ -62,7 +62,7 @@ public:                                                               \
 public:                                                               \
     virtual ~class_name( );                                           \
                                                                       \
-    virtual const char* GetName( )                                    \
+    virtual const char* GetClassName( )                               \
     {                                                                 \
         return #class_name;                                           \
     }                                                                 \
@@ -87,20 +87,6 @@ public:                                                               \
         return class_name::ParentSet::Contain( ID );                  \
     }                                                                 \
                                                                       \
-    template <class ConceptType>                                      \
-    bool TryCast( ConceptType*& Result )                              \
-    {                                                                 \
-        if ( CanCastV( ConceptType::TypeID ) )                        \
-        {                                                             \
-            Result = static_cast<ConceptType*>( this );               \
-            return true;                                              \
-        }                                                             \
-                                                                      \
-        return Result = nullptr;                                      \
-    }                                                                 \
-                                                                      \
-    virtual bool CanCastV( decltype( TypeID ) ConceptID );            \
-                                                                      \
     virtual decltype( TypeID ) GetTypeIDV( )                          \
     {                                                                 \
         return class_name::TypeID;                                    \
@@ -111,25 +97,55 @@ public:                                                               \
         return sizeof( class_name );                                  \
     }                                                                 \
                                                                       \
+    virtual bool CanCastV( uint64_t ConceptID )                       \
+    {                                                                 \
+        return class_name::ParentSet::Contain( ConceptID );           \
+    }                                                                 \
+                                                                      \
 private:
-
 /*
  *
  * Switch case of DECLARE_CONCEPT, in-cast of standalone concept
  *
  * */
-#define DECLARE_CONCEPT_BASE( class_name )            \
-    DECLARE_CONCEPT_COMMON( class_name )              \
-public:                                               \
-    using ParentSet = ConstexprContainer<TypeID>;     \
-                                                      \
-    template <typename ConceptType>                   \
-    bool                                              \
-    CanCastVT( )                                      \
-    {                                                 \
-        return this->CanCastV( ConceptType::TypeID ); \
-    }                                                 \
-                                                      \
+#define DECLARE_CONCEPT_BASE( class_name )              \
+    DECLARE_CONCEPT_COMMON( class_name )                \
+protected:                                              \
+    std::string m_RuntimeName { "Anonymous Concept" };  \
+                                                        \
+public:                                                 \
+    using ParentSet = ConstexprContainer<TypeID>;       \
+                                                        \
+    template <typename ConceptType>                     \
+    bool                                                \
+    CanCastVT( )                                        \
+    {                                                   \
+        return this->CanCastV( ConceptType::TypeID );   \
+    }                                                   \
+                                                        \
+    template <class ConceptType>                        \
+    bool TryCast( ConceptType*& Result )                \
+    {                                                   \
+        if ( CanCastV( ConceptType::TypeID ) )          \
+        {                                               \
+            Result = static_cast<ConceptType*>( this ); \
+            return true;                                \
+        }                                               \
+                                                        \
+        return Result = nullptr;                        \
+    }                                                   \
+                                                        \
+    const auto&                                         \
+    GetRuntimeName( )                                   \
+    {                                                   \
+        return m_RuntimeName;                           \
+    }                                                   \
+                                                        \
+    void SetRuntimeName( std::string_view Name )        \
+    {                                                   \
+        m_RuntimeName = Name;                           \
+    }                                                   \
+                                                        \
 private:
 
 /*
@@ -211,12 +227,7 @@ private:
  * Most basic concepts definition, a virtual function checking static parent set
  *
  * */
-#define DEFINE_CONCEPT( class_name )            \
-    bool                                        \
-    class_name::CanCastV( uint64_t ConceptID )  \
-    {                                           \
-        return ParentSet::Contain( ConceptID ); \
-    }
+#define DEFINE_CONCEPT( class_name )
 
 
 /*

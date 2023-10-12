@@ -18,8 +18,6 @@ class Shader : public PureConcept
 {
     DECLARE_CONCEPT( Shader, PureConcept )
 public:
-    Shader( ) = default;
-
     void
     Bind( ) const;
 

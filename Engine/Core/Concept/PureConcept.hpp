@@ -24,6 +24,15 @@ public:
     void
     Destroy( );
 
+    /*
+     *
+     * if BelongsTo != nullptr, move this sub-concept as the first element in list (m_SubConcepts)
+     * TODO: Consider moving this to Concept, as it need access to m_SubConcepts
+     *
+     * */
+    void
+    MoveToFirstAsSubConcept( );
+
     virtual void
     SetEnabled( bool enabled ) { m_Enabled = enabled; }
 

@@ -145,7 +145,7 @@ EditorWindow::UpdateImGui( )
         if ( !m_ConceptInspectionCache.SelectedConcept.expired( ) )
         {
             auto        SelectedConcept = m_ConceptInspectionCache.SelectedConcept.lock( );
-            const auto* Name            = SelectedConcept->GetName( );
+            const auto* Name            = SelectedConcept->GetRuntimeName( ).c_str( );
 
             if ( ImGui::BeginTabBar( Name ) )
             {
@@ -268,7 +268,7 @@ EditorWindow::RenderConceptHierarchy( std::shared_ptr<PureConcept>& ConShared )
             if ( const ImGuiPayload* Payload = ImGui::AcceptDragDropPayload( "ConceptDAD" ) )
             {
                 PureConcept* PayloadConcept = *( (PureConcept**) Payload->Data );
-                spdlog::info( "Drag concept from {} to {}", PayloadConcept->GetName( ), ConShared->GetName( ) );
+                spdlog::info( "Drag concept from {} to {}", PayloadConcept->GetRuntimeName( ), ConShared->GetRuntimeName( ) );
                 m_ConceptDragStart = PayloadConcept;
                 m_ConceptDragEnd   = ConShared.get( );
             }
@@ -291,7 +291,7 @@ EditorWindow::RenderConceptHierarchy( std::shared_ptr<PureConcept>& ConShared )
             const bool Enabled = ConShared->IsEnabled( );
 
             if ( !Enabled ) ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle( ).Alpha * ImGui::GetStyle( ).DisabledAlpha );
-            bool node_open = ImGui::TreeNodeEx( ConShared.get( ), BaseFlag, "%s", ConShared->GetName( ) );
+            bool node_open = ImGui::TreeNodeEx( ConShared.get( ), BaseFlag, "%s", ConShared->GetRuntimeName( ).c_str( ) );
             if ( !Enabled ) ImGui::PopStyleVar( );
 
             IsSelected = ImGui::IsItemClicked( ) && !ImGui::IsItemToggledOpen( );
@@ -321,7 +321,7 @@ EditorWindow::RenderConceptHierarchy( std::shared_ptr<PureConcept>& ConShared )
             const bool Enabled = ConShared->IsEnabled( );
 
             if ( !Enabled ) ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle( ).Alpha * ImGui::GetStyle( ).DisabledAlpha );
-            ImGui::TreeNodeEx( ConShared.get( ), BaseFlag, "%s", ConShared->GetName( ) );
+            ImGui::TreeNodeEx( ConShared.get( ), BaseFlag, "%s", ConShared->GetRuntimeName( ).c_str( ) );
             if ( !Enabled ) ImGui::PopStyleVar( );
 
             IsSelected = ImGui::IsItemClicked( ) && !ImGui::IsItemToggledOpen( );

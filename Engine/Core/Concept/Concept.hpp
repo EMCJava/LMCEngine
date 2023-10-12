@@ -72,14 +72,6 @@ public:
     bool
     TransferSubConcept( PureConcept* ConceptPtr );
 
-    /*
-     *
-     * if BelongsTo != nullptr, move this sub-concept as the first element in list (m_SubConcepts)
-     *
-     * */
-    void
-    MoveToFirstAsSubConcept( );
-
     void
     SetSearchThrough( bool SearchThrough = true );
 
@@ -102,6 +94,7 @@ private:
      *
      * */
     bool m_SearchThrough = false;
+    friend class PureConcept;
 };
 
 template <class ConceptType, typename... Args>
@@ -114,6 +107,7 @@ Concept::AddConcept( Args&&... params )
     auto Result = ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( std::make_shared<ConceptType>( std::forward<Args>( params )... ) ) );
 
     Result->m_BelongsTo = this;
+    Result->SetRuntimeName( Result->GetClassName( ) );
     return Result;
 }
 

@@ -12,8 +12,6 @@ class ShaderProgram : public PureConcept
 {
     DECLARE_CONCEPT( ShaderProgram, PureConcept )
 public:
-    ShaderProgram( ) = default;
-
     void
     Load( const char* Vertex, const char* Fragment );
 
