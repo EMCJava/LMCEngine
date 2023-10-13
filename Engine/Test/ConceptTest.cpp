@@ -91,14 +91,20 @@ TEST_CASE( "Concept", "[Concept]" )
 
         REQUIRE( !cab_pure_ptr->CanCastVT<PC>( ) );
         REQUIRE( !cab_pure_ptr->CanCastVT<PCD>( ) );
-
     }
 
     SECTION( "Sub-concept" )
     {
-        auto cab         = std::make_unique<CAB>( );
-        auto FirstChild  = cab->AddConcept<CA>( );
+        auto cab = std::make_unique<CAB>( );
+        REQUIRE( cab->GetSubConceptCount( ) == 0 );
+        REQUIRE( cab->GetConceptAt( 0 ) == nullptr );
+        auto FirstChild = cab->AddConcept<CA>( );
+        REQUIRE( cab->GetSubConceptCount( ) == 1 );
+        REQUIRE( cab->GetConceptAt( 0 ) == FirstChild );
         auto SecondChild = cab->AddConcept<PCD>( );
+        REQUIRE( cab->GetSubConceptCount( ) == 2 );
+        REQUIRE( cab->GetConceptAt( 0 ) == FirstChild );
+        REQUIRE( cab->GetConceptAt( 1 ) == SecondChild );
 
         REQUIRE( FirstChild->GetRuntimeName( ) == "CA" );
         REQUIRE( SecondChild->GetRuntimeName( ) == "PCD" );
@@ -110,7 +116,12 @@ TEST_CASE( "Concept", "[Concept]" )
         REQUIRE( cab->GetConcept<CA>( ) == FirstChild );
 
         REQUIRE( cab->GetConcept<PureConcept>( ) == FirstChild );
+        REQUIRE( cab->GetConceptAt( 0 ) == FirstChild );
         SecondChild->MoveToFirstAsSubConcept( );
         REQUIRE( cab->GetConcept<PureConcept>( ) == SecondChild );
+        REQUIRE( cab->GetConceptAt( 0 ) == SecondChild );
+
+        FirstChild->Destroy( );
+        REQUIRE( cab->GetSubConceptCount( ) == 1 );
     }
 }

@@ -45,14 +45,31 @@ public:
     int
     RemoveConcepts( );
 
-    template <class ConceptType>
-    std::shared_ptr<PureConcept>
+    template <class ConceptType = PureConcept>
+    std::shared_ptr<ConceptType>
+    GetConceptAt( size_t SubConceptIndex ) const;
+
+    [[nodiscard]] size_t
+    GetSubConceptCount( ) const { return m_SubConcepts.size( ); }
+
+    /*
+     *
+     * Returns the first matching concept
+     *
+     * */
+    template <class ConceptType = PureConcept>
+    [[nodiscard]] std::shared_ptr<ConceptType>
     GetConcept( ) const;
 
     template <class ConceptType = void, class ElementTy = void>
     void
     GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough = true ) const;
 
+    /*
+     *
+     * Won't update the cache if CacheHash is same as last time (no change to sub-concept)
+     *
+     * */
     template <class ConceptType>
     void
     GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThrough = true ) const;
@@ -61,7 +78,7 @@ public:
     void
     ForEachSubConcept( auto&& Func );
 
-    bool
+    [[nodiscard]] bool
     HasSubConcept( ) const;
 
     /*
@@ -112,15 +129,27 @@ Concept::AddConcept( Args&&... params )
 }
 
 template <class ConceptType>
-std::shared_ptr<PureConcept>
+std::shared_ptr<ConceptType>
 Concept::GetConcept( ) const
 {
     for ( auto& Concept : m_SubConcepts )
     {
         if ( Concept->CanCastV( ConceptType::TypeID ) )
         {
-            return Concept;
+            return ConceptCasting<ConceptType>( Concept );
         }
+    }
+
+    return nullptr;
+}
+
+template <class ConceptType>
+std::shared_ptr<ConceptType>
+Concept::GetConceptAt( size_t SubConceptIndex ) const
+{
+    REQUIRED_IF( SubConceptIndex < m_SubConcepts.size( ) )
+    {
+        return ConceptCasting<ConceptType>( m_SubConcepts[ SubConceptIndex ] );
     }
 
     return nullptr;
