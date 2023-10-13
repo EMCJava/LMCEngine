@@ -285,7 +285,7 @@ EditorWindow::RenderConceptHierarchy( std::shared_ptr<PureConcept>& ConShared )
             m_ConceptInspectionCache.SelectedConcept = ConShared;
         }
 
-        if ( ConShared->CanCastV( Concept::TypeID ) && ( (Concept*) ConShared.get( ) )->HasSubConcept( ) )
+        if ( ConShared->CanCastVT<Concept>( ) && ( (Concept*) ConShared.get( ) )->HasSubConcept( ) )
         {
             // Has sub node
             const bool Enabled = ConShared->IsEnabled( );

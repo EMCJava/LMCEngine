@@ -69,7 +69,7 @@ TEST_CASE( "Concept", "[Concept]" )
     SECTION( "Dynamic" )
     {
         auto cab = std::make_unique<CAB>( );
-        cab->SetEnabled( false );
+
         REQUIRE( cab->CanCastVT<CA>( ) );
         REQUIRE( cab->CanCastVT<Concept>( ) );
         REQUIRE( cab->CanCastVT<PureConcept>( ) );
@@ -78,6 +78,13 @@ TEST_CASE( "Concept", "[Concept]" )
         REQUIRE( !cab->CanCastVT<PCD>( ) );
 
         PureConcept* cab_pure_ptr = cab.get( );
+
+        REQUIRE( cab->IsEnabled( ) );
+        REQUIRE( cab_pure_ptr->IsEnabled( ) );
+        cab->SetEnabled( false );
+        REQUIRE( !cab->IsEnabled( ) );
+        REQUIRE( !cab_pure_ptr->IsEnabled( ) );
+
         REQUIRE( cab_pure_ptr->CanCastVT<CA>( ) );
         REQUIRE( cab_pure_ptr->CanCastVT<Concept>( ) );
         REQUIRE( cab_pure_ptr->CanCastVT<PureConcept>( ) );
@@ -85,7 +92,6 @@ TEST_CASE( "Concept", "[Concept]" )
         REQUIRE( !cab_pure_ptr->CanCastVT<PC>( ) );
         REQUIRE( !cab_pure_ptr->CanCastVT<PCD>( ) );
 
-        REQUIRE( !cab_pure_ptr->IsEnabled( ) );
     }
 
     SECTION( "Sub-concept" )
