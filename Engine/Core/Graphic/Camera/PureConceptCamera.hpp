@@ -41,7 +41,7 @@ public:
     ScreenCoordToWorldCoord( std::pair<FloatTy, FloatTy>& ScreenCoord ) const;
 
     void
-    RegisterAsDefaultCamera( );
+    PuahToCameraStack( );
 
     void
     SetCoordinate( FloatTy X, FloatTy Y, FloatTy = 0 );

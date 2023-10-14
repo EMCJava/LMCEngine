@@ -22,6 +22,7 @@ target_link_libraries(Engine.lib
         Audio.lib
         UserInput.lib
         PureConceptCamera.lib
+        PureConceptCameraStack.lib
         ConceptCoreRuntime.lib
         GlobalResourcePool.lib
         ShaderProgram.lib

@@ -27,6 +27,7 @@
 #include <Engine/Core/Graphic/Shader/ShaderProgram.hpp>
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptCameraStack.hpp>
 #include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Environment/Environment.hpp>
@@ -283,7 +284,7 @@ Engine::UpdateRootConcept( )
             m_MainWindow->SetRootConcept( nullptr );
 
             spdlog::info( "Resetting Runtime GetGlobalResourcePool" );
-            GetGlobalResourcePool( )->Clear( "DefaultCamera" );
+            GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->Clear( );
 
             RootConcept.Reload( false );
 
@@ -635,6 +636,13 @@ Engine::SetupGlobalResources( )
     auto DefaultFont = std::make_shared<Font>( );
     DefaultFont->LoadFont( "Assets/Font/FiraCode.ttf" );
     GlobalResourcePool::GetInstance( ).STryPush( "DefaultFont", std::move( DefaultFont ) );
+
+    /*
+     *
+     * Camera stack setup
+     *
+     * */
+    GlobalResourcePool::SSet( "DefaultCameraStack", std::make_shared<PureConceptCameraStack>( ) );
 
     m_GlobalResourcePool = &GlobalResourcePool::GetInstance( );
 }

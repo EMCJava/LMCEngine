@@ -3,6 +3,7 @@
 //
 
 #include "PureConceptCamera.hpp"
+#include "PureConceptCameraStack.hpp"
 
 #include <Engine/Engine.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
@@ -99,12 +100,6 @@ PureConceptCamera::ScreenCoordToWorldCoord( std::pair<FloatTy, FloatTy>& ScreenC
 }
 
 void
-PureConceptCamera::RegisterAsDefaultCamera( )
-{
-    Engine::GetEngine( )->GetGlobalResourcePool( )->TryPush( "DefaultCamera", shared_from_this( ) );
-}
-
-void
 PureConceptCamera::SetCoordinate( FloatTy X, FloatTy Y, FloatTy )
 {
     m_Coordinate.x = X;
@@ -115,4 +110,10 @@ const glm::vec3&
 PureConceptCamera::GetCoordinate( )
 {
     return m_Coordinate;
+}
+
+void
+PureConceptCamera::PuahToCameraStack( )
+{
+    Engine::GetEngine( )->GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->PushCamera( shared_from_this( ) );
 }

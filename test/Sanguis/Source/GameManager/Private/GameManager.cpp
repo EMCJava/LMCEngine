@@ -59,7 +59,7 @@ GameManager::GameManager( )
 
     {
         m_Camera = AddConcept<PureConceptCamera>( );
-        m_Camera->RegisterAsDefaultCamera( );
+        m_Camera->PuahToCameraStack( );
 
         m_Camera->SetCoordinate( WindowSize.first / 2, WindowSize.second / 2 );
     }

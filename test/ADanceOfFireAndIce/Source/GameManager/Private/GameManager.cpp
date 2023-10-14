@@ -1697,7 +1697,7 @@ GameManager::SetupCamera( )
     m_Camera->SetScale( 1 / 1.5F );
     m_Camera->UpdateProjectionMatrix( );
 
-    m_Camera->RegisterAsDefaultCamera( );
+    m_Camera->PuahToCameraStack( );
 }
 
 void

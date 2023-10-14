@@ -1,3 +1,5 @@
 add_library(PureConceptCamera.lib PureConceptCamera.hpp PureConceptCamera.cpp)
+add_library(PureConceptCameraStack.lib PureConceptCameraStack.hpp PureConceptCameraStack.cpp)
 
 target_link_libraries(PureConceptCamera.lib glm::glm PureConcept.lib)
+target_link_libraries(PureConceptCameraStack.lib PureConceptCamera.lib)

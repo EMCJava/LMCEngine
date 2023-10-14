@@ -6,6 +6,7 @@
 
 #include <Engine/Engine.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptCameraStack.hpp>
 
 DEFINE_CONCEPT_DS( ConceptRenderable )
 
@@ -17,5 +18,5 @@ ConceptRenderable::SetActiveCamera( class PureConceptCamera* ActiveCamera )
 
 ConceptRenderable::ConceptRenderable( )
 {
-    SetActiveCamera( Engine::GetEngine( )->GetGlobalResourcePool( )->Get<PureConceptCamera>( "DefaultCamera" ) );
+    SetActiveCamera( Engine::GetEngine( )->GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->GetCamera( ).get( ) );
 }
