@@ -14,6 +14,7 @@
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Graphic/Sprites/Particle/ParticlePool.hpp>
 #include <Engine/Core/Graphic/Sprites/Particle/ParticleAttributesRandomizer.hpp>
+#include <Engine/Core/UI/Canvas/Canvas.hpp>
 #include <Engine/Core/Concept/PureConceptAABBSquare.hpp>
 #include <Engine/Core/UI/RectButton.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
@@ -58,16 +59,26 @@ GameManager::GameManager( )
     Engine::GetEngine( )->SetLogicalMainWindowViewPortDimensions( WindowSize );
 
     {
-        m_Camera = AddConcept<PureConceptCamera>( );
-        m_Camera->PuahToCameraStack( );
+        m_UICamera = AddConcept<PureConceptCamera>( );
+        m_UICamera->PushToCameraStack( );
 
-        m_Camera->SetCoordinate( WindowSize.first / 2, WindowSize.second / 2 );
+        m_UICamera->SetCoordinate( WindowSize.first / 2, WindowSize.second / 2 );
     }
 
-    AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/Inv.png" ) );
+    {
+        m_BaseSlotMenuCanvas = AddConcept<Canvas>( );
+        m_BaseSlotMenuCanvas->SetRuntimeName( "BaseSlot Menu" );
+        m_BaseSlotMenuCanvas->SetCanvasCamera( m_UICamera );
+
+        m_WandEditorCanvas = AddConcept<Canvas>( );
+        m_WandEditorCanvas->SetRuntimeName( "Wand Editor UI Canvas" );
+        m_WandEditorCanvas->SetCanvasCamera( m_UICamera );
+    }
+
+    m_WandEditorCanvas->AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/Inv.png" ) );
 
     {
-        auto Sp           = AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/Boards/StarterBoard.png" ) );
+        auto Sp           = m_WandEditorCanvas->AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/Boards/StarterBoard.png" ) );
         m_BoardDimensions = { Sp->GetSpriteDimensions( ).first, Sp->GetSpriteDimensions( ).second, 0 };
         Sp->SetCenterAsOrigin( );
 
@@ -76,6 +87,11 @@ GameManager::GameManager( )
     }
 
     {
+        /*
+         *
+         * Particle setup
+         *
+         * */
         m_PAR = std::make_unique<ParticleAttributesRandomizer>( );
         m_PAR->SetLinearScale( { 0.01, 0.01, 0.01 }, { 0.1, 0.1, 0.1 } );
         m_PAR->SetVelocity( { -20, -20, 0 }, { 20, 20, 0 } );
@@ -95,6 +111,11 @@ GameManager::GameManager( )
         m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::move( Image ) ) );
     }
 
+    /*
+     *
+     * Wand edit system setup
+     *
+     * */
     {
         std::ifstream     BoardTemp( "Assets/Boards/StarterBoard.yaml" );
         std::stringstream buffer;
@@ -107,7 +128,7 @@ GameManager::GameManager( )
     }
 
     {
-        auto Sp = AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/wand.png" ) );
+        auto Sp = m_WandEditorCanvas->AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/wand.png" ) );
         Sp->SetCenterAsOrigin( );
 
         Sp->SetScale( m_EditorAreaScale, m_EditorAreaScale );
@@ -131,7 +152,7 @@ GameManager::GameManager( )
             REQUIRED( Image->GetImageDimension( ) == ( std::pair<int32_t, int32_t>( UIIconSize, UIIconSize ) ) )
 
             Record.Data.Node   = std::make_shared<SaControlNodeSimpleEffect>( SaEffect { true, ElementType, 1 } );
-            Record.Data.Sprite = AddConcept<SpriteSquareTexture>( DefaultShader, std::move( Image ) );
+            Record.Data.Sprite = m_BaseSlotMenuCanvas->AddConcept<SpriteSquareTexture>( DefaultShader, std::move( Image ) );
             m_BoardDimensions  = { Record.Data.Sprite->GetSpriteDimensions( ).first, Record.Data.Sprite->GetSpriteDimensions( ).second, 0 };
             Record.Data.Sprite->SetCenterAsOrigin( );
 
@@ -142,7 +163,7 @@ GameManager::GameManager( )
             Record.Data.Sprite->SetCoordinate( MenuCoordinate );
 
             const auto ActualSize = FinalScale * UIIconSize;
-            Record.HitBox         = AddConcept<PureConceptAABBSquare>( MenuCoordinate.x - ActualSize / 2, MenuCoordinate.y - ActualSize / 2, ActualSize, ActualSize );
+            Record.HitBox         = m_BaseSlotMenuCanvas->AddConcept<PureConceptAABBSquare>( MenuCoordinate.x - ActualSize / 2, MenuCoordinate.y - ActualSize / 2, ActualSize, ActualSize );
 
             Record.Data.NodeName = ToString( ElementType );
         }
@@ -151,14 +172,14 @@ GameManager::GameManager( )
     m_Effect = std::make_unique<SaEffect>( );
 
     {
-        m_UpdateSlotsButton = AddConcept<RectButton>( -25, -12 );
+        m_UpdateSlotsButton = m_BaseSlotMenuCanvas->AddConcept<RectButton>( -25, -12 );
         m_UpdateSlotsButton->SetPressReactColor( glm::vec4 { 0.9, 0.9, 0.9, 1 } );
         m_UpdateSlotsButton->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
         m_UpdateSlotsButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
         m_UpdateSlotsButton->SetText( "Update" );
         m_UpdateSlotsButton->SetPivot( 0.5F, 0.5F );
         m_UpdateSlotsButton->SetCoordinate( -WindowSize.first * 5.5 / 18, -WindowSize.second * 6 / 18 );
-        m_UpdateSlotsButton->SetActiveCamera( m_Camera.get( ) );
+        m_UpdateSlotsButton->SetActiveCamera( m_UICamera.get( ) );
         m_UpdateSlotsButton->SetCallback( [ this ]( ) {
             for ( const SpriteHitBox& Slot : m_BaseSlots )
             {
@@ -189,7 +210,7 @@ GameManager::Apply( )
     {
         // First press
         std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
-        m_Camera->ScreenCoordToWorldCoord( HitPoint );
+        m_UICamera->ScreenCoordToWorldCoord( HitPoint );
 
         const auto CheckForPick = [ &HitPoint, this ]( auto& Slot ) {
             if ( Slot.Data.Sprite != nullptr && Slot.HitBox->HitTest( HitPoint ) )
@@ -211,7 +232,7 @@ GameManager::Apply( )
         if ( m_MenuHoldingSprite != nullptr )
         {
             std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
-            m_Camera->ScreenCoordToWorldCoord( HitPoint );
+            m_UICamera->ScreenCoordToWorldCoord( HitPoint );
 
             glm::vec2 CurrentLocation = { HitPoint.first, HitPoint.second };
             glm::vec2 Delta           = CurrentLocation - m_MouseStartPosition;
@@ -224,7 +245,7 @@ GameManager::Apply( )
         if ( m_MenuHoldingSprite != nullptr )
         {
             std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
-            m_Camera->ScreenCoordToWorldCoord( HitPoint );
+            m_UICamera->ScreenCoordToWorldCoord( HitPoint );
 
             // Reset position by default
             m_MenuHoldingSprite->Data.Sprite->SetCoordinate( m_SpriteStartPosition );
@@ -262,7 +283,7 @@ GameManager::Apply( )
     if ( Engine::GetEngine( )->GetUserInputHandle( )->GetSecondaryKey( ).isDown )
     {
         std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
-        m_Camera->ScreenCoordToWorldCoord( HitPoint );
+        m_UICamera->ScreenCoordToWorldCoord( HitPoint );
 
         auto& PP = m_ParticlePools[ rand( ) % 2 ];
 
@@ -287,13 +308,7 @@ GameManager::TestInvokable( )
 void
 GameManager::AddSlotHighlightUI( )
 {
-    if ( m_BaseSlotParticleParent )
-    {
-        m_BaseSlotParticleParent->Destroy( );
-    }
-
     m_BaseSlots.clear( );
-    m_BaseSlotParticleParent = AddConcept<Concept>( );
 
     auto SlotPAR = std::make_unique<ParticleAttributesRandomizer>( );
     SlotPAR->SetAngularVelocity( -10, 10 );
@@ -326,7 +341,7 @@ GameManager::AddSlotHighlightUI( )
         // Hit box
         const auto ActualSize = SlotBaseScale * m_ParticleScriptsize;
         auto&      Slot       = m_BaseSlots.emplace_back( );
-        Slot.HitBox           = m_BaseSlotParticleParent->AddConcept<PureConceptAABBSquare>( SlotCoordinate.x - ActualSize.x / 2, SlotCoordinate.y - ActualSize.y / 2, ActualSize.x, ActualSize.y );
+        Slot.HitBox           = m_WandEditorCanvas->AddConcept<PureConceptAABBSquare>( SlotCoordinate.x - ActualSize.x / 2, SlotCoordinate.y - ActualSize.y / 2, ActualSize.x, ActualSize.y );
         Slot.SlotName         = ID;
 
         Slot.Data.Node = std::make_unique<SaControlNodePlaceholder>( );

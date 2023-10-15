@@ -113,7 +113,7 @@ PureConceptCamera::GetCoordinate( )
 }
 
 void
-PureConceptCamera::PuahToCameraStack( )
+PureConceptCamera::PushToCameraStack( )
 {
     Engine::GetEngine( )->GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->PushCamera( shared_from_this( ) );
 }

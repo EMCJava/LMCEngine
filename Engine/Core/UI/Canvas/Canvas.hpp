@@ -18,6 +18,9 @@ public:
     void
     Render( ) override;
 
+    void
+    SetCanvasCamera( const std::shared_ptr<class PureConceptCamera>& Camera );
+
 protected:
     std::shared_ptr<class PureConceptCamera> m_CanvasCamera;
 

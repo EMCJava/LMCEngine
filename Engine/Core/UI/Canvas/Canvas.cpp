@@ -7,6 +7,7 @@
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
 #include <ranges>
+#include <utility>
 
 DEFINE_CONCEPT_DS( Canvas )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( Canvas, ConceptRenderable, m_CanvasCamera )
@@ -21,6 +22,7 @@ void
 Canvas::Render( )
 {
     auto* CameraPtr = m_CanvasCamera.get( );
+    if ( CameraPtr == nullptr ) CameraPtr = m_ActiveCamera;
     REQUIRED_IF( CameraPtr != nullptr )
     {
         std::vector<std::shared_ptr<ConceptRenderable>> AnySubRenderables;
@@ -30,4 +32,10 @@ Canvas::Render( )
             R->SetActiveCamera( CameraPtr );
         }
     }
+}
+
+void
+Canvas::SetCanvasCamera( const std::shared_ptr<struct PureConceptCamera>& Camera )
+{
+    m_CanvasCamera = std::move( Camera );
 }

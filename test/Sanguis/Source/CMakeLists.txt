@@ -121,6 +121,7 @@ declare_library(
         UserInput.lib
         Orientation.lib
         RectButton.lib
+        Canvas.lib
 
         DEPS
         spdlog::spdlog

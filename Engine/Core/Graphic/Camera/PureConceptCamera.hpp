@@ -31,7 +31,7 @@ public:
     FloatTy
     GetScale( ) const;
 
-    void
+    virtual void
     UpdateProjectionMatrix( );
 
     void
@@ -41,7 +41,7 @@ public:
     ScreenCoordToWorldCoord( std::pair<FloatTy, FloatTy>& ScreenCoord ) const;
 
     void
-    PuahToCameraStack( );
+    PushToCameraStack( );
 
     void
     SetCoordinate( FloatTy X, FloatTy Y, FloatTy = 0 );
