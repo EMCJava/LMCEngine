@@ -33,6 +33,7 @@ private:
 
     std::shared_ptr<class PureConceptCamera> m_UICamera;
 
+    std::shared_ptr<class Canvas> m_ParticleCanvas;
     std::shared_ptr<class Canvas> m_BaseSlotMenuCanvas;
     std::shared_ptr<class Canvas> m_WandEditorCanvas;
 

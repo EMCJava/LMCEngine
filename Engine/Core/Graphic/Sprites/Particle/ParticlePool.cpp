@@ -63,6 +63,7 @@ public:
         if ( m_ParticlePool.m_StartIndex == m_ParticlePool.m_EndIndex ) return;   // Empty
 
         m_SpriteTexture->BindTexture( );
+        if ( m_ActiveCamera != nullptr ) m_SpriteTexture->SetActiveCamera( m_ActiveCamera );
         m_SpriteTexture->SetShaderMatrix( );
         m_SpriteTexture->ApplyShaderUniforms( );
 

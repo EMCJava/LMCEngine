@@ -60,19 +60,30 @@ GameManager::GameManager( )
 
     {
         m_UICamera = AddConcept<PureConceptCamera>( );
+        m_UICamera->SetRuntimeName( "UI Camera" );
         m_UICamera->PushToCameraStack( );
 
         m_UICamera->SetCoordinate( WindowSize.first / 2, WindowSize.second / 2 );
     }
 
     {
+        auto DummyCamera = AddConcept<PureConceptCamera>( );
+        DummyCamera->SetRuntimeName( "DummyCamera" );
+        DummyCamera->PushToCameraStack( );
+    }
+
+    {
+        m_WandEditorCanvas = AddConcept<Canvas>( );
+        m_WandEditorCanvas->SetRuntimeName( "Wand Editor UI Canvas" );
+        m_WandEditorCanvas->SetCanvasCamera( m_UICamera );
+
         m_BaseSlotMenuCanvas = AddConcept<Canvas>( );
         m_BaseSlotMenuCanvas->SetRuntimeName( "BaseSlot Menu" );
         m_BaseSlotMenuCanvas->SetCanvasCamera( m_UICamera );
 
-        m_WandEditorCanvas = AddConcept<Canvas>( );
-        m_WandEditorCanvas->SetRuntimeName( "Wand Editor UI Canvas" );
-        m_WandEditorCanvas->SetCanvasCamera( m_UICamera );
+        m_ParticleCanvas = AddConcept<Canvas>( );
+        m_ParticleCanvas->SetRuntimeName( "Particle Canvas" );
+        m_ParticleCanvas->SetCanvasCamera( m_UICamera );
     }
 
     m_WandEditorCanvas->AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/Inv.png" ) );
@@ -102,12 +113,12 @@ GameManager::GameManager( )
 
         auto Image = std::make_shared<PureConceptImage>( "Assets/Texture/Particle/star.png" );
         REQUIRED( Image->GetImageDimension( ) == ( std::pair<int32_t, int32_t>( m_ParticleScriptsize, m_ParticleScriptsize ) ) )
-        m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
+        m_ParticlePools.push_back( m_ParticleCanvas->AddConcept<ParticlePool>( ) );
         m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::move( Image ) ) );
 
         Image = std::make_shared<PureConceptImage>( "Assets/Texture/Particle/ring.png" );
         REQUIRED( Image->GetImageDimension( ) == ( std::pair<int32_t, int32_t>( m_ParticleScriptsize, m_ParticleScriptsize ) ) )
-        m_ParticlePools.push_back( AddConcept<ParticlePool>( ) );
+        m_ParticlePools.push_back( m_ParticleCanvas->AddConcept<ParticlePool>( ) );
         m_ParticlePools.back( )->SetSprite( std::make_shared<SpriteSquareTexture>( DefaultShaderInstancing, std::move( Image ) ) );
     }
 
