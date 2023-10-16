@@ -19,6 +19,7 @@
 #include <Engine/Library/ImGui/Ext/LogGroup.hpp>
 
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultTextureShaderInstancing.hpp>
+#include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultColorPreVertexShader.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultTextureShader.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultColorShader.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultFontShader.hpp>
@@ -609,6 +610,12 @@ Engine::SetupGlobalResources( )
     auto SpriteShader = std::make_shared<Shader>( );
     SpriteShader->SetProgram( SProgram );
     GlobalResourcePool::STryPush( "DefaultColorShader", std::move( SpriteShader ) );
+
+    SProgram = std::make_shared<ShaderProgram>( );
+    SProgram->Load( DefaultColorPreVertexShaderVertexSource, DefaultColorPreVertexShaderFragmentSource );
+    SpriteShader = std::make_shared<Shader>( );
+    SpriteShader->SetProgram( SProgram );
+    GlobalResourcePool::STryPush( "DefaultColorPreVertexShader", std::move( SpriteShader ) );
 
     SProgram = std::make_shared<ShaderProgram>( );
     SProgram->Load( DefaultTextureShaderVertexSource, DefaultTextureShaderFragmentSource );

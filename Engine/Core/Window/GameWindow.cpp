@@ -53,7 +53,7 @@ GameWindow::Update( )
                 m_GLContext->Enable( GL_BLEND );
                 m_GLContext->BlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
                 m_GLContext->ClearColor( 0.F, 0.F, 0.F, 1.0f );
-                m_GLContext->Clear( GL_COLOR_BUFFER_BIT );
+                m_GLContext->Clear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
                 m_ConceptRenderables.ForEach( []( std::shared_ptr<ConceptRenderable>& item ) {
                     item->Render( );

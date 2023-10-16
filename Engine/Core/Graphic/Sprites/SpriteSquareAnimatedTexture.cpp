@@ -81,7 +81,8 @@ SpriteSquareAnimatedTexture::Render( )
         }
     }
 
-    SetShaderMatrix( );
+    SetCameraMatrix( );
+    m_Shader->SetMat4( "modelMatrix", GetModelMatrix( ) );
     BindTexture( );
 
     GL_CHECK( gl->BindVertexArray( m_VAO ) )

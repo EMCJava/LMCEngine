@@ -18,11 +18,16 @@
 #include <Engine/Core/Concept/PureConceptAABBSquare.hpp>
 #include <Engine/Core/UI/RectButton.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
+#include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
 
 #include <spdlog/spdlog.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 
 #include <fstream>
 #include <sstream>
@@ -48,6 +53,142 @@ GetTexturePath( Element ElementType )
     return "Assets/Texture/Elements/" + ToString( ElementType ) + ".png";
 }
 }   // namespace
+
+class Cube : public ConceptRenderable
+{
+    DECLARE_CONCEPT( Cube, ConceptRenderable )
+public:
+    Cube( )
+    {
+        const auto* gl = Engine::GetEngine( )->GetGLContext( );
+        GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
+
+        float vertices[] = {
+            // front
+            0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+            -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+            0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+            -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+            0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+
+            // back
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+
+            // left
+            -0.5f, -0.5f, 0.5f, 1.0f, 0.64453125f, 0.0f,
+            -0.5f, 0.5f, -0.5f, 1.0f, 0.64453125f, 0.0f,
+            -0.5f, -0.5f, -0.5f, 1.0f, 0.64453125f, 0.0f,
+            -0.5f, 0.5f, 0.5f, 1.0f, 0.64453125f, 0.0f,
+            -0.5f, 0.5f, -0.5f, 1.0f, 0.64453125f, 0.0f,
+            -0.5f, -0.5f, 0.5f, 1.0f, 0.64453125f, 0.0f,
+
+            // right
+            0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+            0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+
+            // up
+            0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f,
+            -0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
+            -0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f,
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
+            -0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f,
+
+            // down
+            0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f,
+            0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f };
+
+        GL_CHECK( gl->GenVertexArrays( 1, &m_VAO ) )
+        GL_CHECK( gl->BindVertexArray( m_VAO ) )
+
+        // 2. copy our vertices array in a buffer for OpenGL to use
+        GL_CHECK( gl->GenBuffers( 1, &m_VBO ) )
+        GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_VBO ) )
+        GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, sizeof( vertices ), vertices, GL_STATIC_DRAW ) )
+
+        // 3. then set our vertex attributes pointers
+        GL_CHECK( gl->VertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof( float ), nullptr ) )
+        GL_CHECK( gl->EnableVertexAttribArray( 0 ) )
+
+        GL_CHECK( gl->VertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof( float ), (void*) ( 3 * sizeof( float ) ) ) )
+        GL_CHECK( gl->EnableVertexAttribArray( 1 ) )
+    }
+
+    void
+    Render( ) override
+    {
+        const auto* gl = Engine::GetEngine( )->GetGLContext( );
+        GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
+
+        m_Shader->Bind( );
+
+        glm::vec3 cameraPos   = glm::vec3( 0.0f, 0.0f, 3.0f );
+        glm::vec3 cameraFront = glm::vec3( 0.0f, 0.0f, -1.0f );
+        glm::vec3 cameraUp    = glm::vec3( 0.0f, 1.0f, 0.0f );
+        glm::mat4 projection  = glm::perspective( glm::radians( 72.0f ), 1920.F / 1080.F, 0.1f, 100.0f );
+        glm::mat4 view        = glm::lookAt( cameraPos, cameraPos + cameraFront, cameraUp );
+        m_Shader->SetMat4( "projectionMatrix", projection * view );
+
+        m_Shader->SetMat4( "modelMatrix", m_Orientation.GetModelMatrix( ) );
+        ApplyShaderUniforms( );
+
+        m_Shader->Bind( );
+
+        GL_CHECK( gl->Enable( GL_DEPTH_TEST ) )
+        GL_CHECK( gl->DepthFunc( GL_LESS ) )
+        GL_CHECK( gl->BindVertexArray( m_VAO ) )
+        GL_CHECK( gl->DrawArrays( GL_TRIANGLES, 0, 3 * 2 * 6 ) )
+        GL_CHECK( gl->Disable( GL_DEPTH_TEST ) )
+    }
+
+    Orientation&
+    GetOrientation( )
+    {
+        return m_Orientation;
+    }
+
+private:
+    uint32_t    m_VAO { }, m_VBO { };
+    Orientation m_Orientation;
+};
+DEFINE_CONCEPT_DS( Cube )
+
+class RotatingCube : public ConceptApplicable
+{
+    DECLARE_CONCEPT( RotatingCube, ConceptApplicable )
+public:
+    RotatingCube( )
+    {
+        m_Cube = AddConcept<Cube>( );
+        m_Cube->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultColorPreVertexShader" ) );
+
+        SetSearchThrough( );
+    }
+
+    void Apply( ) override
+    {
+        const auto DeltaTime = Engine::GetEngine( )->GetDeltaSecond( );
+        m_Cube->GetOrientation( ).AlterRotation( -DeltaTime, DeltaTime * 1.2, DeltaTime * 1.4 );
+    }
+
+private:
+    std::shared_ptr<Cube> m_Cube;
+};
+DEFINE_CONCEPT_DS( RotatingCube )
 
 GameManager::GameManager( )
 {
@@ -209,6 +350,8 @@ GameManager::GameManager( )
             spdlog::info( "Effect.ElementCounts : {}", ResultStr.str( ) );
         } );
     }
+
+    AddConcept<RotatingCube>( );
 
     spdlog::info( "GameManager concept constructor returned" );
 }

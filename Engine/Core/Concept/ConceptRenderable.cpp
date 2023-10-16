@@ -7,8 +7,11 @@
 #include <Engine/Engine.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCameraStack.hpp>
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
+#include <Engine/Core/Graphic/Shader/Shader.hpp>
 
 DEFINE_CONCEPT_DS( ConceptRenderable )
+DEFINE_SIMPLE_IMGUI_TYPE( ConceptRenderable, m_IsAbsolutePosition, m_ActiveCamera, m_Shader, m_ShaderUniformSaves )
 
 void
 ConceptRenderable::SetActiveCamera( class PureConceptCamera* ActiveCamera )
@@ -19,4 +22,60 @@ ConceptRenderable::SetActiveCamera( class PureConceptCamera* ActiveCamera )
 ConceptRenderable::ConceptRenderable( )
 {
     SetActiveCamera( Engine::GetEngine( )->GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->GetCamera( ).get( ) );
+}
+
+void
+ConceptRenderable::SetShader( const std::shared_ptr<Shader>& shader )
+{
+    ClearShaderUniforms( );
+    m_Shader = shader;
+}
+
+Shader*
+ConceptRenderable::GetShader( )
+{
+    return m_Shader.get( );
+}
+
+void
+ConceptRenderable::SetCameraMatrix( )
+{
+    if ( m_Shader != nullptr )
+    {
+        m_Shader->Bind( );
+        if ( m_ActiveCamera != nullptr )
+        {
+            if ( m_IsAbsolutePosition )
+            {
+                m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrixNonOffset( ) );
+            } else
+            {
+                m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
+            }
+        }
+    }
+}
+
+void
+ConceptRenderable::SetShaderUniform( std::string UniformName, const ConceptRenderable::ShaderUniformTypes& Value )
+{
+    REQUIRED_IF( m_Shader != nullptr )
+    {
+        m_ShaderUniformSaves[ m_Shader->GetUniformLocation( UniformName ) ] = Value;
+    }
+}
+
+void
+ConceptRenderable::ApplyShaderUniforms( )
+{
+    for ( const auto& ShaderUniform : m_ShaderUniformSaves )
+    {
+        std::visit( [ this, Location = ShaderUniform.first ]( const auto& Value ) { m_Shader->SetUniform( Location, Value ); }, ShaderUniform.second );
+    }
+}
+
+void
+ConceptRenderable::ClearShaderUniforms( )
+{
+    m_ShaderUniformSaves.clear( );
 }

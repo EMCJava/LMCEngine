@@ -64,7 +64,8 @@ public:
 
         m_SpriteTexture->BindTexture( );
         if ( m_ActiveCamera != nullptr ) m_SpriteTexture->SetActiveCamera( m_ActiveCamera );
-        m_SpriteTexture->SetShaderMatrix( );
+        m_SpriteTexture->SetCameraMatrix( );
+        m_SpriteTexture->GetShader( )->SetMat4( "modelMatrix", m_SpriteTexture->GetModelMatrix( ) );
         m_SpriteTexture->ApplyShaderUniforms( );
 
         auto* ShaderPtr = m_SpriteTexture->GetShader( );

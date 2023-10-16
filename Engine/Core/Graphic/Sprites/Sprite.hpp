@@ -8,8 +8,6 @@
 #include <Engine/Core/Scene/Orientation/Orientation.hpp>
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 
-#include <glm/glm.hpp>
-
 #include <map>
 #include <string>
 #include <variant>
@@ -21,19 +19,9 @@ class Sprite : public ConceptRenderable
     DECLARE_CONCEPT( Sprite, ConceptRenderable )
 
 public:
-    using ShaderUniformTypes = std::variant<glm::mat4, glm::vec4, float>;
 
     void
     Render( ) override;
-
-    void
-    SetShader( const std::shared_ptr<Shader>& shader );
-
-    Shader*
-    GetShader( );
-
-    void
-    SetShaderMatrix( );
 
     /*
      *
@@ -47,16 +35,6 @@ public:
     void
     SetAbsolutePosition( bool Absolute = true ) { m_IsAbsolutePosition = Absolute; }
 
-    void
-    SetShaderUniform( std::string UniformName, const ShaderUniformTypes& Value );
-
-    // All user defined uniforms
-    void
-    ApplyShaderUniforms( );
-
-    void
-    ClearShaderUniforms( );
-
     [[nodiscard]] uint32_t
     GetVAO( ) const { return m_VAO; }
     [[nodiscard]] uint32_t
@@ -65,24 +43,13 @@ public:
     GetEBO( ) const { return m_EBO; }
 
 protected:
-    std::shared_ptr<Shader> m_Shader;
     uint32_t                m_VAO { }, m_VBO { }, m_EBO { };
-
-    std::map<int, ShaderUniformTypes> m_ShaderUniformSaves;
-
     /*
      *
      * Useful when multiple concept uses the same context
      *
      * */
     bool m_ShouldDeallocateGLResources { true };
-
-    /*
-     *
-     * Use screen coordinate instead of world coordinates
-     *
-     * */
-    bool m_IsAbsolutePosition { false };
 
     ENABLE_IMGUI( Sprite )
 };
