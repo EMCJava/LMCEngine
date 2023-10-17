@@ -5,6 +5,7 @@
 #include "Canvas.hpp"
 
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 
 #include <ranges>
 #include <utility>
@@ -25,12 +26,14 @@ Canvas::Render( )
     if ( CameraPtr == nullptr ) CameraPtr = m_ActiveCamera;
     REQUIRED_IF( CameraPtr != nullptr )
     {
+        CameraPtr->PushToCameraStack( );
         std::vector<std::shared_ptr<ConceptRenderable>> AnySubRenderables;
         GetConcepts( AnySubRenderables );
         for ( const auto& R : AnySubRenderables )
         {
             R->SetActiveCamera( CameraPtr );
         }
+        CameraPtr->PopFromCameraStack( );
     }
 }
 

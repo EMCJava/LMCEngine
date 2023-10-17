@@ -117,3 +117,18 @@ PureConceptCamera::PushToCameraStack( )
 {
     Engine::GetEngine( )->GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->PushCamera( shared_from_this( ) );
 }
+
+void
+PureConceptCamera::PopFromCameraStack( )
+{
+    auto ShdCamera = Engine::GetEngine( )->GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->PopCamera( );
+    REQUIRED( ShdCamera.get( ) == this )
+}
+
+PureConceptCamera*
+PureConceptCamera::PeekCameraStack( )
+{
+    auto* ShdPtr = Engine::GetEngine( )->GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->GetCamera( ).get( );
+    REQUIRED( ShdPtr != nullptr );
+    return ShdPtr;
+}

@@ -40,8 +40,14 @@ public:
     void
     ScreenCoordToWorldCoord( std::pair<FloatTy, FloatTy>& ScreenCoord ) const;
 
+    static PureConceptCamera*
+    PeekCameraStack( );
+
     void
     PushToCameraStack( );
+
+    void
+    PopFromCameraStack( );
 
     void
     SetCoordinate( FloatTy X, FloatTy Y, FloatTy = 0 );
