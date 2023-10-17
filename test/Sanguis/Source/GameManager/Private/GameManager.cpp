@@ -208,9 +208,9 @@ GameManager::GameManager( )
     }
 
     {
-        auto DummyCamera = AddConcept<PureConceptCamera>( );
-        DummyCamera->SetRuntimeName( "DummyCamera" );
-        DummyCamera->PushToCameraStack( );
+        m_MainCamera = AddConcept<PureConceptCamera>( );
+        m_MainCamera->SetRuntimeName( "Main Camera" );
+        m_MainCamera->PushToCameraStack( );
     }
 
     {
