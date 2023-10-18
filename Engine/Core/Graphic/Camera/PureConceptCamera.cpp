@@ -129,6 +129,6 @@ PureConceptCamera*
 PureConceptCamera::PeekCameraStack( )
 {
     auto* ShdPtr = Engine::GetEngine( )->GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->GetCamera( ).get( );
-    REQUIRED( ShdPtr != nullptr );
+    REQUIRED( ShdPtr != nullptr )
     return ShdPtr;
 }
