@@ -6,8 +6,6 @@
 
 #include <Engine/Core/Concept/PureConcept.hpp>
 
-#include "PureConceptCamera.hpp"
-
 #include <stack>
 
 class PureConceptCameraStack : public PureConcept
@@ -16,15 +14,15 @@ class PureConceptCameraStack : public PureConcept
 
 public:
     void
-    PushCamera( std::shared_ptr<PureConceptCamera> Camera );
+    PushCamera( std::shared_ptr<class PureConceptCamera> Camera );
 
-    std::shared_ptr<PureConceptCamera>
+    std::shared_ptr<class PureConceptCamera>
     PopCamera( );
 
     void
     Clear( );
 
-    std::shared_ptr<PureConceptCamera>
+    std::shared_ptr<class PureConceptCamera>
     GetCamera( ) const;
 
     /*
@@ -32,9 +30,9 @@ public:
      * Can throw std::runtime_error if camera stack is empty.
      *
      * */
-    std::shared_ptr<PureConceptCamera>&
+    std::shared_ptr<class PureConceptCamera>&
     GetCameraRef( );
 
 private:
-    std::stack<std::shared_ptr<PureConceptCamera>> m_CameraStack;
+    std::stack<std::shared_ptr<class PureConceptCamera>> m_CameraStack;
 };

@@ -8,7 +8,7 @@
 #include <Engine/Core/UI/Text/Text.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Input/UserInput.hpp>
-#include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptOrthoCamera.hpp>
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
 #include <Engine/Core/Concept/PureConceptAABBSquare.hpp>
@@ -59,9 +59,9 @@ RectButton::Apply( )
         std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
 
         const auto* ActiveCamera = m_SpriteSquare->GetActiveCamera( );
-        REQUIRED_IF( m_SpriteSquare->GetActiveCamera( ) )
+        REQUIRED_IF( ActiveCamera != nullptr && ActiveCamera->CanCastVT<PureConceptOrthoCamera>( ) )
         {
-            ActiveCamera->ScreenCoordToUICoord( HitPoint );
+            ( (PureConceptOrthoCamera*) ActiveCamera )->ScreenCoordToUICoord( HitPoint );
         }
 
         if ( m_HitBox->HitTest( HitPoint ) )

@@ -32,14 +32,9 @@ Text::Render( )
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
 
     // activate corresponding render state
+    SetCameraMatrix( );
     if ( m_Shader != nullptr )
     {
-        m_Shader->Bind( );
-        if ( m_ActiveCamera != nullptr )
-        {
-            m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrixNonOffset( ) );
-        }
-
         m_Shader->SetVec3( "textColor", m_Color );
     }
 

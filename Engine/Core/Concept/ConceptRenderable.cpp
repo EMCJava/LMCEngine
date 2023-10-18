@@ -6,6 +6,7 @@
 
 #include <Engine/Engine.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCameraStack.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
@@ -45,13 +46,7 @@ ConceptRenderable::SetCameraMatrix( )
         m_Shader->Bind( );
         if ( m_ActiveCamera != nullptr )
         {
-            if ( m_IsAbsolutePosition )
-            {
-                m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrixNonOffset( ) );
-            } else
-            {
-                m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
-            }
+            m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
         }
     }
 }

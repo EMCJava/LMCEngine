@@ -3,6 +3,7 @@
 //
 
 #include "PureConceptCameraStack.hpp"
+#include "PureConceptCamera.hpp"
 
 DEFINE_CONCEPT_DS( PureConceptCameraStack )
 

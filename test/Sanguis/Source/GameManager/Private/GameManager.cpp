@@ -10,6 +10,7 @@
 #include <Engine/Core/Input/UserInput.hpp>
 #include <Engine/Core/Graphic/Image/PureConceptImage.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptOrthoCamera.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Graphic/Sprites/Particle/ParticlePool.hpp>
@@ -200,7 +201,7 @@ GameManager::GameManager( )
     Engine::GetEngine( )->SetLogicalMainWindowViewPortDimensions( WindowSize );
 
     {
-        m_UICamera = AddConcept<PureConceptCamera>( );
+        m_UICamera = AddConcept<PureConceptOrthoCamera>( );
         m_UICamera->SetRuntimeName( "UI Camera" );
         m_UICamera->PushToCameraStack( );
 
@@ -208,7 +209,7 @@ GameManager::GameManager( )
     }
 
     {
-        m_MainCamera = AddConcept<PureConceptCamera>( );
+        m_MainCamera = AddConcept<PureConceptOrthoCamera>( );
         m_MainCamera->SetRuntimeName( "Main Camera" );
         m_MainCamera->PushToCameraStack( );
     }

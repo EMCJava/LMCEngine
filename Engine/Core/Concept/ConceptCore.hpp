@@ -97,7 +97,7 @@ public:                                                               \
         return sizeof( class_name );                                  \
     }                                                                 \
                                                                       \
-    virtual bool CanCastV( uint64_t ConceptID )                       \
+    virtual bool CanCastV( uint64_t ConceptID ) const                 \
     {                                                                 \
         return class_name::ParentSet::Contain( ConceptID );           \
     }                                                                 \
@@ -118,13 +118,13 @@ public:                                                 \
                                                         \
     template <typename ConceptType>                     \
     bool                                                \
-    CanCastVT( )                                        \
+    CanCastVT( ) const                                  \
     {                                                   \
         return this->CanCastV( ConceptType::TypeID );   \
     }                                                   \
                                                         \
     template <class ConceptType>                        \
-    bool TryCast( ConceptType*& Result )                \
+    bool TryCast( ConceptType*& Result ) const          \
     {                                                   \
         if ( CanCastV( ConceptType::TypeID ) )          \
         {                                               \
