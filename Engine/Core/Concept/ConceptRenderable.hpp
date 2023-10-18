@@ -61,6 +61,7 @@ protected:
     /*
      *
      * Use screen coordinate instead of world coordinates
+     * FIXME, not used
      *
      * */
     bool m_IsAbsolutePosition { false };

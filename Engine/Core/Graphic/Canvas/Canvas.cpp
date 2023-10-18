@@ -38,7 +38,7 @@ Canvas::Render( )
 }
 
 void
-Canvas::SetCanvasCamera( const std::shared_ptr<struct PureConceptCamera>& Camera )
+Canvas::SetCanvasCamera( const std::shared_ptr<PureConceptCamera>& Camera )
 {
     m_CanvasCamera = Camera;
 }

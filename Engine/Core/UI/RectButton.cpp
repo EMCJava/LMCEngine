@@ -22,6 +22,7 @@ RectButton::RectButton( int Width, int Height )
     , m_UserDefinedHeight( Height )
 {
     SetupButton( );
+    SetSearchThrough( );
 }
 
 const glm::vec3&

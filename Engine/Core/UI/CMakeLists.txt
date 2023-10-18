@@ -1,6 +1,5 @@
 add_subdirectory(Font)
 add_subdirectory(Text)
-add_subdirectory(Canvas)
 
 add_library(RectButton.lib RectButton.hpp RectButton.cpp)
 

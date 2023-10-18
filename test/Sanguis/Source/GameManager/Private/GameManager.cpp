@@ -11,11 +11,12 @@
 #include <Engine/Core/Graphic/Image/PureConceptImage.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptOrthoCamera.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptPerspectiveCamera.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Graphic/Sprites/Particle/ParticlePool.hpp>
 #include <Engine/Core/Graphic/Sprites/Particle/ParticleAttributesRandomizer.hpp>
-#include <Engine/Core/UI/Canvas/Canvas.hpp>
+#include <Engine/Core/Graphic/Canvas/Canvas.hpp>
 #include <Engine/Core/Concept/PureConceptAABBSquare.hpp>
 #include <Engine/Core/UI/RectButton.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
@@ -136,24 +137,25 @@ public:
         GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
 
         m_Shader->Bind( );
+        REQUIRED_IF( m_ActiveCamera != nullptr && m_ActiveCamera->CanCastVT<PureConceptPerspectiveCamera>( ) )
+        {
+            auto* PC = (PureConceptPerspectiveCamera*) m_ActiveCamera;
+            PC->SetCameraPosition( glm::vec3( 0.0f, 0.0f, 3.0f ) );
+            PC->SetCameraFacing( glm::vec3( 0.0f, 0.0f, -1.0f ) );
+            PC->SetCameraUpVector( glm::vec3( 0.0f, 1.0f, 0.0f ) );
 
-        glm::vec3 cameraPos   = glm::vec3( 0.0f, 0.0f, 3.0f );
-        glm::vec3 cameraFront = glm::vec3( 0.0f, 0.0f, -1.0f );
-        glm::vec3 cameraUp    = glm::vec3( 0.0f, 1.0f, 0.0f );
-        glm::mat4 projection  = glm::perspective( glm::radians( 72.0f ), 1920.F / 1080.F, 0.1f, 100.0f );
-        glm::mat4 view        = glm::lookAt( cameraPos, cameraPos + cameraFront, cameraUp );
-        m_Shader->SetMat4( "projectionMatrix", projection * view );
+            SetCameraMatrix( );
+            m_Shader->SetMat4( "modelMatrix", m_Orientation.GetModelMatrix( ) );
+            ApplyShaderUniforms( );
 
-        m_Shader->SetMat4( "modelMatrix", m_Orientation.GetModelMatrix( ) );
-        ApplyShaderUniforms( );
+            m_Shader->Bind( );
 
-        m_Shader->Bind( );
-
-        GL_CHECK( gl->Enable( GL_DEPTH_TEST ) )
-        GL_CHECK( gl->DepthFunc( GL_LESS ) )
-        GL_CHECK( gl->BindVertexArray( m_VAO ) )
-        GL_CHECK( gl->DrawArrays( GL_TRIANGLES, 0, 3 * 2 * 6 ) )
-        GL_CHECK( gl->Disable( GL_DEPTH_TEST ) )
+            GL_CHECK( gl->Enable( GL_DEPTH_TEST ) )
+            GL_CHECK( gl->DepthFunc( GL_LESS ) )
+            GL_CHECK( gl->BindVertexArray( m_VAO ) )
+            GL_CHECK( gl->DrawArrays( GL_TRIANGLES, 0, 3 * 2 * 6 ) )
+            GL_CHECK( gl->Disable( GL_DEPTH_TEST ) )
+        }
     }
 
     Orientation&
@@ -209,7 +211,7 @@ GameManager::GameManager( )
     }
 
     {
-        m_MainCamera = AddConcept<PureConceptOrthoCamera>( );
+        m_MainCamera = AddConcept<PureConceptPerspectiveCamera>( );
         m_MainCamera->SetRuntimeName( "Main Camera" );
         m_MainCamera->PushToCameraStack( );
     }
@@ -352,7 +354,13 @@ GameManager::GameManager( )
         } );
     }
 
-    AddConcept<RotatingCube>( );
+    {
+        const auto& PerspectiveCanvas = AddConcept<Canvas>( );
+        PerspectiveCanvas->SetRuntimeName( "Perspective Canvas" );
+        PerspectiveCanvas->SetCanvasCamera( m_MainCamera );
+
+        PerspectiveCanvas->AddConcept<RotatingCube>( );
+    }
 
     spdlog::info( "GameManager concept constructor returned" );
 }

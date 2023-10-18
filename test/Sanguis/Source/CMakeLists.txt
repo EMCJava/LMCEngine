@@ -123,6 +123,7 @@ declare_library(
         RectButton.lib
         Canvas.lib
         PureConceptOrthoCamera.lib
+        PureConceptPerspectiveCamera.lib
 
         DEPS
         spdlog::spdlog

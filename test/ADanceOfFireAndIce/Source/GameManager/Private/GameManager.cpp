@@ -14,7 +14,7 @@
 #include <Engine/Core/Graphic/Camera/PureConceptOrthoCamera.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareAnimatedTexture.hpp>
 #include <Engine/Core/Input/UserInput.hpp>
-#include <Engine/Core/UI/Canvas/Canvas.hpp>
+#include <Engine/Core/Graphic/Canvas/Canvas.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>

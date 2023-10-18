@@ -32,7 +32,7 @@ private:
     std::unique_ptr<class ParticleAttributesRandomizer> m_PAR;
 
     std::shared_ptr<class PureConceptOrthoCamera> m_UICamera;
-    std::shared_ptr<class PureConceptOrthoCamera> m_MainCamera;
+    std::shared_ptr<class PureConceptPerspectiveCamera> m_MainCamera;
 
     std::shared_ptr<class Canvas> m_ParticleCanvas;
     std::shared_ptr<class Canvas> m_BaseSlotMenuCanvas;
