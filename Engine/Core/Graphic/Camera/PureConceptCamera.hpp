@@ -4,8 +4,11 @@
 
 #pragma once
 
+#include "PureConceptCameraStack.hpp"
+
 #include <Engine/Core/Core.hpp>
 #include <Engine/Core/Concept/PureConcept.hpp>
+#include <Engine/Core/Environment/GlobalResourcePool.hpp>
 
 #include <glm/glm.hpp>
 
@@ -18,30 +21,31 @@ public:
     [[nodiscard]] const glm::mat4&
     GetProjectionMatrix( ) const;
 
-    [[nodiscard]] const glm::mat4&
-    GetProjectionMatrixNonOffset( ) const;
-
     void
     SetDimensions( int Width, int Height );
     std::pair<FloatTy, FloatTy>
     GetDimensions( ) const;
 
-    void
-    SetScale( FloatTy Scale );
-    FloatTy
-    GetScale( ) const;
-
     virtual void
-    UpdateProjectionMatrix( );
+    UpdateProjectionMatrix( ) = 0;
 
-    void
-    ScreenCoordToUICoord( std::pair<FloatTy, FloatTy>& ScreenCoord ) const;
+    /*
+     *
+     * Camera stack controls
+     *
+     * */
+    template <typename CameraType = PureConceptCamera>
+    static CameraType* PeekCameraStack( )
+    {
+        const PureConceptCameraStack* CS     = Engine::GetEngine( )->GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" );
+        auto*                         ShdPtr = CS->GetCamera( ).get( );
+        REQUIRED_IF( ShdPtr != nullptr && ShdPtr->CanCastVT<PureConceptCamera>( ) )
+        {
+            return ShdPtr;
+        }
 
-    void
-    ScreenCoordToWorldCoord( std::pair<FloatTy, FloatTy>& ScreenCoord ) const;
-
-    static PureConceptCamera*
-    PeekCameraStack( );
+        return nullptr;
+    }
 
     void
     PushToCameraStack( );
@@ -49,13 +53,7 @@ public:
     void
     PopFromCameraStack( );
 
-    void
-    SetCoordinate( FloatTy X, FloatTy Y, FloatTy = 0 );
-
-    const glm::vec3&
-    GetCoordinate( );
-
-private:
+protected:
     glm::mat4 m_ProjectionMatrix { 1 };
     FloatTy   m_CameraWidth { }, m_CameraHeight { };
 
