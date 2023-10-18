@@ -228,6 +228,17 @@ GameManager::GameManager( )
         m_ParticleCanvas = AddConcept<Canvas>( );
         m_ParticleCanvas->SetRuntimeName( "Particle Canvas" );
         m_ParticleCanvas->SetCanvasCamera( m_UICamera );
+
+        {
+            m_UICanvas = AddConcept<Canvas>( );
+            m_UICanvas->SetRuntimeName( "UI Canvas" );
+
+            auto SystemUICamera = m_UICanvas->AddConcept<PureConceptOrthoCamera>( );
+            SystemUICamera->SetRuntimeName( "System UI Camera" );
+            SystemUICamera->PushToCameraStack( );
+
+            m_UICanvas->SetCanvasCamera( SystemUICamera );
+        }
     }
 
     m_WandEditorCanvas->AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/Inv.png" ) );
@@ -327,7 +338,7 @@ GameManager::GameManager( )
     m_Effect = std::make_unique<SaEffect>( );
 
     {
-        m_UpdateSlotsButton = m_BaseSlotMenuCanvas->AddConcept<RectButton>( -25, -12 );
+        m_UpdateSlotsButton = m_UICanvas->AddConcept<RectButton>( -25, -12 );
         m_UpdateSlotsButton->SetPressReactColor( glm::vec4 { 0.9, 0.9, 0.9, 1 } );
         m_UpdateSlotsButton->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
         m_UpdateSlotsButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
