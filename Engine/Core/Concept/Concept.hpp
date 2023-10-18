@@ -92,6 +92,14 @@ public:
     void
     SetSearchThrough( bool SearchThrough = true );
 
+    /*
+     *
+     * Should consider edge case when m_SearchThrough == true
+     *
+     * */
+    void
+    ResetSubConceptCache( );
+
 private:
     /*
      *
@@ -118,7 +126,7 @@ template <class ConceptType, typename... Args>
 std::shared_ptr<ConceptType>
 Concept::AddConcept( Args&&... params )
 {
-    m_ConceptsStateHash.NextUint64( );
+    ResetSubConceptCache( );
     static_assert( ConceptType::template CanCastS<PureConcept>( ) );
 
     auto Result = ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( std::make_shared<ConceptType>( std::forward<Args>( params )... ) ) );
@@ -167,7 +175,7 @@ Concept::RemoveConcept( )
             m_SubConcepts[ i ]->m_BelongsTo = nullptr;
 
             m_SubConcepts.erase( m_SubConcepts.begin( ) + i );
-            m_ConceptsStateHash.NextUint64( );
+            ResetSubConceptCache( );
             return true;
         }
     }
@@ -253,7 +261,7 @@ Concept::RemoveConcepts( )
         } );
 
         m_SubConcepts.erase( m_SubConcepts.begin( ), PartIt );
-        m_ConceptsStateHash.NextUint64( );
+        ResetSubConceptCache( );
     }
 
     return RemoveCount;

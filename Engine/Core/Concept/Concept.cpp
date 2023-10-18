@@ -36,7 +36,7 @@ Concept::RemoveConcept( PureConcept* ConceptPtr )
             ConceptPtr->m_BelongsTo = nullptr;
 
             m_SubConcepts.erase( It );
-            m_ConceptsStateHash.NextUint64( );
+            ResetSubConceptCache( );
             return true;
         }
     }
@@ -58,10 +58,10 @@ Concept::TransferSubConcept( PureConcept* ConceptPtr )
         REQUIRED_IF( OccIt != OriginalSet.end( ) )
         {
             m_SubConcepts.emplace_back( std::move( *OccIt ) );
-            m_ConceptsStateHash.NextUint64( );
+            ResetSubConceptCache( );
 
             OriginalSet.erase( OccIt );
-            ConceptPtr->m_BelongsTo->m_ConceptsStateHash.NextUint64( );
+            ConceptPtr->m_BelongsTo->ResetSubConceptCache( );
 
             ConceptPtr->m_BelongsTo = this;
             return true;
@@ -75,6 +75,16 @@ void
 Concept::SetSearchThrough( bool SearchThrough )
 {
     m_SearchThrough = SearchThrough;
+}
+
+void
+Concept::ResetSubConceptCache( )
+{
+    m_ConceptsStateHash.NextUint64( );
+    if ( m_SearchThrough )
+    {
+        m_BelongsTo->m_ConceptsStateHash.NextUint64( );
+    }
 }
 
 void
@@ -93,7 +103,7 @@ PureConcept::MoveToFirstAsSubConcept( )
         if ( pivot != m_BelongsTo->m_SubConcepts.end( ) )
         {
             std::rotate( m_BelongsTo->m_SubConcepts.begin( ), pivot, pivot + 1 );
-            m_BelongsTo->m_ConceptsStateHash.NextUint64( );
+            m_BelongsTo->ResetSubConceptCache( );
         }
     }
 }
@@ -114,7 +124,7 @@ PureConcept::MoveToLastAsSubConcept( )
         if ( pivot != m_BelongsTo->m_SubConcepts.end( ) )
         {
             std::rotate( pivot, pivot + 1, m_BelongsTo->m_SubConcepts.end( ) );
-            m_BelongsTo->m_ConceptsStateHash.NextUint64( );
+            m_BelongsTo->ResetSubConceptCache( );
         }
     }
 }
