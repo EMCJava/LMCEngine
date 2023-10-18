@@ -14,7 +14,7 @@
 #include <Engine/Core/Concept/PureConceptAABBSquare.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
-DEFINE_CONCEPT_DS( RectButton )
+DEFINE_CONCEPT( RectButton )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RectButton, PureConcept, m_DefaultColor, m_PressColor, m_TextAlignmentOffset, m_PressReactTimeLeft )
 
 RectButton::RectButton( int Width, int Height )
@@ -22,6 +22,11 @@ RectButton::RectButton( int Width, int Height )
     , m_UserDefinedHeight( Height )
 {
     SetupButton( );
+}
+
+RectButton::~RectButton( )
+{
+    auto a = 0;
 }
 
 const glm::vec3&

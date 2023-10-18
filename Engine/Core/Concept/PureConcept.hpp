@@ -33,6 +33,15 @@ public:
     void
     MoveToFirstAsSubConcept( );
 
+    /*
+     *
+     * if BelongsTo != nullptr, move this sub-concept as the first element in list (m_SubConcepts)
+     * TODO: Consider moving this to Concept, as it need access to m_SubConcepts
+     *
+     * */
+    void
+    MoveToLastAsSubConcept( );
+
     virtual void
     SetEnabled( bool enabled ) { m_Enabled = enabled; }
 

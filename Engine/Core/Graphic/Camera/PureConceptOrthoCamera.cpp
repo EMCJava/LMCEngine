@@ -16,7 +16,6 @@ PureConceptOrthoCamera::SetScale( FloatTy Scale )
     UpdateProjectionMatrix( );
 }
 
-
 FloatTy
 PureConceptOrthoCamera::GetScale( ) const
 {

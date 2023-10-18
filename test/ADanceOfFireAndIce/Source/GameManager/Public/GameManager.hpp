@@ -107,6 +107,8 @@ private:
     AudioHandle             m_MainAudioHandle;
     NativeAudioSourceHandle m_NoteHitSfxSource;
 
+    std::shared_ptr<class Canvas> m_UICanvas;
+
     bool    m_IsCheckingDeviceDelay = false;
     bool    m_Playing               = false;
     int64_t m_UserDeviceOffsetMS { };
@@ -153,7 +155,7 @@ private:
      * Concept saves
      *
      * */
-    std::shared_ptr<class PureConceptCamera> m_Camera { };
+    std::shared_ptr<class PureConceptOrthoCamera> m_Camera { };
 
     std::weak_ptr<class SpriteSquareTexture> m_FBSp { };
     std::weak_ptr<class SpriteSquareTexture> m_IBSp { };

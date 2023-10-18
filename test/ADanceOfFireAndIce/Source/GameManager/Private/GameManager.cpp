@@ -11,9 +11,10 @@
 #include <Engine/Core/Utilities/StopWatch.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
-#include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptOrthoCamera.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareAnimatedTexture.hpp>
 #include <Engine/Core/Input/UserInput.hpp>
+#include <Engine/Core/UI/Canvas/Canvas.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
@@ -1310,6 +1311,17 @@ GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
 
+    {
+        auto FixedCamera = AddConcept<PureConceptOrthoCamera>( );
+
+        FixedCamera->SetScale( 1 / 1.5F );
+        FixedCamera->UpdateProjectionMatrix( );
+
+        m_UICanvas = AddConcept<Canvas>( );
+        m_UICanvas->SetRuntimeName( "UI Canvas" );
+        m_UICanvas->SetCanvasCamera( FixedCamera );
+    }
+
     SetupCamera( );
     LoadAudio( );
 
@@ -1334,7 +1346,7 @@ GameManager::GameManager( )
     LoadToleranceSprite( );
 
     {
-        m_StartButton = AddConcept<RectButton>( -25, -12 );
+        m_StartButton = m_UICanvas->AddConcept<RectButton>( -25, -12 );
         m_StartButton->SetPressReactColor( glm::vec4 { 0.9, 0.9, 0.9, 1 } );
         m_StartButton->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
         m_StartButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
@@ -1354,7 +1366,7 @@ GameManager::GameManager( )
     }
 
     {
-        m_OffsetWizardButton = AddConcept<RectButton>( -25, -12 );
+        m_OffsetWizardButton = m_UICanvas->AddConcept<RectButton>( -25, -12 );
         m_OffsetWizardButton->SetPressReactColor( glm::vec4 { 0.9, 0.9, 0.9, 1 } );
         m_OffsetWizardButton->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
         m_OffsetWizardButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
@@ -1372,6 +1384,7 @@ GameManager::GameManager( )
 
     m_InActivePlayerSprite->SetRotation( 0, 0, glm::radians( 180.f ) );
 
+    m_UICanvas->MoveToLastAsSubConcept( );
     spdlog::info( "GameManager concept constructor returned" );
 }
 
@@ -1692,12 +1705,12 @@ GameManager::LoadAudio( )
 void
 GameManager::SetupCamera( )
 {
-    m_Camera = AddConcept<PureConceptCamera>( );
+    m_Camera = AddConcept<PureConceptOrthoCamera>( );
 
     m_Camera->SetScale( 1 / 1.5F );
     m_Camera->UpdateProjectionMatrix( );
 
-    m_Camera->PuahToCameraStack( );
+    m_Camera->PushToCameraStack( );
 }
 
 void
@@ -1820,7 +1833,7 @@ GameManager::SetupShader( )
 void
 GameManager::LoadToleranceSprite( )
 {
-    m_ToleranceBar = AddConcept<ToleranceBar>( 400, 30 );
+    m_ToleranceBar = m_UICanvas->AddConcept<ToleranceBar>( 400, 30 );
 
     m_ToleranceBar->SetOrigin( 400 / 2, 30 / 2 );
 

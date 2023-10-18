@@ -69,6 +69,8 @@ declare_library(
         Effect.ToleranceBar.lib
         GlobalResourcePool.lib
         RectButton.lib
+        PureConceptOrthoCamera.lib
+        Canvas.lib
 
         DEPS
         ConceptApplicable.lib

@@ -97,3 +97,24 @@ PureConcept::MoveToFirstAsSubConcept( )
         }
     }
 }
+
+void
+PureConcept::MoveToLastAsSubConcept( )
+{
+    if ( m_BelongsTo != nullptr )
+    {
+        TEST( m_BelongsTo->CanCastVT<Concept>( ) )
+
+        const auto pivot = std::find_if( m_BelongsTo->m_SubConcepts.begin( ),
+                                         m_BelongsTo->m_SubConcepts.end( ),
+                                         [ this ]( const std::shared_ptr<PureConcept>& C ) -> bool {
+                                             return C.get( ) == this;
+                                         } );
+
+        if ( pivot != m_BelongsTo->m_SubConcepts.end( ) )
+        {
+            std::rotate( pivot, pivot + 1, m_BelongsTo->m_SubConcepts.end( ) );
+            m_BelongsTo->m_ConceptsStateHash.NextUint64( );
+        }
+    }
+}

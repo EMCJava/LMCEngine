@@ -6,7 +6,7 @@
 #include "ToleranceBarStrike.hpp"
 
 #include <Engine/Core/Graphic/Image/PureConceptImage.hpp>
-#include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptOrthoCamera.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
 DEFINE_CONCEPT_DS( ToleranceBar )
@@ -36,38 +36,37 @@ const char* fragmentAlphaTextureShaderSource = "#version 330 core\n"
 
 ToleranceBar::ToleranceBar( int Width, int Height )
     : SpriteSquareTexture( Width, Height )
-{ }
+{
+    SetSearchThrough( );
+}
 
 void
 ToleranceBar::Render( )
 {
     if ( !m_Enabled ) return;
-    
+
     BindTexture( );
 
+    SetCameraMatrix( );
     if ( m_Shader != nullptr )
     {
         m_Shader->Bind( );
-        if ( m_ActiveCamera != nullptr )
-        {
-            m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrixNonOffset( ) );
-        }
 
         const auto CameraSize = m_ActiveCamera->GetDimensions( );
         if ( CameraSize != m_PreviousCameraSize ) [[unlikely]]
         {
-            SetCoordinate( 0, -CameraSize.second * 0.45F / m_ActiveCamera->GetScale( ) );
+            FloatTy Scale = 1;
+            REQUIRED_IF( m_ActiveCamera != nullptr && m_ActiveCamera->CanCastVT<PureConceptOrthoCamera>( ) )
+            {
+                Scale = ( (PureConceptOrthoCamera*) m_ActiveCamera )->GetScale( );
+            }
+            SetCoordinate( 0, -CameraSize.second * 0.45F / Scale );
             m_PreviousCameraSize = CameraSize;
         }
 
         m_Shader->SetMat4( "modelMatrix", GetTranslationMatrix( ) * GetRotationMatrix( ) );
         SpriteSquare::PureRender( );
     }
-
-    GetConcepts( m_ToleranceBarStrikeCache );
-    m_ToleranceBarStrikeCache.ForEach( []( auto& ToleranceBarStrike ) {
-        ToleranceBarStrike->Render( );
-    } );
 }
 
 void
@@ -75,7 +74,12 @@ ToleranceBar::AddBar( FloatTy Location )
 {
     auto Strike = AddConcept<ToleranceBarStrike>( m_BarSize.first, m_BarSize.second );
     ( *Strike ) << *m_ToleranceBarStrikeTemplate;
-    Strike->SetCoordinate( Location * m_Width / 2, -m_PreviousCameraSize.second * 0.45F / m_ActiveCamera->GetScale( ) );
+    FloatTy Scale = 1;
+    REQUIRED_IF( m_ActiveCamera != nullptr && m_ActiveCamera->CanCastVT<PureConceptOrthoCamera>( ) )
+    {
+        Scale = ( (PureConceptOrthoCamera*) m_ActiveCamera )->GetScale( );
+    }
+    Strike->SetCoordinate( Location * m_Width / 2, -m_PreviousCameraSize.second * 0.45F / Scale );
 }
 
 void

@@ -58,11 +58,7 @@ ToleranceBarStrike::Render( )
 
     if ( m_Shader != nullptr )
     {
-        m_Shader->Bind( );
-        if ( m_ActiveCamera != nullptr )
-        {
-            m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrixNonOffset( ) );
-        }
+        SetCameraMatrix( );
 
         m_Shader->SetMat4( "modelMatrix", GetTranslationMatrix( ) * GetRotationMatrix( ) );
 
