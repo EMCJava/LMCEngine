@@ -10,21 +10,14 @@
 
 #include <spdlog/spdlog.h>
 
-std::string
-OSFile::PickFile( const std::vector<nfdfilteritem_t>& filter, const char* default_path )
+namespace
 {
 #ifdef LMC_LINUX
-    // NFD will crash on multiple if no all linux platform I tried
-
-    FILE* pipe;
-    if ( default_path != nullptr )
-    {
-        pipe = popen( ( "zenity --file-selection --filename=\"" + std::string( default_path ) + "\"" ).c_str( ), "r" );
-
-    } else
-    {
-        pipe = popen( "zenity --file-selection", "r" );
-    }
+// NFD will crash on multiple if no all linux platform I tried
+inline std::string
+ZenityFilePicker( const std::string& AddtionalArgs )
+{
+    FILE* pipe = popen( ( "zenity --file-selection " + AddtionalArgs ).c_str( ), "r" );
     if ( !pipe )
     {
         spdlog::error( "Could not open pipe for zenity(file selection dialog for Linux)" );
@@ -51,6 +44,36 @@ OSFile::PickFile( const std::vector<nfdfilteritem_t>& filter, const char* defaul
     }
 
     return result;
+}
+#endif
+}   // namespace
+
+std::string
+OSFile::PickFile( const std::vector<nfdfilteritem_t>& filter, const char* default_path )
+{
+#ifdef LMC_LINUX
+    // NFD will crash on multiple if no all linux platform I tried
+
+    // --file-filter='Music files (ogg,wav,aac) | *.ogg *.wav *.aac'
+
+    std::string zenity_filter;
+    for ( const auto& FileType : filter )
+    {
+        zenity_filter += "--file-filter=\"";
+        zenity_filter += FileType.name;
+        zenity_filter += " | ";
+        zenity_filter += std::string( "*." ) + FileType.spec;
+        zenity_filter += "\" ";
+    }
+
+    if ( default_path != nullptr )
+    {
+        return ZenityFilePicker( zenity_filter + "--filename=\"" + std::string( default_path ) + "\"" );
+    } else
+    {
+        return ZenityFilePicker( zenity_filter );
+    }
+
 #else
     nfdchar_t*  outPath = nullptr;
     nfdresult_t result  = NFD::OpenDialog( outPath, filter.data( ), filter.size( ), default_path );
@@ -95,6 +118,18 @@ OSFile::SaveFile( const std::vector<nfdfilteritem_t>& filter, const char* defaul
 std::string
 OSFile::PickFolder( const char* default_path )
 {
+#ifdef LMC_LINUX
+    // NFD will crash on multiple if no all linux platform I tried
+
+    if ( default_path != nullptr )
+    {
+        return ZenityFilePicker( "--directory --filename=\"" + std::string( default_path ) + "\"" );
+    } else
+    {
+        return ZenityFilePicker( "--directory" );
+    }
+
+#else
     nfdchar_t*  outPath = nullptr;
     nfdresult_t result  = NFD::PickFolder( outPath, default_path );
 
@@ -111,6 +146,7 @@ OSFile::PickFolder( const char* default_path )
     {
         throw std::runtime_error( std::string( "OSFile::PickFolder error: " ) + NFD_GetError( ) );
     }
+#endif
 }
 
 bool
