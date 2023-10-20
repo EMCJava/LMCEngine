@@ -33,6 +33,14 @@ class Engine
     void
     SetupGlobalResources( );
 
+    /*
+     *
+     * Should be called before any dll loading/unloading
+     *
+     * */
+    void
+    ResetAllDLLDependencies( );
+
 public:
     Engine( );
     ~Engine( );

@@ -13,6 +13,9 @@ public:
     void
     UpdateProjectionMatrix( ) override;
 
+    void
+    SetCameraPerspectiveFOV( FloatTy FOV );
+
     /*
      *
      * Camera Orientation

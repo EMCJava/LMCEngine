@@ -42,3 +42,10 @@ PureConceptPerspectiveCamera::SetCameraUpVector( const glm::vec3& Vector )
     m_CameraUpVec = Vector;
     UpdateProjectionMatrix( );
 }
+
+void
+PureConceptPerspectiveCamera::SetCameraPerspectiveFOV( FloatTy FOV )
+{
+    m_CameraPerspectiveFOV = FOV;
+    UpdateProjectionMatrix( );
+}

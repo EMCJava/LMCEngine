@@ -74,6 +74,9 @@ Project::LoadProject( const std::string& ProjectFilePath )
     }
 
     m_ProjectFilePath = ProjectFilePath;
+
+    // Make relative path works in user project
+    std::filesystem::current_path( ProjectPath );
 }
 
 void

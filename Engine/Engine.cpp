@@ -184,7 +184,7 @@ Engine::~Engine( )
     spdlog::info( "Engine destroying" );
 
     // Remove concepts caches
-    m_MainWindow->SetRootConcept( nullptr );
+    ResetAllDLLDependencies( );
 
     delete m_RootApplicableCache;
     m_RootApplicableCache = nullptr;
@@ -280,13 +280,7 @@ Engine::UpdateRootConcept( )
         {
             spdlog::info( "RootConcept changes detected, hot reloading" );
 
-            // Make sure all destructor are called before unloading library
-            m_RootApplicableCache->Clear( );
-            m_MainWindow->SetRootConcept( nullptr );
-
-            spdlog::info( "Resetting Runtime GetGlobalResourcePool" );
-            GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->Clear( );
-
+            ResetAllDLLDependencies( );
             RootConcept.Reload( false );
 
             spdlog::info( "Reloading Audio engine" );
@@ -458,6 +452,8 @@ Engine::LoadProject( const std::string& Path )
 #ifdef LMC_EDITOR
     if ( m_RootConcept != nullptr )
     {
+        ResetAllDLLDependencies( );
+
         delete m_RootConcept;
         m_RootConcept = nullptr;
     }
@@ -677,6 +673,18 @@ Engine::SetLogicalMainWindowViewPortDimensions( std::pair<int, int> Dimension )
 
     // Attempt to reset viewport
     SetPhysicalMainWindowViewPortDimensions( m_MainWindow->GetDimensions( ) );
+}
+
+void
+Engine::ResetAllDLLDependencies( )
+{
+    // Make sure all destructor are called before unloading library
+    if ( m_RootApplicableCache != nullptr ) m_RootApplicableCache->Clear( );
+    if ( m_MainWindow != nullptr ) m_MainWindow->SetRootConcept( nullptr );
+    if ( m_RootApplicableCache != nullptr ) m_RootApplicableCache->Clear( );
+    if ( m_RootConcept != nullptr ) m_RootConcept->DeAllocateConcept( );
+
+    GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->Clear( );
 }
 
 void ( *Engine::GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* )
