@@ -22,11 +22,21 @@ public:
      *
      * */
     void
-    SetCameraPosition( const glm::vec3& Position );
+    SetCameraPosition( const glm::vec3& Position, bool UpdateMatrix = true );
     void
-    SetCameraFacing( const glm::vec3& Vector );
+    SetCameraFacing( const glm::vec3& Vector, bool UpdateMatrix = true );
     void
-    SetCameraUpVector( const glm::vec3& Vector );
+    SetCameraUpVector( const glm::vec3& Vector, bool UpdateMatrix = true );
+
+    inline const glm::vec3&
+    GetCameraPosition( ) const { return m_CameraPosition; }
+    inline const glm::vec3&
+    GetCameraFacing( ) const { return m_CameraFrontVec; }
+    inline const glm::vec3&
+    GetCameraUpVector( ) const { return m_CameraUpVec; }
+
+    glm::vec3
+    CalculateCameraRightVector( ) const;
 
 protected:
     // In degrees

@@ -4,6 +4,8 @@
 
 #include "UserInput.hpp"
 
+#include <Engine/Core/Runtime/Assertion/Assertion.hpp>
+
 #include <GLFW/glfw3.h>
 
 UserInput::UserInput( GLFWwindow* window )
@@ -25,6 +27,10 @@ UserInput::UpdateMouse( )
 {
     double X, Y;
     glfwGetCursorPos( m_EventWindow, &X, &Y );
+
+    m_CursorDeltaPosition.first  = X - m_CursorPosition.first;
+    m_CursorDeltaPosition.second = Y - m_CursorPosition.second;
+
     m_CursorPosition.first  = X;
     m_CursorPosition.second = Y;
 }
@@ -65,6 +71,15 @@ KeyState&
 UserInput::GetFunctionKey( )
 {
     return GetKeyState( GLFW_MOUSE_BUTTON_MIDDLE );
+}
+
+void
+UserInput::EnableRowCursorMotion( bool Enable )
+{
+    REQUIRED_IF( glfwRawMouseMotionSupported( ) )
+    {
+        glfwSetInputMode( m_EventWindow, GLFW_RAW_MOUSE_MOTION, Enable );
+    }
 }
 
 void

@@ -55,6 +55,11 @@ public:
     inline void SetCursorTopLeftPosition( const std::pair<int, int>& CursorTopLeftPosition ) { m_CursorTopLeftPosition = CursorTopLeftPosition; }
     inline void SetCursorPositionScale( FloatTy Scale ) { m_CursorPositionScale = Scale; }
 
+    /*
+     *
+     * Register input
+     *
+     * */
     void      RegisterKeyUpdate( bool pressed, KeyIDTY id );
     KeyState& GetKeyState( KeyIDTY id );
 
@@ -64,22 +69,46 @@ public:
     [[nodiscard]] KeyState& GetSecondaryKey( );
     [[nodiscard]] KeyState& GetFunctionKey( );
 
+    /*
+     *
+     * Alter input mode
+     *
+     * */
+    void EnableRowCursorMotion( bool Enable );
+
+    /*
+     *
+     * Cursor
+     *
+     * */
     [[nodiscard]] inline FloatTy             GetCursorSensitivity( ) const { return m_CursorSensitivity; }
+    [[nodiscard]] inline std::pair<int, int> GetCursorDeltaPosition( ) const { return m_CursorDeltaPosition; }
     [[nodiscard]] inline std::pair<int, int> GetCursorPosition( ) const { return ( m_CursorPosition - m_CursorTopLeftPosition ) * m_CursorPositionScale; }
     [[nodiscard]] inline std::pair<int, int> GetCursorTopLeftPosition( ) const { return m_CursorTopLeftPosition; }
     [[nodiscard]] inline FloatTy             GetCursorPositionScale( ) const { return m_CursorPositionScale; }
-    [[nodiscard]] inline uint32_t            GetFrameCount( ) const { return m_FrameCount; }
-    [[nodiscard]] inline int32_t             GetKeyPressCount( ) const { return m_KeyPressingCount; }
+
+    /*
+     *
+     * Stats
+     *
+     * */
+    [[nodiscard]] inline uint32_t GetFrameCount( ) const { return m_FrameCount; }
+    [[nodiscard]] inline int32_t  GetKeyPressCount( ) const { return m_KeyPressingCount; }
 
 private:
     uint32_t    m_FrameCount = 0;
     GLFWwindow* m_EventWindow { };
 
-    KeyState            m_PrimaryKey;
-    KeyState            m_SecondaryKey;
-    KeyState            m_FunctionKey;
+    KeyState m_PrimaryKey;
+    KeyState m_SecondaryKey;
+    KeyState m_FunctionKey;
+
+    // When logical size and different from physical size
+    // Multiply to get logical location from physical location
+    // Set by engine
     FloatTy             m_CursorPositionScale { 1 };
     std::pair<int, int> m_CursorTopLeftPosition;
+    std::pair<int, int> m_CursorDeltaPosition { };
     std::pair<int, int> m_CursorPosition;
 
     std::map<KeyIDTY, KeyState> m_OtherKeysStates { };

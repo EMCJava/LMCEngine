@@ -140,9 +140,8 @@ public:
         REQUIRED_IF( m_ActiveCamera != nullptr && m_ActiveCamera->CanCastVT<PureConceptPerspectiveCamera>( ) )
         {
             auto* PC = (PureConceptPerspectiveCamera*) m_ActiveCamera;
-            PC->SetCameraPosition( glm::vec3( 0.0f, 0.0f, 3.0f ) );
-            PC->SetCameraFacing( glm::vec3( 0.0f, 0.0f, -1.0f ) );
-            PC->SetCameraUpVector( glm::vec3( 0.0f, 1.0f, 0.0f ) );
+            PC->SetCameraFacing( glm::normalize( PC->GetCameraFacing( ) + PC->CalculateCameraRightVector( ) * 0.005F * (float) Engine::GetEngine( )->GetUserInputHandle( )->GetCursorDeltaPosition( ).first ) );
+            PC->SetCameraUpVector( glm::normalize( PC->GetCameraUpVector( ) - PC->GetCameraFacing( ) * 0.005F * (float) Engine::GetEngine( )->GetUserInputHandle( )->GetCursorDeltaPosition( ).second ) );
 
             SetCameraMatrix( );
             m_Shader->SetMat4( "modelMatrix", m_Orientation.GetModelMatrix( ) );
@@ -214,6 +213,10 @@ GameManager::GameManager( )
         m_MainCamera = AddConcept<PureConceptPerspectiveCamera>( );
         m_MainCamera->SetRuntimeName( "Main Camera" );
         m_MainCamera->PushToCameraStack( );
+
+        m_MainCamera->SetCameraPosition( glm::vec3( 0.0f, 0.0f, 3.0f ), false );
+        m_MainCamera->SetCameraFacing( glm::vec3( 0.0f, 0.0f, -1.0f ), false );
+        m_MainCamera->SetCameraUpVector( glm::vec3( 0.0f, 1.0f, 0.0f ), false );
     }
 
     {
