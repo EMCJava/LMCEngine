@@ -178,6 +178,10 @@ elseif (UNIX)
 
     # file(COPY ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
     configure_file(${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} COPYONLY)
+    if (NOT "${CMAKE_BINARY_DIR}" STREQUAL "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+        # make sure on linux that libIrrKlang.so can be found when building
+        configure_file(${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so ${CMAKE_BINARY_DIR} COPYONLY)
+    endif ()
 else ()
     message(FATAL_ERROR "No supported platform was detected ")
 endif ()
@@ -222,6 +226,6 @@ add_subdirectory(freetype-2.13.2)
 FetchContent_Declare(
         Catch2
         GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG        v3.0.1 # or a later release
+        GIT_TAG v3.0.1 # or a later release
 )
 FetchContent_MakeAvailable(Catch2)
