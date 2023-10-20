@@ -798,9 +798,8 @@ EditorWindow::RenderMenuBar( )
             {
                 spdlog::info( "Open project" );
                 const auto ProjectPath = OSFile::PickFile( {
-                                                               {"LMCEngine project file", "lmce"}
-                },
-                                                           "/home/lys/CLionProjects/LMCEngine/test/Sanguis" );
+                    {"LMCEngine project file", "lmce"}
+                } );
                 if ( ProjectPath.empty( ) )
                 {
                     spdlog::info( "Operation cancelled" );
