@@ -58,6 +58,7 @@ Project::LoadProject( const std::string& ProjectFilePath )
         auto ProjectPathConfigFile = ProjectPath / "ProjectCache/ProjectPath.config";
         auto ProjectPathConfig     = ReadJsonFile( ProjectPathConfigFile );
 
+        // TODO: Maybe keep using debug in actual engine release?
         m_Config.shared_library_path_format = ProjectPathConfig[ "shared_library_path_" CMAKE_BUILD_TYPE "_format" ];
     }
 #else
