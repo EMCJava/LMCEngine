@@ -1,3 +1,17 @@
+# For shared library path finding
+# From https://searchcode.com/file/633126120/CMakeLists.txt/
+if(APPLE)
+    # always use our rpath
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+    # the / is required by some older versions of OS X
+    set(CMAKE_INSTALL_RPATH "@executable_path/")
+    set(CMAKE_MACOSX_RPATH TRUE)
+elseif(NOT WIN32)
+    # always use our rpath
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+    set(CMAKE_INSTALL_RPATH "\$ORIGIN")
+endif()
+
 if (${EditorBuild})
     add_compile_definitions(LMC_EDITOR)
     add_compile_definitions(HOT_RELOAD)
