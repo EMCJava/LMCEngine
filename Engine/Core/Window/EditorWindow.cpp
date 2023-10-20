@@ -394,7 +394,11 @@ EditorWindow::BuildReleaseConfigCmake( )
          * */
         try
         {
-            std::string Arguments = ProjectFolderPath.string( ) + " -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + m_BuildPath.string( ) + " -DEditorBuild=false" + " -B " + ( m_BuildPath / "cmake" ).string( );
+            std::string Arguments = ProjectFolderPath.string( );
+            Arguments += " -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + m_BuildPath.string( );
+            Arguments += " -DEditorBuild=false";
+            Arguments += " -B " + ( m_BuildPath / "cmake" ).string( );
+
             if ( !m_PreferredGenerator.empty( ) ) Arguments += +" -G " + m_PreferredGenerator + " ";
             if ( !m_PreferredCompiler.empty( ) )
             {
@@ -482,8 +486,11 @@ EditorWindow::BuildRelease( )
         {
             const auto& Project = Engine::GetEngine( )->GetProject( );
 
-            std::string Arguments = "--build " + ( m_BuildPath / "cmake" ).string( ) + " -j " + std::to_string( m_BuildThreadAllowed ) + " --target " + Project->GetConfig( ).project_build_target;
-            Arguments             = std::regex_replace( Arguments, std::regex( R"(\\)" ), "/" );   // Why????
+            std::string Arguments = "--build " + ( m_BuildPath / "cmake" ).string( );
+            Arguments += " -j " + std::to_string( m_BuildThreadAllowed );
+            Arguments += " --target " + Project->GetConfig( ).project_build_target;
+
+            Arguments = std::regex_replace( Arguments, std::regex( R"(\\)" ), "/" );   // Why????
 
             std::string ErrorLogs = "";
             const auto  ExitCode  = ExternalProgram::RunCommand(
