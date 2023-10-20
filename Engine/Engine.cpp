@@ -682,7 +682,11 @@ Engine::ResetAllDLLDependencies( )
     if ( m_RootApplicableCache != nullptr ) m_RootApplicableCache->Clear( );
     if ( m_MainWindow != nullptr ) m_MainWindow->SetRootConcept( nullptr );
     if ( m_RootApplicableCache != nullptr ) m_RootApplicableCache->Clear( );
+
+#ifdef LMC_EDITOR
+    // Should only be called in editor anyway
     if ( m_RootConcept != nullptr ) m_RootConcept->DeAllocateConcept( );
+#endif
 
     GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->Clear( );
 }
