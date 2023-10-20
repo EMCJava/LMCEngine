@@ -381,7 +381,10 @@ EditorWindow::SetBuildPath( )
 void
 EditorWindow::BuildReleaseConfigCmake( )
 {
-    REQUIRED_IF( !m_BuildPath.empty( ) && m_BuildStage == BuildStage::CMakeConfig && m_BuildThread != nullptr && std::this_thread::get_id( ) == m_BuildThread->get_id( ) )
+    // FIXME: This delay is added as on linux platform, m_BuildThread->get_id( ) does not equal to the current thread id
+    std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
+    REQUIRED_IF( m_BuildThread != nullptr && std::this_thread::get_id( ) == m_BuildThread->get_id( ) )
+    REQUIRED_IF( !m_BuildPath.empty( ) && m_BuildStage == BuildStage::CMakeConfig )
     {
         const auto&           Project           = Engine::GetEngine( )->GetProject( );
         std::filesystem::path ProjectFolderPath = Project->GetProjectFilePath( );
@@ -475,7 +478,9 @@ EditorWindow::BuildReleaseConfigCmake( )
 void
 EditorWindow::BuildRelease( )
 {
-    REQUIRED_IF( !m_BuildPath.empty( ) && m_BuildStage == BuildStage::CmakeBuild && m_BuildThread != nullptr && std::this_thread::get_id( ) == m_BuildThread->get_id( ) )
+    std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
+    REQUIRED_IF( m_BuildThread != nullptr && std::this_thread::get_id( ) == m_BuildThread->get_id( ) )
+    REQUIRED_IF( !m_BuildPath.empty( ) && m_BuildStage == BuildStage::CmakeBuild )
     {
         /*
          *
@@ -539,7 +544,9 @@ EditorWindow::BuildRelease( )
 void
 EditorWindow::BuildReleaseCopyEssentialFiles( )
 {
-    REQUIRED_IF( !m_BuildPath.empty( ) && m_BuildStage == BuildStage::CopyFiles && m_BuildThread != nullptr && std::this_thread::get_id( ) == m_BuildThread->get_id( ) )
+    std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
+    REQUIRED_IF( m_BuildThread != nullptr && std::this_thread::get_id( ) == m_BuildThread->get_id( ) )
+    REQUIRED_IF( !m_BuildPath.empty( ) && m_BuildStage == BuildStage::CopyFiles )
     {
         const auto&           Project           = Engine::GetEngine( )->GetProject( );
         std::filesystem::path ProjectFolderPath = Project->GetProjectFilePath( );
@@ -791,8 +798,9 @@ EditorWindow::RenderMenuBar( )
             {
                 spdlog::info( "Open project" );
                 const auto ProjectPath = OSFile::PickFile( {
-                    {"LMCEngine project file", "lmce"}
-                } );
+                                                               {"LMCEngine project file", "lmce"}
+                },
+                                                           "/home/lys/CLionProjects/LMCEngine/test/Sanguis" );
                 if ( ProjectPath.empty( ) )
                 {
                     spdlog::info( "Operation cancelled" );
