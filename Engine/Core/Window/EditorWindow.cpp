@@ -394,8 +394,14 @@ EditorWindow::BuildReleaseConfigCmake( )
          * */
         try
         {
-            std::string Arguments = ProjectFolderPath.string( ) /* + " -G Ninja"*/ + " -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + m_BuildPath.string( ) + " -DEditorBuild=false" + " -B " + ( m_BuildPath / "cmake" ).string( );
-            if ( !m_PreferredCompiler.empty( ) ) Arguments += +" -DCMAKE_CXX_COMPILER=" + m_PreferredCompiler + " ";
+            std::string Arguments = ProjectFolderPath.string( ) + " -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + m_BuildPath.string( ) + " -DEditorBuild=false" + " -B " + ( m_BuildPath / "cmake" ).string( );
+            if ( !m_PreferredGenerator.empty( ) ) Arguments += +" -G " + m_PreferredGenerator + " ";
+            if ( !m_PreferredCompiler.empty( ) )
+            {
+                Arguments += +" -DCMAKE_C_COMPILER=" + m_PreferredCompiler;
+                Arguments += +" -DCMAKE_CXX_COMPILER=" + m_PreferredCompiler + " ";
+            }
+
             Arguments = std::regex_replace( Arguments, std::regex( R"(\\)" ), "/" );   // Why????
 
             std::string ErrorLogs       = "";
@@ -584,6 +590,7 @@ EditorWindow::RenderBuildOverlay( )
             }
 
             ToImGuiWidget( "Preferred Compiler", &m_PreferredCompiler );
+            ToImGuiWidget( "Preferred Generator", &m_PreferredGenerator );
 
             ImGui::Spacing( );
             ImGuiGroup::EndGroupPanel( );
