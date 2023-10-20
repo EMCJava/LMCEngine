@@ -32,9 +32,6 @@ public:
     virtual void
     SetupSprite( ) = 0;
 
-    void
-    SetAbsolutePosition( bool Absolute = true ) { m_IsAbsolutePosition = Absolute; }
-
     [[nodiscard]] uint32_t
     GetVAO( ) const { return m_VAO; }
     [[nodiscard]] uint32_t

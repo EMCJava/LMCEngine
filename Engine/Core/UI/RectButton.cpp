@@ -117,7 +117,6 @@ RectButton::SetupButton( )
     m_SpriteSquare->SetOrigin( m_Width * m_Pivot.first, m_Height * m_Pivot.second );
 
     m_SpriteSquare->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultColorShader" ) );
-    m_SpriteSquare->SetAbsolutePosition( );
     m_SpriteSquare->SetupSprite( );
 
     m_HitBox = AddConcept<PureConceptAABBSquare>( 0, 0, m_Width, m_Height );

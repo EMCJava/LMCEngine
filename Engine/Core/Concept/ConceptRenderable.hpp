@@ -43,7 +43,7 @@ public:
     SetCameraMatrix( );
 
     void
-    SetShaderUniform( std::string UniformName, const ShaderUniformTypes& Value );
+    SetShaderUniform( const std::string& UniformName, const ShaderUniformTypes& Value );
 
     // All user defined uniforms
     void
@@ -57,14 +57,6 @@ protected:
     std::shared_ptr<class Shader> m_Shader;
 
     std::map<int, ShaderUniformTypes> m_ShaderUniformSaves;
-
-    /*
-     *
-     * Use screen coordinate instead of world coordinates
-     * FIXME, not used
-     *
-     * */
-    bool m_IsAbsolutePosition { false };
 
     ENABLE_IMGUI( ConceptRenderable )
 };

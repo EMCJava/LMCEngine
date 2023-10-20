@@ -12,7 +12,7 @@
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 
 DEFINE_CONCEPT_DS( ConceptRenderable )
-DEFINE_SIMPLE_IMGUI_TYPE( ConceptRenderable, m_IsAbsolutePosition, m_ActiveCamera, m_Shader, m_ShaderUniformSaves )
+DEFINE_SIMPLE_IMGUI_TYPE( ConceptRenderable, m_ActiveCamera, m_Shader, m_ShaderUniformSaves )
 
 void
 ConceptRenderable::SetActiveCamera( class PureConceptCamera* ActiveCamera )
@@ -52,7 +52,7 @@ ConceptRenderable::SetCameraMatrix( )
 }
 
 void
-ConceptRenderable::SetShaderUniform( std::string UniformName, const ConceptRenderable::ShaderUniformTypes& Value )
+ConceptRenderable::SetShaderUniform( const std::string& UniformName, const ConceptRenderable::ShaderUniformTypes& Value )
 {
     REQUIRED_IF( m_Shader != nullptr )
     {
