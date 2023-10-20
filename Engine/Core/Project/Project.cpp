@@ -10,7 +10,7 @@
 #include <filesystem>
 #include <fstream>
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT( ProjectConfig, project_name, root_concept )
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT( ProjectConfig, project_name, project_build_target, root_concept )
 
 namespace
 {

@@ -1,4 +1,5 @@
 {
   "project_name": "A Dance of Fire and Ice",
+  "project_build_target": "ADanceOfFireAndIce",
   "root_concept": "GameManager.GameManager"
 }

@@ -7,7 +7,8 @@
 #include <string>
 
 struct ProjectConfig {
-    std::string project_name = "Placeholder Project";
+    std::string project_name         = "Placeholder Project";
+    std::string project_build_target = "Nan";
     std::string root_concept;
 
     /*

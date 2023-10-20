@@ -21,3 +21,5 @@ main( )
 
     return 0;
 }
+
+//FIXME: All relative paths should be relative to the project root.

@@ -474,7 +474,9 @@ EditorWindow::BuildRelease( )
          * */
         try
         {
-            std::string Arguments = "--build " + ( m_BuildPath / "cmake" ).string( ) + " -j " + std::to_string( m_BuildThreadAllowed );
+            const auto& Project = Engine::GetEngine( )->GetProject( );
+
+            std::string Arguments = "--build " + ( m_BuildPath / "cmake" ).string( ) + " -j " + std::to_string( m_BuildThreadAllowed ) + " --target " + Project->GetConfig( ).project_build_target;
             Arguments             = std::regex_replace( Arguments, std::regex( R"(\\)" ), "/" );   // Why????
 
             std::string ErrorLogs = "";
