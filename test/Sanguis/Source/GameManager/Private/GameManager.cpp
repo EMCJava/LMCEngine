@@ -14,6 +14,7 @@
 #include <Engine/Core/Graphic/Camera/PureConceptPerspectiveCamera.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
+#include <Engine/Core/Input/Serializer/SerializerModel.hpp>
 #include <Engine/Core/Graphic/Sprites/Particle/ParticlePool.hpp>
 #include <Engine/Core/Graphic/Sprites/Particle/ParticleAttributesRandomizer.hpp>
 #include <Engine/Core/Graphic/Canvas/Canvas.hpp>
@@ -30,6 +31,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <assimp/scene.h>
 
 #include <fstream>
 #include <sstream>
@@ -396,6 +398,27 @@ GameManager::GameManager( )
                 }
             }
         }
+    }
+
+    SerializerModel TestModel;
+    TestModel.SetFilePath( "Assets/Model/low_poly_room.glb" );
+    REQUIRED_IF( TestModel.LoadModel( ) )
+    {
+        std::function<void( int, const aiNode*, const aiMatrix4x4& )> FetchMesh;
+
+        FetchMesh = [ &FetchMesh ]( int Indent, const aiNode* Node, const aiMatrix4x4& Transform ) {
+            for ( int i = 0; i < Node->mNumChildren; ++i )
+            {
+                const auto* CurrentNode = Node->mChildren[ i ];
+
+                spdlog::info( "{}Node {} : {}[{}]", std::string( Indent, '-' ), i, CurrentNode->mName.C_Str( ), CurrentNode->mMeshes ? *CurrentNode->mMeshes : -1 );
+
+                FetchMesh( Indent + 1, CurrentNode, Transform * CurrentNode->mTransformation );
+            }
+        };
+
+        const auto ModelScene = TestModel.GetScene( );
+        FetchMesh( 1, ModelScene->mRootNode, ModelScene->mRootNode->mTransformation );
     }
 
     spdlog::info( "GameManager concept constructor returned" );

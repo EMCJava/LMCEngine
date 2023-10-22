@@ -1,4 +1,5 @@
 include(FetchContent)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
 ## -------------- IMGUI --------------
 FetchContent_Declare(
@@ -229,3 +230,16 @@ FetchContent_Declare(
         GIT_TAG v3.0.1 # or a later release
 )
 FetchContent_MakeAvailable(Catch2)
+
+## -------------- assimp --------------
+FetchContent_Declare(
+        assimp
+        GIT_REPOSITORY https://github.com/assimp/assimp.git
+        GIT_TAG v5.3.1
+)
+
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(assimp)

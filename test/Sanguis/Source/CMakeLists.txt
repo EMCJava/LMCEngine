@@ -124,6 +124,7 @@ declare_library(
         Canvas.lib
         PureConceptOrthoCamera.lib
         PureConceptPerspectiveCamera.lib
+        SerializerModel.lib
 
         DEPS
         spdlog::spdlog
