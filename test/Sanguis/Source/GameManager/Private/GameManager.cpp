@@ -140,8 +140,9 @@ public:
         REQUIRED_IF( m_ActiveCamera != nullptr && m_ActiveCamera->CanCastVT<PureConceptPerspectiveCamera>( ) )
         {
             auto* PC = (PureConceptPerspectiveCamera*) m_ActiveCamera;
-            PC->SetCameraFacing( glm::normalize( PC->GetCameraFacing( ) + PC->CalculateCameraRightVector( ) * 0.005F * (float) Engine::GetEngine( )->GetUserInputHandle( )->GetCursorDeltaPosition( ).first ) );
-            PC->SetCameraUpVector( glm::normalize( PC->GetCameraUpVector( ) - PC->GetCameraFacing( ) * 0.005F * (float) Engine::GetEngine( )->GetUserInputHandle( )->GetCursorDeltaPosition( ).second ) );
+            PC->UpdateProjectionMatrix( );
+            // PC->SetCameraFacing( glm::normalize( PC->GetCameraFacing( ) + PC->CalculateCameraRightVector( ) * 0.005F * (float) Engine::GetEngine( )->GetUserInputHandle( )->GetCursorDeltaPosition( ).first ) );
+            // PC->SetCameraUpVector( glm::normalize( PC->GetCameraUpVector( ) - PC->GetCameraFacing( ) * 0.005F * (float) Engine::GetEngine( )->GetUserInputHandle( )->GetCursorDeltaPosition( ).second ) );
 
             SetCameraMatrix( );
             m_Shader->SetMat4( "modelMatrix", m_Orientation.GetModelMatrix( ) );
@@ -177,6 +178,7 @@ public:
     {
         m_Cube = AddConcept<Cube>( );
         m_Cube->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultColorPreVertexShader" ) );
+        // m_Cube->GetOrientation( ).AlterRotation( 0, 3.141592 / 2, 0 );
 
         SetSearchThrough( );
     }
@@ -214,8 +216,9 @@ GameManager::GameManager( )
         m_MainCamera->SetRuntimeName( "Main Camera" );
         m_MainCamera->PushToCameraStack( );
 
-        m_MainCamera->SetCameraPosition( glm::vec3( 0.0f, 0.0f, 3.0f ), false );
-        m_MainCamera->SetCameraFacing( glm::vec3( 0.0f, 0.0f, -1.0f ), false );
+        m_MainCamera->SetCameraPerspectiveFOV( 30, false );
+        m_MainCamera->SetCameraPosition( glm::vec3( 10.0f, 40.0f, 40.0f ), false );
+        m_MainCamera->SetCameraFacing( glm::vec3( 0.0f, -1.41421356237f, -1.41421356237f ), false );
         m_MainCamera->SetCameraUpVector( glm::vec3( 0.0f, 1.0f, 0.0f ), false );
     }
 
@@ -374,6 +377,25 @@ GameManager::GameManager( )
         PerspectiveCanvas->SetCanvasCamera( m_MainCamera );
 
         PerspectiveCanvas->AddConcept<RotatingCube>( );
+
+        PerspectiveCanvas->GetConceptAt<RotatingCube>( 0 )->GetConceptAt<Cube>( 0 )->GetOrientation( ).SetCoordinate( 5, 3, 5 );
+
+        auto DefaultColorPreVertexShader = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultColorPreVertexShader" );
+        for ( int h = 0; h < 5; ++h )
+        {
+            for ( int i = 0; i < 11; ++i )
+            {
+                for ( int j = 0; j < 11; ++j )
+                {
+                    if ( i == 0 || i == 10 || j == 0 || j == 10 )
+                    {
+                        auto CubeInstance = PerspectiveCanvas->AddConcept<Cube>( );
+                        CubeInstance->SetShader( DefaultColorPreVertexShader );
+                        CubeInstance->GetOrientation( ).SetCoordinate( i, h, j );
+                    }
+                }
+            }
+        }
     }
 
     spdlog::info( "GameManager concept constructor returned" );

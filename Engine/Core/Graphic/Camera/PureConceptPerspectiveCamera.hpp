@@ -14,7 +14,7 @@ public:
     UpdateProjectionMatrix( ) override;
 
     void
-    SetCameraPerspectiveFOV( FloatTy FOV );
+    SetCameraPerspectiveFOV( FloatTy FOV, bool UpdateMatrix = true );
 
     /*
      *
