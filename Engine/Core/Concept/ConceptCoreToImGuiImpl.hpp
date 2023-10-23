@@ -10,6 +10,7 @@
 #include <map>
 #include <memory>
 #include <type_traits>
+#include <variant>
 
 #include <ImGui/ImGui.hpp>
 
@@ -169,16 +170,42 @@ ToImGuiWidget( const char* Name, std::unique_ptr<Ty>* Value )
     ToImGuiPointerSwitch( Name, Value->get( ) );
 }
 
+template <typename... Args>
+inline void
+ToImGuiWidget( const char* Name, std::variant<Args...>* Value )
+{
+    std::visit( [ Name ]( auto& Value ) {
+        ToImGuiPointerSwitch( Name, &Value );
+    },
+                *Value );
+}
+
 /*
  *
  * Container such as map
  *
  * */
+template <typename Ty>
+concept MapLikeContainer = requires( Ty Map, typename Ty::key_type Key ) {
+    typename Ty::key_type;
+    typename Ty::mapped_type;
+    {
+        Map.at( Key )
+    } -> std::same_as<typename Ty::mapped_type&>;   // Checked key access
+    {
+        Map.count( Key )
+    } -> std::same_as<size_t>;   // Key existence check
+    {
+        *Map.begin( )
+    } -> std::same_as<std::pair<const typename Ty::key_type, typename Ty::mapped_type>&>;   // Begin iterator
+};
+
 template <template <typename, typename, typename, typename> class Container,
           typename KTy,
           typename VTy,
           typename Comparator = std::less<KTy>,
           typename Allocator  = std::allocator<std::pair<KTy, VTy>>>
+    requires MapLikeContainer<Container<KTy, VTy, Comparator, Allocator>>
 inline void
 ToImGuiWidget( const char* Name, Container<KTy, VTy, Comparator, Allocator>* Value )
 {
@@ -245,9 +272,17 @@ ToImGuiWidget( const char* Name, Container<KTy, VTy, Comparator, Allocator>* Val
 }
 
 template <typename T>
-concept VecLikeContainer = requires( T* Vec ) {
-    Vec->size( );
-    Vec->at( (size_t) 0 );
+concept VecLikeContainer = requires( T* Vec, const T* ConstVec ) {
+    ConstVec->size( );
+    {
+        ( *ConstVec )[ (size_t) 0 ]
+    } -> std::same_as<const typename T::value_type&>;
+    {
+        ConstVec->at( (size_t) 0 )
+    } -> std::same_as<const typename T::value_type&>;
+    {
+        Vec->data( )
+    } -> std::same_as<typename T::value_type*>;
 };
 
 template <VecLikeContainer Container>
