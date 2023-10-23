@@ -70,7 +70,14 @@ SerializerModel::LoadModel( struct ConceptMesh* ToMesh )
             const auto OldVerticesSize = ToMesh->m_Vertices.size( );
             ToMesh->m_Vertices.resize( OldVerticesSize + Mesh->mNumVertices );
             ToMesh->m_Normals.resize( OldVerticesSize + Mesh->mNumVertices );
-            memcpy( ToMesh->m_Vertices.data( ) + OldVerticesSize, Mesh->mVertices, sizeof( glm::vec3 ) * Mesh->mNumVertices );
+
+            // memcpy( ToMesh->m_Vertices.data( ) + OldVerticesSize, Mesh->mVertices, sizeof( glm::vec3 ) * Mesh->mNumVertices );
+            for ( int i = 0; i < Mesh->mNumVertices; ++i )
+            {
+                // Little hack
+                *(aiVector3D*) ( &ToMesh->m_Vertices[ OldVerticesSize + i ] ) = Transform * Mesh->mVertices[ i ];
+            }
+
             memcpy( ToMesh->m_Normals.data( ) + OldVerticesSize, Mesh->mNormals, sizeof( glm::vec3 ) * Mesh->mNumVertices );
 
             /*

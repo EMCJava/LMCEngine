@@ -416,9 +416,11 @@ GameManager::GameManager( )
         PerspectiveCanvas->SetCanvasCamera( m_MainCamera );
 
         SerializerModel TestModel;
-        // TestModel.SetFilePath( "Assets/Model/low_poly_room.glb" );
+        TestModel.SetFilePath( "Assets/Model/low_poly_room.glb" );
         // TestModel.SetFilePath( "Assets/Model/cube.glb" );
-        TestModel.SetFilePath( "Assets/Model/unit_ico.glb" );
+        // TestModel.SetFilePath( "Assets/Model/unit_ico.glb" );
+        // TestModel.SetFilePath( "Assets/Model/multi_mesh.glb" );
+        // TestModel.SetFilePath( "Assets/Model/four_cube.glb" );
 
         auto Mesh = PerspectiveCanvas->AddConcept<ConceptMesh>( );
         Mesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
