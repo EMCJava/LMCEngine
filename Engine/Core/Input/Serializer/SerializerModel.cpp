@@ -65,44 +65,45 @@ SerializerModel::LoadModel( struct ConceptMesh* ToMesh )
             spdlog::info( "{}Node: {}[{}]", std::string( Indent, '-' ), Node->mName.C_Str( ), *Node->mMeshes );
             auto* Mesh = m_ModelScene->mMeshes[ *Node->mMeshes ];
 
-            static_assert( sizeof( glm::vec3 ) == sizeof( decltype( *Mesh->mVertices ) ) );
-
-            const auto OldVerticesSize = ToMesh->m_Vertices.size( );
-            ToMesh->m_Vertices.resize( OldVerticesSize + Mesh->mNumVertices );
-            ToMesh->m_Normals.resize( OldVerticesSize + Mesh->mNumVertices );
-
-            // memcpy( ToMesh->m_Vertices.data( ) + OldVerticesSize, Mesh->mVertices, sizeof( glm::vec3 ) * Mesh->mNumVertices );
-            for ( int i = 0; i < Mesh->mNumVertices; ++i )
+            REQUIRED_IF( Mesh->mNumFaces > 0 && Mesh->mFaces[ 0 ].mNumIndices == 3 )
             {
-                // Little hack
-                *(aiVector3D*) ( &ToMesh->m_Vertices[ OldVerticesSize + i ] ) = Transform * Mesh->mVertices[ i ];
-            }
+                static_assert( sizeof( glm::vec3 ) == sizeof( decltype( *Mesh->mVertices ) ) );
 
-            memcpy( ToMesh->m_Normals.data( ) + OldVerticesSize, Mesh->mNormals, sizeof( glm::vec3 ) * Mesh->mNumVertices );
+                const auto OldVerticesSize = ToMesh->m_Vertices.size( );
+                ToMesh->m_Vertices.resize( OldVerticesSize + Mesh->mNumVertices );
+                ToMesh->m_Normals.resize( OldVerticesSize + Mesh->mNumVertices );
 
-            /*
-             *
-             * Base on the assumption that mesh only contains triangles
-             *
-             * */
-            int NumberOfIndices = Mesh->mNumFaces * 3;
-
-            const auto OldIndicesSize = ToMesh->m_Indices.size( );
-            ToMesh->m_Indices.resize( ToMesh->m_Indices.size( ) + NumberOfIndices );
-            uint32_t* IndicesData = ToMesh->m_Indices.data( ) + OldIndicesSize;
-
-            for ( int j = 0; j < Mesh->mNumFaces; ++j )
-            {
-                REQUIRED( Mesh->mFaces[ j ].mNumIndices == 3 )
-                for ( int k = 0; k < 3 /* For optimize */; ++k )
+                // memcpy( ToMesh->m_Vertices.data( ) + OldVerticesSize, Mesh->mVertices, sizeof( glm::vec3 ) * Mesh->mNumVertices );
+                for ( int i = 0; i < Mesh->mNumVertices; ++i )
                 {
-                    IndicesData[ k ] = Mesh->mFaces[ j ].mIndices[ k ] + OldVerticesSize;
+                    // Little hack
+                    *(aiVector3D*) ( &ToMesh->m_Vertices[ OldVerticesSize + i ] ) = Transform * Mesh->mVertices[ i ];
+                }
+                memcpy( ToMesh->m_Normals.data( ) + OldVerticesSize, Mesh->mNormals, sizeof( glm::vec3 ) * Mesh->mNumVertices );
+
+                /*
+                 *
+                 * Base on the assumption that mesh only contains triangles
+                 *
+                 * */
+                int NumberOfIndices = Mesh->mNumFaces * 3;
+
+                const auto OldIndicesSize = ToMesh->m_Indices.size( );
+                ToMesh->m_Indices.resize( ToMesh->m_Indices.size( ) + NumberOfIndices );
+                uint32_t* IndicesData = ToMesh->m_Indices.data( ) + OldIndicesSize;
+
+                for ( int j = 0; j < Mesh->mNumFaces; ++j )
+                {
+                    for ( int k = 0; k < 3 /* For optimize */; ++k )
+                    {
+                        IndicesData[ k ] = Mesh->mFaces[ j ].mIndices[ k ] + OldVerticesSize;
+                    }
+
+                    IndicesData += 3;
                 }
 
-                IndicesData += 3;
+                spdlog::info( "{}>{}", std::string( Indent, '-' ), NumberOfIndices );
             }
-
-            spdlog::info( "{}>{}", std::string( Indent, '-' ), NumberOfIndices );
         } else
         {
             spdlog::info( "{}Node: {}", std::string( Indent, '-' ), Node->mName.C_Str( ) );

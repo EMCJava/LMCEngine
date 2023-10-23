@@ -214,9 +214,9 @@ public:
         PureConceptPerspectiveCamera* Camera;
         if ( m_Mesh->GetActiveCamera( )->TryCast( Camera ) )
         {
-            m_CameraPosition = glm::vec3( sin( m_AccumulatedTime ) * 10.0f, 5, cos( m_AccumulatedTime ) * 10.0f );
+            m_CameraPosition = glm::vec3( sin( m_AccumulatedTime ) * 100.0f, 100, cos( m_AccumulatedTime ) * 100.0f );
             m_CameraFacing   = glm::normalize( -Camera->GetCameraPosition( ) );
-            m_Mesh->SetShaderUniform( "lightPos", glm::vec3( cos( m_AccumulatedTime * 2 ) * -10.0f, 5, sin( m_AccumulatedTime * 2  ) * -10.0f ) + glm::vec3( 0, 2, 0 ) );
+            m_Mesh->SetShaderUniform( "lightPos", glm::vec3( cos( m_AccumulatedTime * 2 ) * -100.0f, 100, sin( m_AccumulatedTime * 2  ) * -100.0f ) + glm::vec3( 0, 2, 0 ) );
             Camera->SetCameraPosition( m_CameraPosition, false );
             Camera->SetCameraFacing( m_CameraFacing );
         }
@@ -416,11 +416,7 @@ GameManager::GameManager( )
         PerspectiveCanvas->SetCanvasCamera( m_MainCamera );
 
         SerializerModel TestModel;
-        TestModel.SetFilePath( "Assets/Model/low_poly_room.glb" );
-        // TestModel.SetFilePath( "Assets/Model/cube.glb" );
-        // TestModel.SetFilePath( "Assets/Model/unit_ico.glb" );
-        // TestModel.SetFilePath( "Assets/Model/multi_mesh.glb" );
-        // TestModel.SetFilePath( "Assets/Model/four_cube.glb" );
+        TestModel.SetFilePath( "Assets/Model/low_poly_mansion.glb" );
 
         auto Mesh = PerspectiveCanvas->AddConcept<ConceptMesh>( );
         Mesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
