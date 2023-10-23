@@ -15,7 +15,7 @@ public:
     Render( ) override;
 
 protected:
-    std::vector<glm::vec3> m_Vertices;
+    std::vector<glm::vec4> m_Vertices_ColorPack;
     std::vector<glm::vec3> m_Normals;
     std::vector<uint32_t>  m_Indices;
 

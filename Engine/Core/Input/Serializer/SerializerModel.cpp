@@ -49,12 +49,18 @@ SerializerModel::LoadModel( )
     return true;
 }
 
+FloatTy
+PackColor( aiColor3D color )
+{
+    return round( color.r * 256.0 ) + round( color.g * 256.0 ) * 256.0 + round( color.b * 256.0 ) * 256.0 * 256.0;
+}
+
 bool
 SerializerModel::LoadModel( struct ConceptMesh* ToMesh )
 {
     if ( !m_ModelScene && !LoadModel( ) ) return false;
 
-    ToMesh->m_Vertices.clear( );
+    ToMesh->m_Vertices_ColorPack.clear( );
     ToMesh->m_Normals.clear( );
     ToMesh->m_Indices.clear( );
 
@@ -69,15 +75,35 @@ SerializerModel::LoadModel( struct ConceptMesh* ToMesh )
             {
                 static_assert( sizeof( glm::vec3 ) == sizeof( decltype( *Mesh->mVertices ) ) );
 
-                const auto OldVerticesSize = ToMesh->m_Vertices.size( );
-                ToMesh->m_Vertices.resize( OldVerticesSize + Mesh->mNumVertices );
+                /*
+                 *
+                 * Material setup
+                 *
+                 * */
+                auto*     Material     = m_ModelScene->mMaterials[ Mesh->mMaterialIndex ];
+                aiColor3D DiffuseColor = { 1, 0, 0.86 };
+                REQUIRED_IF( Material->Get( AI_MATKEY_COLOR_DIFFUSE, DiffuseColor ) == AI_SUCCESS )
+                {
+                    spdlog::info( "{}> {},{},{}", std::string( Indent, '-' ), DiffuseColor.r, DiffuseColor.g, DiffuseColor.b );
+                }
+
+                float ColorPack = PackColor( DiffuseColor );
+
+                /*
+                 *
+                 * Vertex and normal buffer
+                 *
+                 * */
+                const auto OldVerticesSize = ToMesh->m_Vertices_ColorPack.size( );
+                ToMesh->m_Vertices_ColorPack.resize( OldVerticesSize + Mesh->mNumVertices );
                 ToMesh->m_Normals.resize( OldVerticesSize + Mesh->mNumVertices );
 
                 // memcpy( ToMesh->m_Vertices.data( ) + OldVerticesSize, Mesh->mVertices, sizeof( glm::vec3 ) * Mesh->mNumVertices );
                 for ( int i = 0; i < Mesh->mNumVertices; ++i )
                 {
                     // Little hack
-                    *(aiVector3D*) ( &ToMesh->m_Vertices[ OldVerticesSize + i ] ) = Transform * Mesh->mVertices[ i ];
+                    *(aiVector3D*) ( &ToMesh->m_Vertices_ColorPack[ OldVerticesSize + i ] ) = Transform * Mesh->mVertices[ i ];
+                    ToMesh->m_Vertices_ColorPack[ OldVerticesSize + i ].w                   = ColorPack;
                 }
                 memcpy( ToMesh->m_Normals.data( ) + OldVerticesSize, Mesh->mNormals, sizeof( glm::vec3 ) * Mesh->mNumVertices );
 
@@ -88,6 +114,11 @@ SerializerModel::LoadModel( struct ConceptMesh* ToMesh )
                  * */
                 int NumberOfIndices = Mesh->mNumFaces * 3;
 
+                /*
+                 *
+                 * Indices buffer
+                 *
+                 * */
                 const auto OldIndicesSize = ToMesh->m_Indices.size( );
                 ToMesh->m_Indices.resize( ToMesh->m_Indices.size( ) + NumberOfIndices );
                 uint32_t* IndicesData = ToMesh->m_Indices.data( ) + OldIndicesSize;
@@ -134,19 +165,19 @@ SerializerModel::LoadModel( struct ConceptMesh* ToMesh )
      *
      * */
     // * 2 for normals
-    GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, sizeof( glm::vec3 ) * ToMesh->m_Vertices.size( ) * 2, nullptr, GL_STATIC_DRAW ) )
+    GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, sizeof( glm::vec4 ) * ToMesh->m_Vertices_ColorPack.size( ) + sizeof( glm::vec3 ) * ToMesh->m_Normals.size( ), nullptr, GL_STATIC_DRAW ) )
     GL_CHECK( gl->BufferSubData( GL_ARRAY_BUFFER, 0,
-                                 sizeof( glm::vec3 ) * ToMesh->m_Vertices.size( ), /* Vertices size */
-                                 ToMesh->m_Vertices.data( ) ) );
+                                 sizeof( glm::vec4 ) * ToMesh->m_Vertices_ColorPack.size( ), /* Vertices size */
+                                 ToMesh->m_Vertices_ColorPack.data( ) ) );
     GL_CHECK( gl->BufferSubData( GL_ARRAY_BUFFER,
-                                 sizeof( glm::vec3 ) * ToMesh->m_Vertices.size( ), /* Vertices size */
-                                 sizeof( glm::vec3 ) * ToMesh->m_Normals.size( ),  /* Normals size */
+                                 sizeof( glm::vec4 ) * ToMesh->m_Vertices_ColorPack.size( ), /* Vertices size */
+                                 sizeof( glm::vec3 ) * ToMesh->m_Normals.size( ),            /* Normals size */
                                  ToMesh->m_Normals.data( ) ) )
 
     // 3. then set our vertex attributes pointers
-    GL_CHECK( gl->VertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof( float ), nullptr ) )
+    GL_CHECK( gl->VertexAttribPointer( 0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof( float ), nullptr ) )
     GL_CHECK( gl->EnableVertexAttribArray( 0 ) )
-    GL_CHECK( gl->VertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof( float ), (void*) ( sizeof( glm::vec3 ) * ToMesh->m_Vertices.size( ) ) /* Vertices size */ ) )
+    GL_CHECK( gl->VertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof( float ), (void*) ( sizeof( glm::vec4 ) * ToMesh->m_Vertices_ColorPack.size( ) ) /* Vertices size */ ) )
     GL_CHECK( gl->EnableVertexAttribArray( 1 ) )
 
     GL_CHECK( gl->GenBuffers( 1, &ToMesh->m_EBO ) )
