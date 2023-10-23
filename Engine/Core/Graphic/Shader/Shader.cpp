@@ -34,14 +34,14 @@ void
 Shader::SetMat4( const std::string& Name, const glm::mat4& mat ) const
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
-    gl->UniformMatrix4fv( GetUniformLocation( Name ), 1, GL_FALSE, glm::value_ptr( mat ) );
+    GL_CHECK( gl->UniformMatrix4fv( GetUniformLocation( Name ), 1, GL_FALSE, glm::value_ptr( mat ) ) )
 }
 
 void
 Shader::SetFloat( const std::string& Name, float Value ) const
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
-    gl->Uniform1f( GetUniformLocation( Name ), Value );
+    GL_CHECK( gl->Uniform1f( GetUniformLocation( Name ), Value ) )
 }
 
 void
@@ -54,40 +54,40 @@ void
 Shader::SetUniform( int UniformLocation, float Value ) const
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
-    gl->Uniform1f( UniformLocation, Value );
+    GL_CHECK( gl->Uniform1f( UniformLocation, Value ) )
 }
 
 void
 Shader::SetUniform( int UniformLocation, const glm::mat4& mat ) const
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
-    gl->UniformMatrix4fv( UniformLocation, 1, GL_FALSE, glm::value_ptr( mat ) );
+    GL_CHECK( gl->UniformMatrix4fv( UniformLocation, 1, GL_FALSE, glm::value_ptr( mat ) ) )
 }
 
 void
 Shader::SetUniform( int UniformLocation, const glm::vec4& vec ) const
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
-    gl->Uniform4fv( UniformLocation, 1, glm::value_ptr( vec ) );
+    GL_CHECK( gl->Uniform4fv( UniformLocation, 1, glm::value_ptr( vec ) ) )
 }
 
 void
 Shader::SetUniform( int UniformLocation, const glm::vec3& vec ) const
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
-    gl->Uniform4fv( UniformLocation, 1, glm::value_ptr( vec ) );
+    GL_CHECK( gl->Uniform3fv( UniformLocation, 1, glm::value_ptr( vec ) ) )
 }
 
 void
 Shader::SetVec3( const std::string& Name, const glm::vec3& vec ) const
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
-    gl->Uniform3fv( GetUniformLocation( Name ), 1, glm::value_ptr( vec ) );
+    GL_CHECK( gl->Uniform3fv( GetUniformLocation( Name ), 1, glm::value_ptr( vec ) ) )
 }
 
 void
 Shader::SetVec4( const std::string& Name, const glm::vec4& vec ) const
 {
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
-    gl->Uniform4fv( GetUniformLocation( Name ), 1, glm::value_ptr( vec ) );
+    GL_CHECK( gl->Uniform4fv( GetUniformLocation( Name ), 1, glm::value_ptr( vec ) ) )
 }
