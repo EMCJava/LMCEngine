@@ -11,6 +11,15 @@
 DEFINE_CONCEPT_DS( PureConceptCamera )
 DEFINE_SIMPLE_IMGUI_TYPE( PureConceptCamera, m_CameraWidth, m_CameraHeight )
 
+
+PureConceptCamera::PureConceptCamera( )
+{
+    // Default resolution
+    const auto LD  = Engine::GetEngine( )->GetLogicalMainWindowViewPortDimensions( );
+    m_CameraWidth  = LD.first;
+    m_CameraHeight = LD.second;
+}
+
 void
 PureConceptCamera::SetDimensions( int Width, int Height )
 {
@@ -43,4 +52,11 @@ PureConceptCamera::PopFromCameraStack( )
 {
     auto ShdCamera = Engine::GetEngine( )->GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->PopCamera( );
     REQUIRED( ShdCamera.get( ) == this )
+}
+
+void
+PureConceptCamera::ConceptLaterInitialize( )
+{
+    PureConcept::ConceptLaterInitialize( );
+    UpdateProjectionMatrix( );
 }

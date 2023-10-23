@@ -56,6 +56,8 @@ PureConceptOrthoCamera::SetCoordinate( FloatTy X, FloatTy Y, FloatTy )
 {
     m_Coordinate.x = X;
     m_Coordinate.y = Y;
+
+    UpdateProjectionMatrix( );
 }
 
 const glm::vec3&

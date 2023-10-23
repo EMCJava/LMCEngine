@@ -75,6 +75,10 @@ public:
     GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThrough = true ) const;
 
     template <class ConceptType = PureConcept>
+    std::shared_ptr<ConceptType>
+    GetConceptByName( std::string_view Name, bool CanSearchThrough = true ) const;
+
+    template <class ConceptType = PureConcept>
     void
     ForEachSubConcept( auto&& Func );
 
@@ -133,6 +137,9 @@ Concept::AddConcept( Args&&... params )
 
     Result->m_BelongsTo = this;
     Result->SetRuntimeName( Result->GetClassName( ) );
+
+    Result->ConceptType::ConceptLaterInitialize( );
+
     return Result;
 }
 
@@ -280,6 +287,30 @@ Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThro
 
     Out.m_CacheHash = StateHash;
     GetConcepts<ConceptType>( Out.m_CachedConcepts, CanSearchThrough );
+}
+
+template <class ConceptType>
+std::shared_ptr<ConceptType>
+Concept::GetConceptByName( std::string_view Name, bool CanSearchThrough ) const
+{
+    for ( auto& ConceptSharePtr : m_SubConcepts )
+    {
+        if ( ConceptSharePtr->GetRuntimeName( ) == Name )
+        {
+            return ConceptSharePtr;
+        }
+
+        // No sub-concept / can't search through
+        if ( !CanSearchThrough || !( ConceptSharePtr->CanCastV( Concept::TypeID ) && ( (Concept*) ConceptSharePtr.get( ) )->m_SearchThrough ) )
+        {
+            continue;
+        }
+
+        if ( auto Result = ( (Concept*) ConceptSharePtr.get( ) )->GetConceptByName( Name, CanSearchThrough ) )
+        {
+            return Result;
+        }
+    }
 }
 
 template <class ConceptType>

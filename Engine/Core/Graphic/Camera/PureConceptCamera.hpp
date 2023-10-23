@@ -18,6 +18,11 @@ class PureConceptCamera : public PureConcept
     DECLARE_CONCEPT( PureConceptCamera, PureConcept )
 
 public:
+    PureConceptCamera( );
+
+    void
+    ConceptLaterInitialize( );
+
     [[nodiscard]] const glm::mat4&
     GetProjectionMatrix( ) const;
 

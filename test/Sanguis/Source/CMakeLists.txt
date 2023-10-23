@@ -106,23 +106,45 @@ declare_library(
 
 declare_library(
         NAME
+        Scenes.WandEditorScene
+
+        SRCS
+        Scenes/Private/WandEditorScene.cpp
+
+        P_DEPS
+        Witchcraft.BaseBoard.lib
+
+        ParticlePool.lib
+        PureConceptAABBSquare.lib
+        ParticleAttributesRandomizer.lib
+        PureConceptOrthoCamera.lib
+        PureConceptImage.lib
+        SpriteSquareTexture.lib
+        UserInput.lib
+        RectButton.lib
+        Canvas.lib
+        Engine.lib
+
+        spdlog::spdlog
+
+        DEPS
+
+        STATIC
+)
+
+declare_library(
+        NAME
         GameManager.GameManager
 
         SRCS
         GameManager/Private/GameManager.cpp
 
         P_DEPS
+        Scenes.WandEditorScene.lib
         Engine.lib
-        Witchcraft.BaseBoard.lib
-        ParticlePool.lib
-        SpriteSquareTexture.lib
-        ParticleAttributesRandomizer.lib
-        PureConceptAABBSquare.lib
         UserInput.lib
         Orientation.lib
-        RectButton.lib
         Canvas.lib
-        PureConceptOrthoCamera.lib
         PureConceptPerspectiveCamera.lib
         SerializerModel.lib
         ConceptMesh.lib

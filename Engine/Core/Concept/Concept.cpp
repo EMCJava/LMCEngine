@@ -74,7 +74,11 @@ Concept::TransferSubConcept( PureConcept* ConceptPtr )
 void
 Concept::SetSearchThrough( bool SearchThrough )
 {
-    m_SearchThrough = SearchThrough;
+    if ( m_SearchThrough != SearchThrough ) [[likely]]
+    {
+        m_SearchThrough = SearchThrough;
+        ResetSubConceptCache( );
+    }
 }
 
 void

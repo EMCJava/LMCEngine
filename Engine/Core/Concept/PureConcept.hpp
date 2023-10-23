@@ -13,6 +13,15 @@ class PureConcept
     DECLARE_CONCEPT( PureConcept )
 
 public:
+    /*
+     *
+     * Should be called after concept construction, use for construction time virtual functions call
+     * Done automatically by AddConcept
+     *
+     * */
+    void
+    ConceptLaterInitialize( ) { }
+
     uint64_t
     GetHash( ) const noexcept;
 
