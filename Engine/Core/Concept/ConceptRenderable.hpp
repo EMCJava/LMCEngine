@@ -15,7 +15,7 @@ class ConceptRenderable : public Concept
     DECLARE_CONCEPT( ConceptRenderable, Concept )
 
 public:
-    using ShaderUniformTypes = std::variant<glm::mat4, glm::vec4, float>;
+    using ShaderUniformTypes = std::variant<glm::mat4, glm::vec4, glm::vec3, float>;
 
     /*
      *

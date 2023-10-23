@@ -16,6 +16,9 @@ public:
     using Window::Window;
 
     void
+    UpdateCamerasDimension( );
+
+    void
     Update( ) override;
 
     virtual void

@@ -23,27 +23,12 @@ GameWindow::Update( )
 
         if ( RootConcept->CanCastV( Concept::TypeID ) )
         {
+            UpdateCamerasDimension( );
+
             ( (Concept*) RootConcept )->GetConcepts( m_ConceptRenderables );
 
             if ( m_ConceptRenderables.NotEmpty( ) )
             {
-                const auto MainWindowViewPortDimensions = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
-
-                // we update the camera to new viewport size here
-                if ( MainWindowViewPortDimensions != m_ViewportDimension )
-                {
-                    m_ViewportDimension        = MainWindowViewPortDimensions;
-                    m_ViewportLogicalDimension = Engine::GetEngine( )->GetLogicalMainWindowViewPortDimensions( );
-
-                    spdlog::info( "Viewport dimensions changed to {}x{}", m_ViewportDimension.first, m_ViewportDimension.second );
-                    spdlog::info( "Camera dimensions changed to {}x{}", m_ViewportLogicalDimension.first, m_ViewportLogicalDimension.second );
-
-                    ( (Concept*) RootConcept )->GetConcepts( m_ConceptCameras );
-                    m_ConceptCameras.ForEach( [ this ]( std::shared_ptr<PureConceptCamera>& item ) {
-                        item->SetDimensions( m_ViewportLogicalDimension.first, m_ViewportLogicalDimension.second );
-                    } );
-                }
-
                 /*
                  *
                  * Render every registered ConceptRenderable
@@ -81,6 +66,7 @@ GameWindow::SetRootConcept( class RootConceptTy* RootConcept )
     m_ConceptRenderables.Clear( );
 
     m_ViewportLogicalDimension = m_ViewportPhysicalDimension = m_ViewportDimension = { };
+    if ( RootConcept != nullptr && GetConceptPtr( )->CanCastV( Concept::TypeID ) ) UpdateCamerasDimension( );
 }
 
 class PureConcept*
@@ -99,4 +85,25 @@ std::shared_ptr<PureConcept>
 GameWindow::GetConceptFakeSharedPtr( )
 {
     return std::static_pointer_cast<PureConcept>( m_RootConceptFakeShared );
+}
+
+void
+GameWindow::UpdateCamerasDimension( )
+{
+    const auto MainWindowViewPortDimensions = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
+
+    // we update the camera to new viewport size here
+    if ( MainWindowViewPortDimensions != m_ViewportDimension )
+    {
+        m_ViewportDimension        = MainWindowViewPortDimensions;
+        m_ViewportLogicalDimension = Engine::GetEngine( )->GetLogicalMainWindowViewPortDimensions( );
+
+        spdlog::info( "Viewport dimensions changed to {}x{}", m_ViewportDimension.first, m_ViewportDimension.second );
+        spdlog::info( "Camera dimensions changed to {}x{}", m_ViewportLogicalDimension.first, m_ViewportLogicalDimension.second );
+
+        ( (Concept*) GetConceptPtr( ) )->GetConcepts( m_ConceptCameras );
+        m_ConceptCameras.ForEach( [ this ]( std::shared_ptr<PureConceptCamera>& item ) {
+            item->SetDimensions( m_ViewportLogicalDimension.first, m_ViewportLogicalDimension.second );
+        } );
+    }
 }

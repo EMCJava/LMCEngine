@@ -28,6 +28,9 @@ public:
     bool
     LoadModel( );
 
+    bool
+    LoadModel( class ConceptMesh* ToMesh );
+
     struct aiScene const*
     GetScene( ) const { return m_ModelScene; }
 

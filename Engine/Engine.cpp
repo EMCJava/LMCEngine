@@ -22,6 +22,7 @@
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultColorPreVertexShader.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultTextureShader.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultColorShader.hpp>
+#include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultPhongShader.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultFontShader.hpp>
 #include <Engine/Core/Graphic/HotReloadFrameBuffer/HotReloadFrameBuffer.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquare.hpp>
@@ -624,6 +625,12 @@ Engine::SetupGlobalResources( )
     SpriteShader = std::make_shared<Shader>( );
     SpriteShader->SetProgram( SProgram );
     GlobalResourcePool::STryPush( "DefaultFontShader", std::move( SpriteShader ) );
+
+    SProgram = std::make_shared<ShaderProgram>( );
+    SProgram->Load( DefaultPhongShaderVertexSource, DefaultPhongShaderFragmentSource );
+    SpriteShader = std::make_shared<Shader>( );
+    SpriteShader->SetProgram( SProgram );
+    GlobalResourcePool::STryPush( "DefaultPhongShader", std::move( SpriteShader ) );
 
     SProgram = std::make_shared<ShaderProgram>( );
     SProgram->Load( DefaultTextureShaderInstancingVertexSource, DefaultTextureShaderInstancingFragmentSource );

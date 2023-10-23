@@ -17,6 +17,7 @@
 #include <Engine/Core/Input/Serializer/SerializerModel.hpp>
 #include <Engine/Core/Graphic/Sprites/Particle/ParticlePool.hpp>
 #include <Engine/Core/Graphic/Sprites/Particle/ParticleAttributesRandomizer.hpp>
+#include <Engine/Core/Graphic/Mesh/ConceptMesh.hpp>
 #include <Engine/Core/Graphic/Canvas/Canvas.hpp>
 #include <Engine/Core/Concept/PureConceptAABBSquare.hpp>
 #include <Engine/Core/UI/RectButton.hpp>
@@ -196,6 +197,38 @@ private:
 };
 DEFINE_CONCEPT_DS( RotatingCube )
 
+class CameraRotate : public ConceptApplicable
+{
+    DECLARE_CONCEPT( CameraRotate, ConceptApplicable )
+public:
+    CameraRotate( PureConceptPerspectiveCamera& Camera )
+        : m_Camera( Camera )
+    { }
+
+    void
+    Apply( ) override
+    {
+        const auto DeltaTime = Engine::GetEngine( )->GetDeltaSecond( );
+        m_AccumulatedTime += DeltaTime;
+
+        m_CameraPosition = glm::vec3( sin( m_AccumulatedTime ) * 10.0f, 5, cos( m_AccumulatedTime ) * 10.0f );
+        m_CameraFacing   = glm::normalize( -m_Camera.GetCameraPosition( ) );
+        m_Camera.SetCameraPosition( m_CameraPosition, false );
+        m_Camera.SetCameraFacing( m_CameraFacing );
+    }
+
+protected:
+    glm::vec3 m_CameraPosition;
+    glm::vec3 m_CameraFacing;
+
+    FloatTy                       m_AccumulatedTime { 0.0f };
+    PureConceptPerspectiveCamera& m_Camera;
+
+    ENABLE_IMGUI( CameraRotate )
+};
+DEFINE_CONCEPT_DS( CameraRotate )
+DEFINE_SIMPLE_IMGUI_TYPE( CameraRotate, m_CameraPosition, m_CameraFacing )
+
 GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
@@ -218,10 +251,9 @@ GameManager::GameManager( )
         m_MainCamera->SetRuntimeName( "Main Camera" );
         m_MainCamera->PushToCameraStack( );
 
-        m_MainCamera->SetCameraPerspectiveFOV( 30, false );
-        m_MainCamera->SetCameraPosition( glm::vec3( 10.0f, 40.0f, 40.0f ), false );
-        m_MainCamera->SetCameraFacing( glm::vec3( 0.0f, -1.41421356237f, -1.41421356237f ), false );
-        m_MainCamera->SetCameraUpVector( glm::vec3( 0.0f, 1.0f, 0.0f ), false );
+        m_MainCamera->SetCameraPerspectiveFOV( 45, false );
+        m_MainCamera->SetCameraPosition( glm::vec3( 0.0f, 3.0f, 3.0f ), false );
+        m_MainCamera->SetCameraFacing( glm::vec3( 0.0f, -0.70710678118F, -0.70710678118F ), false );
     }
 
     {
@@ -378,48 +410,22 @@ GameManager::GameManager( )
         PerspectiveCanvas->SetRuntimeName( "Perspective Canvas" );
         PerspectiveCanvas->SetCanvasCamera( m_MainCamera );
 
-        PerspectiveCanvas->AddConcept<RotatingCube>( );
+        SerializerModel TestModel;
+        // TestModel.SetFilePath( "Assets/Model/low_poly_room.glb" );
+        TestModel.SetFilePath( "Assets/Model/cube.glb" );
 
-        PerspectiveCanvas->GetConceptAt<RotatingCube>( 0 )->GetConceptAt<Cube>( 0 )->GetOrientation( ).SetCoordinate( 5, 3, 5 );
+        auto Mesh = PerspectiveCanvas->AddConcept<ConceptMesh>( );
+        Mesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
 
-        auto DefaultColorPreVertexShader = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultColorPreVertexShader" );
-        for ( int h = 0; h < 5; ++h )
-        {
-            for ( int i = 0; i < 11; ++i )
-            {
-                for ( int j = 0; j < 11; ++j )
-                {
-                    if ( i == 0 || i == 10 || j == 0 || j == 10 )
-                    {
-                        auto CubeInstance = PerspectiveCanvas->AddConcept<Cube>( );
-                        CubeInstance->SetShader( DefaultColorPreVertexShader );
-                        CubeInstance->GetOrientation( ).SetCoordinate( i, h, j );
-                    }
-                }
-            }
-        }
+        Mesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
+        Mesh->SetShaderUniform( "viewPos", m_MainCamera->GetCameraPosition( ) );
+        Mesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
+        Mesh->SetShaderUniform( "objectColor", glm::vec3( 1.0f, 0.5f, 0.31f ) );
+
+        TestModel.LoadModel( Mesh.get( ) );
     }
 
-    SerializerModel TestModel;
-    TestModel.SetFilePath( "Assets/Model/low_poly_room.glb" );
-    REQUIRED_IF( TestModel.LoadModel( ) )
-    {
-        std::function<void( int, const aiNode*, const aiMatrix4x4& )> FetchMesh;
-
-        FetchMesh = [ &FetchMesh ]( int Indent, const aiNode* Node, const aiMatrix4x4& Transform ) {
-            for ( int i = 0; i < Node->mNumChildren; ++i )
-            {
-                const auto* CurrentNode = Node->mChildren[ i ];
-
-                spdlog::info( "{}Node {} : {}[{}]", std::string( Indent, '-' ), i, CurrentNode->mName.C_Str( ), CurrentNode->mMeshes ? *CurrentNode->mMeshes : -1 );
-
-                FetchMesh( Indent + 1, CurrentNode, Transform * CurrentNode->mTransformation );
-            }
-        };
-
-        const auto ModelScene = TestModel.GetScene( );
-        FetchMesh( 1, ModelScene->mRootNode, ModelScene->mRootNode->mTransformation );
-    }
+    AddConcept<CameraRotate>( *m_MainCamera );
 
     spdlog::info( "GameManager concept constructor returned" );
 }

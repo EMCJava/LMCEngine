@@ -48,7 +48,7 @@ ToImGuiWidget( const char* Name, glm::vec3* Value )
 {
     static_assert( sizeof( glm::vec3 ) == sizeof( float ) * 3 );
     static_assert( std::is_same_v<FloatTy, float> );
-    ImGui::InputFloat3( Name, (FloatTy*) Value );
+    ImGui::DragFloat3( Name, (FloatTy*) Value );
 }
 
 inline void
@@ -56,7 +56,7 @@ ToImGuiWidget( const char* Name, glm::vec4* Value )
 {
     static_assert( sizeof( glm::vec4 ) == sizeof( float ) * 4 );
     static_assert( std::is_same_v<FloatTy, float> );
-    ImGui::InputFloat4( Name, (FloatTy*) Value );
+    ImGui::DragFloat4( Name, (FloatTy*) Value );
 }
 
 inline void

@@ -1,0 +1,27 @@
+//
+// Created by samsa on 10/23/2023.
+//
+
+#pragma once
+
+#include <Engine/Core/Concept/ConceptRenderable.hpp>
+
+class ConceptMesh : public ConceptRenderable
+{
+    DECLARE_CONCEPT( ConceptMesh, ConceptRenderable )
+
+public:
+    void
+    Render( ) override;
+
+protected:
+    std::vector<glm::vec3> m_Vertices;
+    std::vector<glm::vec3> m_Normals;
+    std::vector<uint32_t>  m_Indices;
+
+    uint32_t m_VAO { }, m_VBO { }, m_EBO { };
+
+    friend class SerializerModel;
+
+    ENABLE_IMGUI( ConceptMesh )
+};

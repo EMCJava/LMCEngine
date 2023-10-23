@@ -52,7 +52,7 @@ protected:
      * */
     glm::vec3 m_CameraPosition { };
     glm::vec3 m_CameraFrontVec { };
-    glm::vec3 m_CameraUpVec { };
+    glm::vec3 m_CameraUpVec { 0, 1, 0 };
 
     ENABLE_IMGUI( PureConceptPerspectiveCamera )
 };

@@ -125,6 +125,7 @@ declare_library(
         PureConceptOrthoCamera.lib
         PureConceptPerspectiveCamera.lib
         SerializerModel.lib
+        ConceptMesh.lib
 
         DEPS
         spdlog::spdlog
