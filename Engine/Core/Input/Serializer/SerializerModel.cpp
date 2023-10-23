@@ -133,7 +133,7 @@ SerializerModel::LoadModel( struct ConceptMesh* ToMesh )
     GL_CHECK( gl->BufferSubData( GL_ARRAY_BUFFER,
                                  sizeof( glm::vec3 ) * ToMesh->m_Vertices.size( ), /* Vertices size */
                                  sizeof( glm::vec3 ) * ToMesh->m_Normals.size( ),  /* Normals size */
-                                 ToMesh->m_Vertices.data( ) ) )
+                                 ToMesh->m_Normals.data( ) ) )
 
     // 3. then set our vertex attributes pointers
     GL_CHECK( gl->VertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof( float ), nullptr ) )
