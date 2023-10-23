@@ -197,12 +197,12 @@ private:
 };
 DEFINE_CONCEPT_DS( RotatingCube )
 
-class CameraRotate : public ConceptApplicable
+class MeshRotate : public ConceptApplicable
 {
-    DECLARE_CONCEPT( CameraRotate, ConceptApplicable )
+    DECLARE_CONCEPT( MeshRotate, ConceptApplicable )
 public:
-    CameraRotate( PureConceptPerspectiveCamera& Camera )
-        : m_Camera( Camera )
+    MeshRotate( std::shared_ptr<ConceptMesh> Mesh )
+        : m_Mesh( Mesh )
     { }
 
     void
@@ -211,23 +211,28 @@ public:
         const auto DeltaTime = Engine::GetEngine( )->GetDeltaSecond( );
         m_AccumulatedTime += DeltaTime;
 
-        m_CameraPosition = glm::vec3( sin( m_AccumulatedTime ) * 10.0f, 5, cos( m_AccumulatedTime ) * 10.0f );
-        m_CameraFacing   = glm::normalize( -m_Camera.GetCameraPosition( ) );
-        m_Camera.SetCameraPosition( m_CameraPosition, false );
-        m_Camera.SetCameraFacing( m_CameraFacing );
+        PureConceptPerspectiveCamera* Camera;
+        if ( m_Mesh->GetActiveCamera( )->TryCast( Camera ) )
+        {
+            m_CameraPosition = glm::vec3( sin( m_AccumulatedTime ) * 10.0f, 5, cos( m_AccumulatedTime ) * 10.0f );
+            m_CameraFacing   = glm::normalize( -Camera->GetCameraPosition( ) );
+            m_Mesh->SetShaderUniform( "lightPos", glm::vec3( cos( m_AccumulatedTime * 2 ) * -10.0f, 5, sin( m_AccumulatedTime * 2  ) * -10.0f ) + glm::vec3( 0, 2, 0 ) );
+            Camera->SetCameraPosition( m_CameraPosition, false );
+            Camera->SetCameraFacing( m_CameraFacing );
+        }
     }
 
 protected:
     glm::vec3 m_CameraPosition;
     glm::vec3 m_CameraFacing;
 
-    FloatTy                       m_AccumulatedTime { 0.0f };
-    PureConceptPerspectiveCamera& m_Camera;
+    FloatTy                      m_AccumulatedTime { 0.0f };
+    std::shared_ptr<ConceptMesh> m_Mesh;
 
-    ENABLE_IMGUI( CameraRotate )
+    ENABLE_IMGUI( MeshRotate )
 };
-DEFINE_CONCEPT_DS( CameraRotate )
-DEFINE_SIMPLE_IMGUI_TYPE( CameraRotate, m_CameraPosition, m_CameraFacing )
+DEFINE_CONCEPT_DS( MeshRotate )
+DEFINE_SIMPLE_IMGUI_TYPE( MeshRotate, m_CameraPosition, m_CameraFacing )
 
 GameManager::GameManager( )
 {
@@ -412,7 +417,8 @@ GameManager::GameManager( )
 
         SerializerModel TestModel;
         // TestModel.SetFilePath( "Assets/Model/low_poly_room.glb" );
-        TestModel.SetFilePath( "Assets/Model/cube.glb" );
+        // TestModel.SetFilePath( "Assets/Model/cube.glb" );
+        TestModel.SetFilePath( "Assets/Model/unit_ico.glb" );
 
         auto Mesh = PerspectiveCanvas->AddConcept<ConceptMesh>( );
         Mesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
@@ -423,9 +429,8 @@ GameManager::GameManager( )
         Mesh->SetShaderUniform( "objectColor", glm::vec3( 1.0f, 0.5f, 0.31f ) );
 
         TestModel.LoadModel( Mesh.get( ) );
+        AddConcept<MeshRotate>( Mesh );
     }
-
-    AddConcept<CameraRotate>( *m_MainCamera );
 
     spdlog::info( "GameManager concept constructor returned" );
 }

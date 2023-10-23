@@ -124,7 +124,7 @@ public:                                                 \
     }                                                   \
                                                         \
     template <class ConceptType>                        \
-    bool TryCast( ConceptType*& Result ) const          \
+    bool TryCast( ConceptType*& Result )                \
     {                                                   \
         if ( CanCastV( ConceptType::TypeID ) )          \
         {                                               \
