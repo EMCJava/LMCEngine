@@ -135,6 +135,17 @@ public:                                                 \
         return Result = nullptr;                        \
     }                                                   \
                                                         \
+    template <class ConceptType>                        \
+    ConceptType* TryCast( )                             \
+    {                                                   \
+        if ( CanCastV( ConceptType::TypeID ) )          \
+        {                                               \
+            return static_cast<ConceptType*>( this );   \
+        }                                               \
+                                                        \
+        return nullptr;                                 \
+    }                                                   \
+                                                        \
     const auto&                                         \
     GetRuntimeName( )                                   \
     {                                                   \

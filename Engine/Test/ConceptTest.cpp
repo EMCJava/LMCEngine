@@ -2,10 +2,14 @@
 // Created by samsa on 10/12/2023.
 //
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/benchmark/catch_benchmark.hpp>
 
 #include <Engine/Core/Concept/Concept.hpp>
 
 #include <string>
+#include <algorithm>
+#include <random>
+#include <ranges>
 
 class CA : public Concept
 {
@@ -123,5 +127,142 @@ TEST_CASE( "Concept", "[Concept]" )
 
         FirstChild->Destroy( );
         REQUIRE( cab->GetSubConceptCount( ) == 1 );
+    }
+
+    SECTION( "Performance" )
+    {
+        std::vector<PureConcept*> Concepts( 60000 );
+        for ( size_t i = 0; i < 10000; ++i )
+            Concepts[ i ] = new PureConcept;
+        for ( size_t i = 0; i < 10000; ++i )
+            Concepts[ i + 10000 ] = new Concept;
+        for ( size_t i = 0; i < 10000; ++i )
+            Concepts[ i + 20000 ] = new CA;
+        for ( size_t i = 0; i < 10000; ++i )
+            Concepts[ i + 30000 ] = new CAB;
+        for ( size_t i = 0; i < 10000; ++i )
+            Concepts[ i + 40000 ] = new PC;
+        for ( size_t i = 0; i < 10000; ++i )
+            Concepts[ i + 50000 ] = new PCD;
+
+        std::random_device rd;
+        std::mt19937       gen { rd( ) };
+        std::ranges::shuffle( Concepts, gen );
+
+        BENCHMARK( "dynamic_cast -> *" )
+        {
+            long Counter = 0;
+            for ( auto*& ConceptPtr : Concepts )
+                if ( dynamic_cast<PureConcept*>( ConceptPtr ) != nullptr )
+                    Counter++;
+            for ( auto*& ConceptPtr : Concepts )
+                if ( dynamic_cast<Concept*>( ConceptPtr ) != nullptr )
+                    Counter++;
+            for ( auto*& ConceptPtr : Concepts )
+                if ( dynamic_cast<CA*>( ConceptPtr ) != nullptr )
+                    Counter++;
+            for ( auto*& ConceptPtr : Concepts )
+                if ( dynamic_cast<CAB*>( ConceptPtr ) != nullptr )
+                    Counter++;
+            for ( auto*& ConceptPtr : Concepts )
+                if ( dynamic_cast<PC*>( ConceptPtr ) != nullptr )
+                    Counter++;
+            for ( auto*& ConceptPtr : Concepts )
+                if ( dynamic_cast<PCD*>( ConceptPtr ) != nullptr )
+                    Counter++;
+
+            return Counter;
+        };
+
+        BENCHMARK( "dynamic_cast() -> *, single loop" )
+        {
+            long Counter = 0;
+            for ( auto*& ConceptPtr : Concepts )
+            {
+                if ( dynamic_cast<PureConcept*>( ConceptPtr ) != nullptr )
+                    Counter++;
+                if ( dynamic_cast<Concept*>( ConceptPtr ) != nullptr )
+                    Counter++;
+                if ( dynamic_cast<CA*>( ConceptPtr ) != nullptr )
+                    Counter++;
+                if ( dynamic_cast<CAB*>( ConceptPtr ) != nullptr )
+                    Counter++;
+                if ( dynamic_cast<PC*>( ConceptPtr ) != nullptr )
+                    Counter++;
+                if ( dynamic_cast<PCD*>( ConceptPtr ) != nullptr )
+                    Counter++;
+            }
+
+            return Counter;
+        };
+
+        BENCHMARK( "CanCastVT -> bool" )
+        {
+            long Counter = 0;
+            for ( auto*& ConceptPtr : Concepts )
+                if ( ConceptPtr->CanCastVT<PureConcept>( ) )
+                    Counter++;
+            for ( auto*& ConceptPtr : Concepts )
+                if ( ConceptPtr->CanCastVT<Concept>( ) )
+                    Counter++;
+            for ( auto*& ConceptPtr : Concepts )
+                if ( ConceptPtr->CanCastVT<CA>( ) )
+                    Counter++;
+            for ( auto*& ConceptPtr : Concepts )
+                if ( ConceptPtr->CanCastVT<CAB>( ) )
+                    Counter++;
+            for ( auto*& ConceptPtr : Concepts )
+                if ( ConceptPtr->CanCastVT<PC>( ) )
+                    Counter++;
+            for ( auto*& ConceptPtr : Concepts )
+                if ( ConceptPtr->CanCastVT<PCD>( ) )
+                    Counter++;
+
+            return Counter;
+        };
+
+        BENCHMARK( "CanCastVT() -> bool, single loop" )
+        {
+            long Counter = 0;
+            for ( auto*& ConceptPtr : Concepts )
+            {
+                if ( ConceptPtr->CanCastVT<PureConcept>( ) )
+                    Counter++;
+                if ( ConceptPtr->CanCastVT<Concept>( ) )
+                    Counter++;
+                if ( ConceptPtr->CanCastVT<CA>( ) )
+                    Counter++;
+                if ( ConceptPtr->CanCastVT<CAB>( ) )
+                    Counter++;
+                if ( ConceptPtr->CanCastVT<PC>( ) )
+                    Counter++;
+                if ( ConceptPtr->CanCastVT<PCD>( ) )
+                    Counter++;
+            }
+
+            return Counter;
+        };
+
+        BENCHMARK( "TryCast() -> *, single loop" )
+        {
+            long Counter = 0;
+            for ( auto*& ConceptPtr : Concepts )
+            {
+                if ( ConceptPtr->TryCast<PureConcept>( ) != nullptr )
+                    Counter++;
+                if ( ConceptPtr->TryCast<Concept>( ) != nullptr )
+                    Counter++;
+                if ( ConceptPtr->TryCast<CA>( ) != nullptr )
+                    Counter++;
+                if ( ConceptPtr->TryCast<CAB>( ) != nullptr )
+                    Counter++;
+                if ( ConceptPtr->TryCast<PC>( ) != nullptr )
+                    Counter++;
+                if ( ConceptPtr->TryCast<PCD>( ) != nullptr )
+                    Counter++;
+            }
+
+            return Counter;
+        };
     }
 }
