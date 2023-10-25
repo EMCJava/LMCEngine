@@ -92,6 +92,14 @@ public:
      * */
     bool
     GetOwnership( PureConcept* ConceptPtr );
+    /*
+     *
+     * Get ownership of a sub concept, it also works when concept is not previously owned by other
+     *
+     * */
+    template <typename ConceptType>
+    bool
+    GetOwnership( std::shared_ptr<ConceptType> ConceptPtr );
 
     void
     SetSearchThrough( bool SearchThrough = true );
