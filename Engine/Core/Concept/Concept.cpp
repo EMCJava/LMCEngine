@@ -45,7 +45,7 @@ Concept::RemoveConcept( PureConcept* ConceptPtr )
 }
 
 bool
-Concept::TransferSubConcept( PureConcept* ConceptPtr )
+Concept::GetOwnership( PureConcept* ConceptPtr )
 {
     if ( ConceptPtr->m_BelongsTo != nullptr && ConceptPtr->m_BelongsTo != this ) [[likely]]
     {

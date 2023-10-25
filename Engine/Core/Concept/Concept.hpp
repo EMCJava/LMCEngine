@@ -91,7 +91,7 @@ public:
      *
      * */
     bool
-    TransferSubConcept( PureConcept* ConceptPtr );
+    GetOwnership( PureConcept* ConceptPtr );
 
     void
     SetSearchThrough( bool SearchThrough = true );

@@ -124,7 +124,7 @@ EditorWindow::UpdateImGui( )
             {
                 if ( m_ConceptDragEnd->CanCastV( Concept::TypeID ) ) [[likely]]
                 {
-                    ( (Concept*) m_ConceptDragEnd )->TransferSubConcept( m_ConceptDragStart );
+                    ( (Concept*) m_ConceptDragEnd )->GetOwnership( m_ConceptDragStart );
                     spdlog::info( "Transferred subConcept ownership" );
                 }
             }
