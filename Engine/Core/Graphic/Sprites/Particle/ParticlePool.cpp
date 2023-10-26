@@ -9,6 +9,8 @@
 
 #include <Engine/Core/Graphic/API/OpenGL.hpp>
 
+#include <cmath>
+
 DEFINE_CONCEPT_DS( ParticlePool )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( ParticlePool, ConceptApplicable, m_StartIndex, m_EndIndex, m_Sprite, m_EndIndex )
 
@@ -89,11 +91,9 @@ public:
 
             // Update buffer
             {
-                const auto MaxThreads = 16;
-                char       ThreadBuffer[ sizeof( std::thread ) * MaxThreads ];
-                auto*      Threads = reinterpret_cast<std::thread*>( ThreadBuffer );
-
-                const auto ParticlePreThread = ParticleCount / MaxThreads;
+                const auto NumberOfThreadNeeded = std::min( (int) ceil( (FloatTy) ParticleCount / MinParticlesPreThread ), MaxThreads );
+                auto*      Threads              = reinterpret_cast<std::thread*>( m_ThreadBuffer );
+                const auto ParticlePreThread    = ParticleCount / NumberOfThreadNeeded;
 
                 const auto RunThreadInRange = [ this, ParticlePreThread ]( std::thread* Threads, size_t StartIndex, size_t EndIndex, size_t ThreadCount ) {
                     if ( ThreadCount == 0 ) return;
@@ -120,19 +120,22 @@ public:
                 if ( m_ParticlePool.m_StartIndex > m_ParticlePool.m_EndIndex )
                 {
                     // Wrap
-                    const auto FirstThreadCount = std::min( (int) std::round( FloatTy( m_ParticlePool.MAX_PARTICLES - m_ParticlePool.m_StartIndex ) / ParticlePreThread ), MaxThreads );
+                    const auto FirstThreadCount = std::min( (int) std::round( FloatTy( m_ParticlePool.MAX_PARTICLES - m_ParticlePool.m_StartIndex ) / ParticlePreThread ), NumberOfThreadNeeded );
                     RunThreadInRange( Threads, m_ParticlePool.m_StartIndex, m_ParticlePool.MAX_PARTICLES, FirstThreadCount );
-                    RunThreadInRange( Threads + FirstThreadCount, 0, m_ParticlePool.m_EndIndex, MaxThreads - FirstThreadCount );
+                    RunThreadInRange( Threads + FirstThreadCount, 0, m_ParticlePool.m_EndIndex, NumberOfThreadNeeded - FirstThreadCount );
                 } else
                 {
-                    RunThreadInRange( Threads, m_ParticlePool.m_StartIndex, m_ParticlePool.m_EndIndex, MaxThreads );
+                    RunThreadInRange( Threads, m_ParticlePool.m_StartIndex, m_ParticlePool.m_EndIndex, NumberOfThreadNeeded );
                 }
 
-                for ( int i = 0; i < MaxThreads; ++i )
+                for ( int i = 0; i < NumberOfThreadNeeded; ++i )
                 {
                     if ( Threads[ i ].joinable( ) ) Threads[ i ].join( );
                     Threads[ i ].~thread( );
                 }
+
+                this->ParticleCount = ParticleCount;
+                ThreadUsed          = NumberOfThreadNeeded;
             }
             // Unmap buffer
             GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer ) )
@@ -154,6 +157,21 @@ private:
     unsigned int m_ColorInstancingBuffer { };
     glm::mat4*   m_ModelMatricesGPUMap = nullptr;
     glm::vec4*   m_ColorsGPUMap        = nullptr;
+
+    static constexpr auto MaxThreads            = 16;
+    static constexpr auto MinParticlesPreThread = 200;
+    char                  m_ThreadBuffer[ sizeof( std::thread ) * MaxThreads ];
+
+public:
+    /*
+     *
+     * For ImGui inspect
+     *
+     * */
+    int ThreadUsed    = 0;
+    int ParticleCount = 0;
+
+    ENABLE_IMGUI( ParticlePoolConceptRender )
 };
 
 ParticlePoolConceptRender::~ParticlePoolConceptRender( )
@@ -166,6 +184,7 @@ ParticlePoolConceptRender::~ParticlePoolConceptRender( )
 }
 
 DEFINE_CONCEPT( ParticlePoolConceptRender )
+DEFINE_SIMPLE_IMGUI_TYPE( ParticlePoolConceptRender, ThreadUsed, ParticleCount )
 
 ParticlePool::ParticlePool( )
 {
