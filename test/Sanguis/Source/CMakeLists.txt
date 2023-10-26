@@ -142,6 +142,7 @@ declare_library(
         P_DEPS
         Scenes.WandEditorScene.lib
         Engine.lib
+        Concept.lib
         UserInput.lib
         Orientation.lib
         Canvas.lib

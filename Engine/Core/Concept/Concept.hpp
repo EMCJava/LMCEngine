@@ -258,6 +258,39 @@ Concept::GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSear
     }
 }
 
+template <typename ConceptType>
+bool
+Concept::GetOwnership( std::shared_ptr<ConceptType> ConceptPtr )
+{
+    if ( ConceptPtr == nullptr )
+    {
+        return false;
+    }
+
+    if ( GetOwnership( ConceptPtr.get( ) ) )
+    {
+        return true;
+    }
+
+    // Own already
+    if ( ConceptPtr->m_BelongsTo != nullptr )
+    {
+        return false;
+    }
+
+    // Not own by any other concept
+    for ( const auto& m_SubConcept : m_SubConcepts )
+    {
+        if ( m_SubConcept.get( ) == ConceptPtr.get( ) ) [[unlikely]]
+            return false;
+    }
+
+    ConceptPtr->m_BelongsTo = this;
+    m_SubConcepts.emplace_back( std::move( ConceptPtr ) );
+    ResetSubConceptCache( );
+    return true;
+}
+
 template <class ConceptType>
 int
 Concept::RemoveConcepts( )
