@@ -35,7 +35,7 @@ SerializerModel::LoadModel( )
     // And have it read the given file with some example postprocessing
     // Usually - if speed is not the most important aspect for you - you'll
     // probably to request more postprocessing than we do in this example.
-    const auto LoadFlags = aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_SortByPType;
+    const auto LoadFlags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_OptimizeMeshes | aiProcess_GenNormals | aiProcess_SortByPType;
     m_ModelScene         = m_ImporterContext->ReadFile( m_FilePath, LoadFlags );
 
     // If the import failed, report it
@@ -146,7 +146,7 @@ SerializerModel::LoadModel( struct ConceptMesh* ToMesh )
             FetchMesh( Indent + 1, CurrentNode, Transform * CurrentNode->mTransformation );
         }
     };
-    
+
     FetchMesh( 1, m_ModelScene->mRootNode, m_ModelScene->mRootNode->mTransformation );
 
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
