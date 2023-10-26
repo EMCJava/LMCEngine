@@ -146,7 +146,7 @@ SerializerModel::LoadModel( struct ConceptMesh* ToMesh )
             FetchMesh( Indent + 1, CurrentNode, Transform * CurrentNode->mTransformation );
         }
     };
-
+    
     FetchMesh( 1, m_ModelScene->mRootNode, m_ModelScene->mRootNode->mTransformation );
 
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
@@ -183,4 +183,6 @@ SerializerModel::LoadModel( struct ConceptMesh* ToMesh )
     GL_CHECK( gl->GenBuffers( 1, &ToMesh->m_EBO ) )
     GL_CHECK( gl->BindBuffer( GL_ELEMENT_ARRAY_BUFFER, ToMesh->m_EBO ) )
     GL_CHECK( gl->BufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( uint32_t ) * ToMesh->m_Indices.size( ), ToMesh->m_Indices.data( ), GL_STATIC_DRAW ) )
+
+    return true;
 }
