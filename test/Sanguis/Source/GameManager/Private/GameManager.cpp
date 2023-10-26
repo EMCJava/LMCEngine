@@ -101,7 +101,6 @@ GameManager::GameManager( )
         Mesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
         Mesh->SetShaderUniform( "viewPos", m_MainCamera->GetCameraPosition( ) );
         Mesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
-        // Mesh->SetShaderUniform( "objectColor", glm::vec3( 1.0f, 0.5f, 0.31f ) );
 
         TestModel.LoadModel( Mesh.get( ) );
         AddConcept<MeshRotate>( Mesh );
@@ -122,9 +121,18 @@ GameManager::TestInvokable( )
 
     if ( GetConcept<WandEditorScene>( ) )
     {
-        RemoveConcept<WandEditorScene>( );
+        if ( m_WandEditorScene != nullptr )
+        {
+            m_WandEditorScene->Destroy( );
+        }
     } else
     {
-        m_WandEditorScene = AddConcept<WandEditorScene>( );
+        if ( m_WandEditorScene != nullptr )
+        {
+            GetOwnership( m_WandEditorScene );
+        } else
+        {
+            m_WandEditorScene = AddConcept<WandEditorScene>( );
+        }
     }
 }
