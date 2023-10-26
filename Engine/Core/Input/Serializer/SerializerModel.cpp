@@ -91,6 +91,17 @@ SerializerModel::LoadModel( struct ConceptMesh* ToMesh )
 
                 /*
                  *
+                 * Texture setup
+                 *
+                 * */
+                aiString DiffuseTexturePath;
+                REQUIRED_IF( Material->Get( AI_MATKEY_TEXTURE_DIFFUSE( 0 ), DiffuseTexturePath ) == AI_SUCCESS )
+                {
+                    spdlog::info( "{}> tex: {}", std::string( Indent, '-' ), DiffuseTexturePath.C_Str() );
+                }
+
+                /*
+                 *
                  * Vertex and normal buffer
                  *
                  * */
