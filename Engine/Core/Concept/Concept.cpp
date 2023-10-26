@@ -107,12 +107,6 @@ Concept::GetOwnership( std::shared_ptr<ConceptType> ConceptPtr )
     }
 
     // Not own by any other concept
-    for ( const auto& m_SubConcept : m_SubConcepts )
-    {
-        if ( m_SubConcept.get( ) == ConceptPtr.get( ) ) [[unlikely]]
-            return false;
-    }
-
     m_SubConcepts.emplace_back( std::move( ConceptPtr ) );
     ResetSubConceptCache( );
     ConceptPtr->m_BelongsTo = this;
