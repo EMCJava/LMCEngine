@@ -91,28 +91,6 @@ Concept::ResetSubConceptCache( )
     }
 }
 
-template <typename ConceptType>
-bool
-Concept::GetOwnership( std::shared_ptr<ConceptType> ConceptPtr )
-{
-    if ( GetOwnership( ConceptPtr.get( ) ) )
-    {
-        return true;
-    }
-
-    // Own already
-    if ( ConceptPtr->m_BelongsTo != nullptr )
-    {
-        return false;
-    }
-
-    // Not own by any other concept
-    m_SubConcepts.emplace_back( std::move( ConceptPtr ) );
-    ResetSubConceptCache( );
-    ConceptPtr->m_BelongsTo = this;
-    return true;
-}
-
 void
 PureConcept::MoveToFirstAsSubConcept( )
 {
