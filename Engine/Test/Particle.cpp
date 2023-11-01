@@ -12,7 +12,7 @@
 #include <spdlog/spdlog.h>
 
 struct ParticleTimeGreater {
-    _NODISCARD bool operator( )( Particle& Left, Particle& Right ) const
+    bool operator( )( Particle& Left, Particle& Right ) const
         noexcept( noexcept( Left.GetLifeTime( ) > Right.GetLifeTime( ) ) )
     {
         return Left.GetLifeTime( ) > Right.GetLifeTime( );
