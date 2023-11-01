@@ -227,7 +227,7 @@ add_subdirectory(freetype-2.13.2)
 FetchContent_Declare(
         Catch2
         GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG v3.0.1 # or a later release
+        GIT_TAG v3.4.0
 )
 FetchContent_MakeAvailable(Catch2)
 

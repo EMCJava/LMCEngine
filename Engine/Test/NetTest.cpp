@@ -4,6 +4,7 @@
 #include <Engine/Core/Network/NetClient.hpp>
 
 #include <cstdint>
+#include <thread>
 
 inline char TCPTestStr[] = "Testing, TCP Hello World!!!";
 inline char UDPTestStr[] = "Testing, UDP Hello World!!!";
