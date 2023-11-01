@@ -15,3 +15,14 @@ Particle::AlterLifeTime( FloatTy DeltaLifetime )
 {
     m_LifeTime += DeltaLifetime;
 }
+
+void
+Particle::Update( FloatTy DeltaTime )
+{
+    auto& Ori = GetOrientation( );
+    Ori.AlterCoordinate( GetVelocity( ) * DeltaTime, false );
+    Ori.AlterRotation( 0, 0, GetAngularVelocity( ) * DeltaTime, false );
+
+    GetColor( ) += GetLinearColorVelocity( ) * DeltaTime;
+    AlterLifeTime( -DeltaTime );
+}

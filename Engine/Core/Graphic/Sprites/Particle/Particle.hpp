@@ -15,8 +15,11 @@ public:
     SetLifeTime( FloatTy Lifetime );
     void
     AlterLifeTime( FloatTy DeltaLifetime );
+    [[nodiscard]] FloatTy
+    GetLifeTime( ) const { return m_LifeTime; }
     [[nodiscard]] bool
     IsAlive( ) const { return m_LifeTime > 0; }
+
 
     auto&
     GetOrientation( ) { return m_Orientation; }
@@ -32,6 +35,9 @@ public:
 
     auto&
     GetLinearColorVelocity( ) { return m_LinearColorVelocity; }
+
+    void
+    Update( FloatTy DeltaTime );
 
 private:
     FloatTy     m_LifeTime { 0 };
