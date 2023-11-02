@@ -48,3 +48,11 @@ private:
     glm::vec4 m_LinearColorVelocity { };
     glm::vec3 m_Velocity { };
 };
+
+struct ParticleTimeGreater {
+    bool operator( )( Particle& Left, Particle& Right ) const
+        noexcept( noexcept( Left.GetLifeTime( ) > Right.GetLifeTime( ) ) )
+    {
+        return Left.GetLifeTime( ) > Right.GetLifeTime( );
+    }
+};

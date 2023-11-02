@@ -8,6 +8,7 @@
 
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
 
+#include <ranges>
 #include <array>
 
 // TODO: Might need to use Sprite instead for more general particle system
@@ -23,16 +24,30 @@ class ParticlePool : public ConceptApplicable
     void
     ForEachRange( auto&& Func, size_t Start, size_t End );
 
+    /*
+     *
+     * Should be called by AddParticle after configuring the particle
+     *
+     * */
+    void
+    PushLastParticleInHeap( );
+
 public:
-    static constexpr size_t MAX_PARTICLES = 1000;
+    static constexpr size_t MAX_PARTICLES = 200000;
 
     ParticlePool( );
 
     void
-    RemoveFirstParticle( );
+    KillFirstToDieParticle( );
 
-    Particle&
-    AddParticle( );
+    /*
+     *
+     * Apply Configurator before pushing to min-heap
+     * Return nullptr if reach max particle available
+     *
+     * */
+    Particle*
+    AddParticle( auto&& Configurator );
 
     void
     Apply( ) override;
@@ -44,16 +59,19 @@ public:
     GetParticleCount( ) const;
 
 protected:
-    /*
-     *
-     * Available slot will be MAX_PARTICLES - 1 to save my time from finding edge cases
-     *
-     * */
-    std::array<Particle, MAX_PARTICLES> m_Particles;
-
-    size_t m_StartIndex = 0, m_EndIndex = 0;
+    std::array<Particle, MAX_PARTICLES> m_MinHeapParticles;
+    size_t                              m_ParticleCount = 0;
 
     std::shared_ptr<class SpriteSquareTexture> m_Sprite;
 
     ENABLE_IMGUI( ParticlePool )
 };
+
+Particle*
+ParticlePool::AddParticle( auto&& Configurator )
+{
+    if ( m_ParticleCount >= m_MinHeapParticles.size( ) ) return nullptr;
+
+    Configurator( m_MinHeapParticles[ m_ParticleCount ] );
+    PushLastParticleInHeap( );
+}

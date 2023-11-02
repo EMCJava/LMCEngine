@@ -11,14 +11,6 @@
 
 #include <spdlog/spdlog.h>
 
-struct ParticleTimeGreater {
-    bool operator( )( Particle& Left, Particle& Right ) const
-        noexcept( noexcept( Left.GetLifeTime( ) > Right.GetLifeTime( ) ) )
-    {
-        return Left.GetLifeTime( ) > Right.GetLifeTime( );
-    }
-};
-
 TEST_CASE( "Particle Min heap", "[Particle]" )
 {
     std::vector<Particle> Particles;
@@ -48,7 +40,7 @@ TEST_CASE( "Particle Min heap", "[Particle]" )
             Particles[ i ].Update( DeltaTime );
         }
 
-        while ( ActualSize >= 0 && !Particles.front( ).IsAlive( ) )
+        while ( ActualSize > 0 && !Particles.front( ).IsAlive( ) )
         {
             std::ranges::pop_heap( Particles.begin( ), Particles.begin( ) + ActualSize, ParticleTimeGreater { } );
             ActualSize--;

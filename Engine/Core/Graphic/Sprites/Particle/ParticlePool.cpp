@@ -2,6 +2,7 @@
 // Created by samsa on 9/21/2023.
 //
 
+#include "ParticleAttributesRandomizer.hpp"
 #include "ParticlePool.hpp"
 
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
@@ -12,7 +13,7 @@
 #include <cmath>
 
 DEFINE_CONCEPT_DS( ParticlePool )
-DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( ParticlePool, ConceptApplicable, m_StartIndex, m_EndIndex, m_Sprite, m_EndIndex )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( ParticlePool, ConceptApplicable, m_ParticleCount, m_Sprite )
 
 class ParticlePoolConceptRender : public ConceptRenderable
 {
@@ -62,7 +63,7 @@ public:
     Render( ) override
     {
         if ( !m_ParticlePool.m_Enabled ) return;
-        if ( m_ParticlePool.m_StartIndex == m_ParticlePool.m_EndIndex ) return;   // Empty
+        if ( m_ParticlePool.m_ParticleCount == 0 ) return;   // Empty
 
         m_SpriteTexture->BindTexture( );
         if ( m_ActiveCamera != nullptr ) m_SpriteTexture->SetActiveCamera( m_ActiveCamera );
@@ -117,16 +118,7 @@ public:
                     } );
                 };
 
-                if ( m_ParticlePool.m_StartIndex > m_ParticlePool.m_EndIndex )
-                {
-                    // Wrap
-                    const auto FirstThreadCount = std::min( (int) std::round( FloatTy( m_ParticlePool.MAX_PARTICLES - m_ParticlePool.m_StartIndex ) / ParticlePreThread ), NumberOfThreadNeeded );
-                    RunThreadInRange( Threads, m_ParticlePool.m_StartIndex, m_ParticlePool.MAX_PARTICLES, FirstThreadCount );
-                    RunThreadInRange( Threads + FirstThreadCount, 0, m_ParticlePool.m_EndIndex, NumberOfThreadNeeded - FirstThreadCount );
-                } else
-                {
-                    RunThreadInRange( Threads, m_ParticlePool.m_StartIndex, m_ParticlePool.m_EndIndex, NumberOfThreadNeeded );
-                }
+                RunThreadInRange( Threads, 0, m_ParticlePool.m_ParticleCount - 1, NumberOfThreadNeeded );
 
                 for ( int i = 0; i < NumberOfThreadNeeded; ++i )
                 {
@@ -191,32 +183,6 @@ ParticlePool::ParticlePool( )
     SetSearchThrough( );
 }
 
-Particle&
-ParticlePool::AddParticle( )
-{
-    auto& NewParticle = m_Particles[ m_EndIndex ];
-    m_EndIndex        = ( m_EndIndex + 1 ) % MAX_PARTICLES;
-
-    // Replace the very first particle
-    if ( m_StartIndex == m_EndIndex )
-    {
-        m_StartIndex = ( m_StartIndex + 1 ) % MAX_PARTICLES;
-        m_Particles[ m_EndIndex ].SetLifeTime( 0 );
-    }
-
-    return NewParticle;
-}
-
-void
-ParticlePool::RemoveFirstParticle( )
-{
-    // Empty
-    if ( m_StartIndex == m_EndIndex ) return;
-
-    m_Particles[ m_StartIndex ].SetLifeTime( 0 );
-    m_StartIndex = ( m_StartIndex + 1 ) % MAX_PARTICLES;
-}
-
 void
 ParticlePool::SetSprite( const std::shared_ptr<SpriteSquareTexture>& Sprite )
 {
@@ -228,25 +194,11 @@ void
 ParticlePool::ForEach( auto&& Func )
 {
     // Empty
-    if ( m_EndIndex == m_StartIndex ) return;
+    if ( m_ParticleCount == 0 ) return;
 
-    if ( m_EndIndex > m_StartIndex )
+    for ( size_t i = 0; i < m_ParticleCount; i++ )
     {
-        for ( size_t i = m_StartIndex; i != m_EndIndex; i++ )
-        {
-            Func( m_Particles[ i ] );
-        }
-    } else
-    {
-        for ( size_t i = m_StartIndex; i < MAX_PARTICLES; i++ )
-        {
-            Func( m_Particles[ i ] );
-        }
-
-        for ( size_t i = 0; i < m_EndIndex; i++ )
-        {
-            Func( m_Particles[ i ] );
-        }
+        Func( m_MinHeapParticles[ i ] );
     }
 }
 
@@ -258,28 +210,20 @@ ParticlePool::Apply( )
     const auto DeltaTime = Engine::GetEngine( )->GetDeltaSecond( );
 
     ForEach( [ &DeltaTime ]( Particle& P ) {
-        auto& Ori = P.GetOrientation( );
-        Ori.AlterCoordinate( P.GetVelocity( ) * DeltaTime, false );
-        Ori.AlterRotation( 0, 0, P.GetAngularVelocity( ) * DeltaTime, false );
-
-        P.GetColor( ) += P.GetLinearColorVelocity( ) * DeltaTime;
-        P.AlterLifeTime( -DeltaTime );
+        P.Update( DeltaTime );
     } );
 
     // Not empty, and first is not "dead"
-    while ( m_EndIndex != m_StartIndex && !m_Particles[ m_StartIndex ].IsAlive( ) )
+    while ( m_ParticleCount > 0 && !m_MinHeapParticles.front( ).IsAlive( ) )
     {
-        m_StartIndex = ( m_StartIndex + 1 ) % MAX_PARTICLES;
+        KillFirstToDieParticle( );
     }
 }
 
 size_t
 ParticlePool::GetParticleCount( ) const
 {
-    if ( m_EndIndex >= m_StartIndex ) return m_EndIndex - m_StartIndex;
-
-    // Wrap around
-    return MAX_PARTICLES + m_EndIndex - m_StartIndex;
+    return m_ParticleCount;
 }
 
 void
@@ -287,6 +231,23 @@ ParticlePool::ForEachRange( auto&& Func, size_t Start, size_t End )
 {
     for ( size_t i = Start; i < End; i++ )
     {
-        Func( i, m_Particles[ i ] );
+        Func( i, m_MinHeapParticles[ i ] );
     }
+}
+
+void
+ParticlePool::KillFirstToDieParticle( )
+{
+    // Empty
+    if ( m_ParticleCount == 0 ) return;
+
+    std::ranges::pop_heap( m_MinHeapParticles.begin( ), m_MinHeapParticles.begin( ) + m_ParticleCount, ParticleTimeGreater { } );
+    m_ParticleCount--;
+}
+
+void
+ParticlePool::PushLastParticleInHeap( )
+{
+    m_ParticleCount++;
+    std::ranges::push_heap( m_MinHeapParticles.begin( ), m_MinHeapParticles.begin( ) + m_ParticleCount, ParticleTimeGreater { } );
 }

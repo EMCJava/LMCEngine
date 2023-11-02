@@ -4,4 +4,4 @@ add_library(ParticleAttributesRandomizer.lib ParticleAttributesRandomizer.hpp Pa
 
 target_link_libraries(Particle.lib Orientation.lib)
 target_link_libraries(ParticleAttributesRandomizer.lib Particle.lib)
-target_link_libraries(ParticlePool.lib Particle.lib SpriteSquareTexture.lib)
+target_link_libraries(ParticlePool.lib Particle.lib ParticleAttributesRandomizer.lib SpriteSquareTexture.lib)
