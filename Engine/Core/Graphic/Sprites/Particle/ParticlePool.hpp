@@ -43,10 +43,10 @@ public:
     /*
      *
      * Apply Configurator before pushing to min-heap
-     * Return nullptr if reach max particle available
+     * Return false if reach max particle available
      *
      * */
-    Particle*
+    bool
     AddParticle( auto&& Configurator );
 
     void
@@ -67,11 +67,13 @@ protected:
     ENABLE_IMGUI( ParticlePool )
 };
 
-Particle*
+bool
 ParticlePool::AddParticle( auto&& Configurator )
 {
-    if ( m_ParticleCount >= m_MinHeapParticles.size( ) ) return nullptr;
+    if ( m_ParticleCount >= m_MinHeapParticles.size( ) ) return false;
 
     Configurator( m_MinHeapParticles[ m_ParticleCount ] );
     PushLastParticleInHeap( );
+
+    return true;
 }
