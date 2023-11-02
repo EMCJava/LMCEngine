@@ -207,27 +207,6 @@ WandEditorScene::WandEditorScene( )
             spdlog::info( "Effect.ElementCounts : {}", ResultStr.str( ) );
         } );
     }
-
-    {
-        auto TestPAR = std::make_unique<ParticleAttributesRandomizer>( );
-        TestPAR->SetLinearScale( { 0.01, 0.01, 0.01 }, { 0.1, 0.1, 0.1 } );
-        TestPAR->SetVelocity( { -20, -20, 0 }, { 20, 20, 0 } );
-        TestPAR->SetAngularVelocity( -31.415F, 31.415F );
-        TestPAR->SetStartLinearColor( glm::vec4( 1, 0, 0, 0.9 ), glm::vec4( 1, 0.2, 0, 1 ) );
-        TestPAR->SetEndLinearColor( glm::vec4( 1, 0.6, 0.4, 0 ), glm::vec4( 1, 0.8, 0.6, 0 ) );
-        TestPAR->SetLifetime( 10, 120 );
-
-        auto& PP = m_ParticlePools[ 1 ];
-        for ( int i = 0; i < 180000; ++i )
-        {
-            PP->AddParticle( [ this, &TestPAR, &WindowSize ]( auto& Pa ) {
-                TestPAR->Apply( Pa );
-                Pa.GetColor( ) = glm::vec4( 1 );
-                Pa.GetOrientation( ).SetOrigin( m_ParticleScriptsize / 2, m_ParticleScriptsize / 2 );
-                Pa.GetOrientation( ).SetCoordinate( WindowSize.first / 2, WindowSize.second / 2 );
-            } );
-        }
-    }
 }
 
 void

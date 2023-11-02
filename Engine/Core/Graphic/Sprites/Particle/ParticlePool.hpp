@@ -33,7 +33,7 @@ class ParticlePool : public ConceptApplicable
     PushLastParticleInHeap( );
 
 public:
-    static constexpr size_t MAX_PARTICLES = 200000;
+    static constexpr size_t MAX_PARTICLES = 1000;
 
     ParticlePool( );
 

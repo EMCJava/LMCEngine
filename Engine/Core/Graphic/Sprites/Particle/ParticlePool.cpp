@@ -77,8 +77,8 @@ public:
             m_SpriteTexture->PureRender( );   // lol
         } else
         {
-            const auto     ParticleCount = m_ParticlePool.GetParticleCount( );
-            constexpr auto MapFlags      = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
+            ParticleCount           = m_ParticlePool.GetParticleCount( );
+            constexpr auto MapFlags = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
 
             const auto* gl = Engine::GetEngine( )->GetGLContext( );
             GL_CHECK( gl->BindVertexArray( m_SpriteTexture->GetVAO( ) ) )
@@ -126,8 +126,7 @@ public:
                     Threads[ i ].~thread( );
                 }
 
-                this->ParticleCount = ParticleCount;
-                ThreadUsed          = NumberOfThreadNeeded;
+                ThreadUsed = NumberOfThreadNeeded;
             }
             // Unmap buffer
             GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_MatrixInstancingBuffer ) )
