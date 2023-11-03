@@ -75,6 +75,7 @@ public:
      *
      * */
     void EnableRowCursorMotion( bool Enable );
+    void LockCursor( bool Lock );
 
     /*
      *
@@ -111,8 +112,10 @@ private:
     std::pair<int, int> m_CursorDeltaPosition { };
     std::pair<int, int> m_CursorPosition;
 
+    // TODO: Use list
     std::map<KeyIDTY, KeyState> m_OtherKeysStates { };
 
+    bool    m_EnableRowCursorMotion { false };
     FloatTy m_CursorSensitivity { 0.5f };
 
     int32_t m_KeyPressingCount { };

@@ -36,6 +36,8 @@ void
 PureConceptPerspectiveCamera::SetCameraFacing( const glm::vec3& Vector, bool UpdateMatrix )
 {
     m_CameraFrontVec = Vector;
+    m_CameraRightVec = glm::normalize( glm::cross( m_CameraFrontVec, m_CameraUpVec ) );
+
     if ( UpdateMatrix )
     {
         UpdateProjectionMatrix( );
@@ -45,7 +47,9 @@ PureConceptPerspectiveCamera::SetCameraFacing( const glm::vec3& Vector, bool Upd
 void
 PureConceptPerspectiveCamera::SetCameraUpVector( const glm::vec3& Vector, bool UpdateMatrix )
 {
-    m_CameraUpVec = Vector;
+    m_CameraUpVec    = Vector;
+    m_CameraRightVec = glm::normalize( glm::cross( m_CameraFrontVec, m_CameraUpVec ) );
+
     if ( UpdateMatrix )
     {
         UpdateProjectionMatrix( );
@@ -59,7 +63,8 @@ PureConceptPerspectiveCamera::SetCameraPerspectiveFOV( FloatTy FOV, bool UpdateM
     if ( UpdateMatrix )
     {
         UpdateProjectionMatrix( );
-    }}
+    }
+}
 
 glm::vec3
 PureConceptPerspectiveCamera::CalculateCameraRightVector( ) const

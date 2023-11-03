@@ -33,6 +33,8 @@ public:
     inline const glm::vec3&
     GetCameraFacing( ) const { return m_CameraFrontVec; }
     inline const glm::vec3&
+    GetCameraRightVector( ) const { return m_CameraRightVec; }
+    inline const glm::vec3&
     GetCameraUpVector( ) const { return m_CameraUpVec; }
 
     glm::vec3
@@ -53,6 +55,7 @@ protected:
     glm::vec3 m_CameraPosition { };
     glm::vec3 m_CameraFrontVec { };
     glm::vec3 m_CameraUpVec { 0, 1, 0 };
+    glm::vec3 m_CameraRightVec { };
 
     ENABLE_IMGUI( PureConceptPerspectiveCamera )
 };

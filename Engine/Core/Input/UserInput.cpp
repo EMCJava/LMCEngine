@@ -76,9 +76,23 @@ UserInput::GetFunctionKey( )
 void
 UserInput::EnableRowCursorMotion( bool Enable )
 {
+    m_EnableRowCursorMotion = Enable;
     REQUIRED_IF( glfwRawMouseMotionSupported( ) )
     {
         glfwSetInputMode( m_EventWindow, GLFW_RAW_MOUSE_MOTION, Enable );
+    }
+}
+
+void
+UserInput::LockCursor( bool Lock )
+{
+    if ( Lock )
+    {
+        glfwSetInputMode( m_EventWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED );
+        EnableRowCursorMotion( m_EnableRowCursorMotion );
+    } else
+    {
+        glfwSetInputMode( m_EventWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL );
     }
 }
 

@@ -70,6 +70,53 @@ protected:
 DEFINE_CONCEPT_DS( MeshRotate )
 DEFINE_SIMPLE_IMGUI_TYPE( MeshRotate, m_CameraPosition, m_CameraFacing )
 
+class CameraController : public ConceptApplicable
+{
+    DECLARE_CONCEPT( CameraController, ConceptApplicable )
+
+public:
+    explicit CameraController( std::shared_ptr<PureConceptPerspectiveCamera> Camera )
+        : m_Camera( std::move( Camera ) )
+    {
+        Engine::GetEngine( )->GetUserInputHandle( )->LockCursor( true );
+    }
+
+    void
+    Apply( ) override
+    {
+        const auto    DeltaTime      = Engine::GetEngine( )->GetDeltaSecond( );
+        const FloatTy DeltaChange    = DeltaTime * m_ViewControlSensitivity;
+        auto          CameraPosition = m_Camera->GetCameraPosition( );
+
+        int FrontMovement = 0;
+        int RightMovement = 0;
+
+        auto* UserInputHandle = Engine::GetEngine( )->GetUserInputHandle( );
+
+        if ( UserInputHandle->GetKeyState( GLFW_KEY_W ).isDown ) FrontMovement += 1;
+        if ( UserInputHandle->GetKeyState( GLFW_KEY_S ).isDown ) FrontMovement -= 1;
+        if ( UserInputHandle->GetKeyState( GLFW_KEY_D ).isDown ) RightMovement += 1;
+        if ( UserInputHandle->GetKeyState( GLFW_KEY_A ).isDown ) RightMovement -= 1;
+
+        if ( FrontMovement != 0 ) CameraPosition += m_Camera->GetCameraFacing( ) * ( FrontMovement * DeltaChange );
+        if ( RightMovement != 0 ) CameraPosition += m_Camera->GetCameraRightVector( ) * ( RightMovement * DeltaChange );
+        if ( FrontMovement || RightMovement ) m_Camera->SetCameraPosition( CameraPosition );
+    }
+
+protected:
+    std::shared_ptr<PureConceptPerspectiveCamera> m_Camera;
+    FloatTy                                       m_ViewControlSensitivity { 1.0f };
+
+    ENABLE_IMGUI( CameraController )
+};
+DEFINE_CONCEPT( CameraController )
+DEFINE_SIMPLE_IMGUI_TYPE( CameraController, m_ViewControlSensitivity )
+
+CameraController::~CameraController( )
+{
+    Engine::GetEngine( )->GetUserInputHandle( )->LockCursor( false );
+}
+
 GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
@@ -103,7 +150,8 @@ GameManager::GameManager( )
         Mesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
 
         TestModel.LoadModel( Mesh.get( ) );
-        AddConcept<MeshRotate>( Mesh );
+        // AddConcept<MeshRotate>( Mesh );
+        AddConcept<CameraController>( m_MainCamera );
     }
 
     spdlog::info( "GameManager concept constructor returned" );
