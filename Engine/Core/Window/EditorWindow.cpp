@@ -14,7 +14,7 @@
 #include <Engine/Engine.hpp>
 
 #include <glad/gl.h>
-#include <GLFW/glfw3.h>
+#include <Engine/Core/Window/API/GLFW.hpp>
 
 #include <spdlog/spdlog.h>
 

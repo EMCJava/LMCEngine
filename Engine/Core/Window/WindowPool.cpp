@@ -6,7 +6,7 @@
 
 #include <Engine/Core/Window/Window.hpp>
 
-#include <GLFW/glfw3.h>
+#include <Engine/Core/Window/API/GLFW.hpp>
 
 #include <algorithm>
 

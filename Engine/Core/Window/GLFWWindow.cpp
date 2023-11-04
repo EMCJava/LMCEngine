@@ -7,7 +7,7 @@
 #include <Engine/Core/Graphic/API/OpenGL.hpp>
 #include <Engine/Core/Core.hpp>
 
-#include <GLFW/glfw3.h>
+#include <Engine/Core/Window/API/GLFW.hpp>
 
 #include <spdlog/spdlog.h>
 

@@ -8,14 +8,13 @@ function(declare_library)
             ${ARGN} # arguments of the function to parse, here we take the all original ones
     )
 
-    if(NOT PARSED_ARGS_NAME)
+    if (NOT PARSED_ARGS_NAME)
         message(FATAL_ERROR "declare_library must provide a name")
-    endif(NOT PARSED_ARGS_NAME)
+    endif (NOT PARSED_ARGS_NAME)
 
-    if(PARSED_ARGS_STATIC)
+    if (PARSED_ARGS_STATIC)
         message("Building static library for ${PARSED_ARGS_NAME}")
-    endif(PARSED_ARGS_STATIC)
-
+    endif (PARSED_ARGS_STATIC)
 
     if (${EditorBuild} AND NOT PARSED_ARGS_STATIC)
         add_library(${PARSED_ARGS_NAME}.lib SHARED ${PARSED_ARGS_SRCS})

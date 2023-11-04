@@ -15,6 +15,7 @@
 #include <Engine/Core/Graphic/Canvas/Canvas.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
+#include <Engine/Core/Window/API/GLFW.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>

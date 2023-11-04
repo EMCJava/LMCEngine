@@ -8,9 +8,8 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
-// #define GLFW_INCLUDE_NONE
 #include <glad/gl.h>
-#include <GLFW/glfw3.h>
+#include <Engine/Core/Window/API/GLFW.hpp>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/callback_sink.h>

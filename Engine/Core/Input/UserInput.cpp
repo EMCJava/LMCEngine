@@ -6,7 +6,7 @@
 
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 
-#include <GLFW/glfw3.h>
+#include <Engine/Core/Window/API/GLFW.hpp>
 
 UserInput::UserInput( GLFWwindow* window )
     : m_EventWindow( window )

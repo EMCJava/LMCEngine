@@ -1,6 +1,33 @@
 include(FetchContent)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
+find_package(OpenGL REQUIRED)
+
+## -------------- GLFW --------------
+FetchContent_Declare(
+        glfw
+        GIT_REPOSITORY https://github.com/glfw/glfw.git
+        GIT_TAG 3.3.8
+)
+
+FetchContent_GetProperties(glfw)
+if (NOT glfw_POPULATED)
+    FetchContent_Populate(glfw)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(GLFW_LIBRARY_TYPE "SHARED" CACHE STRING "" FORCE)
+
+    add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
+    target_compile_definitions(glfw PRIVATE _GLFW_BUILD_DLL)
+    target_link_libraries(glfw ${OPENGL_LIBRARY})
+
+    set_target_properties(glfw PROPERTIES
+            BUILD_SHARED_LIBS ON
+    )
+
+endif ()
+
 ## -------------- IMGUI --------------
 FetchContent_Declare(
         imgui
@@ -24,21 +51,6 @@ add_library(imgui.demo.lib STATIC ${imgui_SOURCE_DIR}/imgui_demo.cpp)
 target_link_libraries(imgui.lib glfw)
 target_link_libraries(imgui.demo.lib PRIVATE imgui.lib)
 
-## -------------- GLFW --------------
-FetchContent_Declare(
-        glfw
-        GIT_REPOSITORY https://github.com/glfw/glfw.git
-        GIT_TAG 3.3.8
-)
-
-FetchContent_GetProperties(glfw)
-if (NOT glfw_POPULATED)
-    FetchContent_Populate(glfw)
-    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-    add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
-endif ()
 
 ## -------------- GLAD --------------
 add_library(glad.lib glad/gl.h glad/gl.c)

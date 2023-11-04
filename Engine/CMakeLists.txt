@@ -30,6 +30,8 @@ target_link_libraries(Engine.lib
         Font.lib
 
         SpriteSquare.lib
+
+        ${OPENGL_LIBRARY}
 )
 
 add_subdirectory(Test)
