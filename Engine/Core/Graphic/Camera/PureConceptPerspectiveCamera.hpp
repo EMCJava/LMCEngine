@@ -40,6 +40,9 @@ public:
     glm::vec3
     CalculateCameraRightVector( ) const;
 
+    void
+    AlterCameraPrincipalAxes( FloatTy Yaw, FloatTy Pitch );
+
 protected:
     // In degrees
     FloatTy m_CameraPerspectiveFOV { 45.0 };
@@ -52,10 +55,15 @@ protected:
      * Camera Orientation
      *
      * */
-    glm::vec3 m_CameraPosition { };
+    FloatTy m_CameraViewingYaw;
+    FloatTy m_CameraViewingPitch;
+
     glm::vec3 m_CameraFrontVec { };
-    glm::vec3 m_CameraUpVec { 0, 1, 0 };
+
     glm::vec3 m_CameraRightVec { };
+    glm::vec3 m_CameraUpVec { 0, 1, 0 };
+
+    glm::vec3 m_CameraPosition { };
 
     ENABLE_IMGUI( PureConceptPerspectiveCamera )
 };

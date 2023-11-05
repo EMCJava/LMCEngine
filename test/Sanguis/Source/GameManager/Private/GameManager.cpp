@@ -103,11 +103,25 @@ public:
         if ( FrontMovement != 0 ) CameraPosition += m_Camera->GetCameraFacing( ) * ( FrontMovement * DeltaChange );
         if ( RightMovement != 0 ) CameraPosition += m_Camera->GetCameraRightVector( ) * ( RightMovement * DeltaChange );
         if ( FrontMovement || RightMovement ) m_Camera->SetCameraPosition( CameraPosition );
+
+        if ( UserInputHandle->GetKeyState( GLFW_KEY_ESCAPE ).isPressed )
+        {
+            Engine::GetEngine( )->GetUserInputHandle( )->LockCursor( ( m_MouseLocked = !m_MouseLocked ) );
+        }
+
+        if ( m_MouseLocked )
+        {
+            const auto Delta = UserInputHandle->GetCursorDeltaPosition( );
+            // spdlog::info( "Delta movement: {},{}", Delta.first, Delta.second );
+            m_Camera->AlterCameraPrincipalAxes( Delta.first * 0.05F, -Delta.second * 0.05F );
+        }
     }
 
 protected:
     std::shared_ptr<PureConceptPerspectiveCamera> m_Camera;
     FloatTy                                       m_ViewControlSensitivity { 1.0f };
+
+    bool m_MouseLocked { true };
 
     ENABLE_IMGUI( CameraController )
 };
