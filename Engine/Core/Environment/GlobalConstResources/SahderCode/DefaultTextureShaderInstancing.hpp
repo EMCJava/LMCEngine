@@ -4,7 +4,7 @@
 
 #pragma once
 
-inline const char* DefaultTextureShaderInstancingVertexSource   = "#version 330 core\n"
+inline const char* DefaultTextureInstancingShaderVertexSource   = "#version 330 core\n"
                                                                   "layout (location = 0) in vec3 aPos;\n"
                                                                   "layout (location = 1) in vec2 aTexCoord;\n"
                                                                   "layout (location = 2) in mat4 aModelMatrix;\n"
@@ -18,7 +18,7 @@ inline const char* DefaultTextureShaderInstancingVertexSource   = "#version 330 
                                                                   "   Color = aColor;\n"
                                                                   "   TexCoord = aTexCoord;\n"
                                                                   "}\0";
-inline const char* DefaultTextureShaderInstancingFragmentSource = "#version 330 core\n"
+inline const char* DefaultTextureInstancingShaderFragmentSource = "#version 330 core\n"
                                                                   "out vec4 FragColor;\n"
                                                                   "in vec4 Color;\n"
                                                                   "in vec2 TexCoord;\n"

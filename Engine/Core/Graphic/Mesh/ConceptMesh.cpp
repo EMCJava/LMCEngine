@@ -31,7 +31,7 @@ ConceptMesh::Render( )
         SetCameraMatrix( );
 
 
-        GetShader( )->SetMat4( "modelMatrix", glm::mat4( 1 ) );
+        GetShader( )->SetMat4( "modelMatrix", GetModelMatrix( ) );
         ApplyShaderUniforms( );
 
         m_Shader->Bind( );

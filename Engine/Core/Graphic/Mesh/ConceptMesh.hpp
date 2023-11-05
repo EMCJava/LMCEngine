@@ -5,8 +5,10 @@
 #pragma once
 
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
+#include <Engine/Core/Scene/Orientation/Orientation.hpp>
 
 class ConceptMesh : public ConceptRenderable
+    , public Orientation
 {
     DECLARE_CONCEPT( ConceptMesh, ConceptRenderable )
 

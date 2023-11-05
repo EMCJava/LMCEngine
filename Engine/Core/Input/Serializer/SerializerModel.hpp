@@ -23,7 +23,11 @@ public:
     ~SerializerModel( );
 
     void
-    SetFilePath( const std::string& FilePath ) { m_FilePath = FilePath; }
+    SetFilePath( const std::string& FilePath )
+    {
+        m_FilePath   = FilePath;
+        m_ModelScene = nullptr;
+    }
 
     bool
     LoadModel( );

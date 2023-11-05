@@ -31,17 +31,21 @@
 #include <fstream>
 #include <sstream>
 #include <ranges>
+#include <utility>
 
 DEFINE_CONCEPT_DS_MA_SE( GameManager )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, ConceptApplicable, TestInvokable )
 
-class MeshRotate : public ConceptApplicable
+class LightRotate : public ConceptApplicable
 {
-    DECLARE_CONCEPT( MeshRotate, ConceptApplicable )
+    DECLARE_CONCEPT( LightRotate, ConceptApplicable )
 public:
-    MeshRotate( std::shared_ptr<ConceptMesh> Mesh )
-        : m_Mesh( Mesh )
-    { }
+    LightRotate( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<ConceptMesh> LightMesh )
+        : m_Mesh( std::move( Mesh ) )
+        , m_LightMesh( std::move( LightMesh ) )
+    {
+        m_LightMesh->SetScale( 0.08, 0.08, 0.08, true );
+    }
 
     void
     Apply( ) override
@@ -49,28 +53,17 @@ public:
         const auto DeltaTime = Engine::GetEngine( )->GetDeltaSecond( );
         m_AccumulatedTime += DeltaTime;
 
-        PureConceptPerspectiveCamera* Camera;
-        if ( m_Mesh->GetActiveCamera( )->TryCast( Camera ) )
-        {
-            m_CameraPosition = glm::vec3( sin( m_AccumulatedTime ) * 10.0f, 10, cos( m_AccumulatedTime ) * 10.0f );
-            m_CameraFacing   = glm::normalize( -Camera->GetCameraPosition( ) );
-            m_Mesh->SetShaderUniform( "lightPos", glm::vec3( cos( m_AccumulatedTime * 2 ) * -10.0f, 10, sin( m_AccumulatedTime * 2 ) * -10.0f ) + glm::vec3( 0, 2, 0 ) );
-            Camera->SetCameraPosition( m_CameraPosition, false );
-            Camera->SetCameraFacing( m_CameraFacing );
-        }
+        const auto Location = glm::vec3( cos( m_AccumulatedTime * 2 ) * 5.0f, 2, sin( m_AccumulatedTime * 2 ) * 5.0f );
+        m_Mesh->SetShaderUniform( "lightPos", Location );
+        m_LightMesh->SetCoordinate( Location, true );
     }
 
 protected:
-    glm::vec3 m_CameraPosition;
-    glm::vec3 m_CameraFacing;
-
     FloatTy                      m_AccumulatedTime { 0.0f };
     std::shared_ptr<ConceptMesh> m_Mesh;
-
-    ENABLE_IMGUI( MeshRotate )
+    std::shared_ptr<ConceptMesh> m_LightMesh;
 };
-DEFINE_CONCEPT_DS( MeshRotate )
-DEFINE_SIMPLE_IMGUI_TYPE( MeshRotate, m_CameraPosition, m_CameraFacing )
+DEFINE_CONCEPT_DS( LightRotate )
 
 class CameraController : public ConceptApplicable
 {
@@ -155,19 +148,26 @@ GameManager::GameManager( )
         PerspectiveCanvas->SetRuntimeName( "Perspective Canvas" );
         PerspectiveCanvas->SetCanvasCamera( m_MainCamera );
 
-        SerializerModel TestModel;
-        TestModel.SetFilePath( "Assets/Model/low_poly_room.glb" );
+        {
+            SerializerModel TestModel;
 
-        auto Mesh = PerspectiveCanvas->AddConcept<ConceptMesh>( );
-        Mesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
+            TestModel.SetFilePath( "Assets/Model/low_poly_room.glb" );
+            auto Mesh = PerspectiveCanvas->AddConcept<ConceptMesh>( );
+            Mesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
+            Mesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
+            Mesh->SetShaderUniform( "viewPos", m_MainCamera->GetCameraPosition( ) );
+            Mesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
+            TestModel.LoadModel( Mesh.get( ) );
 
-        Mesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
-        Mesh->SetShaderUniform( "viewPos", m_MainCamera->GetCameraPosition( ) );
-        Mesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
 
-        TestModel.LoadModel( Mesh.get( ) );
-        // AddConcept<MeshRotate>( Mesh );
-        AddConcept<CameraController>( m_MainCamera );
+            TestModel.SetFilePath( "Assets/Model/red_cube.glb" );
+            auto LightMesh = PerspectiveCanvas->AddConcept<ConceptMesh>( );
+            LightMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultMeshShader" ) );
+            TestModel.LoadModel( LightMesh.get( ) );
+
+            AddConcept<LightRotate>( Mesh, LightMesh );
+            AddConcept<CameraController>( m_MainCamera );
+        }
     }
 
     spdlog::info( "GameManager concept constructor returned" );

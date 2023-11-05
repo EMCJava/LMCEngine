@@ -18,6 +18,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <Engine/Library/ImGui/Ext/LogGroup.hpp>
 
+#include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultMeshShader.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultTextureShaderInstancing.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultColorPreVertexShader.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultTextureShader.hpp>
@@ -603,41 +604,26 @@ Engine::GetEngineDefaultLogGroup( )
 void
 Engine::SetupGlobalResources( )
 {
-    auto SProgram = std::make_shared<ShaderProgram>( );
-    SProgram->Load( DefaultColorShaderVertexSource, DefaultColorShaderFragmentSource );
-    auto SpriteShader = std::make_shared<Shader>( );
-    SpriteShader->SetProgram( SProgram );
-    GlobalResourcePool::STryPush( "DefaultColorShader", std::move( SpriteShader ) );
+#define DEFINE_SHADER( NAME )                                               \
+    SProgram = std::make_shared<ShaderProgram>( );                          \
+    SProgram->Load( NAME##ShaderVertexSource, NAME##ShaderFragmentSource ); \
+    SpriteShader = std::make_shared<Shader>( );                             \
+    SpriteShader->SetProgram( SProgram );                                   \
+    GlobalResourcePool::STryPush( #NAME "Shader", std::move( SpriteShader ) );
 
-    SProgram = std::make_shared<ShaderProgram>( );
-    SProgram->Load( DefaultColorPreVertexShaderVertexSource, DefaultColorPreVertexShaderFragmentSource );
-    SpriteShader = std::make_shared<Shader>( );
-    SpriteShader->SetProgram( SProgram );
-    GlobalResourcePool::STryPush( "DefaultColorPreVertexShader", std::move( SpriteShader ) );
+    std::shared_ptr<ShaderProgram> SProgram;
+    std::shared_ptr<Shader>        SpriteShader;
 
-    SProgram = std::make_shared<ShaderProgram>( );
-    SProgram->Load( DefaultTextureShaderVertexSource, DefaultTextureShaderFragmentSource );
-    SpriteShader = std::make_shared<Shader>( );
-    SpriteShader->SetProgram( SProgram );
-    GlobalResourcePool::STryPush( "DefaultTextureShader", std::move( SpriteShader ) );
 
-    SProgram = std::make_shared<ShaderProgram>( );
-    SProgram->Load( DefaultFontShaderVertexSource, DefaultFontShaderFragmentSource );
-    SpriteShader = std::make_shared<Shader>( );
-    SpriteShader->SetProgram( SProgram );
-    GlobalResourcePool::STryPush( "DefaultFontShader", std::move( SpriteShader ) );
+    DEFINE_SHADER( DefaultColor )
+    DEFINE_SHADER( DefaultColorPreVertex )
+    DEFINE_SHADER( DefaultTexture )
+    DEFINE_SHADER( DefaultFont )
+    DEFINE_SHADER( DefaultPhong )
+    DEFINE_SHADER( DefaultMesh )
+    DEFINE_SHADER( DefaultTextureInstancing )
 
-    SProgram = std::make_shared<ShaderProgram>( );
-    SProgram->Load( DefaultPhongShaderVertexSource, DefaultPhongShaderFragmentSource );
-    SpriteShader = std::make_shared<Shader>( );
-    SpriteShader->SetProgram( SProgram );
-    GlobalResourcePool::STryPush( "DefaultPhongShader", std::move( SpriteShader ) );
-
-    SProgram = std::make_shared<ShaderProgram>( );
-    SProgram->Load( DefaultTextureShaderInstancingVertexSource, DefaultTextureShaderInstancingFragmentSource );
-    SpriteShader = std::make_shared<Shader>( );
-    SpriteShader->SetProgram( SProgram );
-    GlobalResourcePool::STryPush( "DefaultTextureShaderInstancing", std::move( SpriteShader ) );
+#undef DEFINE_SHADER
 
     /*
      *

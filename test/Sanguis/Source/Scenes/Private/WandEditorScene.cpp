@@ -46,7 +46,7 @@ WandEditorScene::WandEditorScene( )
     SetSearchThrough( );
 
     auto DefaultShader           = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" );
-    auto DefaultShaderInstancing = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShaderInstancing" );
+    auto DefaultShaderInstancing = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureInstancingShader" );
 
     const auto WindowSize = Engine::GetEngine( )->GetLogicalMainWindowViewPortDimensions( );
 
