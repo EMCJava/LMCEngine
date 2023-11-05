@@ -52,7 +52,9 @@ SerializerModel::LoadModel( )
 FloatTy
 PackColor( aiColor3D color )
 {
-    return round( color.r * 256.0 ) + round( color.g * 256.0 ) * 256.0 + round( color.b * 256.0 ) * 256.0 * 256.0;
+    return round( color.r * 255.0 )
+        + round( color.g * 255.0 ) * 256.0
+        + round( color.b * 255.0 ) * 256.0 * 256.0;
 }
 
 bool
@@ -97,7 +99,7 @@ SerializerModel::LoadModel( struct ConceptMesh* ToMesh )
                 aiString DiffuseTexturePath;
                 REQUIRED_IF( Material->Get( AI_MATKEY_TEXTURE_DIFFUSE( 0 ), DiffuseTexturePath ) == AI_SUCCESS )
                 {
-                    spdlog::info( "{}> tex: {}", std::string( Indent, '-' ), DiffuseTexturePath.C_Str() );
+                    spdlog::info( "{}> tex: {}", std::string( Indent, '-' ), DiffuseTexturePath.C_Str( ) );
                 }
 
                 /*
