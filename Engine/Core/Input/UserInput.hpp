@@ -96,6 +96,14 @@ public:
     [[nodiscard]] inline uint32_t GetFrameCount( ) const { return m_FrameCount; }
     [[nodiscard]] inline int32_t  GetKeyPressCount( ) const { return m_KeyPressingCount; }
 
+    /*
+     *
+     * GLFW context
+     *
+     * */
+    void
+    StoreGLFWContext( );
+
 private:
     uint32_t    m_FrameCount = 0;
     GLFWwindow* m_EventWindow { };
@@ -121,4 +129,12 @@ private:
     int32_t m_KeyPressingCount { };
 
     void UpdateMouse( );
+
+    /*
+     *
+     * GLFW context
+     *
+     * */
+
+    void ( *glfwSetInputModePtr )( ) = nullptr;
 };

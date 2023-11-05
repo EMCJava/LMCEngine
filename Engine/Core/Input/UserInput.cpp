@@ -88,12 +88,18 @@ UserInput::LockCursor( bool Lock )
 {
     if ( Lock )
     {
-        glfwSetInputMode( m_EventWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED );
+        ( reinterpret_cast<decltype( &glfwSetInputMode )>( glfwSetInputModePtr ) )( m_EventWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED );
         EnableRowCursorMotion( m_EnableRowCursorMotion );
     } else
     {
-        glfwSetInputMode( m_EventWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL );
+        ( reinterpret_cast<decltype( &glfwSetInputMode )>( glfwSetInputModePtr ) )( m_EventWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL );
     }
+}
+
+void
+UserInput::StoreGLFWContext( )
+{
+    glfwSetInputModePtr = reinterpret_cast<void ( * )( )>( glfwSetInputMode );
 }
 
 void

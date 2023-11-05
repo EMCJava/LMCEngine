@@ -133,6 +133,7 @@ Engine::Engine( )
     m_GLContext  = m_MainWindow->GetGLContext( );
 
     m_UserInput = new UserInput( m_MainWindow->GetWindowHandle( ) );
+    m_UserInput->StoreGLFWContext( );
 
     glfwSetKeyCallback( m_MainWindow->GetWindowHandle( ), OnKeyboardInput );
     glfwSetMouseButtonCallback( m_MainWindow->GetWindowHandle( ), OnMouseButtonInput );
