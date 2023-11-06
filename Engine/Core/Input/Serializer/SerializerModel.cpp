@@ -35,7 +35,7 @@ SerializerModel::LoadModel( )
     // And have it read the given file with some example postprocessing
     // Usually - if speed is not the most important aspect for you - you'll
     // probably to request more postprocessing than we do in this example.
-    const auto LoadFlags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_OptimizeMeshes | aiProcess_GenNormals | aiProcess_SortByPType;
+    const auto LoadFlags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_OptimizeMeshes | aiProcess_GenNormals | aiProcess_SortByPType | aiProcess_GenBoundingBoxes;
     m_ModelScene         = m_ImporterContext->ReadFile( m_FilePath, LoadFlags );
 
     // If the import failed, report it
@@ -58,7 +58,7 @@ PackColor( aiColor3D color )
 }
 
 bool
-SerializerModel::LoadModel( struct ConceptMesh* ToMesh )
+SerializerModel::LoadModel( ConceptMesh* ToMesh )
 {
     if ( !m_ModelScene && !LoadModel( ) ) return false;
 
