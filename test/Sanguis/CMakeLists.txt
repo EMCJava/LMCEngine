@@ -25,3 +25,6 @@ add_subdirectory(${ENGINE_ROOT}/Engine Engine.Binary)
 ## ---------- Game executable ----------
 add_subdirectory(Source)
 declare_main_executable(Sanguis)
+
+find_package(unofficial-omniverse-physx-sdk CONFIG REQUIRED)
+target_link_libraries(Sanguis unofficial::omniverse-physx-sdk::sdk)
