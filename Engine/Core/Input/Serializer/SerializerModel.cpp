@@ -7,6 +7,8 @@
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 #include <Engine/Core/Graphic/Mesh/ConceptMesh.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
+#include <Engine/Core/Environment/GlobalResourcePool.hpp>
+#include <Engine/Core/Graphic/Shader/Shader.hpp>
 
 #include <assimp/Importer.hpp>    // C++ importer interface
 #include <assimp/scene.h>         // Output data structure
@@ -56,6 +58,133 @@ PackColor( aiColor3D color )
         + round( color.g * 255.0 ) * 256.0
         + round( color.b * 255.0 ) * 256.0 * 256.0;
 }
+
+class BoxFrameRenderer : public ConceptRenderable
+    , public Orientation
+{
+    DECLARE_CONCEPT( BoxFrameRenderer, ConceptRenderable )
+
+    void RenderBox( )
+    {
+        const auto* gl = Engine::GetEngine( )->GetGLContext( );
+
+        gl->PolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        GL_CHECK( gl->BindVertexArray( m_VAO ) )
+        GL_CHECK( gl->DrawArrays( GL_TRIANGLES, 0, 3 * 2 * 6 ) )
+        gl->PolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+    }
+
+public:
+    BoxFrameRenderer( aiVector3D start, aiVector3D end )
+    {
+        const auto* gl = Engine::GetEngine( )->GetGLContext( );
+        GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
+
+        float vertices[] = {
+            // front
+            0.5f, -0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
+            -0.5f, -0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
+            0.5f, -0.5f, 0.5f,
+
+            // back
+            -0.5f, -0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
+            -0.5f, 0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,
+
+            // left
+            -0.5f, -0.5f, 0.5f,
+            -0.5f, 0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,
+            -0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, -0.5f,
+            -0.5f, -0.5f, 0.5f,
+
+            // right
+            0.5f, -0.5f, -0.5f,
+            0.5f, 0.5f, 0.5f,
+            0.5f, -0.5f, 0.5f,
+            0.5f, 0.5f, -0.5f,
+            0.5f, 0.5f, 0.5f,
+            0.5f, -0.5f, -0.5f,
+
+            // up
+            0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, -0.5f,
+            -0.5f, 0.5f, 0.5f,
+            0.5f, 0.5f, -0.5f,
+            -0.5f, 0.5f, -0.5f,
+            0.5f, 0.5f, 0.5f,
+
+            // down
+            0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, 0.5f,
+            -0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, 0.5f,
+            -0.5f, -0.5f, 0.5f,
+            0.5f, -0.5f, -0.5f };
+
+        const auto diff = end - start;
+
+        for ( int i = 0; i < sizeof( vertices ) / sizeof( float ); i += 3 )
+        {
+            vertices[ i + 0 ] += 0.5f;
+            vertices[ i + 1 ] += 0.5f;
+            vertices[ i + 2 ] += 0.5f;
+
+            vertices[ i + 0 ] *= diff[ 0 ];
+            vertices[ i + 1 ] *= diff[ 1 ];
+            vertices[ i + 2 ] *= diff[ 2 ];
+
+            vertices[ i + 0 ] += start[ 0 ];
+            vertices[ i + 1 ] += start[ 1 ];
+            vertices[ i + 2 ] += start[ 2 ];
+        }
+
+        GL_CHECK( gl->GenVertexArrays( 1, &m_VAO ) )
+        GL_CHECK( gl->BindVertexArray( m_VAO ) )
+
+        // 2. copy our vertices array in a buffer for OpenGL to use
+        GL_CHECK( gl->GenBuffers( 1, &m_VBO ) )
+        GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_VBO ) )
+        GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, sizeof( vertices ), vertices, GL_STATIC_DRAW ) )
+
+        // 3. then set our vertex attributes pointers
+        GL_CHECK( gl->VertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof( float ), nullptr ) )
+        GL_CHECK( gl->EnableVertexAttribArray( 0 ) )
+
+        m_Shader = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultColorShader" );
+        SetShaderUniform( "fragColor", glm::vec4( 0, 1, 0, 1 ) );
+    }
+
+    void
+    Render( ) override
+    {
+        const auto* gl = Engine::GetEngine( )->GetGLContext( );
+        GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
+
+        m_Shader->Bind( );
+        SetCameraMatrix( );
+        m_Shader->SetMat4( "modelMatrix", GetModelMatrix( ) );
+        ApplyShaderUniforms( );
+
+        const bool DepthTest = gl->IsEnabled( GL_DEPTH_TEST );
+        GL_CHECK( gl->Disable( GL_DEPTH_TEST ) )
+
+        RenderBox( );
+
+        if ( DepthTest ) GL_CHECK( gl->Enable( GL_DEPTH_TEST ) )
+    }
+
+private:
+    uint32_t m_VAO { }, m_VBO { };
+};
+DEFINE_CONCEPT_DS( BoxFrameRenderer )
 
 bool
 SerializerModel::LoadModel( ConceptMesh* ToMesh )
@@ -146,6 +275,13 @@ SerializerModel::LoadModel( ConceptMesh* ToMesh )
                     IndicesData += 3;
                 }
 
+                /*
+                 *
+                 * Hit boxes
+                 *
+                 * */
+                ToMesh->AddConcept<BoxFrameRenderer>( Transform * Mesh->mAABB.mMin, Transform * Mesh->mAABB.mMax );
+
                 spdlog::info( "{}>{}", std::string( Indent, '-' ), NumberOfIndices );
             }
         } else
@@ -181,7 +317,7 @@ SerializerModel::LoadModel( ConceptMesh* ToMesh )
     GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, sizeof( glm::vec4 ) * ToMesh->m_Vertices_ColorPack.size( ) + sizeof( glm::vec3 ) * ToMesh->m_Normals.size( ), nullptr, GL_STATIC_DRAW ) )
     GL_CHECK( gl->BufferSubData( GL_ARRAY_BUFFER, 0,
                                  sizeof( glm::vec4 ) * ToMesh->m_Vertices_ColorPack.size( ), /* Vertices size */
-                                 ToMesh->m_Vertices_ColorPack.data( ) ) );
+                                 ToMesh->m_Vertices_ColorPack.data( ) ) )
     GL_CHECK( gl->BufferSubData( GL_ARRAY_BUFFER,
                                  sizeof( glm::vec4 ) * ToMesh->m_Vertices_ColorPack.size( ), /* Vertices size */
                                  sizeof( glm::vec3 ) * ToMesh->m_Normals.size( ),            /* Normals size */
@@ -196,6 +332,14 @@ SerializerModel::LoadModel( ConceptMesh* ToMesh )
     GL_CHECK( gl->GenBuffers( 1, &ToMesh->m_EBO ) )
     GL_CHECK( gl->BindBuffer( GL_ELEMENT_ARRAY_BUFFER, ToMesh->m_EBO ) )
     GL_CHECK( gl->BufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( uint32_t ) * ToMesh->m_Indices.size( ), ToMesh->m_Indices.data( ), GL_STATIC_DRAW ) )
+
+    // For hitBox render
+    ToMesh->SetSearchThrough( );
+    //    ToMesh->AddConcept<BoxFrameRenderer>( aiVector3D { 0, 0, 0 }, aiVector3D { 1, 1, 1 } );
+    //    ToMesh->AddConcept<BoxFrameRenderer>( aiVector3D { 0, 0, 1 }, aiVector3D { 1, 1, 2 } );
+    //    ToMesh->AddConcept<BoxFrameRenderer>( aiVector3D { 0, 0, 0 }, aiVector3D { -1, 1, 1 } );
+    //    ToMesh->AddConcept<BoxFrameRenderer>( aiVector3D { 0, 0, 0 }, aiVector3D { 1, 1, -1 } );
+    //    ToMesh->AddConcept<BoxFrameRenderer>( aiVector3D { 0, 0, 0 }, aiVector3D { -1, 1, -1 } );
 
     return true;
 }
