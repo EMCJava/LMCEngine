@@ -187,7 +187,7 @@ private:
 DEFINE_CONCEPT_DS( BoxFrameRenderer )
 
 bool
-SerializerModel::LoadModel( ConceptMesh* ToMesh )
+SerializerModel::ToMesh( ConceptMesh* ToMesh, std::vector<SubMeshSpan>* SubMeshesRecord )
 {
     if ( !m_ModelScene && !LoadModel( ) ) return false;
 
@@ -195,8 +195,10 @@ SerializerModel::LoadModel( ConceptMesh* ToMesh )
     ToMesh->m_Normals.clear( );
     ToMesh->m_Indices.clear( );
 
+    if ( SubMeshesRecord != nullptr ) SubMeshesRecord->clear( );
+
     std::function<void( int, const aiNode*, const aiMatrix4x4& )> FetchMesh;
-    FetchMesh = [ this, &FetchMesh, ToMesh ]( int Indent, const aiNode* Node, const aiMatrix4x4& Transform ) {
+    FetchMesh = [ this, &FetchMesh, ToMesh, SubMeshesRecord ]( int Indent, const aiNode* Node, const aiMatrix4x4& Transform ) {
         if ( Node->mMeshes != nullptr )
         {
             spdlog::info( "{}Node: {}[{}]", std::string( Indent, '-' ), Node->mName.C_Str( ), *Node->mMeshes );
@@ -254,7 +256,7 @@ SerializerModel::LoadModel( ConceptMesh* ToMesh )
                  * Base on the assumption that mesh only contains triangles
                  *
                  * */
-                int NumberOfIndices = Mesh->mNumFaces * 3;
+                size_t NumberOfIndices = Mesh->mNumFaces * 3;
 
                 /*
                  *
@@ -273,6 +275,12 @@ SerializerModel::LoadModel( ConceptMesh* ToMesh )
                     }
 
                     IndicesData += 3;
+                }
+
+                if ( SubMeshesRecord != nullptr )
+                {
+                    SubMeshesRecord->emplace_back( std::span<glm::vec4> { (glm::vec4*) nullptr, Mesh->mNumVertices },
+                                                   std::span<uint32_t> { (uint32_t*) nullptr, NumberOfIndices } );
                 }
 
                 /*
@@ -297,6 +305,21 @@ SerializerModel::LoadModel( ConceptMesh* ToMesh )
     };
 
     FetchMesh( 1, m_ModelScene->mRootNode, m_ModelScene->mRootNode->mTransformation );
+
+    if ( SubMeshesRecord != nullptr )
+    {
+        auto* BeginVer = ToMesh->m_Vertices_ColorPack.data( );
+        auto* BeginInd = ToMesh->m_Indices.data( );
+
+        for ( auto& SubMesh : *SubMeshesRecord )
+        {
+            SubMesh.VertexRange = { BeginVer, SubMesh.VertexRange.size( ) };
+            SubMesh.IndexRange  = { BeginInd, SubMesh.IndexRange.size( ) };
+
+            BeginVer += SubMesh.VertexRange.size( );
+            BeginInd += SubMesh.IndexRange.size( );
+        }
+    }
 
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
     GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )

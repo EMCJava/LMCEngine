@@ -22,9 +22,9 @@ include(SourceInclude)
 include_directories(${ENGINE_ROOT})
 add_subdirectory(${ENGINE_ROOT}/Engine Engine.Binary)
 
+## -------------- PhysX --------------
+find_package(PhysX REQUIRED)
+
 ## ---------- Game executable ----------
 add_subdirectory(Source)
 declare_main_executable(Sanguis)
-
-find_package(PhysX REQUIRED)
-target_link_libraries(Sanguis PhysX::PhysX)

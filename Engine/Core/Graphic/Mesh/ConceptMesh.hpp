@@ -16,6 +16,12 @@ public:
     void
     Render( ) override;
 
+    auto&
+    GetVerticesColorPack( ) { return m_Vertices_ColorPack; }
+
+    auto&
+    GetIndices( ) { return m_Indices; }
+
 protected:
     std::vector<glm::vec4> m_Vertices_ColorPack;
     std::vector<glm::vec3> m_Normals;

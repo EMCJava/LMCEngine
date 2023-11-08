@@ -28,6 +28,9 @@
 
 #include <assimp/scene.h>
 
+#include <PxPhysicsAPI.h>
+
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <ranges>
@@ -126,6 +129,244 @@ CameraController::~CameraController( )
     Engine::GetEngine( )->GetUserInputHandle( )->LockCursor( false );
 }
 
+
+class PhysicsScene
+{
+    void InitializeScene( );
+
+public:
+    PhysicsScene( physx::PxPhysics* Physics )
+        : m_Physics( Physics )
+    {
+        physx::PxSceneDesc sceneDesc( Physics->getTolerancesScale( ) );
+        sceneDesc.gravity       = physx::PxVec3( 0.0f, -9.81f, 0.0f );
+        m_Dispatcher            = physx::PxDefaultCpuDispatcherCreate( 2 );
+        sceneDesc.cpuDispatcher = m_Dispatcher;
+        sceneDesc.filterShader  = physx::PxDefaultSimulationFilterShader;
+        m_Scene                 = Physics->createScene( sceneDesc );
+
+        // flags
+        m_Scene->setFlag( physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS, true );
+
+        physx::PxPvdSceneClient* pvdClient = m_Scene->getScenePvdClient( );
+        if ( pvdClient )
+        {
+            spdlog::info( "Setting PVD flag" );
+            pvdClient->setScenePvdFlag( physx::PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true );
+            pvdClient->setScenePvdFlag( physx::PxPvdSceneFlag::eTRANSMIT_CONTACTS, true );
+            pvdClient->setScenePvdFlag( physx::PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true );
+        }
+    }
+
+    operator physx::PxScene&( ) { return *m_Scene; }
+    auto* operator->( ) { return m_Scene; }
+
+private:
+    physx::PxScene*                m_Scene      = nullptr;
+    physx::PxDefaultCpuDispatcher* m_Dispatcher = nullptr;
+
+    physx::PxPhysics* m_Physics = nullptr;
+};
+
+class PhysicsEngine
+{
+    void
+    InitializePhysx( )
+    {
+        // init physx
+        m_Foundation = PxCreateFoundation( PX_PHYSICS_VERSION, m_DefaultAllocatorCallback, m_DefaultErrorCallback );
+        if ( !m_Foundation ) throw std::runtime_error( "PxCreateFoundation failed!" );
+
+        m_Pvd                            = PxCreatePvd( *m_Foundation );
+        physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate( "127.0.0.1", 5425, 10 );
+        m_Pvd->connect( *transport, physx::PxPvdInstrumentationFlag::eALL );
+
+        m_ToleranceScale.length = 100;   // typical length of an object
+        m_ToleranceScale.speed  = 981;   // typical speed of an object, gravity*1s is a reasonable choice
+        m_Physics               = PxCreatePhysics( PX_PHYSICS_VERSION, *m_Foundation, m_ToleranceScale, true, m_Pvd );
+        // mPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *mFoundation, mToleranceScale);
+
+        m_MainScene = std::make_shared<PhysicsScene>( m_Physics );
+        m_Cooking   = PxCreateCooking( PX_PHYSICS_VERSION, *m_Foundation, physx::PxCookingParams( m_ToleranceScale ) );
+        if ( !m_Cooking ) throw std::runtime_error( "PxCreateCooking failed!" );
+    }
+
+public:
+    PhysicsEngine( )
+    {
+        InitializePhysx( );
+    }
+
+    ~PhysicsEngine( )
+    {
+        m_Physics->release( );
+        m_Foundation->release( );
+    }
+
+    auto*
+    GetPhysxHandle( ) { return m_Physics; }
+
+    auto&
+    GetScene( ) { return *m_MainScene; }
+
+    auto&
+    GetCooking( ) { return *m_Cooking; }
+
+    operator physx::PxPhysics&( ) { return *m_Physics; }
+    auto* operator->( ) { return GetPhysxHandle( ); }
+
+private:
+    physx::PxDefaultAllocator     m_DefaultAllocatorCallback;
+    physx::PxDefaultErrorCallback m_DefaultErrorCallback;
+    physx::PxTolerancesScale      m_ToleranceScale;
+
+    physx::PxCooking*    m_Cooking    = nullptr;
+    physx::PxFoundation* m_Foundation = nullptr;
+    physx::PxPhysics*    m_Physics    = nullptr;
+
+    std::shared_ptr<PhysicsScene> m_MainScene;
+
+    physx::PxPvd* m_Pvd = nullptr;
+};
+
+class GroupConvexSerializer
+{
+public:
+    GroupConvexSerializer( std::string Name, PhysicsEngine* PhyEngine )
+        : m_GroupName( std::move( Name ) )
+        , m_PhyEngine( PhyEngine )
+    { }
+
+    /*
+     *
+     * Try loading from offline saved data
+     *
+     * */
+    bool TryLoad( )
+    {
+        std::filesystem::path CachePath = PATH_PREFIX + m_GroupName + "_convex_cache.bin";
+
+        std::error_code ErrorCode;
+        // Cache already exists
+        if ( std::filesystem::exists( CachePath.parent_path( ), ErrorCode ) && std::filesystem::exists( CachePath ) )
+        {
+            std::ifstream InputStream;
+            InputStream.open( CachePath, std::ios::in | std::ios::binary | std::ios::ate );
+
+            const auto BufferSize = InputStream.tellg( );
+            InputStream.seekg( 0, std::ios::beg );
+
+            m_CacheBufferChunk.clear( );
+            m_CacheBuffer.resize( BufferSize );
+            InputStream.read( m_CacheBuffer.data( ), BufferSize );
+            if ( BufferSize != InputStream.gcount( ) ) throw std::runtime_error( "Failed to read convex.bin" );
+
+            char* BufferBegin = m_CacheBuffer.data( );
+            char* BufferEnd   = BufferBegin + BufferSize;
+
+            while ( BufferBegin != BufferEnd )
+            {
+                size_t SpanSize = *reinterpret_cast<size_t*>( BufferBegin );
+                BufferBegin += sizeof( size_t );
+
+                m_CacheBufferChunk.emplace_back( BufferBegin, SpanSize );
+                BufferBegin += SpanSize;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    template <typename Span>
+        requires requires( Span Buffer ) {
+            Buffer.size( );
+            Buffer.data( );
+        }
+    void
+    AppendCache( Span& VertexBuffer, uint16_t ConvexVertexLimit = 100 )
+    {
+        physx::PxConvexMeshDesc convexDesc;
+        convexDesc.points.count  = VertexBuffer.size( );
+        convexDesc.points.stride = sizeof( VertexBuffer[ 0 ] );
+        convexDesc.points.data   = VertexBuffer.data( );
+        convexDesc.flags         = physx::PxConvexFlag::eCOMPUTE_CONVEX
+            //    | physx::PxConvexFlag::eCHECK_ZERO_AREA_TRIANGLES
+            | physx::PxConvexFlag::eSHIFT_VERTICES;   // Need to verify
+        convexDesc.vertexLimit = ConvexVertexLimit;
+
+        physx::PxDefaultMemoryOutputStream     CookingBuffer;
+        physx::PxConvexMeshCookingResult::Enum result;
+        if ( !m_PhyEngine->GetCooking( ).cookConvexMesh( convexDesc, CookingBuffer, &result ) )
+            throw std::runtime_error( "Failed to cook convex mesh" );
+
+        const auto OldSize = m_CacheBuffer.size( );
+        m_CacheBuffer.resize( OldSize + sizeof( size_t ) + CookingBuffer.getSize( ) );
+
+        size_t BufferSize = CookingBuffer.getSize( );
+        memcpy( m_CacheBuffer.data( ) + OldSize, &BufferSize, sizeof( size_t ) );
+        memcpy( m_CacheBuffer.data( ) + OldSize + sizeof( size_t ), CookingBuffer.getData( ), CookingBuffer.getSize( ) );
+
+        m_CacheBufferChunk.emplace_back( m_CacheBuffer.data( ) + OldSize + sizeof( size_t ), CookingBuffer.getSize( ) );
+
+        spdlog::info( "Cooked buffer size: {}", CookingBuffer.getSize( ) );
+    }
+
+    physx::PxRigidStatic*
+    CreateRigidBodyFromCacheGroup( const physx::PxMaterial& material )
+    {
+        auto* hfActor = ( *m_PhyEngine )->createRigidStatic( physx::PxTransform( physx::PxVec3( 0 ) ) );
+        hfActor->setName( m_GroupName.c_str( ) );
+
+        for ( auto& Chunk : m_CacheBufferChunk )
+        {
+            physx::PxDefaultMemoryInputData input( (uint8_t*) Chunk.data( ), Chunk.size( ) );
+            physx::PxConvexMesh*            convexMesh = ( *m_PhyEngine )->createConvexMesh( input );
+
+            physx::PxShape* aConvexShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, physx::PxConvexMeshGeometry( convexMesh ), material );
+            REQUIRED( aConvexShape != nullptr )
+        }
+
+        return hfActor;
+    }
+
+    void WriteCache( )
+    {
+        std::filesystem::path CachePath = PATH_PREFIX + m_GroupName + "_convex_cache.bin";
+
+        std::error_code ErrorCode;
+        !std::filesystem::exists( CachePath.parent_path( ), ErrorCode ) && std::filesystem::create_directories( CachePath.parent_path( ), ErrorCode );
+
+        // Cache already exists
+        if ( std::filesystem::exists( CachePath ) )
+        {
+            spdlog::warn( "Cache file already exists, overwriting" );
+        }
+
+        std::ofstream OutputStream;
+        OutputStream.open( CachePath, std::ios::out | std::ios::binary );
+        if ( !OutputStream.write( m_CacheBuffer.data( ), m_CacheBuffer.size( ) ) )
+        {
+            throw std::runtime_error( "Failed to write convex cache" );
+        }
+    }
+
+private:
+    const std::string PATH_PREFIX = "Assets/Physics/Cache/Convexes/";
+    std::string       m_GroupName { };
+
+    std::vector<char>            m_CacheBuffer;
+    std::vector<std::span<char>> m_CacheBufferChunk { };
+
+    /*
+     *
+     * Physx
+     *
+     * */
+    PhysicsEngine* m_PhyEngine = nullptr;
+};
+
 GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
@@ -157,16 +398,127 @@ GameManager::GameManager( )
             Mesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
             Mesh->SetShaderUniform( "viewPos", m_MainCamera->GetCameraPosition( ) );
             Mesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
-            TestModel.LoadModel( Mesh.get( ) );
 
+            std::vector<SubMeshSpan> ModelSubMeshSpan;
+            TestModel.ToMesh( Mesh.get( ), &ModelSubMeshSpan );
 
             TestModel.SetFilePath( "Assets/Model/red_cube.glb" );
             auto LightMesh = PerspectiveCanvas->AddConcept<ConceptMesh>( );
             LightMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultMeshShader" ) );
-            TestModel.LoadModel( LightMesh.get( ) );
+            TestModel.ToMesh( LightMesh.get( ) );
 
             AddConcept<LightRotate>( Mesh, LightMesh );
             AddConcept<CameraController>( m_MainCamera );
+
+            {
+                m_PhyEngine = std::make_shared<PhysicsEngine>( );
+
+                physx::PxMaterial*    Material    = ( *m_PhyEngine )->createMaterial( 0.5f, 0.5f, 0.6f );
+                physx::PxRigidStatic* groundPlane = PxCreatePlane( *m_PhyEngine, physx::PxPlane( 0, 1, 0, 50 ), *Material );
+                m_PhyEngine->GetScene( )->addActor( *groundPlane );
+
+                if ( false )
+                {
+                    physx::PxTriangleMeshDesc meshDesc;
+
+                    meshDesc.points.data   = &Mesh->GetVerticesColorPack( )[ 0 ];
+                    meshDesc.points.count  = Mesh->GetVerticesColorPack( ).size( );
+                    meshDesc.points.stride = sizeof( Mesh->GetVerticesColorPack( )[ 0 ] );
+
+                    meshDesc.triangles.stride = sizeof( Mesh->GetIndices( )[ 0 ] ) * 3;
+                    meshDesc.triangles.count  = Mesh->GetIndices( ).size( ) / 3;
+                    meshDesc.triangles.data   = &Mesh->GetIndices( )[ 0 ];
+
+                    meshDesc.flags = physx::PxMeshFlags( );
+
+                    physx::PxTriangleMeshGeometry geom;
+
+                    physx::PxDefaultMemoryOutputStream writeBuffer;
+                    bool                               status = m_PhyEngine->GetCooking( ).cookTriangleMesh( meshDesc, writeBuffer );
+                    PX_ASSERT( status );
+                    physx::PxDefaultMemoryInputData readBuffer( writeBuffer.getData( ), writeBuffer.getSize( ) );
+                    physx::PxTriangleMesh*          triangleMesh = ( *m_PhyEngine )->createTriangleMesh( readBuffer );
+
+                    geom.triangleMesh = triangleMesh;
+
+                    auto* hfActor = ( *m_PhyEngine )->createRigidStatic( physx::PxTransform( physx::PxVec3( 0 ) ) );
+                    hfActor->setName( "W.T.F" );
+
+                    // ?????????
+                    physx::PxShape* meshShape = ( *m_PhyEngine )->createShape( geom, *Material );
+
+                    hfActor->attachShape( *meshShape );
+
+                    m_PhyEngine->GetScene( )->addActor( *hfActor );
+                }
+
+                if ( false )
+                {
+                    physx::PxConvexMeshDesc convexDesc;
+                    convexDesc.points.count  = Mesh->GetVerticesColorPack( ).size( );
+                    convexDesc.points.stride = sizeof( Mesh->GetVerticesColorPack( )[ 0 ] );
+                    convexDesc.points.data   = &Mesh->GetVerticesColorPack( )[ 0 ];
+                    convexDesc.flags         = physx::PxConvexFlag::eCOMPUTE_CONVEX;
+                    convexDesc.vertexLimit   = 100;
+
+                    std::ifstream InputStream;
+                    InputStream.open( "convex.bin", std::ios::in | std::ios::binary | std::ios::ate );
+
+                    const auto BufferSize = InputStream.tellg( );
+                    InputStream.seekg( 0, std::ios::beg );
+
+                    auto buffer = std::make_unique<char[]>( BufferSize );
+                    InputStream.read( buffer.get( ), BufferSize );
+                    if ( BufferSize != InputStream.gcount( ) ) throw std::runtime_error( "Failed to read convex.bin" );
+                    InputStream.close( );
+
+                    physx::PxDefaultMemoryInputData input( (physx::PxU8*) buffer.get( ), BufferSize );
+                    physx::PxConvexMesh*            convexMesh = ( *m_PhyEngine )->createConvexMesh( input );
+                    auto*                           hfActor    = ( *m_PhyEngine )->createRigidStatic( physx::PxTransform( physx::PxVec3( 0 ) ) );
+                    hfActor->setName( "W.T.F" );
+
+                    physx::PxShape* aConvexShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, physx::PxConvexMeshGeometry( convexMesh ), *Material );
+                    m_PhyEngine->GetScene( )->addActor( *hfActor );
+                }
+
+                {
+                    GroupConvexSerializer GCS( "Room", m_PhyEngine.get( ) );
+                    if ( GCS.TryLoad( ) )
+                    {
+                        m_PhyEngine->GetScene( )->addActor( *GCS.CreateRigidBodyFromCacheGroup( *Material ) );
+                    } else
+                    {
+                        spdlog::info( "Number of ModelSubMeshSpan: {}", ModelSubMeshSpan.size( ) );
+
+                        for ( auto& SubMeshSpan : ModelSubMeshSpan )
+                            GCS.AppendCache( SubMeshSpan.VertexRange );
+
+                        m_PhyEngine->GetScene( )->addActor( *GCS.CreateRigidBodyFromCacheGroup( *Material ) );
+                        GCS.WriteCache( );
+                    }
+                }
+
+                //                float              halfExtent = .5f;
+                //                physx::PxShape*    shape      = ( *m_PhyEngine )->createShape( physx::PxBoxGeometry( halfExtent, halfExtent, halfExtent ), *Material );
+                //                physx::PxU32       size       = 30;
+                //                physx::PxTransform t( physx::PxVec3( 0 ) );
+                //                for ( physx::PxU32 i = 0; i < size; i++ )
+                //                {
+                //                    for ( physx::PxU32 j = 0; j < size - i; j++ )
+                //                    {
+                //                        physx::PxTransform     localTm( physx::PxVec3( physx::PxReal( j * 2 ) - physx::PxReal( size - i ), physx::PxReal( i * 2 + 1 ), 0 ) * halfExtent );
+                //                        physx::PxRigidDynamic* body = ( *m_PhyEngine )->createRigidDynamic( t.transform( localTm ) );
+                //                        body->attachShape( *shape );
+                //                        physx::PxRigidBodyExt::updateMassAndInertia( *body, 10.0f );
+                //
+                //                        body->setAngularVelocity( { (float) i, (float) j, 0 }, true );
+                //
+                //                        m_PhyEngine->GetScene( )->addActor( *body );
+                //                    }
+                //                }
+                //
+                //                shape->release( );
+            }
         }
     }
 
@@ -176,6 +528,14 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
+    m_PhyEngine->GetScene( )->simulate( 1 / 60.f );
+    m_PhyEngine->GetScene( )->fetchResults( true );
+
+    const auto SleepTime = 1000 / 60 - Engine::GetEngine( )->GetDeltaSecond( ) * 1000;
+    if ( SleepTime > 0 )
+    {
+        std::this_thread::sleep_for( std::chrono::milliseconds( int( SleepTime ) ) );
+    }
 }
 
 void

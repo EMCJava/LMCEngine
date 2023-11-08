@@ -6,12 +6,21 @@
 
 #include <string>
 #include <memory>
+#include <vector>
+#include <span>
+
+#include <glm/vec4.hpp>
 
 // Forward declarations for Assimp library
 namespace Assimp
 {
 class Importer;
 }
+
+struct SubMeshSpan {
+    std::span<glm::vec4> VertexRange;
+    std::span<uint32_t>  IndexRange;
+};
 
 class SerializerModel
 {
@@ -33,7 +42,7 @@ public:
     LoadModel( );
 
     bool
-    LoadModel( class ConceptMesh* ToMesh );
+    ToMesh( class ConceptMesh* ToMesh, std::vector<SubMeshSpan>* SubMeshesRecord = nullptr );
 
     struct aiScene const*
     GetScene( ) const { return m_ModelScene; }

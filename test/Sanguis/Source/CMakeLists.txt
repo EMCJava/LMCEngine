@@ -149,6 +149,7 @@ declare_library(
         PureConceptPerspectiveCamera.lib
         SerializerModel.lib
         ConceptMesh.lib
+        PhysX::PhysX
 
         DEPS
         spdlog::spdlog

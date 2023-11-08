@@ -25,6 +25,8 @@ public:
 private:
     std::shared_ptr<class PureConceptPerspectiveCamera> m_MainCamera;
 
+    std::shared_ptr<class PhysicsEngine> m_PhyEngine;
+
     /*
      *
      * Scenes
