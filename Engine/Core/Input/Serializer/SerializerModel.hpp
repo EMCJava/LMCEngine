@@ -18,8 +18,11 @@ class Importer;
 }
 
 struct SubMeshSpan {
+    std::string          SubMeshName { };
     std::span<glm::vec4> VertexRange;
-    std::span<uint32_t>  IndexRange;
+
+    // Starting from 0 for every sub-mesh
+    std::vector<uint32_t> RebasedIndexRange;
 };
 
 class SerializerModel

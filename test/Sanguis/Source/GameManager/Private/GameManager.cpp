@@ -229,6 +229,15 @@ private:
     physx::PxPvd* m_Pvd = nullptr;
 };
 
+template <typename Span>
+concept SpanLike = requires( Span span ) {
+    {
+        span.size( )
+    } -> std::convertible_to<std::size_t>;
+    {
+        span.data( )
+    };
+};
 class GroupConvexSerializer
 {
 public:
@@ -237,6 +246,30 @@ public:
         eTriangle = 1
     };
 
+private:
+    void
+    PushCookedBuffer( physx::PxDefaultMemoryOutputStream& CookingBuffer, HitBoxType Type )
+    {
+        const auto OldSize = m_CacheBuffer.size( );
+        m_CacheBuffer.resize( OldSize + sizeof( size_t ) + sizeof( HitBoxType ) + CookingBuffer.getSize( ) );
+
+        char* ChunkStart = m_CacheBuffer.data( ) + OldSize;
+
+        // Buffer size
+        size_t BufferSize = CookingBuffer.getSize( );
+        memcpy( ChunkStart, &BufferSize, sizeof( size_t ) );
+        // Buffer type
+        *reinterpret_cast<HitBoxType*>( ChunkStart + sizeof( size_t ) ) = Type;
+        // Buffer data
+        memcpy( ChunkStart + sizeof( size_t ) + sizeof( HitBoxType ), CookingBuffer.getData( ), CookingBuffer.getSize( ) );
+
+        // Skip list save
+        m_CacheBufferChunk.emplace_back( OldSize + sizeof( size_t ) + sizeof( HitBoxType ), CookingBuffer.getSize( ) );
+
+        spdlog::info( "Cooked buffer size: {}[{}]", CookingBuffer.getSize( ), (uint8_t) Type );
+    }
+
+public:
     GroupConvexSerializer( std::string Name, PhysicsEngine* PhyEngine )
         : m_GroupName( std::move( Name ) )
         , m_PhyEngine( PhyEngine )
@@ -301,13 +334,9 @@ public:
         return false;
     }
 
-    template <typename Span>
-        requires requires( Span Buffer ) {
-            Buffer.size( );
-            Buffer.data( );
-        }
+    template <SpanLike Span>
     void
-    AppendCache( Span& VertexBuffer, uint16_t ConvexVertexLimit = 100 )
+    AppendConvexCache( Span& VertexBuffer, uint16_t ConvexVertexLimit = 100 )
     {
         physx::PxConvexMeshDesc convexDesc;
         convexDesc.points.count  = VertexBuffer.size( );
@@ -320,26 +349,46 @@ public:
 
         physx::PxDefaultMemoryOutputStream     CookingBuffer;
         physx::PxConvexMeshCookingResult::Enum result;
+
+        auto& PhysxCooking = m_PhyEngine->GetCooking( );
+        auto  TriParams = PhysxCooking.getParams( ), ParamsCopy = TriParams;
+
+        TriParams.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eWELD_VERTICES;
+        TriParams.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eFORCE_32BIT_INDICES;
+        m_PhyEngine->GetCooking( ).setParams( TriParams );
+
         if ( !m_PhyEngine->GetCooking( ).cookConvexMesh( convexDesc, CookingBuffer, &result ) )
+        {
+            m_PhyEngine->GetCooking( ).setParams( ParamsCopy );
             throw std::runtime_error( "Failed to cook convex mesh" );
+        }
 
-        const auto OldSize = m_CacheBuffer.size( );
-        m_CacheBuffer.resize( OldSize + sizeof( size_t ) + sizeof( HitBoxType ) + CookingBuffer.getSize( ) );
+        m_PhyEngine->GetCooking( ).setParams( ParamsCopy );
+        PushCookedBuffer( CookingBuffer, HitBoxType::eConvex );
+    }
 
-        char* ChunkStart = m_CacheBuffer.data( ) + OldSize;
 
-        // Buffer size
-        size_t BufferSize = CookingBuffer.getSize( );
-        memcpy( ChunkStart, &BufferSize, sizeof( size_t ) );
-        // Buffer type
-        *reinterpret_cast<HitBoxType*>( ChunkStart + sizeof( size_t ) ) = HitBoxType::eConvex;
-        // Buffer data
-        memcpy( ChunkStart + sizeof( size_t ) + sizeof( HitBoxType ), CookingBuffer.getData( ), CookingBuffer.getSize( ) );
+    template <SpanLike VertexSpan, SpanLike IndexSpan>
+    void
+    AppendTriangleCache( VertexSpan& VertexBuffer, IndexSpan& IndexBuffer )
+    {
+        REQUIRED( IndexBuffer.size( ) % 3 == 0, return; )
 
-        // Skip list save
-        m_CacheBufferChunk.emplace_back( OldSize + sizeof( size_t ) + sizeof( HitBoxType ), CookingBuffer.getSize( ) );
+        physx::PxTriangleMeshDesc meshDesc;
+        meshDesc.points.count  = VertexBuffer.size( );
+        meshDesc.points.stride = sizeof( VertexBuffer[ 0 ] );
+        meshDesc.points.data   = VertexBuffer.data( );
 
-        spdlog::info( "Cooked buffer size: {}", CookingBuffer.getSize( ) );
+        meshDesc.triangles.count  = IndexBuffer.size( ) / 3;
+        meshDesc.triangles.stride = 3 * sizeof( IndexBuffer[ 0 ] );
+        meshDesc.triangles.data   = IndexBuffer.data( );
+
+        physx::PxDefaultMemoryOutputStream       CookingBuffer;
+        physx::PxTriangleMeshCookingResult::Enum result;
+        if ( !m_PhyEngine->GetCooking( ).cookTriangleMesh( meshDesc, CookingBuffer, &result ) )
+            throw std::runtime_error( "Failed to cook triangle mesh" );
+
+        PushCookedBuffer( CookingBuffer, HitBoxType::eTriangle );
     }
 
     physx::PxRigidStatic*
@@ -433,7 +482,7 @@ GameManager::GameManager( )
         {
             SerializerModel TestModel;
 
-            TestModel.SetFilePath( "Assets/Model/low_poly_room.glb" );
+            TestModel.SetFilePath( "Assets/Model/low_poly_mansion.glb" );
             auto Mesh = PerspectiveCanvas->AddConcept<ConceptMesh>( );
             Mesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
             Mesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
@@ -459,7 +508,7 @@ GameManager::GameManager( )
                 m_PhyEngine->GetScene( )->addActor( *groundPlane );
 
                 {
-                    GroupConvexSerializer GCS( "Room", m_PhyEngine.get( ) );
+                    GroupConvexSerializer GCS( "LowPolyMansion", m_PhyEngine.get( ) );
                     if ( GCS.TryLoad( ) )
                     {
                         m_PhyEngine->GetScene( )->addActor( *GCS.CreateRigidBodyFromCacheGroup( *Material ) );
@@ -468,7 +517,17 @@ GameManager::GameManager( )
                         spdlog::info( "Number of ModelSubMeshSpan: {}", ModelSubMeshSpan.size( ) );
 
                         for ( auto& SubMeshSpan : ModelSubMeshSpan )
-                            GCS.AppendCache( SubMeshSpan.VertexRange );
+                        {
+                            try
+                            {
+                                GCS.AppendTriangleCache( SubMeshSpan.VertexRange, SubMeshSpan.RebasedIndexRange );
+                                // GCS.AppendConvexCache( SubMeshSpan.VertexRange );
+                            }
+                            catch ( std::runtime_error& e )
+                            {
+                                spdlog::error( "Failed to load model: {}", e.what( ) );
+                            }
+                        }
 
                         GCS.WriteCache( );
                         m_PhyEngine->GetScene( )->addActor( *GCS.CreateRigidBodyFromCacheGroup( *Material ) );

@@ -279,8 +279,14 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh, std::vector<SubMeshSpan>* SubMeshe
 
                 if ( SubMeshesRecord != nullptr )
                 {
-                    SubMeshesRecord->emplace_back( std::span<glm::vec4> { (glm::vec4*) nullptr, Mesh->mNumVertices },
-                                                   std::span<uint32_t> { (uint32_t*) nullptr, NumberOfIndices } );
+                    SubMeshesRecord->emplace_back( Mesh->mName.C_Str( ),
+                                                   std::span<glm::vec4> { (glm::vec4*) nullptr, Mesh->mNumVertices },
+                                                   std::vector<uint32_t>( NumberOfIndices ) );
+
+                    // Need to recalculate the indices
+                    auto& RebasedIndexRange = SubMeshesRecord->back( ).RebasedIndexRange;
+                    for ( int i = 0; i < NumberOfIndices; ++i )
+                        RebasedIndexRange[ i ] = ToMesh->m_Indices[ OldIndicesSize + i ] - OldVerticesSize;
                 }
 
                 /*
@@ -309,16 +315,15 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh, std::vector<SubMeshSpan>* SubMeshe
     if ( SubMeshesRecord != nullptr )
     {
         auto* BeginVer = ToMesh->m_Vertices_ColorPack.data( );
-        auto* BeginInd = ToMesh->m_Indices.data( );
 
         for ( auto& SubMesh : *SubMeshesRecord )
         {
             SubMesh.VertexRange = { BeginVer, SubMesh.VertexRange.size( ) };
-            SubMesh.IndexRange  = { BeginInd, SubMesh.IndexRange.size( ) };
-
             BeginVer += SubMesh.VertexRange.size( );
-            BeginInd += SubMesh.IndexRange.size( );
         }
+
+        REQUIRED( BeginVer == ToMesh->m_Vertices_ColorPack.data( ) + ToMesh->m_Vertices_ColorPack.size( ),
+                  throw std::runtime_error( "SubMeshesRecord is not valid" ) )
     }
 
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
