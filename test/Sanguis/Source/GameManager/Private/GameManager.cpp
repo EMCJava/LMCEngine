@@ -232,10 +232,29 @@ private:
 class GroupConvexSerializer
 {
 public:
+    enum class HitBoxType : uint8_t {
+        eConvex   = 0,
+        eTriangle = 1
+    };
+
     GroupConvexSerializer( std::string Name, PhysicsEngine* PhyEngine )
         : m_GroupName( std::move( Name ) )
         , m_PhyEngine( PhyEngine )
     { }
+
+    std::filesystem::path
+    GetFilePath( )
+    {
+        return PATH_PREFIX / ( m_GroupName + "_convex_cache.bin" );
+    }
+
+    template <typename Ty>
+    void
+    BufferReadValue( char*& Buffer, Ty& Value )
+    {
+        Value = *reinterpret_cast<Ty*>( Buffer );
+        Buffer += sizeof( Ty );
+    }
 
     /*
      *
@@ -244,7 +263,7 @@ public:
      * */
     bool TryLoad( )
     {
-        std::filesystem::path CachePath = PATH_PREFIX + m_GroupName + "_convex_cache.bin";
+        const auto CachePath = GetFilePath( );
 
         std::error_code ErrorCode;
         // Cache already exists
@@ -266,10 +285,13 @@ public:
 
             while ( BufferBegin != BufferEnd )
             {
-                size_t SpanSize = *reinterpret_cast<size_t*>( BufferBegin );
-                BufferBegin += sizeof( size_t );
+                size_t     SpanSize;
+                HitBoxType Type;
 
-                m_CacheBufferChunk.emplace_back( BufferBegin, SpanSize );
+                BufferReadValue( BufferBegin, SpanSize );
+                BufferReadValue( BufferBegin, Type );
+
+                m_CacheBufferChunk.emplace_back( std::distance( m_CacheBuffer.data( ), BufferBegin ), SpanSize );
                 BufferBegin += SpanSize;
             }
 
@@ -302,13 +324,20 @@ public:
             throw std::runtime_error( "Failed to cook convex mesh" );
 
         const auto OldSize = m_CacheBuffer.size( );
-        m_CacheBuffer.resize( OldSize + sizeof( size_t ) + CookingBuffer.getSize( ) );
+        m_CacheBuffer.resize( OldSize + sizeof( size_t ) + sizeof( HitBoxType ) + CookingBuffer.getSize( ) );
 
+        char* ChunkStart = m_CacheBuffer.data( ) + OldSize;
+
+        // Buffer size
         size_t BufferSize = CookingBuffer.getSize( );
-        memcpy( m_CacheBuffer.data( ) + OldSize, &BufferSize, sizeof( size_t ) );
-        memcpy( m_CacheBuffer.data( ) + OldSize + sizeof( size_t ), CookingBuffer.getData( ), CookingBuffer.getSize( ) );
+        memcpy( ChunkStart, &BufferSize, sizeof( size_t ) );
+        // Buffer type
+        *reinterpret_cast<HitBoxType*>( ChunkStart + sizeof( size_t ) ) = HitBoxType::eConvex;
+        // Buffer data
+        memcpy( ChunkStart + sizeof( size_t ) + sizeof( HitBoxType ), CookingBuffer.getData( ), CookingBuffer.getSize( ) );
 
-        m_CacheBufferChunk.emplace_back( m_CacheBuffer.data( ) + OldSize + sizeof( size_t ), CookingBuffer.getSize( ) );
+        // Skip list save
+        m_CacheBufferChunk.emplace_back( OldSize + sizeof( size_t ) + sizeof( HitBoxType ), CookingBuffer.getSize( ) );
 
         spdlog::info( "Cooked buffer size: {}", CookingBuffer.getSize( ) );
     }
@@ -321,11 +350,22 @@ public:
 
         for ( auto& Chunk : m_CacheBufferChunk )
         {
-            physx::PxDefaultMemoryInputData input( (uint8_t*) Chunk.data( ), Chunk.size( ) );
-            physx::PxConvexMesh*            convexMesh = ( *m_PhyEngine )->createConvexMesh( input );
-
-            physx::PxShape* aConvexShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, physx::PxConvexMeshGeometry( convexMesh ), material );
-            REQUIRED( aConvexShape != nullptr )
+            physx::PxDefaultMemoryInputData input( (uint8_t*) m_CacheBuffer.data( ) + Chunk.first, Chunk.second );
+            switch ( *reinterpret_cast<HitBoxType*>( m_CacheBuffer.data( ) + Chunk.first - sizeof( HitBoxType ) ) )
+            {
+            case HitBoxType::eConvex: {
+                physx::PxConvexMesh* convexMesh   = ( *m_PhyEngine )->createConvexMesh( input );
+                physx::PxShape*      aConvexShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, physx::PxConvexMeshGeometry( convexMesh ), material );
+                REQUIRED( aConvexShape != nullptr )
+                break;
+            }
+            case HitBoxType::eTriangle: {
+                physx::PxTriangleMesh* triangleMesh = ( *m_PhyEngine )->createTriangleMesh( input );
+                physx::PxShape*        aConvexShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, physx::PxTriangleMeshGeometry( triangleMesh ), material );
+                REQUIRED( aConvexShape != nullptr )
+                break;
+            }
+            }
         }
 
         return hfActor;
@@ -333,7 +373,7 @@ public:
 
     void WriteCache( )
     {
-        std::filesystem::path CachePath = PATH_PREFIX + m_GroupName + "_convex_cache.bin";
+        const auto CachePath = GetFilePath( );
 
         std::error_code ErrorCode;
         !std::filesystem::exists( CachePath.parent_path( ), ErrorCode ) && std::filesystem::create_directories( CachePath.parent_path( ), ErrorCode );
@@ -353,11 +393,12 @@ public:
     }
 
 private:
-    const std::string PATH_PREFIX = "Assets/Physics/Cache/Convexes/";
-    std::string       m_GroupName { };
+    const std::filesystem::path PATH_PREFIX = "Assets/Physics/Cache/Convexes/";
+    std::string                 m_GroupName { };
 
-    std::vector<char>            m_CacheBuffer;
-    std::vector<std::span<char>> m_CacheBufferChunk { };
+    // [buffer size(size_t), buffer type(HitBoxType), buffer], ...
+    std::vector<char>                              m_CacheBuffer;
+    std::vector<std::pair<std::ptrdiff_t, size_t>> m_CacheBufferChunk { };
 
     /*
      *
@@ -417,70 +458,6 @@ GameManager::GameManager( )
                 physx::PxRigidStatic* groundPlane = PxCreatePlane( *m_PhyEngine, physx::PxPlane( 0, 1, 0, 50 ), *Material );
                 m_PhyEngine->GetScene( )->addActor( *groundPlane );
 
-                if ( false )
-                {
-                    physx::PxTriangleMeshDesc meshDesc;
-
-                    meshDesc.points.data   = &Mesh->GetVerticesColorPack( )[ 0 ];
-                    meshDesc.points.count  = Mesh->GetVerticesColorPack( ).size( );
-                    meshDesc.points.stride = sizeof( Mesh->GetVerticesColorPack( )[ 0 ] );
-
-                    meshDesc.triangles.stride = sizeof( Mesh->GetIndices( )[ 0 ] ) * 3;
-                    meshDesc.triangles.count  = Mesh->GetIndices( ).size( ) / 3;
-                    meshDesc.triangles.data   = &Mesh->GetIndices( )[ 0 ];
-
-                    meshDesc.flags = physx::PxMeshFlags( );
-
-                    physx::PxTriangleMeshGeometry geom;
-
-                    physx::PxDefaultMemoryOutputStream writeBuffer;
-                    bool                               status = m_PhyEngine->GetCooking( ).cookTriangleMesh( meshDesc, writeBuffer );
-                    PX_ASSERT( status );
-                    physx::PxDefaultMemoryInputData readBuffer( writeBuffer.getData( ), writeBuffer.getSize( ) );
-                    physx::PxTriangleMesh*          triangleMesh = ( *m_PhyEngine )->createTriangleMesh( readBuffer );
-
-                    geom.triangleMesh = triangleMesh;
-
-                    auto* hfActor = ( *m_PhyEngine )->createRigidStatic( physx::PxTransform( physx::PxVec3( 0 ) ) );
-                    hfActor->setName( "W.T.F" );
-
-                    // ?????????
-                    physx::PxShape* meshShape = ( *m_PhyEngine )->createShape( geom, *Material );
-
-                    hfActor->attachShape( *meshShape );
-
-                    m_PhyEngine->GetScene( )->addActor( *hfActor );
-                }
-
-                if ( false )
-                {
-                    physx::PxConvexMeshDesc convexDesc;
-                    convexDesc.points.count  = Mesh->GetVerticesColorPack( ).size( );
-                    convexDesc.points.stride = sizeof( Mesh->GetVerticesColorPack( )[ 0 ] );
-                    convexDesc.points.data   = &Mesh->GetVerticesColorPack( )[ 0 ];
-                    convexDesc.flags         = physx::PxConvexFlag::eCOMPUTE_CONVEX;
-                    convexDesc.vertexLimit   = 100;
-
-                    std::ifstream InputStream;
-                    InputStream.open( "convex.bin", std::ios::in | std::ios::binary | std::ios::ate );
-
-                    const auto BufferSize = InputStream.tellg( );
-                    InputStream.seekg( 0, std::ios::beg );
-
-                    auto buffer = std::make_unique<char[]>( BufferSize );
-                    InputStream.read( buffer.get( ), BufferSize );
-                    if ( BufferSize != InputStream.gcount( ) ) throw std::runtime_error( "Failed to read convex.bin" );
-                    InputStream.close( );
-
-                    physx::PxDefaultMemoryInputData input( (physx::PxU8*) buffer.get( ), BufferSize );
-                    physx::PxConvexMesh*            convexMesh = ( *m_PhyEngine )->createConvexMesh( input );
-                    auto*                           hfActor    = ( *m_PhyEngine )->createRigidStatic( physx::PxTransform( physx::PxVec3( 0 ) ) );
-                    hfActor->setName( "W.T.F" );
-
-                    physx::PxShape* aConvexShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, physx::PxConvexMeshGeometry( convexMesh ), *Material );
-                    m_PhyEngine->GetScene( )->addActor( *hfActor );
-                }
-
                 {
                     GroupConvexSerializer GCS( "Room", m_PhyEngine.get( ) );
                     if ( GCS.TryLoad( ) )
@@ -493,8 +470,8 @@ GameManager::GameManager( )
                         for ( auto& SubMeshSpan : ModelSubMeshSpan )
                             GCS.AppendCache( SubMeshSpan.VertexRange );
 
-                        m_PhyEngine->GetScene( )->addActor( *GCS.CreateRigidBodyFromCacheGroup( *Material ) );
                         GCS.WriteCache( );
+                        m_PhyEngine->GetScene( )->addActor( *GCS.CreateRigidBodyFromCacheGroup( *Material ) );
                     }
                 }
 
