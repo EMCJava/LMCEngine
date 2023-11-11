@@ -238,7 +238,7 @@ concept SpanLike = requires( Span span ) {
         span.data( )
     };
 };
-class GroupConvexSerializer
+class GroupMeshHitBoxSerializer
 {
 public:
     enum class HitBoxType : uint8_t {
@@ -270,7 +270,7 @@ private:
     }
 
 public:
-    GroupConvexSerializer( std::string Name, PhysicsEngine* PhyEngine )
+    GroupMeshHitBoxSerializer( std::string Name, PhysicsEngine* PhyEngine )
         : m_GroupName( std::move( Name ) )
         , m_PhyEngine( PhyEngine )
     { }
@@ -457,6 +457,10 @@ private:
     PhysicsEngine* m_PhyEngine = nullptr;
 };
 
+class RigidCube
+{
+};
+
 GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
@@ -482,7 +486,7 @@ GameManager::GameManager( )
         {
             SerializerModel TestModel;
 
-            TestModel.SetFilePath( "Assets/Model/low_poly_mansion.glb" );
+            TestModel.SetFilePath( "Assets/Model/low_poly_room.glb" );
             auto Mesh = PerspectiveCanvas->AddConcept<ConceptMesh>( );
             Mesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
             Mesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
@@ -508,7 +512,7 @@ GameManager::GameManager( )
                 m_PhyEngine->GetScene( )->addActor( *groundPlane );
 
                 {
-                    GroupConvexSerializer GCS( "LowPolyMansion", m_PhyEngine.get( ) );
+                    GroupMeshHitBoxSerializer GCS( "Room", m_PhyEngine.get( ) );
                     if ( GCS.TryLoad( ) )
                     {
                         m_PhyEngine->GetScene( )->addActor( *GCS.CreateRigidBodyFromCacheGroup( *Material ) );
@@ -534,26 +538,28 @@ GameManager::GameManager( )
                     }
                 }
 
-                //                float              halfExtent = .5f;
-                //                physx::PxShape*    shape      = ( *m_PhyEngine )->createShape( physx::PxBoxGeometry( halfExtent, halfExtent, halfExtent ), *Material );
-                //                physx::PxU32       size       = 30;
-                //                physx::PxTransform t( physx::PxVec3( 0 ) );
-                //                for ( physx::PxU32 i = 0; i < size; i++ )
-                //                {
-                //                    for ( physx::PxU32 j = 0; j < size - i; j++ )
-                //                    {
-                //                        physx::PxTransform     localTm( physx::PxVec3( physx::PxReal( j * 2 ) - physx::PxReal( size - i ), physx::PxReal( i * 2 + 1 ), 0 ) * halfExtent );
-                //                        physx::PxRigidDynamic* body = ( *m_PhyEngine )->createRigidDynamic( t.transform( localTm ) );
-                //                        body->attachShape( *shape );
-                //                        physx::PxRigidBodyExt::updateMassAndInertia( *body, 10.0f );
-                //
-                //                        body->setAngularVelocity( { (float) i, (float) j, 0 }, true );
-                //
-                //                        m_PhyEngine->GetScene( )->addActor( *body );
-                //                    }
-                //                }
-                //
-                //                shape->release( );
+                float              halfExtent = .5f;
+                physx::PxShape*    shape      = ( *m_PhyEngine )->createShape( physx::PxBoxGeometry( halfExtent, halfExtent, halfExtent ), *Material );
+                physx::PxU32       size       = 30;
+                physx::PxTransform t( physx::PxVec3( 0 ) );
+
+                for ( int i = 0; i < 10; ++i )
+                {
+                    for ( int j = 0; j < 10; ++j )
+                    {
+                        physx::PxTransform localTm( physx::PxVec3( 0, 60 + i * 3, -j * 2 ) * halfExtent );
+
+                        physx::PxRigidDynamic* body = ( *m_PhyEngine )->createRigidDynamic( t.transform( localTm ) );
+                        body->setName( "FreeFall" );
+                        body->attachShape( *shape );
+
+                        physx::PxRigidBodyExt::updateMassAndInertia( *body, 10.0f );
+                        body->setAngularVelocity( { (float) i, (float) j, 0 }, true );
+                        m_PhyEngine->GetScene( )->addActor( *body );
+                    }
+                }
+
+                shape->release( );
             }
         }
     }
@@ -564,7 +570,7 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-    m_PhyEngine->GetScene( )->simulate( 1 / 60.f );
+    m_PhyEngine->GetScene( )->simulate( 1 / 120.f );
     m_PhyEngine->GetScene( )->fetchResults( true );
 
     const auto SleepTime = 1000 / 60 - Engine::GetEngine( )->GetDeltaSecond( ) * 1000;
