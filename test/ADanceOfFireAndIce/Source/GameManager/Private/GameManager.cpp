@@ -1307,9 +1307,26 @@ std::vector<TileSpriteSet::TileMeta> TmpMap {
 
 }
 
+class WhiteBackground : public ConceptRenderable
+{
+    DECLARE_CONCEPT( WhiteBackground, ConceptRenderable )
+public:
+    void
+    Render( ) override
+    {
+        const auto* gl = Engine::GetEngine( )->GetGLContext( );
+        GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
+        gl->ClearColor( 1.F, 1.F, 1.F, 1.0f );
+        gl->Clear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    }
+};
+WhiteBackground::~WhiteBackground( ) { }
+
 GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
+
+    AddConcept<WhiteBackground>( );
 
     {
         auto FixedCamera = AddConcept<PureConceptOrthoCamera>( );
