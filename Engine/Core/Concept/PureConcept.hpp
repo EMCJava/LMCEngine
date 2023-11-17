@@ -20,7 +20,7 @@ public:
      *
      * */
     void
-    ConceptLaterInitialize( ) { }
+    ConceptLateInitialize( ) { }
 
     uint64_t
     GetHash( ) const noexcept;

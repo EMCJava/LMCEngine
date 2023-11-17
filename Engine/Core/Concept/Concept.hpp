@@ -146,7 +146,7 @@ Concept::AddConcept( Args&&... params )
     Result->m_BelongsTo = this;
     Result->SetRuntimeName( Result->GetClassName( ) );
 
-    Result->ConceptType::ConceptLaterInitialize( );
+    Result->ConceptType::ConceptLateInitialize( );
 
     return Result;
 }

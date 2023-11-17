@@ -21,7 +21,7 @@ public:
     PureConceptCamera( );
 
     void
-    ConceptLaterInitialize( );
+    ConceptLateInitialize( );
 
     [[nodiscard]] const glm::mat4&
     GetProjectionMatrix( ) const;

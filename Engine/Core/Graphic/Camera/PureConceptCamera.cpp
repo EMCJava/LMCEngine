@@ -55,8 +55,8 @@ PureConceptCamera::PopFromCameraStack( )
 }
 
 void
-PureConceptCamera::ConceptLaterInitialize( )
+PureConceptCamera::ConceptLateInitialize( )
 {
-    PureConcept::ConceptLaterInitialize( );
+    PureConcept::ConceptLateInitialize( );
     UpdateProjectionMatrix( );
 }
