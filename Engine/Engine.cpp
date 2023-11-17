@@ -530,7 +530,7 @@ Engine::SetEngine( Engine* EngineContext )
 void
 Engine::ResetTimer( )
 {
-    m_FirstUpdateTime = m_LastUpdateTime = TimerTy::now( );
+    m_FirstUpdateTime = m_CurrentUpdateTime = m_LastUpdateTime = TimerTy::now( );
 }
 
 FloatTy
