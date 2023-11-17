@@ -7,6 +7,7 @@
 
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
+#include <Engine/Core/Concept/PureConcept.hpp>
 
 #include <Engine/Core/Graphic/API/OpenGL.hpp>
 

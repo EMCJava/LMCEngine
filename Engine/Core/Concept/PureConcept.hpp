@@ -54,6 +54,9 @@ public:
     class Concept*
     GetOwner( ) const noexcept { return m_BelongsTo; }
 
+    void
+    DetachFromOwner( );
+
     virtual void
     SetEnabled( bool enabled ) { m_Enabled = enabled; }
 

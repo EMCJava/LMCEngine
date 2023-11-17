@@ -113,6 +113,16 @@ PureConcept::MoveToFirstAsSubConcept( )
 }
 
 void
+PureConcept::DetachFromOwner( )
+{
+    if ( m_BelongsTo != nullptr )
+    {
+        m_BelongsTo->RemoveConcept( this );
+        m_BelongsTo = nullptr;   // not needed, just to be clear
+    }
+}
+
+void
 PureConcept::MoveToLastAsSubConcept( )
 {
     if ( m_BelongsTo != nullptr )

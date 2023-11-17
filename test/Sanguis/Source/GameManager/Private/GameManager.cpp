@@ -12,6 +12,7 @@
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Input/Serializer/SerializerModel.hpp>
 #include <Engine/Core/Graphic/Mesh/ConceptMesh.hpp>
+#include <Engine/Core/Graphic/Mesh/RenderableMesh.hpp>
 #include <Engine/Core/Graphic/Canvas/Canvas.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
@@ -43,7 +44,7 @@ class LightRotate : public ConceptApplicable
 {
     DECLARE_CONCEPT( LightRotate, ConceptApplicable )
 public:
-    LightRotate( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<ConceptMesh> LightMesh )
+    LightRotate( std::shared_ptr<RenderableMesh> Mesh, std::shared_ptr<RenderableMesh> LightMesh )
         : m_Mesh( std::move( Mesh ) )
         , m_LightMesh( std::move( LightMesh ) )
     {
@@ -62,9 +63,9 @@ public:
     }
 
 protected:
-    FloatTy                      m_AccumulatedTime { 0.0f };
-    std::shared_ptr<ConceptMesh> m_Mesh;
-    std::shared_ptr<ConceptMesh> m_LightMesh;
+    FloatTy                         m_AccumulatedTime { 0.0f };
+    std::shared_ptr<RenderableMesh> m_Mesh;
+    std::shared_ptr<RenderableMesh> m_LightMesh;
 };
 DEFINE_CONCEPT_DS( LightRotate )
 
@@ -501,6 +502,18 @@ private:
     PhysicsEngine* m_PhyEngine = nullptr;
 };
 
+class StaticMesh : public PureConcept
+{
+    DECLARE_CONCEPT( StaticMesh, PureConcept )
+
+public:
+    template <typename Mapping = void*>
+    explicit StaticMesh( const std::string& MeshPathStr = "", bool Static = false, Mapping&& HitBoxMapping = nullptr )
+    {
+    }
+};
+DEFINE_CONCEPT( StaticMesh );
+
 class RigidMesh : public ConceptApplicable
 {
     DECLARE_CONCEPT( RigidMesh, ConceptApplicable )
@@ -510,18 +523,22 @@ public:
     RigidMesh( const std::string& MeshPathStr, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false, Mapping&& HitBoxMapping = nullptr )
         : m_PhyEngine( PhyEngine )
     {
-        auto Mesh = AddConcept<ConceptMesh>( );
+
+        SerializerModel Model;
+        Model.SetFilePath( MeshPathStr );
+
+        auto StaticMesh = AddConcept<ConceptMesh>( );
+        StaticMesh->DetachFromOwner( );
+
+        std::vector<SubMeshSpan> ModelSubMeshSpan;
+        Model.ToMesh( StaticMesh.get( ), &ModelSubMeshSpan );
 
         auto* Camera = PureConceptCamera::PeekCameraStack<PureConceptPerspectiveCamera>( );
+        auto  Mesh   = AddConcept<RenderableMesh>( StaticMesh );
         Mesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
         Mesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
         Mesh->SetShaderUniform( "viewPos", Camera->GetCameraPosition( ) );
         Mesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
-
-        SerializerModel Model;
-        Model.SetFilePath( MeshPathStr );
-        std::vector<SubMeshSpan> ModelSubMeshSpan;
-        Model.ToMesh( Mesh.get( ), &ModelSubMeshSpan );
 
         const auto MeshPathHash = std::to_string( hash_value( std::filesystem::path( MeshPathStr ) ) );
 
@@ -665,11 +682,15 @@ GameManager::GameManager( )
         PerspectiveCanvas->SetCanvasCamera( m_MainCamera );
 
         {
+            auto StaticMesh = AddConcept<ConceptMesh>( );
+            StaticMesh->DetachFromOwner( );
+
             SerializerModel TestModel;
             TestModel.SetFilePath( "Assets/Model/red_cube.glb" );
-            auto LightMesh = PerspectiveCanvas->AddConcept<ConceptMesh>( );
+            TestModel.ToMesh( StaticMesh.get( ) );
+
+            auto LightMesh = PerspectiveCanvas->AddConcept<RenderableMesh>( StaticMesh );
             LightMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultMeshShader" ) );
-            TestModel.ToMesh( LightMesh.get( ) );
 
             AddConcept<CameraController>( m_MainCamera );
 
@@ -687,7 +708,7 @@ GameManager::GameManager( )
                     else
                         return GroupMeshHitBoxSerializer::HitBoxType::eConvex;
                 } );
-                AddConcept<LightRotate>( RM->GetConcept<ConceptMesh>( ), LightMesh );
+                AddConcept<LightRotate>( RM->GetConcept<RenderableMesh>( ), LightMesh );
 
                 for ( int i = 0; i < 10; ++i )
                 {
@@ -749,7 +770,7 @@ GameManager::Apply( )
                 auto* RigidMeshPtr = static_cast<RigidMesh*>( Data );
                 spdlog::info( "{} is moving", RigidMeshPtr->GetRuntimeName( ) );
 
-                if ( auto Mesh = RigidMeshPtr->GetConcept<ConceptMesh>( ); Mesh != nullptr )
+                if ( auto Mesh = RigidMeshPtr->GetConcept<RenderableMesh>( ); Mesh != nullptr )
                 {
                     const auto& GP = ( (physx::PxRigidActor*) activeActors[ i ] )->getGlobalPose( );
                     Mesh->SetCoordinate( GP.p.x, GP.p.y, GP.p.z );

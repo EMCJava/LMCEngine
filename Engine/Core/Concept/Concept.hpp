@@ -30,6 +30,7 @@ public:
      * Operations to sub concepts
      *
      * */
+
     template <class ConceptType, typename... Args>
     std::shared_ptr<ConceptType>
     AddConcept( Args&&... params );
