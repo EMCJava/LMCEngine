@@ -5,6 +5,7 @@
 #include "Orientation.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 #include <new>
 
@@ -197,6 +198,12 @@ Orientation::GetRotation( ) const
 const glm::vec3&
 Orientation::AlterRotation( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
 {
+    if ( m_UsingQuat )
+    {
+        ActivateEularRotation( );
+        m_UsingQuat = false;
+    }
+
     m_Rotation.x += X;
     m_Rotation.y += Y;
     m_Rotation.z += Z;
@@ -214,6 +221,8 @@ Orientation::AlterRotation( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
 const glm::vec3&
 Orientation::SetRotation( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
 {
+    m_UsingQuat = false;
+
     m_Rotation.x = X;
     m_Rotation.y = Y;
     m_Rotation.z = Z;
@@ -236,21 +245,17 @@ Orientation::GetRotationMatrix( )
 void
 Orientation::UpdateRotationMatrix( )
 {
-    m_RotationMatrix = glm::translate( glm::mat4( 1 ), m_RotationOrigin );
-
-    // Apply rotation on X-axis
-    if ( m_Rotation.x != 0 )
-        m_RotationMatrix = glm::rotate( m_RotationMatrix, m_Rotation.x, glm::vec3( 1.0f, 0.0f, 0.0f ) );
-
-    // Apply rotation on Y-axis
-    if ( m_Rotation.y != 0 )
-        m_RotationMatrix = glm::rotate( m_RotationMatrix, m_Rotation.y, glm::vec3( 0.0f, 1.0f, 0.0f ) );
-
-    // Apply rotation on Z-axis
-    if ( m_Rotation.z != 0 )
-        m_RotationMatrix = glm::rotate( m_RotationMatrix, m_Rotation.z, glm::vec3( 0.0f, 0.0f, 1.0f ) );
-
-    m_RotationMatrix = glm::translate( m_RotationMatrix, -m_RotationOrigin );
+    if ( m_UsingQuat )
+    {
+        m_RotationMatrix = glm::translate( glm::translate( glm::mat4( 1 ), m_RotationOrigin )
+                                               * glm::mat4_cast( m_Quat ),
+                                           -m_RotationOrigin );
+    } else
+    {
+        m_RotationMatrix = glm::translate( glm::translate( glm::mat4( 1 ), m_RotationOrigin )
+                                               * glm::eulerAngleXYZ( m_Rotation.x, m_Rotation.y, m_Rotation.z ),
+                                           -m_RotationOrigin );
+    }
 }
 
 const glm::vec3&
@@ -325,17 +330,10 @@ Orientation::CalculateModelMatrix( glm::mat4* Result ) const
 
     *Result = glm::translate( *Result, ( m_Coordinate - m_TranslationOrigin ) + m_RotationOrigin );
 
-    // Apply rotation on X-axis
-    if ( m_Rotation.x != 0 )
-        *Result = glm::rotate( *Result, m_Rotation.x, glm::vec3( 1.0f, 0.0f, 0.0f ) );
-
-    // Apply rotation on Y-axis
-    if ( m_Rotation.y != 0 )
-        *Result = glm::rotate( *Result, m_Rotation.y, glm::vec3( 0.0f, 1.0f, 0.0f ) );
-
-    // Apply rotation on Z-axis
-    if ( m_Rotation.z != 0 )
-        *Result = glm::rotate( *Result, m_Rotation.z, glm::vec3( 0.0f, 0.0f, 1.0f ) );
+    if ( m_UsingQuat )
+        *Result = *Result * glm::eulerAngleXYZ( m_Rotation.x, m_Rotation.y, m_Rotation.z );
+    else
+        *Result = *Result * glm::mat4_cast( m_Quat );
 
     if ( !m_SameRotationScaleOrigin )
     {
@@ -344,4 +342,41 @@ Orientation::CalculateModelMatrix( glm::mat4* Result ) const
 
     *Result = glm::scale( *Result, m_Scale );
     *Result = glm::translate( *Result, -m_ScaleOrigin );
+}
+
+const glm::quat&
+Orientation::SetQuat( const glm::quat& Quat, bool UpdateMatrix )
+{
+    m_UsingQuat = true;
+    m_Quat      = Quat;
+
+    if ( UpdateMatrix )
+    {
+        UpdateRotationMatrix( );
+        UpdateModelMatrix( );
+    }
+
+    return m_Quat;
+}
+
+void
+Orientation::ActivateEularRotation( )
+{
+    if ( m_UsingQuat )
+    {
+        auto Copy   = m_Quat;
+        m_Rotation  = eulerAngles( Copy );
+        m_UsingQuat = false;
+    }
+}
+
+void
+Orientation::ActivateQuatRotation( )
+{
+    if ( !m_UsingQuat )
+    {
+        auto Copy   = m_Rotation;
+        m_Quat      = glm::quat( Copy );
+        m_UsingQuat = true;
+    }
 }

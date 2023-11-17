@@ -7,6 +7,7 @@
 #include <Engine/Core/Core.hpp>
 
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include <spdlog/fmt/fmt.h>
 
@@ -51,6 +52,15 @@ public:
     AlterRotation( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
     const glm::vec3&
     GetRotation( ) const;
+
+    const glm::quat&
+    SetQuat( const glm::quat& Quat, bool UpdateMatrix = true );
+
+    void
+    ActivateEularRotation( );
+
+    void
+    ActivateQuatRotation( );
 
     /*
      *
@@ -97,7 +107,14 @@ public:
 
 protected:
     glm::vec3 m_TranslationOrigin { }, m_RotationOrigin { }, m_ScaleOrigin { };
-    glm::vec3 m_Coordinate { }, m_Rotation { }, m_Scale { 1, 1, 1 };
+    glm::vec3 m_Coordinate { }, m_Scale { 1, 1, 1 };
+
+    bool m_UsingQuat = true;
+    union
+    {
+        glm::vec3 m_Rotation;
+        glm::quat m_Quat { };
+    };
 
     /*
      *
