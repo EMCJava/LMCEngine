@@ -51,6 +51,9 @@ public:
     void
     MoveToLastAsSubConcept( );
 
+    class Concept*
+    GetOwner( ) const noexcept { return m_BelongsTo; }
+
     virtual void
     SetEnabled( bool enabled ) { m_Enabled = enabled; }
 

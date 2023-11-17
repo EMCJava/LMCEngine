@@ -60,7 +60,6 @@ PackColor( aiColor3D color )
 }
 
 class BoxFrameRenderer : public ConceptRenderable
-    , public Orientation
 {
     DECLARE_CONCEPT( BoxFrameRenderer, ConceptRenderable )
 
@@ -170,7 +169,13 @@ public:
 
         m_Shader->Bind( );
         SetCameraMatrix( );
-        m_Shader->SetMat4( "modelMatrix", GetModelMatrix( ) );
+
+        auto* Owner = GetOwner( );
+        if ( ConceptMesh * OwnerMesh; Owner && Owner->TryCast( OwnerMesh ) )
+            m_Shader->SetMat4( "modelMatrix", OwnerMesh->GetModelMatrix( ) );
+        else
+            m_Shader->SetMat4( "modelMatrix", glm::mat4( 1.0f ) );
+
         ApplyShaderUniforms( );
 
         const bool DepthTest = gl->IsEnabled( GL_DEPTH_TEST );
@@ -363,11 +368,6 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh, std::vector<SubMeshSpan>* SubMeshe
 
     // For hitBox render
     ToMesh->SetSearchThrough( );
-    //    ToMesh->AddConcept<BoxFrameRenderer>( aiVector3D { 0, 0, 0 }, aiVector3D { 1, 1, 1 } );
-    //    ToMesh->AddConcept<BoxFrameRenderer>( aiVector3D { 0, 0, 1 }, aiVector3D { 1, 1, 2 } );
-    //    ToMesh->AddConcept<BoxFrameRenderer>( aiVector3D { 0, 0, 0 }, aiVector3D { -1, 1, 1 } );
-    //    ToMesh->AddConcept<BoxFrameRenderer>( aiVector3D { 0, 0, 0 }, aiVector3D { 1, 1, -1 } );
-    //    ToMesh->AddConcept<BoxFrameRenderer>( aiVector3D { 0, 0, 0 }, aiVector3D { -1, 1, -1 } );
 
     return true;
 }

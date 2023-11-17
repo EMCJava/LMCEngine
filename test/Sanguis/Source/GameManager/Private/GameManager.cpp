@@ -91,10 +91,18 @@ public:
 
         auto* UserInputHandle = Engine::GetEngine( )->GetUserInputHandle( );
 
+        const bool Accelerated = UserInputHandle->GetKeyState( GLFW_KEY_LEFT_CONTROL ).isDown;
+
         if ( UserInputHandle->GetKeyState( GLFW_KEY_W ).isDown ) FrontMovement += 1;
         if ( UserInputHandle->GetKeyState( GLFW_KEY_S ).isDown ) FrontMovement -= 1;
         if ( UserInputHandle->GetKeyState( GLFW_KEY_D ).isDown ) RightMovement += 1;
         if ( UserInputHandle->GetKeyState( GLFW_KEY_A ).isDown ) RightMovement -= 1;
+
+        if ( Accelerated )
+        {
+            FrontMovement <<= 4;
+            RightMovement <<= 4;
+        }
 
         if ( FrontMovement != 0 ) CameraPosition += m_Camera->GetCameraFacing( ) * ( FrontMovement * DeltaChange );
         if ( RightMovement != 0 ) CameraPosition += m_Camera->GetCameraRightVector( ) * ( RightMovement * DeltaChange );
@@ -121,13 +129,12 @@ protected:
 
     ENABLE_IMGUI( CameraController )
 };
-DEFINE_CONCEPT( CameraController )
-DEFINE_SIMPLE_IMGUI_TYPE( CameraController, m_ViewControlSensitivity )
-
 CameraController::~CameraController( )
 {
     Engine::GetEngine( )->GetUserInputHandle( )->LockCursor( false );
 }
+DEFINE_CONCEPT( CameraController )
+DEFINE_SIMPLE_IMGUI_TYPE( CameraController, m_ViewControlSensitivity )
 
 
 class PhysicsScene
@@ -140,7 +147,7 @@ public:
     {
         physx::PxSceneDesc sceneDesc( Physics->getTolerancesScale( ) );
         sceneDesc.gravity       = physx::PxVec3( 0.0f, -9.81f, 0.0f );
-        m_Dispatcher            = physx::PxDefaultCpuDispatcherCreate( 2 );
+        m_Dispatcher            = physx::PxDefaultCpuDispatcherCreate( 4 );
         sceneDesc.cpuDispatcher = m_Dispatcher;
         sceneDesc.filterShader  = physx::PxDefaultSimulationFilterShader;
         m_Scene                 = Physics->createScene( sceneDesc );
@@ -167,7 +174,6 @@ private:
 
     physx::PxPhysics* m_Physics = nullptr;
 };
-
 class PhysicsEngine
 {
     void
@@ -181,7 +187,7 @@ class PhysicsEngine
         physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate( "127.0.0.1", 5425, 10 );
         m_Pvd->connect( *transport, physx::PxPvdInstrumentationFlag::eALL );
 
-        m_ToleranceScale.length = 100;   // typical length of an object
+        m_ToleranceScale.length = 1;     // typical length of an object
         m_ToleranceScale.speed  = 981;   // typical speed of an object, gravity*1s is a reasonable choice
         m_Physics               = PxCreatePhysics( PX_PHYSICS_VERSION, *m_Foundation, m_ToleranceScale, true, m_Pvd );
         // mPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *mFoundation, mToleranceScale);
@@ -200,7 +206,10 @@ public:
     ~PhysicsEngine( )
     {
         m_Physics->release( );
+        m_Cooking->release( );
         m_Foundation->release( );
+
+        spdlog::info( "PhysX released!" );
     }
 
     auto*
@@ -242,8 +251,9 @@ class GroupMeshHitBoxSerializer
 {
 public:
     enum class HitBoxType : uint8_t {
-        eConvex   = 0,
-        eTriangle = 1
+        eNone     = 0,
+        eConvex   = 1,
+        eTriangle = 2
     };
 
 private:
@@ -278,7 +288,7 @@ public:
     std::filesystem::path
     GetFilePath( )
     {
-        return PATH_PREFIX / ( m_GroupName + "_convex_cache.bin" );
+        return PATH_PREFIX / ( m_GroupName + "_group_mesh_cache.bin" );
     }
 
     template <typename Ty>
@@ -343,7 +353,7 @@ public:
         convexDesc.points.stride = sizeof( VertexBuffer[ 0 ] );
         convexDesc.points.data   = VertexBuffer.data( );
         convexDesc.flags         = physx::PxConvexFlag::eCOMPUTE_CONVEX
-            //    | physx::PxConvexFlag::eCHECK_ZERO_AREA_TRIANGLES
+            | physx::PxConvexFlag::eCHECK_ZERO_AREA_TRIANGLES
             | physx::PxConvexFlag::eSHIFT_VERTICES;   // Need to verify
         convexDesc.vertexLimit = ConvexVertexLimit;
 
@@ -391,8 +401,35 @@ public:
         PushCookedBuffer( CookingBuffer, HitBoxType::eTriangle );
     }
 
+    physx::PxRigidDynamic*
+    CreateDynamicRigidBodyFromCacheGroup( const physx::PxMaterial& material )
+    {
+        auto* hfActor = ( *m_PhyEngine )->createRigidDynamic( physx::PxTransform( physx::PxVec3( 0 ) ) );
+        hfActor->setName( m_GroupName.c_str( ) );
+
+        for ( auto& Chunk : m_CacheBufferChunk )
+        {
+            physx::PxDefaultMemoryInputData input( (uint8_t*) m_CacheBuffer.data( ) + Chunk.first, Chunk.second );
+            switch ( *reinterpret_cast<HitBoxType*>( m_CacheBuffer.data( ) + Chunk.first - sizeof( HitBoxType ) ) )
+            {
+            case HitBoxType::eNone: break;
+            case HitBoxType::eConvex: {
+                physx::PxConvexMesh* convexMesh   = ( *m_PhyEngine )->createConvexMesh( input );
+                physx::PxShape*      aConvexShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, physx::PxConvexMeshGeometry( convexMesh ), material );
+                REQUIRED( aConvexShape != nullptr )
+                break;
+            }
+            case HitBoxType::eTriangle:
+                spdlog::warn( "Skipping triangle mesh for dynamic rigid body(not supported by Physx)." );
+                break;
+            }
+        }
+
+        return hfActor;
+    }
+
     physx::PxRigidStatic*
-    CreateRigidBodyFromCacheGroup( const physx::PxMaterial& material )
+    CreateStaticRigidBodyFromCacheGroup( const physx::PxMaterial& material )
     {
         auto* hfActor = ( *m_PhyEngine )->createRigidStatic( physx::PxTransform( physx::PxVec3( 0 ) ) );
         hfActor->setName( m_GroupName.c_str( ) );
@@ -402,6 +439,7 @@ public:
             physx::PxDefaultMemoryInputData input( (uint8_t*) m_CacheBuffer.data( ) + Chunk.first, Chunk.second );
             switch ( *reinterpret_cast<HitBoxType*>( m_CacheBuffer.data( ) + Chunk.first - sizeof( HitBoxType ) ) )
             {
+            case HitBoxType::eNone: break;
             case HitBoxType::eConvex: {
                 physx::PxConvexMesh* convexMesh   = ( *m_PhyEngine )->createConvexMesh( input );
                 physx::PxShape*      aConvexShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, physx::PxConvexMeshGeometry( convexMesh ), material );
@@ -441,6 +479,12 @@ public:
         }
     }
 
+    const auto&
+    GetCacheBuffer( ) const { return m_CacheBuffer; }
+
+    const auto&
+    GetCacheBufferChunk( ) const { return m_CacheBufferChunk; }
+
 private:
     const std::filesystem::path PATH_PREFIX = "Assets/Physics/Cache/Convexes/";
     std::string                 m_GroupName { };
@@ -457,9 +501,146 @@ private:
     PhysicsEngine* m_PhyEngine = nullptr;
 };
 
-class RigidCube
+class RigidMesh : public ConceptApplicable
 {
+    DECLARE_CONCEPT( RigidMesh, ConceptApplicable )
+
+public:
+    template <typename Mapping = void*>
+    RigidMesh( const std::string& MeshPathStr, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false, Mapping&& HitBoxMapping = nullptr )
+        : m_PhyEngine( PhyEngine )
+    {
+        auto Mesh = AddConcept<ConceptMesh>( );
+
+        auto* Camera = PureConceptCamera::PeekCameraStack<PureConceptPerspectiveCamera>( );
+        Mesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
+        Mesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
+        Mesh->SetShaderUniform( "viewPos", Camera->GetCameraPosition( ) );
+        Mesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
+
+        SerializerModel Model;
+        Model.SetFilePath( MeshPathStr );
+        std::vector<SubMeshSpan> ModelSubMeshSpan;
+        Model.ToMesh( Mesh.get( ), &ModelSubMeshSpan );
+
+        const auto MeshPathHash = std::to_string( hash_value( std::filesystem::path( MeshPathStr ) ) );
+
+        constexpr GroupMeshHitBoxSerializer::HitBoxType DefaultHitBoxType = GroupMeshHitBoxSerializer::HitBoxType::eConvex;
+        GroupMeshHitBoxSerializer                       GCS( MeshPathHash, m_PhyEngine );
+        bool                                            ShouldLoad = !GCS.TryLoad( );
+        if ( !ShouldLoad )
+        {
+            // Check if mapping is the same
+            if ( ModelSubMeshSpan.size( ) != GCS.GetCacheBufferChunk( ).size( ) )
+                ShouldLoad = true;
+            else
+            {
+                for ( int i = 0; i < ModelSubMeshSpan.size( ); ++i )
+                {
+                    const auto CacheType = *reinterpret_cast<const GroupMeshHitBoxSerializer::HitBoxType*>( GCS.GetCacheBuffer( ).data( ) + GCS.GetCacheBufferChunk( )[ i ].first - sizeof( GroupMeshHitBoxSerializer::HitBoxType ) );
+                    if constexpr ( requires { { HitBoxMapping( ModelSubMeshSpan[ i ] ) } -> std::convertible_to<GroupMeshHitBoxSerializer::HitBoxType>; } )
+                    {
+                        GroupMeshHitBoxSerializer::HitBoxType Type = HitBoxMapping( ModelSubMeshSpan[ i ] );
+
+                        if ( Type != CacheType )
+                        {
+                            ShouldLoad = true;
+                            break;
+                        }
+                    } else
+                    {
+                        if ( DefaultHitBoxType != CacheType )
+                        {
+                            ShouldLoad = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if ( ShouldLoad )
+        {
+            spdlog::info( "Number of ModelSubMeshSpan: {}", ModelSubMeshSpan.size( ) );
+
+            for ( auto& SubMeshSpan : ModelSubMeshSpan )
+            {
+                try
+                {
+                    if constexpr ( requires { { HitBoxMapping( SubMeshSpan ) } -> std::convertible_to<GroupMeshHitBoxSerializer::HitBoxType>; } )
+                    {
+                        GroupMeshHitBoxSerializer::HitBoxType Type = HitBoxMapping( SubMeshSpan );
+                        switch ( Type )
+                        {
+                        case GroupMeshHitBoxSerializer::HitBoxType::eNone: break;
+                        case GroupMeshHitBoxSerializer::HitBoxType::eConvex:
+                            GCS.AppendConvexCache( SubMeshSpan.VertexRange );
+                            break;
+                        case GroupMeshHitBoxSerializer::HitBoxType::eTriangle:
+                            GCS.AppendTriangleCache( SubMeshSpan.VertexRange, SubMeshSpan.RebasedIndexRange );
+                            break;
+                        }
+                    } else
+                    {
+                        spdlog::warn( "Using convex mesh by default" );
+                        GCS.AppendConvexCache( SubMeshSpan.VertexRange );
+                    }
+                }
+                catch ( std::runtime_error& e )
+                {
+                    spdlog::error( "Failed to load model: {}", e.what( ) );
+                }
+            }
+
+            GCS.WriteCache( );
+        }
+
+        if ( m_RigidActor != nullptr )
+        {
+            m_RigidActor->release( );
+        }
+
+        if ( Static )
+            m_RigidActor = GCS.CreateStaticRigidBodyFromCacheGroup( *Material );
+        else
+            m_RigidActor = GCS.CreateDynamicRigidBodyFromCacheGroup( *Material );
+
+        m_RigidActor->userData = this;
+        m_PhyEngine->GetScene( )->addActor( *m_RigidActor );
+
+        SetRuntimeName( "RigidCube LOL" );
+        SetSearchThrough( true );
+    }
+
+    physx::PxRigidActor*
+    GetRigidBodyHandle( )
+    {
+        return m_RigidActor;
+    }
+
+    void
+    Apply( ) override { }
+
+private:
+    /*
+     *
+     * Physx
+     *
+     * */
+    PhysicsEngine* m_PhyEngine = nullptr;
+
+    physx::PxRigidActor* m_RigidActor = nullptr;
 };
+DEFINE_CONCEPT( RigidMesh )
+RigidMesh::~RigidMesh( )
+{
+    if ( m_RigidActor != nullptr )
+    {
+        m_RigidActor->release( );
+        m_RigidActor = nullptr;
+    }
+}
+
 
 GameManager::GameManager( )
 {
@@ -485,25 +666,14 @@ GameManager::GameManager( )
 
         {
             SerializerModel TestModel;
-
-            TestModel.SetFilePath( "Assets/Model/low_poly_room.glb" );
-            auto Mesh = PerspectiveCanvas->AddConcept<ConceptMesh>( );
-            Mesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
-            Mesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
-            Mesh->SetShaderUniform( "viewPos", m_MainCamera->GetCameraPosition( ) );
-            Mesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
-
-            std::vector<SubMeshSpan> ModelSubMeshSpan;
-            TestModel.ToMesh( Mesh.get( ), &ModelSubMeshSpan );
-
             TestModel.SetFilePath( "Assets/Model/red_cube.glb" );
             auto LightMesh = PerspectiveCanvas->AddConcept<ConceptMesh>( );
             LightMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultMeshShader" ) );
             TestModel.ToMesh( LightMesh.get( ) );
 
-            AddConcept<LightRotate>( Mesh, LightMesh );
             AddConcept<CameraController>( m_MainCamera );
 
+            if ( true )
             {
                 m_PhyEngine = std::make_shared<PhysicsEngine>( );
 
@@ -511,55 +681,23 @@ GameManager::GameManager( )
                 physx::PxRigidStatic* groundPlane = PxCreatePlane( *m_PhyEngine, physx::PxPlane( 0, 1, 0, 50 ), *Material );
                 m_PhyEngine->GetScene( )->addActor( *groundPlane );
 
-                {
-                    GroupMeshHitBoxSerializer GCS( "Room", m_PhyEngine.get( ) );
-                    if ( GCS.TryLoad( ) )
-                    {
-                        m_PhyEngine->GetScene( )->addActor( *GCS.CreateRigidBodyFromCacheGroup( *Material ) );
-                    } else
-                    {
-                        spdlog::info( "Number of ModelSubMeshSpan: {}", ModelSubMeshSpan.size( ) );
-
-                        for ( auto& SubMeshSpan : ModelSubMeshSpan )
-                        {
-                            try
-                            {
-                                GCS.AppendTriangleCache( SubMeshSpan.VertexRange, SubMeshSpan.RebasedIndexRange );
-                                // GCS.AppendConvexCache( SubMeshSpan.VertexRange );
-                            }
-                            catch ( std::runtime_error& e )
-                            {
-                                spdlog::error( "Failed to load model: {}", e.what( ) );
-                            }
-                        }
-
-                        GCS.WriteCache( );
-                        m_PhyEngine->GetScene( )->addActor( *GCS.CreateRigidBodyFromCacheGroup( *Material ) );
-                    }
-                }
-
-                float              halfExtent = .5f;
-                physx::PxShape*    shape      = ( *m_PhyEngine )->createShape( physx::PxBoxGeometry( halfExtent, halfExtent, halfExtent ), *Material );
-                physx::PxU32       size       = 30;
-                physx::PxTransform t( physx::PxVec3( 0 ) );
+                auto RM = AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", m_PhyEngine.get( ), Material, true, []( auto& SubMeshSpan ) {
+                    if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
+                        return GroupMeshHitBoxSerializer::HitBoxType::eTriangle;
+                    else
+                        return GroupMeshHitBoxSerializer::HitBoxType::eConvex;
+                } );
+                AddConcept<LightRotate>( RM->GetConcept<ConceptMesh>( ), LightMesh );
 
                 for ( int i = 0; i < 10; ++i )
                 {
-                    for ( int j = 0; j < 10; ++j )
+                    auto* RBH = AddConcept<RigidMesh>( "Assets/Model/red_cube.glb", m_PhyEngine.get( ), Material )->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
+                    REQUIRED_IF( RBH != nullptr )
                     {
-                        physx::PxTransform localTm( physx::PxVec3( 0, 60 + i * 3, -j * 2 ) * halfExtent );
-
-                        physx::PxRigidDynamic* body = ( *m_PhyEngine )->createRigidDynamic( t.transform( localTm ) );
-                        body->setName( "FreeFall" );
-                        body->attachShape( *shape );
-
-                        physx::PxRigidBodyExt::updateMassAndInertia( *body, 10.0f );
-                        body->setAngularVelocity( { (float) i, (float) j, 0 }, true );
-                        m_PhyEngine->GetScene( )->addActor( *body );
+                        RBH->setGlobalPose( physx::PxTransform { physx::PxVec3( 0, 15 + i * 3, 0 ) } );
+                        RBH->setAngularVelocity( { (float) i, (float) 20, (float) -10 }, true );
                     }
                 }
-
-                shape->release( );
             }
         }
     }
@@ -570,13 +708,61 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-    m_PhyEngine->GetScene( )->simulate( 1 / 120.f );
-    m_PhyEngine->GetScene( )->fetchResults( true );
-
-    const auto SleepTime = 1000 / 60 - Engine::GetEngine( )->GetDeltaSecond( ) * 1000;
-    if ( SleepTime > 0 )
     {
-        std::this_thread::sleep_for( std::chrono::milliseconds( int( SleepTime ) ) );
+        m_PhyEngine->GetScene( )->simulate( 1 / 60.f );
+        spdlog::info( "Start fetchResults" );
+
+        float         WaitTimeMilliseconds      = 1000.F / 60;
+        constexpr int MaxWaitTimeMilliseconds   = 1000;
+        int           TotalWaitTimeMilliseconds = 0;
+        while ( !m_PhyEngine->GetScene( )->fetchResults( false ) )
+        {
+            const auto SleepTime = std::min( MaxWaitTimeMilliseconds, int( WaitTimeMilliseconds ) );
+            TotalWaitTimeMilliseconds += SleepTime;
+            spdlog::info( "Wait fetchResults for {}ms, acc: {}ms.", SleepTime, TotalWaitTimeMilliseconds );
+            std::this_thread::sleep_for( std::chrono::milliseconds( SleepTime ) );
+            WaitTimeMilliseconds = SleepTime * 1.1F;
+        }
+        spdlog::info( "End fetchResults, time used: {}ms.", TotalWaitTimeMilliseconds );
+
+        const auto SleepTime = 1000.F / 60 - Engine::GetEngine( )->GetDeltaSecond( ) * 1000;
+        if ( SleepTime > TotalWaitTimeMilliseconds )
+        {
+            std::this_thread::sleep_for( std::chrono::milliseconds( int( SleepTime ) - TotalWaitTimeMilliseconds ) );
+            spdlog::info( "Sleep for stable framerate: {}ms.", int( SleepTime ) - TotalWaitTimeMilliseconds );
+        }
+    }
+
+    // retrieve array of actors that moved
+    physx::PxU32     nbActiveActors;
+    physx::PxActor** activeActors = m_PhyEngine->GetScene( )->getActiveActors( nbActiveActors );
+    spdlog::info( "nbActiveActors: {}", nbActiveActors );
+
+    if ( nbActiveActors != 0 )
+    {
+        // update each render object with the new transform
+        for ( physx::PxU32 i = 0; i < nbActiveActors; ++i )
+        {
+            auto* Data = activeActors[ i ]->userData;
+            if ( Data != nullptr )
+            {
+                auto* RigidMeshPtr = static_cast<RigidMesh*>( Data );
+                spdlog::info( "{} is moving", RigidMeshPtr->GetRuntimeName( ) );
+
+                if ( auto Mesh = RigidMeshPtr->GetConcept<ConceptMesh>( ); Mesh != nullptr )
+                {
+                    const auto& GP = ( (physx::PxRigidActor*) activeActors[ i ] )->getGlobalPose( );
+                    Mesh->SetCoordinate( GP.p.x, GP.p.y, GP.p.z );
+
+                    const auto& q     = GP.q;
+                    float       yaw   = atan2( 2.0 * ( q.y * q.z + q.w * q.x ), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z );
+                    float       pitch = asin( -2.0 * ( q.x * q.z - q.w * q.y ) );
+                    float       roll  = atan2( 2.0 * ( q.x * q.y + q.w * q.z ), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z );
+
+                    Mesh->SetRotation( yaw, pitch, roll );
+                }
+            }
+        }
     }
 }
 
