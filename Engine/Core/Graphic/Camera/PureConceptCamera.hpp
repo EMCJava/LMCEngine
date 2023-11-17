@@ -44,9 +44,9 @@ public:
     {
         const PureConceptCameraStack* CS     = Engine::GetEngine( )->GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" );
         auto*                         ShdPtr = CS->GetCamera( ).get( );
-        REQUIRED_IF( ShdPtr != nullptr && ShdPtr->CanCastVT<PureConceptCamera>( ) )
+        REQUIRED_IF( ShdPtr != nullptr && ShdPtr->CanCastVT<CameraType>( ) )
         {
-            return ShdPtr;
+            return static_cast<CameraType*>( ShdPtr );
         }
 
         return nullptr;
