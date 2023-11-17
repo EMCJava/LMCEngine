@@ -17,14 +17,6 @@ namespace Assimp
 class Importer;
 }
 
-struct SubMeshSpan {
-    std::string          SubMeshName { };
-    std::span<glm::vec4> VertexRange;
-
-    // Starting from 0 for every sub-mesh
-    std::vector<uint32_t> RebasedIndexRange;
-};
-
 class SerializerModel
 {
 public:
@@ -45,7 +37,10 @@ public:
     LoadModel( );
 
     bool
-    ToMesh( class ConceptMesh* ToMesh, std::vector<SubMeshSpan>* SubMeshesRecord = nullptr );
+    ToMesh( class ConceptMesh* ToMesh );
+
+    bool
+    ToMesh( const std::string& FilePath, class ConceptMesh* ToMesh );
 
     struct aiScene const*
     GetScene( ) const { return m_ModelScene; }

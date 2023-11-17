@@ -520,19 +520,9 @@ class RigidMesh : public ConceptApplicable
 
 public:
     template <typename Mapping = void*>
-    RigidMesh( const std::string& MeshPathStr, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false, Mapping&& HitBoxMapping = nullptr )
+    RigidMesh( std::shared_ptr<ConceptMesh> StaticMesh, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false, Mapping&& HitBoxMapping = nullptr )
         : m_PhyEngine( PhyEngine )
     {
-
-        SerializerModel Model;
-        Model.SetFilePath( MeshPathStr );
-
-        auto StaticMesh = AddConcept<ConceptMesh>( );
-        StaticMesh->DetachFromOwner( );
-
-        std::vector<SubMeshSpan> ModelSubMeshSpan;
-        Model.ToMesh( StaticMesh.get( ), &ModelSubMeshSpan );
-
         auto* Camera = PureConceptCamera::PeekCameraStack<PureConceptPerspectiveCamera>( );
         auto  Mesh   = AddConcept<RenderableMesh>( StaticMesh );
         Mesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
@@ -540,8 +530,9 @@ public:
         Mesh->SetShaderUniform( "viewPos", Camera->GetCameraPosition( ) );
         Mesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
 
-        const auto MeshPathHash = std::to_string( hash_value( std::filesystem::path( MeshPathStr ) ) );
+        const auto MeshPathHash = std::to_string( hash_value( std::filesystem::path( StaticMesh->GetFilePath( ) ) ) );
 
+        auto&                                           ModelSubMeshSpan  = StaticMesh->GetSubMeshes( );
         constexpr GroupMeshHitBoxSerializer::HitBoxType DefaultHitBoxType = GroupMeshHitBoxSerializer::HitBoxType::eConvex;
         GroupMeshHitBoxSerializer                       GCS( MeshPathHash, m_PhyEngine );
         bool                                            ShouldLoad = !GCS.TryLoad( );
@@ -702,7 +693,10 @@ GameManager::GameManager( )
                 physx::PxRigidStatic* groundPlane = PxCreatePlane( *m_PhyEngine, physx::PxPlane( 0, 1, 0, 50 ), *Material );
                 m_PhyEngine->GetScene( )->addActor( *groundPlane );
 
-                auto RM = AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", m_PhyEngine.get( ), Material, true, []( auto& SubMeshSpan ) {
+                auto RoomMesh = AddConcept<ConceptMesh>( );
+                RoomMesh->DetachFromOwner( );
+                TestModel.ToMesh( "Assets/Model/low_poly_room.glb", RoomMesh.get( ) );
+                auto RM = AddConcept<RigidMesh>( RoomMesh, m_PhyEngine.get( ), Material, true, []( auto& SubMeshSpan ) {
                     if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
                         return GroupMeshHitBoxSerializer::HitBoxType::eTriangle;
                     else
@@ -710,9 +704,12 @@ GameManager::GameManager( )
                 } );
                 AddConcept<LightRotate>( RM->GetConcept<RenderableMesh>( ), LightMesh );
 
+                auto CubeMesh = AddConcept<ConceptMesh>( );
+                CubeMesh->DetachFromOwner( );
+                TestModel.ToMesh( "Assets/Model/red_cube.glb", CubeMesh.get( ) );
                 for ( int i = 0; i < 10; ++i )
                 {
-                    auto* RBH = AddConcept<RigidMesh>( "Assets/Model/red_cube.glb", m_PhyEngine.get( ), Material )->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
+                    auto* RBH = AddConcept<RigidMesh>( CubeMesh, m_PhyEngine.get( ), Material )->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
                     REQUIRED_IF( RBH != nullptr )
                     {
                         RBH->setGlobalPose( physx::PxTransform { physx::PxVec3( 0, 15 + i * 3, 0 ) } );

@@ -9,6 +9,16 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
+#include <span>
+
+struct SubMeshSpan {
+    std::string          SubMeshName { };
+    std::span<glm::vec4> VertexRange;
+
+    // Starting from 0 for every sub-mesh
+    std::vector<uint32_t> RebasedIndexRange;
+};
+
 struct GLBufferHandle {
     uint32_t VAO { }, VBO { }, EBO { };
     ENABLE_IMGUI( GLBufferHandle )
@@ -28,10 +38,19 @@ public:
     [[nodiscard]] auto&
     GetGLBufferHandle( ) { return m_GLBufferHandle; }
 
+    [[nodiscard]] auto&
+    GetSubMeshes( ) { return m_SubMeshes; }
+
+    [[nodiscard]] auto&
+    GetFilePath( ) { return m_FilePath; }
+
 protected:
-    std::vector<glm::vec4> m_Vertices_ColorPack;
-    std::vector<glm::vec3> m_Normals;
-    std::vector<uint32_t>  m_Indices;
+    std::vector<glm::vec4>   m_Vertices_ColorPack;
+    std::vector<glm::vec3>   m_Normals;
+    std::vector<uint32_t>    m_Indices;
+    std::vector<SubMeshSpan> m_SubMeshes;
+
+    std::string m_FilePath { };
 
     GLBufferHandle m_GLBufferHandle;
 

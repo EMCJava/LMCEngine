@@ -609,6 +609,7 @@ Engine::SetupGlobalResources( )
     SProgram->Load( NAME##ShaderVertexSource, NAME##ShaderFragmentSource ); \
     SpriteShader = std::make_shared<Shader>( );                             \
     SpriteShader->SetProgram( SProgram );                                   \
+    SpriteShader->SetRuntimeName( #NAME );                                  \
     GlobalResourcePool::STryPush( #NAME "Shader", std::move( SpriteShader ) );
 
     std::shared_ptr<ShaderProgram> SProgram;
@@ -622,6 +623,7 @@ Engine::SetupGlobalResources( )
     DEFINE_SHADER( DefaultPhong )
     DEFINE_SHADER( DefaultMesh )
     DEFINE_SHADER( DefaultTextureInstancing )
+
 
 #undef DEFINE_SHADER
 

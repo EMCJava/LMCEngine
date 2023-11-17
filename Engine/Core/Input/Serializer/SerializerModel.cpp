@@ -213,17 +213,17 @@ FetchMesh( aiScene const* ModelScene, const aiNode* Node, const aiMatrix4x4& Tra
 }
 
 bool
-SerializerModel::ToMesh( ConceptMesh* ToMesh, std::vector<SubMeshSpan>* SubMeshesRecord )
+SerializerModel::ToMesh( ConceptMesh* ToMesh )
 {
     if ( !m_ModelScene && !LoadModel( ) ) return false;
 
+    ToMesh->m_FilePath = m_FilePath;
     ToMesh->m_Vertices_ColorPack.clear( );
     ToMesh->m_Normals.clear( );
     ToMesh->m_Indices.clear( );
+    ToMesh->m_SubMeshes.clear( );
 
-    if ( SubMeshesRecord != nullptr ) SubMeshesRecord->clear( );
-
-    ::FetchMesh( m_ModelScene, m_ModelScene->mRootNode, m_ModelScene->mRootNode->mTransformation, [ &ToMesh, SubMeshesRecord ]( aiScene const* ModelScene, aiMesh* Mesh, const aiMatrix4x4& Transform ) {
+    ::FetchMesh( m_ModelScene, m_ModelScene->mRootNode, m_ModelScene->mRootNode->mTransformation, [ &ToMesh ]( aiScene const* ModelScene, aiMesh* Mesh, const aiMatrix4x4& Transform ) {
         static_assert( sizeof( glm::vec3 ) == sizeof( decltype( *Mesh->mVertices ) ) );
 
         /*
@@ -291,14 +291,14 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh, std::vector<SubMeshSpan>* SubMeshe
             IndicesData += 3;
         }
 
-        if ( SubMeshesRecord != nullptr )
+        // Keep submesh record
         {
-            SubMeshesRecord->emplace_back( Mesh->mName.C_Str( ),
-                                           std::span<glm::vec4> { (glm::vec4*) nullptr, Mesh->mNumVertices },
-                                           std::vector<uint32_t>( NumberOfIndices ) );
+            ToMesh->m_SubMeshes.emplace_back( Mesh->mName.C_Str( ),
+                                              std::span<glm::vec4> { (glm::vec4*) nullptr, Mesh->mNumVertices },
+                                              std::vector<uint32_t>( NumberOfIndices ) );
 
             // Need to recalculate the indices
-            auto& RebasedIndexRange = SubMeshesRecord->back( ).RebasedIndexRange;
+            auto& RebasedIndexRange = ToMesh->m_SubMeshes.back( ).RebasedIndexRange;
             for ( int i = 0; i < NumberOfIndices; ++i )
                 RebasedIndexRange[ i ] = ToMesh->m_Indices[ OldIndicesSize + i ] - OldVerticesSize;
         }
@@ -311,11 +311,10 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh, std::vector<SubMeshSpan>* SubMeshe
         // ToMesh->AddConcept<BoxFrameRenderer>( Transform * Mesh->mAABB.mMin, Transform * Mesh->mAABB.mMax );
     } );
 
-    if ( SubMeshesRecord != nullptr )
     {
         auto* BeginVer = ToMesh->m_Vertices_ColorPack.data( );
 
-        for ( auto& SubMesh : *SubMeshesRecord )
+        for ( auto& SubMesh : ToMesh->m_SubMeshes )
         {
             SubMesh.VertexRange = { BeginVer, SubMesh.VertexRange.size( ) };
             BeginVer += SubMesh.VertexRange.size( );
@@ -365,4 +364,11 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh, std::vector<SubMeshSpan>* SubMeshe
     // ToMesh->SetSearchThrough( );
 
     return true;
+}
+
+bool
+SerializerModel::ToMesh( const std::string& FilePath, ConceptMesh* ToMesh )
+{
+    SetFilePath( FilePath );
+    return this->ToMesh( ToMesh );
 }
