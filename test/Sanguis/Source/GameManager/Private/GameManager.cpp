@@ -188,8 +188,8 @@ class PhysicsEngine
         physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate( "127.0.0.1", 5425, 10 );
         m_Pvd->connect( *transport, physx::PxPvdInstrumentationFlag::eALL );
 
-        m_ToleranceScale.length = 1;     // typical length of an object
-        m_ToleranceScale.speed  = 981;   // typical speed of an object, gravity*1s is a reasonable choice
+        m_ToleranceScale.length = 1;      // typical length of an object
+        m_ToleranceScale.speed  = 9.81;   // typical speed of an object, gravity*1s is a reasonable choice
         m_Physics               = PxCreatePhysics( PX_PHYSICS_VERSION, *m_Foundation, m_ToleranceScale, true, m_Pvd );
         // mPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *mFoundation, mToleranceScale);
 
@@ -690,7 +690,7 @@ GameManager::GameManager( )
                 m_PhyEngine = std::make_shared<PhysicsEngine>( );
 
                 physx::PxMaterial*    Material    = ( *m_PhyEngine )->createMaterial( 0.5f, 0.5f, 0.6f );
-                physx::PxRigidStatic* groundPlane = PxCreatePlane( *m_PhyEngine, physx::PxPlane( 0, 1, 0, 50 ), *Material );
+                physx::PxRigidStatic* groundPlane = PxCreatePlane( *m_PhyEngine, physx::PxPlane( 0, 1, 0, 3 ), *Material );
                 m_PhyEngine->GetScene( )->addActor( *groundPlane );
 
                 auto RoomMesh = AddConcept<ConceptMesh>( );
@@ -726,11 +726,15 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-    {
-        m_PhyEngine->GetScene( )->simulate( 1 / 60.f );
-        spdlog::info( "Start fetchResults" );
+    constexpr int DesieredFPS = 160;
+    constexpr int CapFPS      = DesieredFPS * 2;
 
-        float         WaitTimeMilliseconds      = 1000.F / 60;
+    const auto DeltaSecond = Engine::GetEngine( )->GetDeltaSecond( );
+
+    {
+        m_PhyEngine->GetScene( )->simulate( DeltaSecond );
+
+        float         WaitTimeMilliseconds      = 500.F / DesieredFPS;
         constexpr int MaxWaitTimeMilliseconds   = 1000;
         int           TotalWaitTimeMilliseconds = 0;
         while ( !m_PhyEngine->GetScene( )->fetchResults( false ) )
@@ -741,9 +745,8 @@ GameManager::Apply( )
             std::this_thread::sleep_for( std::chrono::milliseconds( SleepTime ) );
             WaitTimeMilliseconds = SleepTime * 1.1F;
         }
-        spdlog::info( "End fetchResults, time used: {}ms.", TotalWaitTimeMilliseconds );
 
-        const auto SleepTime = 1000.F / 60 - Engine::GetEngine( )->GetDeltaSecond( ) * 1000;
+        const auto SleepTime = 1000.F / CapFPS - DeltaSecond * 1000;
         if ( SleepTime > TotalWaitTimeMilliseconds )
         {
             std::this_thread::sleep_for( std::chrono::milliseconds( int( SleepTime ) - TotalWaitTimeMilliseconds ) );
@@ -754,7 +757,6 @@ GameManager::Apply( )
     // retrieve array of actors that moved
     physx::PxU32     nbActiveActors;
     physx::PxActor** activeActors = m_PhyEngine->GetScene( )->getActiveActors( nbActiveActors );
-    spdlog::info( "nbActiveActors: {}", nbActiveActors );
 
     if ( nbActiveActors != 0 )
     {
@@ -765,19 +767,14 @@ GameManager::Apply( )
             if ( Data != nullptr )
             {
                 auto* RigidMeshPtr = static_cast<RigidMesh*>( Data );
-                spdlog::info( "{} is moving", RigidMeshPtr->GetRuntimeName( ) );
 
                 if ( auto Mesh = RigidMeshPtr->GetConcept<RenderableMesh>( ); Mesh != nullptr )
                 {
                     const auto& GP = ( (physx::PxRigidActor*) activeActors[ i ] )->getGlobalPose( );
                     Mesh->SetCoordinate( GP.p.x, GP.p.y, GP.p.z );
 
-                    const auto& q     = GP.q;
-                    float       yaw   = atan2( 2.0 * ( q.y * q.z + q.w * q.x ), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z );
-                    float       pitch = asin( -2.0 * ( q.x * q.z - q.w * q.y ) );
-                    float       roll  = atan2( 2.0 * ( q.x * q.y + q.w * q.z ), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z );
-
-                    Mesh->SetRotation( yaw, pitch, roll );
+                    static_assert( sizeof( physx::PxQuat ) == sizeof( glm::quat ) );
+                    Mesh->SetQuat( *( (glm::quat*) &GP.q ) );
                 }
             }
         }
