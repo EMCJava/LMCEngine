@@ -414,7 +414,7 @@ Engine::CreateImGuiContext( )
     }
 
     // Setup Dear ImGui style
-    ImGui::StyleColorsLight( );
+    ImGui::StyleColorsDark( );
     ImGui::GetStyle( ).SeparatorTextAlign = ImVec2( 0.5F, 0.5F );
 
     // Setup Platform/Renderer backends
