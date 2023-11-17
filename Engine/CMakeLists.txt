@@ -1,3 +1,6 @@
+## -------------- PhysX --------------
+find_package(PhysX REQUIRED)
+
 add_subdirectory(Library)
 include_directories(Library)
 
@@ -30,6 +33,8 @@ target_link_libraries(Engine.lib
         Font.lib
 
         SpriteSquare.lib
+
+        PhysX::PhysX
 )
 
 add_subdirectory(Test)
