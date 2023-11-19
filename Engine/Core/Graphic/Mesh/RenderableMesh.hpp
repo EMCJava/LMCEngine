@@ -8,7 +8,6 @@
 #include <Engine/Core/Scene/Orientation/Orientation.hpp>
 
 class RenderableMesh : public ConceptRenderable
-    , public Orientation
 {
     DECLARE_CONCEPT( RenderableMesh, ConceptRenderable )
 

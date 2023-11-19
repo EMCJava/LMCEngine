@@ -25,8 +25,6 @@ RenderableMesh::Render( )
 
     m_Shader->Bind( );
     SetCameraMatrix( );
-
-    GetShader( )->SetMat4( "modelMatrix", GetModelMatrix( ) );
     ApplyShaderUniforms( );
 
     GL_CHECK( gl->Enable( GL_DEPTH_TEST ) )
