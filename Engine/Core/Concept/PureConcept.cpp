@@ -20,7 +20,7 @@ PureConcept::~PureConcept( )
 uint64_t
 PureConcept::GetHash( ) const noexcept
 {
-    return m_ConceptsStateHash.SeekUint64( );
+    return m_ConceptsStateHash.GetSeekValue( );
 }
 
 void

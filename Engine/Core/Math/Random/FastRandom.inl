@@ -19,16 +19,19 @@ FastRandom::ROTL( const uint64_t x, int k )
 constexpr FastRandom::FastRandom( const FastRandom::NoiseType& Seed )
     : m_Seed( Seed )
 {
+    SeekValue = SeekUint64( );
 }
 
 constexpr FastRandom::FastRandom( const FastRandom& other )
     : m_Seed { .Seed = other.m_Seed.Seed }
-{ }
+{
+    SeekValue = SeekUint64( );
+}
 
 constexpr FastRandom&
 FastRandom::operator=( const FastRandom& other )
 {
-    m_Seed.Seed = other.m_Seed.Seed;
+    SetSeed( other.m_Seed.Seed );
     return *this;
 }
 
@@ -48,12 +51,14 @@ constexpr void
 FastRandom::SetSeed( const std::array<uint64_t, 2>& Seed )
 {
     m_Seed.Seed = Seed;
+    SeekValue   = SeekUint64( );
 }
 
 constexpr void
 FastRandom::SetSeed( const std::array<int32_t, 4>& Seed )
 {
     m_Seed.SubSeed = Seed;
+    SeekValue      = SeekUint64( );
 }
 
 constexpr uint64_t
@@ -74,6 +79,8 @@ FastRandom::NextUint64( )
     s1 ^= s0;
     m_Seed.SeedArray[ 0 ] = FastRandom::ROTL( s0, 49 ) ^ s1 ^ ( s1 << 21 );   // a, b
     m_Seed.SeedArray[ 1 ] = FastRandom::ROTL( s1, 28 );                       // c
+
+    SeekValue = SeekUint64( );
 
     return result;
 }
@@ -102,6 +109,8 @@ FastRandom::Jump( ) noexcept
 
     m_Seed.SeedArray[ 0 ] = s0;
     m_Seed.SeedArray[ 1 ] = s1;
+
+    SeekValue   = SeekUint64( );
 
     return *this;
 }

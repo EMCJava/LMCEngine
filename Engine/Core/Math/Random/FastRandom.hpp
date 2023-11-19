@@ -10,7 +10,7 @@
 
 class FastRandom
 {
-public:
+private:
     union NoiseType
     {
         uint64_t                SeedArray[ 2 ];
@@ -18,6 +18,10 @@ public:
         std::array<int32_t, 4>  SubSeed;
     };
 
+    // Update after every seed change
+    uint64_t SeekValue;
+
+public:
     constexpr FastRandom( const NoiseType& Seed = { } );
 
     constexpr FastRandom( const FastRandom& other );
@@ -39,6 +43,14 @@ public:
 
     constexpr uint64_t
     SeekUint64( ) const noexcept;
+
+    /*
+     *
+     * Get cached seek value, prefer using this
+     *
+     * */
+    constexpr uint64_t
+    GetSeekValue( ) const noexcept { return SeekValue; };
 
     /*
      *
