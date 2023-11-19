@@ -8,6 +8,9 @@
 
 #include <Engine/Core/Math/Random/FastRandom.hpp>
 
+#pragma warning( Using dynamic_pointer_cast, performance can be impacted )
+#define ConceptCasting std::dynamic_pointer_cast
+
 class PureConcept
 {
     DECLARE_CONCEPT( PureConcept )
@@ -63,6 +66,9 @@ public:
     [[nodiscard]] inline bool
     IsEnabled( ) { return m_Enabled; }
 
+    template <class ConceptType, typename... Args>
+    static std::shared_ptr<ConceptType> CreateConcept( Args&&... params );
+
 protected:
     FastRandom               m_ConceptsStateHash { FastRandom::FromUint64( ConceptsStateHashInit.NextUint64( ) ) };
     inline static FastRandom ConceptsStateHashInit { FastRandom::FromRand( ) };
@@ -86,3 +92,16 @@ private:
     friend class Concept;
     ENABLE_IMGUI( PureConcept )
 };
+
+template <class ConceptType, typename... Args>
+std::shared_ptr<ConceptType>
+PureConcept::CreateConcept( Args&&... params )
+{
+    static_assert( ConceptType::template CanCastS<PureConcept>( ) );
+
+    auto Result = ConceptCasting<ConceptType>( std::make_shared<ConceptType>( std::forward<Args>( params )... ) );
+    Result->SetRuntimeName( Result->GetClassName( ) );
+    Result->ConceptType::ConceptLateInitialize( );
+
+    return Result;
+}
