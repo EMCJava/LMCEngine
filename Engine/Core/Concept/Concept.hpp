@@ -142,13 +142,9 @@ Concept::AddConcept( Args&&... params )
     ResetSubConceptCache( );
     static_assert( ConceptType::template CanCastS<PureConcept>( ) );
 
-    auto Result = ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( std::make_shared<ConceptType>( std::forward<Args>( params )... ) ) );
+    auto Result = ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( CreateConcept<ConceptType>( std::forward<Args>( params )... ) ) );
 
     Result->m_BelongsTo = this;
-    Result->SetRuntimeName( Result->GetClassName( ) );
-
-    Result->ConceptType::ConceptLateInitialize( );
-
     return Result;
 }
 

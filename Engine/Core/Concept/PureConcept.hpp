@@ -99,7 +99,7 @@ PureConcept::CreateConcept( Args&&... params )
 {
     static_assert( ConceptType::template CanCastS<PureConcept>( ) );
 
-    auto Result = ConceptCasting<ConceptType>( std::make_shared<ConceptType>( std::forward<Args>( params )... ) );
+    auto Result = std::make_shared<ConceptType>( std::forward<Args>( params )... );
     Result->SetRuntimeName( Result->GetClassName( ) );
     Result->ConceptType::ConceptLateInitialize( );
 
