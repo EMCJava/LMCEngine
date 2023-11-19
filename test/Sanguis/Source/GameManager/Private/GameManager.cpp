@@ -37,7 +37,12 @@
 #include <ranges>
 #include <utility>
 
-DEFINE_CONCEPT_DS_MA_SE( GameManager )
+DEFINE_CONCEPT_MA_SE( GameManager )
+GameManager::~GameManager( )
+{
+    // FIXME: Tmp fix to avoid PhyEng destructing before all concepts
+    RemoveConcepts<PureConcept>( );
+}
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, ConceptApplicable, TestInvokable )
 
 class LightRotate : public ConceptApplicable
@@ -48,7 +53,7 @@ public:
         : m_Mesh( std::move( Mesh ) )
         , m_LightMesh( std::move( LightMesh ) )
     {
-        m_LightMesh->SetScale( 0.08, 0.08, 0.08, true );
+        m_LightOrientation.SetScale( 0.08, 0.08, 0.08 );
     }
 
     void
@@ -59,13 +64,17 @@ public:
 
         const auto Location = glm::vec3( cos( m_AccumulatedTime * 2 ) * 5.0f, 2, sin( m_AccumulatedTime * 2 ) * 5.0f );
         m_Mesh->SetShaderUniform( "lightPos", Location );
-        m_LightMesh->SetCoordinate( Location, true );
+        m_LightOrientation.SetCoordinate( Location, true );
+
+        m_LightMesh->SetShaderUniform( "modelMatrix", m_LightOrientation.GetModelMatrix( ) );
     }
 
 protected:
     FloatTy                         m_AccumulatedTime { 0.0f };
     std::shared_ptr<RenderableMesh> m_Mesh;
     std::shared_ptr<RenderableMesh> m_LightMesh;
+
+    Orientation m_LightOrientation;
 };
 DEFINE_CONCEPT_DS( LightRotate )
 
@@ -248,43 +257,162 @@ concept SpanLike = requires( Span span ) {
         span.data( )
     };
 };
-class GroupMeshHitBoxSerializer
+
+class GroupMeshColliderSerializer
 {
 public:
-    enum class HitBoxType : uint8_t {
+    enum class ColliderType : uint8_t {
         eNone     = 0,
         eConvex   = 1,
         eTriangle = 2
     };
 
 private:
+    struct PhysicsMeshInstance {
+        std::pair<std::ptrdiff_t, size_t> BufferSpan { };
+        ColliderType                      Type   = ColliderType::eNone;
+        physx::PxBase*                    PxMesh = nullptr;
+
+        PhysicsMeshInstance( ) = default;
+        PhysicsMeshInstance( std::pair<std::ptrdiff_t, size_t> BufferSpan, ColliderType Type, physx::PxBase* PxMesh = nullptr )
+            : BufferSpan( BufferSpan )
+            , Type( Type )
+            , PxMesh( PxMesh )
+        { }
+        ~PhysicsMeshInstance( )
+        {
+            if ( PxMesh != nullptr )
+            {
+                PxMesh->release( );
+                PxMesh = nullptr;
+            }
+        }
+
+        PhysicsMeshInstance( PhysicsMeshInstance&& Other ) { *this = std::move( Other ); }
+        PhysicsMeshInstance& operator=( PhysicsMeshInstance&& Other )
+        {
+            BufferSpan = std::move( Other.BufferSpan );
+            if ( PxMesh != nullptr )
+            {
+                PxMesh->release( );
+                PxMesh = nullptr;
+            }
+
+            Type = Other.Type;
+            std::swap( PxMesh, Other.PxMesh );
+
+            if ( PxMesh != nullptr )
+            {
+                switch ( Type )
+                {
+                case ColliderType::eNone: break;
+                case ColliderType::eConvex:
+                    spdlog::info( "Ref Count: {}", ( (physx::PxConvexMesh*) PxMesh )->getReferenceCount( ) );
+                    break;
+                case ColliderType::eTriangle:
+                    spdlog::info( "Ref Count: {}", ( (physx::PxTriangleMesh*) PxMesh )->getReferenceCount( ) );
+                    break;
+                }
+            }
+
+            return *this;
+        }
+        PhysicsMeshInstance( const PhysicsMeshInstance& )            = delete;   // non construction-copyable
+        PhysicsMeshInstance& operator=( const PhysicsMeshInstance& ) = delete;   // non copyable
+
+        [[nodiscard]] physx::PxGeometryHolder
+        GenerateGeometry( ) const
+        {
+            REQUIRED( PxMesh != nullptr, throw std::runtime_error( "PxMesh is nullptr" ) )
+            switch ( Type )
+            {
+            case ColliderType::eNone:
+                REQUIRED( false, throw std::runtime_error( "Geometry from type none" ) )
+            case ColliderType::eConvex:
+                return physx::PxConvexMeshGeometry( (physx::PxConvexMesh*) PxMesh );
+            case ColliderType::eTriangle:
+                return physx::PxTriangleMeshGeometry( (physx::PxTriangleMesh*) PxMesh );
+            }
+        }
+
+        void
+        GenerateMeshIfNull( PhysicsEngine* PhyEngine, uint8_t* Data )
+        {
+            if ( PxMesh != nullptr ) return;
+
+            physx::PxDefaultMemoryInputData PxMemoryBuffer( Data + BufferSpan.first, BufferSpan.second );
+            switch ( Type )
+            {
+            case ColliderType::eNone: break;
+            case ColliderType::eConvex: {
+                PxMesh = ( *PhyEngine )->createConvexMesh( PxMemoryBuffer );
+                break;
+            }
+            case ColliderType::eTriangle:
+                PxMesh = ( *PhyEngine )->createTriangleMesh( PxMemoryBuffer );
+                break;
+            }
+        }
+    };
+
     void
-    PushCookedBuffer( physx::PxDefaultMemoryOutputStream& CookingBuffer, HitBoxType Type )
+    PushCookedBuffer( physx::PxDefaultMemoryOutputStream& CookingBuffer, ColliderType CType )
     {
         const auto OldSize = m_CacheBuffer.size( );
-        m_CacheBuffer.resize( OldSize + sizeof( size_t ) + sizeof( HitBoxType ) + CookingBuffer.getSize( ) );
+        m_CacheBuffer.resize( OldSize + sizeof( size_t ) + sizeof( ColliderType ) + CookingBuffer.getSize( ) );
 
-        char* ChunkStart = m_CacheBuffer.data( ) + OldSize;
+        auto* ChunkStart = m_CacheBuffer.data( ) + OldSize;
 
         // Buffer size
         size_t BufferSize = CookingBuffer.getSize( );
         memcpy( ChunkStart, &BufferSize, sizeof( size_t ) );
         // Buffer type
-        *reinterpret_cast<HitBoxType*>( ChunkStart + sizeof( size_t ) ) = Type;
+        *reinterpret_cast<ColliderType*>( ChunkStart + sizeof( size_t ) ) = CType;
         // Buffer data
-        memcpy( ChunkStart + sizeof( size_t ) + sizeof( HitBoxType ), CookingBuffer.getData( ), CookingBuffer.getSize( ) );
+        memcpy( ChunkStart + sizeof( size_t ) + sizeof( ColliderType ), CookingBuffer.getData( ), CookingBuffer.getSize( ) );
 
         // Skip list save
-        m_CacheBufferChunk.emplace_back( OldSize + sizeof( size_t ) + sizeof( HitBoxType ), CookingBuffer.getSize( ) );
+        m_PxMeshInstances.emplace_back( std::pair { OldSize + sizeof( size_t ) + sizeof( ColliderType ), CookingBuffer.getSize( ) }, CType );
 
-        spdlog::info( "Cooked buffer size: {}[{}]", CookingBuffer.getSize( ), (uint8_t) Type );
+        spdlog::info( "Cooked buffer size: {}[{}]", CookingBuffer.getSize( ), (uint8_t) CType );
     }
 
 public:
-    GroupMeshHitBoxSerializer( std::string Name, PhysicsEngine* PhyEngine )
+    /*
+     *
+     * This will not load or generate any data
+     *
+     * */
+    GroupMeshColliderSerializer( std::string Name, PhysicsEngine* PhyEngine )
         : m_GroupName( std::move( Name ) )
         , m_PhyEngine( PhyEngine )
     { }
+
+    /*
+     *
+     * This will load the cached data from file or, generate it and write to file
+     *
+     * */
+    template <typename Mapping = void*>
+    GroupMeshColliderSerializer( const ConceptMesh& Mesh, PhysicsEngine* PhyEngine, Mapping&& ColliderMapping = nullptr )
+        : m_GroupName( GetHashFilePath( Mesh.GetFilePath( ) ) )
+        , m_PhyEngine( PhyEngine )
+    {
+        auto& SubMeshes  = Mesh.GetSubMeshes( );
+        bool  ShouldLoad = !TryLoad( ) || !IsColliderTypeCorrect( SubMeshes, ColliderMapping );
+        if ( ShouldLoad )
+        {
+            spdlog::info( "Number of ModelSubMeshSpan: {}", SubMeshes.size( ) );
+            GenerateFrom( SubMeshes, ColliderMapping );
+            WriteCacheToFile( );
+        }
+    }
+
+    static std::string
+    GetHashFilePath( std::string_view FilePath )
+    {
+        return std::to_string( hash_value( std::filesystem::path( FilePath ) ) );
+    }
 
     std::filesystem::path
     GetFilePath( )
@@ -294,9 +422,11 @@ public:
 
     template <typename Ty>
     void
-    BufferReadValue( char*& Buffer, Ty& Value )
+    BufferReadValue( auto*& Buffer, Ty& Value )
     {
         Value = *reinterpret_cast<Ty*>( Buffer );
+
+        static_assert( sizeof( Buffer[ 0 ] ) == sizeof( char ) );
         Buffer += sizeof( Ty );
     }
 
@@ -319,30 +449,93 @@ public:
             const auto BufferSize = InputStream.tellg( );
             InputStream.seekg( 0, std::ios::beg );
 
-            m_CacheBufferChunk.clear( );
+            m_PxMeshInstances.clear( );
             m_CacheBuffer.resize( BufferSize );
-            InputStream.read( m_CacheBuffer.data( ), BufferSize );
+            InputStream.read( (std::ifstream::char_type*) m_CacheBuffer.data( ), BufferSize );
             if ( BufferSize != InputStream.gcount( ) ) throw std::runtime_error( "Failed to read convex.bin" );
 
-            char* BufferBegin = m_CacheBuffer.data( );
-            char* BufferEnd   = BufferBegin + BufferSize;
+            auto* BufferBegin = m_CacheBuffer.data( );
+            auto* BufferEnd   = BufferBegin + BufferSize;
 
             while ( BufferBegin != BufferEnd )
             {
-                size_t     SpanSize;
-                HitBoxType Type;
+                size_t       SpanSize;
+                ColliderType CType;
 
                 BufferReadValue( BufferBegin, SpanSize );
-                BufferReadValue( BufferBegin, Type );
+                BufferReadValue( BufferBegin, CType );
 
-                m_CacheBufferChunk.emplace_back( std::distance( m_CacheBuffer.data( ), BufferBegin ), SpanSize );
+                m_PxMeshInstances.emplace_back( std::pair { std::distance( m_CacheBuffer.data( ), BufferBegin ), SpanSize }, CType );
                 BufferBegin += SpanSize;
             }
+
 
             return true;
         }
 
         return false;
+    }
+
+    bool IsColliderTypeCorrect( const std::vector<SubMeshSpan>& ModelSubMeshSpan, auto&& ColliderMapping )
+    {
+        // Check if mapping is the same
+        if ( ModelSubMeshSpan.size( ) != m_PxMeshInstances.size( ) )
+            return false;
+
+        for ( int i = 0; i < ModelSubMeshSpan.size( ); ++i )
+        {
+            if constexpr ( requires { { ColliderMapping( ModelSubMeshSpan[ i ] ) } -> std::convertible_to<GroupMeshColliderSerializer::ColliderType>; } )
+            {
+                GroupMeshColliderSerializer::ColliderType Type = ColliderMapping( ModelSubMeshSpan[ i ] );
+
+                if ( Type != m_PxMeshInstances[ i ].Type )
+                {
+                    return false;
+                }
+            } else
+            {
+                if ( DefaultColliderType != m_PxMeshInstances[ i ].Type )
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    void
+    GenerateFrom( const std::vector<SubMeshSpan>& ModelSubMeshSpan, auto&& ColliderMapping )
+    {
+        ClearBuffer( );
+        for ( auto& SubMeshSpan : ModelSubMeshSpan )
+        {
+            try
+            {
+                if constexpr ( requires { { ColliderMapping( SubMeshSpan ) } -> std::convertible_to<GroupMeshColliderSerializer::ColliderType>; } )
+                {
+                    GroupMeshColliderSerializer::ColliderType Type = ColliderMapping( SubMeshSpan );
+                    switch ( Type )
+                    {
+                    case ColliderType::eNone: break;
+                    case ColliderType::eConvex:
+                        AppendConvexCache( SubMeshSpan.VertexRange );
+                        break;
+                    case ColliderType::eTriangle:
+                        AppendTriangleCache( SubMeshSpan.VertexRange, SubMeshSpan.RebasedIndexRange );
+                        break;
+                    }
+                } else
+                {
+                    spdlog::warn( "Using convex mesh by default" );
+                    AppendConvexCache( SubMeshSpan.VertexRange );
+                }
+            }
+            catch ( std::runtime_error& e )
+            {
+                spdlog::error( "Failed to generate model: {}", e.what( ) );
+            }
+        }
     }
 
     template <SpanLike Span>
@@ -375,9 +568,8 @@ public:
         }
 
         m_PhyEngine->GetCooking( ).setParams( ParamsCopy );
-        PushCookedBuffer( CookingBuffer, HitBoxType::eConvex );
+        PushCookedBuffer( CookingBuffer, ColliderType::eConvex );
     }
-
 
     template <SpanLike VertexSpan, SpanLike IndexSpan>
     void
@@ -399,7 +591,7 @@ public:
         if ( !m_PhyEngine->GetCooking( ).cookTriangleMesh( meshDesc, CookingBuffer, &result ) )
             throw std::runtime_error( "Failed to cook triangle mesh" );
 
-        PushCookedBuffer( CookingBuffer, HitBoxType::eTriangle );
+        PushCookedBuffer( CookingBuffer, ColliderType::eTriangle );
     }
 
     physx::PxRigidDynamic*
@@ -408,22 +600,17 @@ public:
         auto* hfActor = ( *m_PhyEngine )->createRigidDynamic( physx::PxTransform( physx::PxVec3( 0 ) ) );
         hfActor->setName( m_GroupName.c_str( ) );
 
-        for ( auto& Chunk : m_CacheBufferChunk )
+        for ( auto& PxMeshInstance : m_PxMeshInstances )
         {
-            physx::PxDefaultMemoryInputData input( (uint8_t*) m_CacheBuffer.data( ) + Chunk.first, Chunk.second );
-            switch ( *reinterpret_cast<HitBoxType*>( m_CacheBuffer.data( ) + Chunk.first - sizeof( HitBoxType ) ) )
+            PxMeshInstance.GenerateMeshIfNull( m_PhyEngine, m_CacheBuffer.data( ) );
+            if ( PxMeshInstance.Type != ColliderType::eConvex )
             {
-            case HitBoxType::eNone: break;
-            case HitBoxType::eConvex: {
-                physx::PxConvexMesh* convexMesh   = ( *m_PhyEngine )->createConvexMesh( input );
-                physx::PxShape*      aConvexShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, physx::PxConvexMeshGeometry( convexMesh ), material );
-                REQUIRED( aConvexShape != nullptr )
-                break;
+                spdlog::warn( "Skipping non-convex mesh for dynamic rigid body(not supported by Physx)." );
+                continue;
             }
-            case HitBoxType::eTriangle:
-                spdlog::warn( "Skipping triangle mesh for dynamic rigid body(not supported by Physx)." );
-                break;
-            }
+
+            physx::PxShape* aShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, PxMeshInstance.GenerateGeometry( ).any( ), material );
+            REQUIRED( aShape != nullptr )
         }
 
         return hfActor;
@@ -435,31 +622,23 @@ public:
         auto* hfActor = ( *m_PhyEngine )->createRigidStatic( physx::PxTransform( physx::PxVec3( 0 ) ) );
         hfActor->setName( m_GroupName.c_str( ) );
 
-        for ( auto& Chunk : m_CacheBufferChunk )
+        for ( auto& PxMeshInstance : m_PxMeshInstances )
         {
-            physx::PxDefaultMemoryInputData input( (uint8_t*) m_CacheBuffer.data( ) + Chunk.first, Chunk.second );
-            switch ( *reinterpret_cast<HitBoxType*>( m_CacheBuffer.data( ) + Chunk.first - sizeof( HitBoxType ) ) )
+            PxMeshInstance.GenerateMeshIfNull( m_PhyEngine, m_CacheBuffer.data( ) );
+            if ( PxMeshInstance.Type == ColliderType::eNone )
             {
-            case HitBoxType::eNone: break;
-            case HitBoxType::eConvex: {
-                physx::PxConvexMesh* convexMesh   = ( *m_PhyEngine )->createConvexMesh( input );
-                physx::PxShape*      aConvexShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, physx::PxConvexMeshGeometry( convexMesh ), material );
-                REQUIRED( aConvexShape != nullptr )
-                break;
+                spdlog::warn( "Skipping non-defined mesh type for rigid body." );
+                continue;
             }
-            case HitBoxType::eTriangle: {
-                physx::PxTriangleMesh* triangleMesh = ( *m_PhyEngine )->createTriangleMesh( input );
-                physx::PxShape*        aConvexShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, physx::PxTriangleMeshGeometry( triangleMesh ), material );
-                REQUIRED( aConvexShape != nullptr )
-                break;
-            }
-            }
+
+            physx::PxShape* aShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, PxMeshInstance.GenerateGeometry( ).any( ), material );
+            REQUIRED( aShape != nullptr )
         }
 
         return hfActor;
     }
 
-    void WriteCache( )
+    void WriteCacheToFile( )
     {
         const auto CachePath = GetFilePath( );
 
@@ -474,25 +653,38 @@ public:
 
         std::ofstream OutputStream;
         OutputStream.open( CachePath, std::ios::out | std::ios::binary );
-        if ( !OutputStream.write( m_CacheBuffer.data( ), m_CacheBuffer.size( ) ) )
+        if ( !OutputStream.write( (std::ofstream::char_type*) m_CacheBuffer.data( ), m_CacheBuffer.size( ) ) )
         {
             throw std::runtime_error( "Failed to write convex cache" );
         }
     }
 
-    const auto&
-    GetCacheBuffer( ) const { return m_CacheBuffer; }
+    void
+    ClearBuffer( )
+    {
+        m_PxMeshInstances.clear( );
+        m_CacheBuffer.clear( );
+    }
+
+    bool
+    HasData( )
+    {
+        REQUIRED( m_CacheBuffer.empty( ) == m_PxMeshInstances.empty( ) )
+        return !m_CacheBuffer.empty( );
+    }
 
     const auto&
-    GetCacheBufferChunk( ) const { return m_CacheBufferChunk; }
+    GetCacheBuffer( ) const { return m_CacheBuffer; }
 
 private:
     const std::filesystem::path PATH_PREFIX = "Assets/Physics/Cache/Convexes/";
     std::string                 m_GroupName { };
 
-    // [buffer size(size_t), buffer type(HitBoxType), buffer], ...
-    std::vector<char>                              m_CacheBuffer;
-    std::vector<std::pair<std::ptrdiff_t, size_t>> m_CacheBufferChunk { };
+    // [buffer size(size_t), buffer type(ColliderType), buffer], ...
+    std::vector<uint8_t>             m_CacheBuffer;
+    std::vector<PhysicsMeshInstance> m_PxMeshInstances;
+
+    static constexpr ColliderType DefaultColliderType = ColliderType::eConvex;
 
     /*
      *
@@ -502,123 +694,15 @@ private:
     PhysicsEngine* m_PhyEngine = nullptr;
 };
 
-class StaticMesh : public PureConcept
+// FIXME: Use PureConcept
+class Collider : public Concept
 {
-    DECLARE_CONCEPT( StaticMesh, PureConcept )
+    DECLARE_CONCEPT( Collider, Concept )
 
 public:
-    template <typename Mapping = void*>
-    explicit StaticMesh( const std::string& MeshPathStr = "", bool Static = false, Mapping&& HitBoxMapping = nullptr )
-    {
-    }
-};
-DEFINE_CONCEPT( StaticMesh );
-
-class RigidMesh : public ConceptApplicable
-{
-    DECLARE_CONCEPT( RigidMesh, ConceptApplicable )
-
-public:
-    template <typename Mapping = void*>
-    RigidMesh( std::shared_ptr<ConceptMesh> StaticMesh, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false, Mapping&& HitBoxMapping = nullptr )
+    Collider( PhysicsEngine* PhyEngine )
         : m_PhyEngine( PhyEngine )
-    {
-        auto* Camera = PureConceptCamera::PeekCameraStack<PureConceptPerspectiveCamera>( );
-        auto  Mesh   = AddConcept<RenderableMesh>( StaticMesh );
-        Mesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
-        Mesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
-        Mesh->SetShaderUniform( "viewPos", Camera->GetCameraPosition( ) );
-        Mesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
-
-        const auto MeshPathHash = std::to_string( hash_value( std::filesystem::path( StaticMesh->GetFilePath( ) ) ) );
-
-        auto&                                           ModelSubMeshSpan  = StaticMesh->GetSubMeshes( );
-        constexpr GroupMeshHitBoxSerializer::HitBoxType DefaultHitBoxType = GroupMeshHitBoxSerializer::HitBoxType::eConvex;
-        GroupMeshHitBoxSerializer                       GCS( MeshPathHash, m_PhyEngine );
-        bool                                            ShouldLoad = !GCS.TryLoad( );
-        if ( !ShouldLoad )
-        {
-            // Check if mapping is the same
-            if ( ModelSubMeshSpan.size( ) != GCS.GetCacheBufferChunk( ).size( ) )
-                ShouldLoad = true;
-            else
-            {
-                for ( int i = 0; i < ModelSubMeshSpan.size( ); ++i )
-                {
-                    const auto CacheType = *reinterpret_cast<const GroupMeshHitBoxSerializer::HitBoxType*>( GCS.GetCacheBuffer( ).data( ) + GCS.GetCacheBufferChunk( )[ i ].first - sizeof( GroupMeshHitBoxSerializer::HitBoxType ) );
-                    if constexpr ( requires { { HitBoxMapping( ModelSubMeshSpan[ i ] ) } -> std::convertible_to<GroupMeshHitBoxSerializer::HitBoxType>; } )
-                    {
-                        GroupMeshHitBoxSerializer::HitBoxType Type = HitBoxMapping( ModelSubMeshSpan[ i ] );
-
-                        if ( Type != CacheType )
-                        {
-                            ShouldLoad = true;
-                            break;
-                        }
-                    } else
-                    {
-                        if ( DefaultHitBoxType != CacheType )
-                        {
-                            ShouldLoad = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        if ( ShouldLoad )
-        {
-            spdlog::info( "Number of ModelSubMeshSpan: {}", ModelSubMeshSpan.size( ) );
-
-            for ( auto& SubMeshSpan : ModelSubMeshSpan )
-            {
-                try
-                {
-                    if constexpr ( requires { { HitBoxMapping( SubMeshSpan ) } -> std::convertible_to<GroupMeshHitBoxSerializer::HitBoxType>; } )
-                    {
-                        GroupMeshHitBoxSerializer::HitBoxType Type = HitBoxMapping( SubMeshSpan );
-                        switch ( Type )
-                        {
-                        case GroupMeshHitBoxSerializer::HitBoxType::eNone: break;
-                        case GroupMeshHitBoxSerializer::HitBoxType::eConvex:
-                            GCS.AppendConvexCache( SubMeshSpan.VertexRange );
-                            break;
-                        case GroupMeshHitBoxSerializer::HitBoxType::eTriangle:
-                            GCS.AppendTriangleCache( SubMeshSpan.VertexRange, SubMeshSpan.RebasedIndexRange );
-                            break;
-                        }
-                    } else
-                    {
-                        spdlog::warn( "Using convex mesh by default" );
-                        GCS.AppendConvexCache( SubMeshSpan.VertexRange );
-                    }
-                }
-                catch ( std::runtime_error& e )
-                {
-                    spdlog::error( "Failed to load model: {}", e.what( ) );
-                }
-            }
-
-            GCS.WriteCache( );
-        }
-
-        if ( m_RigidActor != nullptr )
-        {
-            m_RigidActor->release( );
-        }
-
-        if ( Static )
-            m_RigidActor = GCS.CreateStaticRigidBodyFromCacheGroup( *Material );
-        else
-            m_RigidActor = GCS.CreateDynamicRigidBodyFromCacheGroup( *Material );
-
-        m_RigidActor->userData = this;
-        m_PhyEngine->GetScene( )->addActor( *m_RigidActor );
-
-        SetRuntimeName( "RigidCube LOL" );
-        SetSearchThrough( true );
-    }
+    { }
 
     physx::PxRigidActor*
     GetRigidBodyHandle( )
@@ -626,21 +710,17 @@ public:
         return m_RigidActor;
     }
 
-    void
-    Apply( ) override { }
-
-private:
+protected:
     /*
      *
      * Physx
      *
      * */
-    PhysicsEngine* m_PhyEngine = nullptr;
-
+    PhysicsEngine*       m_PhyEngine  = nullptr;
     physx::PxRigidActor* m_RigidActor = nullptr;
 };
-DEFINE_CONCEPT( RigidMesh )
-RigidMesh::~RigidMesh( )
+DEFINE_CONCEPT( Collider )
+Collider::~Collider( )
 {
     if ( m_RigidActor != nullptr )
     {
@@ -648,7 +728,169 @@ RigidMesh::~RigidMesh( )
         m_RigidActor = nullptr;
     }
 }
+/*
+ *
+ * Collider got meshes, should not be shared
+ *
+ * */
+class ColliderMesh : public Collider
+{
+    DECLARE_CONCEPT( ColliderMesh, Collider )
 
+public:
+    /*
+     *
+     * This will generate a new collider for the mesh
+     *
+     * */
+    template <typename Mapping = void*>
+    ColliderMesh( std::shared_ptr<ConceptMesh> StaticMesh, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false, Mapping&& ColliderMapping = nullptr )
+        : Collider( PhyEngine )
+    {
+        SetGroupMeshCollider( std::make_shared<GroupMeshColliderSerializer>( *StaticMesh, m_PhyEngine, ColliderMapping ), Material, Static );
+    }
+
+    ColliderMesh( std::shared_ptr<GroupMeshColliderSerializer> GroupMeshCollider, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false )
+        : Collider( PhyEngine )
+    {
+        SetGroupMeshCollider( GroupMeshCollider, Material, Static );
+    }
+
+    /*
+     *
+     * GroupMeshCollider need to be loaded and initialized
+     *
+     * */
+    void
+    SetGroupMeshCollider( std::shared_ptr<GroupMeshColliderSerializer> GroupMeshCollider, physx::PxMaterial* Material, bool Static )
+    {
+        m_GroupMeshCollider = GroupMeshCollider;
+        REQUIRED( m_GroupMeshCollider->HasData( ), throw std::runtime_error( "GroupMeshCollider has no data" ) )
+
+        if ( m_RigidActor != nullptr )
+        {
+            m_RigidActor->release( );
+            m_RigidActor = nullptr;
+        }
+
+        if ( Static )
+            m_RigidActor = m_GroupMeshCollider->CreateStaticRigidBodyFromCacheGroup( *Material );
+        else
+            m_RigidActor = m_GroupMeshCollider->CreateDynamicRigidBodyFromCacheGroup( *Material );
+
+        REQUIRED( this == dynamic_cast<Collider*>( this ) )
+        // FIXME: should set by rigid body
+        m_RigidActor->userData = dynamic_cast<Collider*>( this );
+        m_PhyEngine->GetScene( )->addActor( *m_RigidActor );
+    }
+
+private:
+    /*
+     *
+     * Collider
+     *
+     * */
+    std::shared_ptr<GroupMeshColliderSerializer> m_GroupMeshCollider;
+};
+DEFINE_CONCEPT_DS( ColliderMesh )
+
+class RigidBody : public ConceptApplicable
+    , protected Orientation
+{
+    DECLARE_CONCEPT( RigidBody, ConceptApplicable )
+public:
+    RigidBody( )
+    {
+        // For collider or renderable etc.
+        SetSearchThrough( true );
+    }
+
+    void
+    Apply( ) override
+    {
+        // Make sure to release unlinked references
+        GetConcepts( m_RenderableConcepts );
+
+        if ( OrientationChanged )
+        {
+            m_RenderableConcepts.ForEach( [ this ]( std::shared_ptr<ConceptRenderable>& Renderable ) {
+                Renderable->SetShaderUniform( "modelMatrix", GetModelMatrix( ) );
+            } );
+            OrientationChanged = false;
+        }
+    }
+
+    Orientation&
+    GetOrientation( )
+    {
+        OrientationChanged = true;
+        return *static_cast<Orientation*>( this );
+    }
+
+protected:
+    bool                                    OrientationChanged = true;
+    ConceptSetFetchCache<ConceptRenderable> m_RenderableConcepts;
+};
+DEFINE_CONCEPT_DS( RigidBody )
+
+/*
+ *
+ * Contain renderable mesh and collider
+ *
+ * */
+class RigidMesh : public RigidBody
+{
+    DECLARE_CONCEPT( RigidMesh, RigidBody )
+
+public:
+    template <typename Mapping = void*>
+    RigidMesh( const std::string& MeshPathStr, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false, Mapping&& ColliderMapping = nullptr )
+    {
+        REQUIRED( !MeshPathStr.empty( ), throw std::runtime_error( "Mesh path cannot be empty" ); )
+
+        SerializerModel Serializer;
+
+        auto Mesh = CreateConcept<ConceptMesh>( );
+        Serializer.ToMesh( MeshPathStr, Mesh.get( ) );
+
+        SetMesh( Mesh );
+
+        REQUIRED( PhyEngine != nullptr && Material != nullptr, throw std::runtime_error( "Physx engine and material cannot be nullptr" ); )
+        SetCollider( CreateConcept<ColliderMesh>( Mesh, PhyEngine, Material, Static, ColliderMapping ) );
+    }
+
+    RigidMesh( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<Collider> C )
+    {
+        SetMesh( std::move( Mesh ) );
+        SetCollider( std::move( C ) );
+    }
+
+    void
+    SetMesh( std::shared_ptr<ConceptMesh> Mesh )
+    {
+        auto* Camera     = PureConceptCamera::PeekCameraStack<PureConceptPerspectiveCamera>( );
+        m_RenderableMesh = AddConcept<RenderableMesh>( Mesh );
+        m_RenderableMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
+        m_RenderableMesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
+        m_RenderableMesh->SetShaderUniform( "viewPos", Camera->GetCameraPosition( ) );
+        m_RenderableMesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
+    }
+
+    void
+    SetCollider( std::shared_ptr<Collider> C )
+    {
+        if ( m_Collider != nullptr ) m_Collider->Destroy( );
+        REQUIRED( GetOwnership( m_Collider = C ) )
+    }
+
+    [[nodiscard]] const auto&
+    GetCollider( ) const noexcept { return m_Collider; }
+
+protected:
+    std::shared_ptr<RenderableMesh> m_RenderableMesh;
+    std::shared_ptr<Collider>       m_Collider;
+};
+DEFINE_CONCEPT_DS( RigidMesh )
 
 GameManager::GameManager( )
 {
@@ -676,9 +918,11 @@ GameManager::GameManager( )
             auto StaticMesh = AddConcept<ConceptMesh>( );
             StaticMesh->DetachFromOwner( );
 
-            SerializerModel TestModel;
-            TestModel.SetFilePath( "Assets/Model/red_cube.glb" );
-            TestModel.ToMesh( StaticMesh.get( ) );
+            {
+                SerializerModel TestModel;
+                TestModel.SetFilePath( "Assets/Model/red_cube.glb" );
+                TestModel.ToMesh( StaticMesh.get( ) );
+            }
 
             auto LightMesh = PerspectiveCanvas->AddConcept<RenderableMesh>( StaticMesh );
             LightMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultMeshShader" ) );
@@ -693,27 +937,28 @@ GameManager::GameManager( )
                 physx::PxRigidStatic* groundPlane = PxCreatePlane( *m_PhyEngine, physx::PxPlane( 0, 1, 0, 3 ), *Material );
                 m_PhyEngine->GetScene( )->addActor( *groundPlane );
 
-                auto RoomMesh = AddConcept<ConceptMesh>( );
-                RoomMesh->DetachFromOwner( );
-                TestModel.ToMesh( "Assets/Model/low_poly_room.glb", RoomMesh.get( ) );
-                auto RM = AddConcept<RigidMesh>( RoomMesh, m_PhyEngine.get( ), Material, true, []( auto& SubMeshSpan ) {
+                auto RM = AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", m_PhyEngine.get( ), Material, true, []( auto& SubMeshSpan ) {
                     if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
-                        return GroupMeshHitBoxSerializer::HitBoxType::eTriangle;
+                        return GroupMeshColliderSerializer::ColliderType::eTriangle;
                     else
-                        return GroupMeshHitBoxSerializer::HitBoxType::eConvex;
+                        return GroupMeshColliderSerializer::ColliderType::eConvex;
                 } );
                 AddConcept<LightRotate>( RM->GetConcept<RenderableMesh>( ), LightMesh );
 
-                auto CubeMesh = AddConcept<ConceptMesh>( );
-                CubeMesh->DetachFromOwner( );
-                TestModel.ToMesh( "Assets/Model/red_cube.glb", CubeMesh.get( ) );
-                for ( int i = 0; i < 10; ++i )
                 {
-                    auto* RBH = AddConcept<RigidMesh>( CubeMesh, m_PhyEngine.get( ), Material )->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
-                    REQUIRED_IF( RBH != nullptr )
+                    SerializerModel Serializer;
+                    auto            Mesh = CreateConcept<ConceptMesh>( );
+                    Serializer.ToMesh( "Assets/Model/red_cube.glb", Mesh.get( ) );
+                    auto MeshColliderData = std::make_shared<GroupMeshColliderSerializer>( *StaticMesh, m_PhyEngine.get( ) );
+
+                    for ( int i = 0; i < 10; ++i )
                     {
-                        RBH->setGlobalPose( physx::PxTransform { physx::PxVec3( 0, 15 + i * 3, 0 ) } );
-                        RBH->setAngularVelocity( { (float) i, (float) 20, (float) -10 }, true );
+                        auto* RBH = AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, m_PhyEngine.get( ), Material ) )->GetCollider( )->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
+                        REQUIRED_IF( RBH != nullptr )
+                        {
+                            RBH->setGlobalPose( physx::PxTransform { physx::PxVec3( 0, 15 + i * 3, 0 ) } );
+                            RBH->setAngularVelocity( { (float) i, (float) 20, (float) -10 }, true );
+                        }
                     }
                 }
             }
@@ -766,15 +1011,16 @@ GameManager::Apply( )
             auto* Data = activeActors[ i ]->userData;
             if ( Data != nullptr )
             {
-                auto* RigidMeshPtr = static_cast<RigidMesh*>( Data );
+                auto* ColliderMeshPtr = static_cast<Collider*>( Data );
 
-                if ( auto Mesh = RigidMeshPtr->GetConcept<RenderableMesh>( ); Mesh != nullptr )
+                auto* ColliderOwnerPtr = ColliderMeshPtr->GetOwner( );
+                if ( auto RB = ColliderOwnerPtr->TryCast<RigidBody>( ); RB != nullptr )
                 {
                     const auto& GP = ( (physx::PxRigidActor*) activeActors[ i ] )->getGlobalPose( );
-                    Mesh->SetCoordinate( GP.p.x, GP.p.y, GP.p.z );
+                    RB->GetOrientation( ).SetCoordinate( GP.p.x, GP.p.y, GP.p.z );
 
                     static_assert( sizeof( physx::PxQuat ) == sizeof( glm::quat ) );
-                    Mesh->SetQuat( *( (glm::quat*) &GP.q ) );
+                    RB->GetOrientation( ).SetQuat( *( (glm::quat*) &GP.q ) );
                 }
             }
         }

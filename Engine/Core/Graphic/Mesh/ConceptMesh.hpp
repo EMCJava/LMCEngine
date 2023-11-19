@@ -24,25 +24,30 @@ struct GLBufferHandle {
     ENABLE_IMGUI( GLBufferHandle )
 };
 
+/*
+ *
+ * Can be shared
+ *
+ * */
 class ConceptMesh : public PureConcept
 {
     DECLARE_CONCEPT( ConceptMesh, PureConcept )
 
 public:
-    auto&
-    GetVerticesColorPack( ) { return m_Vertices_ColorPack; }
+    const auto&
+    GetVerticesColorPack( ) const noexcept { return m_Vertices_ColorPack; }
 
-    auto&
-    GetIndices( ) { return m_Indices; }
-
-    [[nodiscard]] auto&
-    GetGLBufferHandle( ) { return m_GLBufferHandle; }
+    const auto&
+    GetIndices( ) const noexcept { return m_Indices; }
 
     [[nodiscard]] auto&
-    GetSubMeshes( ) { return m_SubMeshes; }
+    GetGLBufferHandle( ) noexcept { return m_GLBufferHandle; }
 
-    [[nodiscard]] auto&
-    GetFilePath( ) { return m_FilePath; }
+    [[nodiscard]] const auto&
+    GetSubMeshes( ) const noexcept { return m_SubMeshes; }
+
+    [[nodiscard]] const auto&
+    GetFilePath( ) const noexcept { return m_FilePath; }
 
 protected:
     std::vector<glm::vec4>   m_Vertices_ColorPack;
