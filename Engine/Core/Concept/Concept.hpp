@@ -89,13 +89,16 @@ public:
     /*
      *
      * Get ownership of a sub concept
+     * Action: Remove from old owner(needed) and add to new owner(this)
      *
      * */
     bool
     GetOwnership( PureConcept* ConceptPtr );
+
     /*
      *
      * Get ownership of a sub concept, it also works when concept is not previously owned by other
+     * Action: Remove from old owner(only if not shared and owned, not required) and add to new owner(this)
      *
      * */
     template <typename ConceptType>
@@ -273,18 +276,8 @@ Concept::GetOwnership( std::shared_ptr<ConceptType> ConceptPtr )
         return true;
     }
 
-    // Own already
-    if ( ConceptPtr->m_BelongsTo != nullptr )
-    {
-        return false;
-    }
-
-    // Not own by any other concept
-    for ( const auto& m_SubConcept : m_SubConcepts )
-    {
-        if ( m_SubConcept.get( ) == ConceptPtr.get( ) ) [[unlikely]]
-            return false;
-    }
+    // Own already by other, can it be???
+    REQUIRED( ConceptPtr->m_BelongsTo == nullptr, return false )
 
     ConceptPtr->m_BelongsTo = this;
     m_SubConcepts.emplace_back( std::move( ConceptPtr ) );
@@ -320,7 +313,7 @@ template <class ConceptType>
 void
 Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThrough ) const
 {
-    const auto StateHash = m_ConceptsStateHash.SeekUint64( );
+    const auto StateHash = GetHash( );
     if ( Out.m_CacheHash == StateHash )
     {
         // Concept set not changed

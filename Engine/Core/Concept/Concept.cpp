@@ -12,8 +12,10 @@ Concept::~Concept( )
 {
     for ( auto& Con : m_SubConcepts )
     {
-        TEST( Con->m_BelongsTo == this );
-        Con->m_BelongsTo = nullptr;
+        REQUIRED_IF( Con->m_BelongsTo == this )
+        {
+            Con->m_BelongsTo = nullptr;
+        }
     }
 
     spdlog::trace( "{}::~{} -> {}", "Concept", "Concept", fmt::ptr( this ) );
@@ -32,8 +34,10 @@ Concept::RemoveConcept( PureConcept* ConceptPtr )
     {
         if ( It->get( ) == ConceptPtr )
         {
-            TEST( ConceptPtr->m_BelongsTo == this );
-            ConceptPtr->m_BelongsTo = nullptr;
+            REQUIRED_IF( ConceptPtr->m_BelongsTo == this )
+            {
+                ConceptPtr->m_BelongsTo = nullptr;
+            }
 
             m_SubConcepts.erase( It );
             ResetSubConceptCache( );
