@@ -19,7 +19,7 @@
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 #include <Engine/Core/Physics/PhysicsEngine.hpp>
 #include <Engine/Core/Physics/PhysicsScene.hpp>
-#include <Engine/Core/Physics/Collider/ColliderSerializerGroupMesh.hpp>
+#include <Engine/Core/Physics/Collider/Serializer/ColliderSerializerGroupMesh.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
