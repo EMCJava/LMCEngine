@@ -49,7 +49,7 @@ class LightRotate : public ConceptApplicable
 {
     DECLARE_CONCEPT( LightRotate, ConceptApplicable )
 public:
-    LightRotate( std::shared_ptr<RenderableMesh> Mesh, std::shared_ptr<RenderableMesh> LightMesh )
+    LightRotate( std::shared_ptr<ConceptRenderable> Mesh, std::shared_ptr<RenderableMesh> LightMesh )
         : m_Mesh( std::move( Mesh ) )
         , m_LightMesh( std::move( LightMesh ) )
     {
@@ -70,9 +70,9 @@ public:
     }
 
 protected:
-    FloatTy                         m_AccumulatedTime { 0.0f };
-    std::shared_ptr<RenderableMesh> m_Mesh;
-    std::shared_ptr<RenderableMesh> m_LightMesh;
+    FloatTy                            m_AccumulatedTime { 0.0f };
+    std::shared_ptr<ConceptRenderable> m_Mesh;
+    std::shared_ptr<RenderableMesh>    m_LightMesh;
 
     Orientation m_LightOrientation;
 };
@@ -808,16 +808,20 @@ public:
     void
     Apply( ) override
     {
-        // Make sure to release unlinked references
-        GetConcepts( m_RenderableConcepts );
-
         if ( OrientationChanged )
         {
-            m_RenderableConcepts.ForEach( [ this ]( std::shared_ptr<ConceptRenderable>& Renderable ) {
-                Renderable->SetShaderUniform( "modelMatrix", GetModelMatrix( ) );
-            } );
+            if ( m_Renderable != nullptr )
+            {
+                m_Renderable->SetShaderUniform( "modelMatrix", GetModelMatrix( ) );
+            }
             OrientationChanged = false;
         }
+    }
+
+    [[nodiscard]] const auto&
+    GetRenderable( ) const
+    {
+        return m_Renderable;
     }
 
     Orientation&
@@ -828,8 +832,11 @@ public:
     }
 
 protected:
-    bool                                    OrientationChanged = true;
-    ConceptSetFetchCache<ConceptRenderable> m_RenderableConcepts;
+    bool OrientationChanged = true;
+
+    // FIXME: Consider making these two unique_ptr, for 1 to 1 relationship
+    std::shared_ptr<ConceptRenderable> m_Renderable;
+    std::shared_ptr<Collider>          m_Collider;
 };
 DEFINE_CONCEPT_DS( RigidBody )
 
@@ -868,27 +875,18 @@ public:
     void
     SetMesh( std::shared_ptr<ConceptMesh> Mesh )
     {
-        auto* Camera     = PureConceptCamera::PeekCameraStack<PureConceptPerspectiveCamera>( );
-        m_RenderableMesh = AddConcept<RenderableMesh>( Mesh );
-        m_RenderableMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
-        m_RenderableMesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
-        m_RenderableMesh->SetShaderUniform( "viewPos", Camera->GetCameraPosition( ) );
-        m_RenderableMesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
+        m_Renderable = AddConcept<RenderableMesh>( std::move( Mesh ) );
     }
 
     void
     SetCollider( std::shared_ptr<Collider> C )
     {
         if ( m_Collider != nullptr ) m_Collider->Destroy( );
-        REQUIRED( GetOwnership( m_Collider = C ) )
+        REQUIRED( GetOwnership( m_Collider = std::move( C ) ) )
     }
 
     [[nodiscard]] const auto&
     GetCollider( ) const noexcept { return m_Collider; }
-
-protected:
-    std::shared_ptr<RenderableMesh> m_RenderableMesh;
-    std::shared_ptr<Collider>       m_Collider;
 };
 DEFINE_CONCEPT_DS( RigidMesh )
 
@@ -937,13 +935,20 @@ GameManager::GameManager( )
                 physx::PxRigidStatic* groundPlane = PxCreatePlane( *m_PhyEngine, physx::PxPlane( 0, 1, 0, 3 ), *Material );
                 m_PhyEngine->GetScene( )->addActor( *groundPlane );
 
-                auto RM = AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", m_PhyEngine.get( ), Material, true, []( auto& SubMeshSpan ) {
-                    if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
-                        return GroupMeshColliderSerializer::ColliderType::eTriangle;
-                    else
-                        return GroupMeshColliderSerializer::ColliderType::eConvex;
-                } );
-                AddConcept<LightRotate>( RM->GetConcept<RenderableMesh>( ), LightMesh );
+                {
+                    auto  RM             = AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", m_PhyEngine.get( ), Material, true, []( auto& SubMeshSpan ) {
+                        if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
+                            return GroupMeshColliderSerializer::ColliderType::eTriangle;
+                        else
+                            return GroupMeshColliderSerializer::ColliderType::eConvex;
+                    } );
+                    auto& RenderableMesh = RM->GetRenderable( );
+                    RenderableMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
+                    RenderableMesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
+                    RenderableMesh->SetShaderUniform( "viewPos", m_MainCamera->GetCameraPosition( ) );
+                    RenderableMesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
+                    AddConcept<LightRotate>( RenderableMesh, LightMesh );
+                }
 
                 {
                     SerializerModel Serializer;
@@ -953,7 +958,14 @@ GameManager::GameManager( )
 
                     for ( int i = 0; i < 10; ++i )
                     {
-                        auto* RBH = AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, m_PhyEngine.get( ), Material ) )->GetCollider( )->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
+                        auto  RM             = AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, m_PhyEngine.get( ), Material ) );
+                        auto& RenderableMesh = RM->GetRenderable( );
+                        RenderableMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
+                        RenderableMesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
+                        RenderableMesh->SetShaderUniform( "viewPos", m_MainCamera->GetCameraPosition( ) );
+                        RenderableMesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
+
+                        auto* RBH = RM->GetCollider( )->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
                         REQUIRED_IF( RBH != nullptr )
                         {
                             RBH->setGlobalPose( physx::PxTransform { physx::PxVec3( 0, 15 + i * 3, 0 ) } );
