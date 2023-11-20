@@ -19,6 +19,7 @@
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 #include <Engine/Core/Physics/PhysicsEngine.hpp>
 #include <Engine/Core/Physics/PhysicsScene.hpp>
+#include <Engine/Core/Physics/Collider/ColliderSerializerGroupMesh.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
@@ -81,452 +82,6 @@ protected:
 };
 DEFINE_CONCEPT_DS( LightRotate )
 
-template <typename Span>
-concept SpanLike = requires( Span span ) {
-    {
-        span.size( )
-    } -> std::convertible_to<std::size_t>;
-    {
-        span.data( )
-    };
-};
-
-class GroupMeshColliderSerializer
-{
-public:
-    enum class ColliderType : uint8_t {
-        eNone     = 0,
-        eConvex   = 1,
-        eTriangle = 2
-    };
-
-private:
-    struct PhysicsMeshInstance {
-        std::pair<std::ptrdiff_t, size_t> BufferSpan { };
-        ColliderType                      Type   = ColliderType::eNone;
-        physx::PxBase*                    PxMesh = nullptr;
-
-        PhysicsMeshInstance( ) = default;
-        PhysicsMeshInstance( std::pair<std::ptrdiff_t, size_t> BufferSpan, ColliderType Type, physx::PxBase* PxMesh = nullptr )
-            : BufferSpan( BufferSpan )
-            , Type( Type )
-            , PxMesh( PxMesh )
-        { }
-        ~PhysicsMeshInstance( )
-        {
-            if ( PxMesh != nullptr )
-            {
-                PxMesh->release( );
-                PxMesh = nullptr;
-            }
-        }
-
-        PhysicsMeshInstance( PhysicsMeshInstance&& Other ) { *this = std::move( Other ); }
-        PhysicsMeshInstance& operator=( PhysicsMeshInstance&& Other )
-        {
-            BufferSpan = std::move( Other.BufferSpan );
-            if ( PxMesh != nullptr )
-            {
-                PxMesh->release( );
-                PxMesh = nullptr;
-            }
-
-            Type = Other.Type;
-            std::swap( PxMesh, Other.PxMesh );
-
-            if ( PxMesh != nullptr )
-            {
-                switch ( Type )
-                {
-                case ColliderType::eNone: break;
-                case ColliderType::eConvex:
-                    spdlog::info( "Ref Count: {}", ( (physx::PxConvexMesh*) PxMesh )->getReferenceCount( ) );
-                    break;
-                case ColliderType::eTriangle:
-                    spdlog::info( "Ref Count: {}", ( (physx::PxTriangleMesh*) PxMesh )->getReferenceCount( ) );
-                    break;
-                }
-            }
-
-            return *this;
-        }
-        PhysicsMeshInstance( const PhysicsMeshInstance& )            = delete;   // non construction-copyable
-        PhysicsMeshInstance& operator=( const PhysicsMeshInstance& ) = delete;   // non copyable
-
-        [[nodiscard]] physx::PxGeometryHolder
-        GenerateGeometry( ) const
-        {
-            REQUIRED( PxMesh != nullptr, throw std::runtime_error( "PxMesh is nullptr" ) )
-            switch ( Type )
-            {
-            case ColliderType::eNone:
-                REQUIRED( false, throw std::runtime_error( "Geometry from type none" ) )
-            case ColliderType::eConvex:
-                return physx::PxConvexMeshGeometry( (physx::PxConvexMesh*) PxMesh );
-            case ColliderType::eTriangle:
-                return physx::PxTriangleMeshGeometry( (physx::PxTriangleMesh*) PxMesh );
-            }
-        }
-
-        void
-        GenerateMeshIfNull( PhysicsEngine* PhyEngine, uint8_t* Data )
-        {
-            if ( PxMesh != nullptr ) return;
-
-            physx::PxDefaultMemoryInputData PxMemoryBuffer( Data + BufferSpan.first, BufferSpan.second );
-            switch ( Type )
-            {
-            case ColliderType::eNone: break;
-            case ColliderType::eConvex: {
-                PxMesh = ( *PhyEngine )->createConvexMesh( PxMemoryBuffer );
-                break;
-            }
-            case ColliderType::eTriangle:
-                PxMesh = ( *PhyEngine )->createTriangleMesh( PxMemoryBuffer );
-                break;
-            }
-        }
-    };
-
-    void
-    PushCookedBuffer( physx::PxDefaultMemoryOutputStream& CookingBuffer, ColliderType CType )
-    {
-        const auto OldSize = m_CacheBuffer.size( );
-        m_CacheBuffer.resize( OldSize + sizeof( size_t ) + sizeof( ColliderType ) + CookingBuffer.getSize( ) );
-
-        auto* ChunkStart = m_CacheBuffer.data( ) + OldSize;
-
-        // Buffer size
-        size_t BufferSize = CookingBuffer.getSize( );
-        memcpy( ChunkStart, &BufferSize, sizeof( size_t ) );
-        // Buffer type
-        *reinterpret_cast<ColliderType*>( ChunkStart + sizeof( size_t ) ) = CType;
-        // Buffer data
-        memcpy( ChunkStart + sizeof( size_t ) + sizeof( ColliderType ), CookingBuffer.getData( ), CookingBuffer.getSize( ) );
-
-        // Skip list save
-        m_PxMeshInstances.emplace_back( std::pair { OldSize + sizeof( size_t ) + sizeof( ColliderType ), CookingBuffer.getSize( ) }, CType );
-
-        spdlog::info( "Cooked buffer size: {}[{}]", CookingBuffer.getSize( ), (uint8_t) CType );
-    }
-
-public:
-    /*
-     *
-     * This will not load or generate any data
-     *
-     * */
-    GroupMeshColliderSerializer( std::string Name, PhysicsEngine* PhyEngine )
-        : m_GroupName( std::move( Name ) )
-        , m_PhyEngine( PhyEngine )
-    { }
-
-    /*
-     *
-     * This will load the cached data from file or, generate it and write to file
-     *
-     * */
-    template <typename Mapping = void*>
-    GroupMeshColliderSerializer( const ConceptMesh& Mesh, PhysicsEngine* PhyEngine, Mapping&& ColliderMapping = nullptr )
-        : m_GroupName( GetHashFilePath( Mesh.GetFilePath( ) ) )
-        , m_PhyEngine( PhyEngine )
-    {
-        auto& SubMeshes  = Mesh.GetSubMeshes( );
-        bool  ShouldLoad = !TryLoad( ) || !IsColliderTypeCorrect( SubMeshes, ColliderMapping );
-        if ( ShouldLoad )
-        {
-            spdlog::info( "Number of ModelSubMeshSpan: {}", SubMeshes.size( ) );
-            GenerateFrom( SubMeshes, ColliderMapping );
-            WriteCacheToFile( );
-        }
-    }
-
-    static std::string
-    GetHashFilePath( std::string_view FilePath )
-    {
-        return std::to_string( hash_value( std::filesystem::path( FilePath ) ) );
-    }
-
-    std::filesystem::path
-    GetFilePath( )
-    {
-        return PATH_PREFIX / ( m_GroupName + "_group_mesh_cache.bin" );
-    }
-
-    template <typename Ty>
-    void
-    BufferReadValue( auto*& Buffer, Ty& Value )
-    {
-        Value = *reinterpret_cast<Ty*>( Buffer );
-
-        static_assert( sizeof( Buffer[ 0 ] ) == sizeof( char ) );
-        Buffer += sizeof( Ty );
-    }
-
-    /*
-     *
-     * Try loading from offline saved data
-     *
-     * */
-    bool TryLoad( )
-    {
-        const auto CachePath = GetFilePath( );
-
-        std::error_code ErrorCode;
-        // Cache already exists
-        if ( std::filesystem::exists( CachePath.parent_path( ), ErrorCode ) && std::filesystem::exists( CachePath ) )
-        {
-            std::ifstream InputStream;
-            InputStream.open( CachePath, std::ios::in | std::ios::binary | std::ios::ate );
-
-            const auto BufferSize = InputStream.tellg( );
-            InputStream.seekg( 0, std::ios::beg );
-
-            m_PxMeshInstances.clear( );
-            m_CacheBuffer.resize( BufferSize );
-            InputStream.read( (std::ifstream::char_type*) m_CacheBuffer.data( ), BufferSize );
-            if ( BufferSize != InputStream.gcount( ) ) throw std::runtime_error( "Failed to read convex.bin" );
-
-            auto* BufferBegin = m_CacheBuffer.data( );
-            auto* BufferEnd   = BufferBegin + BufferSize;
-
-            while ( BufferBegin != BufferEnd )
-            {
-                size_t       SpanSize;
-                ColliderType CType;
-
-                BufferReadValue( BufferBegin, SpanSize );
-                BufferReadValue( BufferBegin, CType );
-
-                m_PxMeshInstances.emplace_back( std::pair { std::distance( m_CacheBuffer.data( ), BufferBegin ), SpanSize }, CType );
-                BufferBegin += SpanSize;
-            }
-
-
-            return true;
-        }
-
-        return false;
-    }
-
-    bool IsColliderTypeCorrect( const std::vector<SubMeshSpan>& ModelSubMeshSpan, auto&& ColliderMapping )
-    {
-        // Check if mapping is the same
-        if ( ModelSubMeshSpan.size( ) != m_PxMeshInstances.size( ) )
-            return false;
-
-        for ( int i = 0; i < ModelSubMeshSpan.size( ); ++i )
-        {
-            if constexpr ( requires { { ColliderMapping( ModelSubMeshSpan[ i ] ) } -> std::convertible_to<GroupMeshColliderSerializer::ColliderType>; } )
-            {
-                GroupMeshColliderSerializer::ColliderType Type = ColliderMapping( ModelSubMeshSpan[ i ] );
-
-                if ( Type != m_PxMeshInstances[ i ].Type )
-                {
-                    return false;
-                }
-            } else
-            {
-                if ( DefaultColliderType != m_PxMeshInstances[ i ].Type )
-                {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    void
-    GenerateFrom( const std::vector<SubMeshSpan>& ModelSubMeshSpan, auto&& ColliderMapping )
-    {
-        ClearBuffer( );
-        for ( auto& SubMeshSpan : ModelSubMeshSpan )
-        {
-            try
-            {
-                if constexpr ( requires { { ColliderMapping( SubMeshSpan ) } -> std::convertible_to<GroupMeshColliderSerializer::ColliderType>; } )
-                {
-                    GroupMeshColliderSerializer::ColliderType Type = ColliderMapping( SubMeshSpan );
-                    switch ( Type )
-                    {
-                    case ColliderType::eNone: break;
-                    case ColliderType::eConvex:
-                        AppendConvexCache( SubMeshSpan.VertexRange );
-                        break;
-                    case ColliderType::eTriangle:
-                        AppendTriangleCache( SubMeshSpan.VertexRange, SubMeshSpan.RebasedIndexRange );
-                        break;
-                    }
-                } else
-                {
-                    spdlog::warn( "Using convex mesh by default" );
-                    AppendConvexCache( SubMeshSpan.VertexRange );
-                }
-            }
-            catch ( std::runtime_error& e )
-            {
-                spdlog::error( "Failed to generate model: {}", e.what( ) );
-            }
-        }
-    }
-
-    template <SpanLike Span>
-    void
-    AppendConvexCache( Span& VertexBuffer, uint16_t ConvexVertexLimit = 100 )
-    {
-        physx::PxConvexMeshDesc convexDesc;
-        convexDesc.points.count  = VertexBuffer.size( );
-        convexDesc.points.stride = sizeof( VertexBuffer[ 0 ] );
-        convexDesc.points.data   = VertexBuffer.data( );
-        convexDesc.flags         = physx::PxConvexFlag::eCOMPUTE_CONVEX
-            | physx::PxConvexFlag::eCHECK_ZERO_AREA_TRIANGLES
-            | physx::PxConvexFlag::eSHIFT_VERTICES;   // Need to verify
-        convexDesc.vertexLimit = ConvexVertexLimit;
-
-        physx::PxDefaultMemoryOutputStream     CookingBuffer;
-        physx::PxConvexMeshCookingResult::Enum result;
-
-        auto* PhysxCooking = m_PhyEngine->GetCooking( );
-        auto  TriParams = PhysxCooking->getParams( ), ParamsCopy = TriParams;
-
-        TriParams.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eWELD_VERTICES;
-        TriParams.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eFORCE_32BIT_INDICES;
-        m_PhyEngine->GetCooking( )->setParams( TriParams );
-
-        if ( !m_PhyEngine->GetCooking( )->cookConvexMesh( convexDesc, CookingBuffer, &result ) )
-        {
-            m_PhyEngine->GetCooking( )->setParams( ParamsCopy );
-            throw std::runtime_error( "Failed to cook convex mesh" );
-        }
-
-        m_PhyEngine->GetCooking( )->setParams( ParamsCopy );
-        PushCookedBuffer( CookingBuffer, ColliderType::eConvex );
-    }
-
-    template <SpanLike VertexSpan, SpanLike IndexSpan>
-    void
-    AppendTriangleCache( VertexSpan& VertexBuffer, IndexSpan& IndexBuffer )
-    {
-        REQUIRED( IndexBuffer.size( ) % 3 == 0, return; )
-
-        physx::PxTriangleMeshDesc meshDesc;
-        meshDesc.points.count  = VertexBuffer.size( );
-        meshDesc.points.stride = sizeof( VertexBuffer[ 0 ] );
-        meshDesc.points.data   = VertexBuffer.data( );
-
-        meshDesc.triangles.count  = IndexBuffer.size( ) / 3;
-        meshDesc.triangles.stride = 3 * sizeof( IndexBuffer[ 0 ] );
-        meshDesc.triangles.data   = IndexBuffer.data( );
-
-        physx::PxDefaultMemoryOutputStream       CookingBuffer;
-        physx::PxTriangleMeshCookingResult::Enum result;
-        if ( !m_PhyEngine->GetCooking( )->cookTriangleMesh( meshDesc, CookingBuffer, &result ) )
-            throw std::runtime_error( "Failed to cook triangle mesh" );
-
-        PushCookedBuffer( CookingBuffer, ColliderType::eTriangle );
-    }
-
-    physx::PxRigidDynamic*
-    CreateDynamicRigidBodyFromCacheGroup( const physx::PxMaterial& material )
-    {
-        auto* hfActor = ( *m_PhyEngine )->createRigidDynamic( physx::PxTransform( physx::PxVec3( 0 ) ) );
-        hfActor->setName( m_GroupName.c_str( ) );
-
-        for ( auto& PxMeshInstance : m_PxMeshInstances )
-        {
-            PxMeshInstance.GenerateMeshIfNull( m_PhyEngine, m_CacheBuffer.data( ) );
-            if ( PxMeshInstance.Type != ColliderType::eConvex )
-            {
-                spdlog::warn( "Skipping non-convex mesh for dynamic rigid body(not supported by Physx)." );
-                continue;
-            }
-
-            physx::PxShape* aShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, PxMeshInstance.GenerateGeometry( ).any( ), material );
-            REQUIRED( aShape != nullptr )
-        }
-
-        return hfActor;
-    }
-
-    physx::PxRigidStatic*
-    CreateStaticRigidBodyFromCacheGroup( const physx::PxMaterial& material )
-    {
-        auto* hfActor = ( *m_PhyEngine )->createRigidStatic( physx::PxTransform( physx::PxVec3( 0 ) ) );
-        hfActor->setName( m_GroupName.c_str( ) );
-
-        for ( auto& PxMeshInstance : m_PxMeshInstances )
-        {
-            PxMeshInstance.GenerateMeshIfNull( m_PhyEngine, m_CacheBuffer.data( ) );
-            if ( PxMeshInstance.Type == ColliderType::eNone )
-            {
-                spdlog::warn( "Skipping non-defined mesh type for rigid body." );
-                continue;
-            }
-
-            physx::PxShape* aShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, PxMeshInstance.GenerateGeometry( ).any( ), material );
-            REQUIRED( aShape != nullptr )
-        }
-
-        return hfActor;
-    }
-
-    void WriteCacheToFile( )
-    {
-        const auto CachePath = GetFilePath( );
-
-        std::error_code ErrorCode;
-        !std::filesystem::exists( CachePath.parent_path( ), ErrorCode ) && std::filesystem::create_directories( CachePath.parent_path( ), ErrorCode );
-
-        // Cache already exists
-        if ( std::filesystem::exists( CachePath ) )
-        {
-            spdlog::warn( "Cache file already exists, overwriting" );
-        }
-
-        std::ofstream OutputStream;
-        OutputStream.open( CachePath, std::ios::out | std::ios::binary );
-        if ( !OutputStream.write( (std::ofstream::char_type*) m_CacheBuffer.data( ), m_CacheBuffer.size( ) ) )
-        {
-            throw std::runtime_error( "Failed to write convex cache" );
-        }
-    }
-
-    void
-    ClearBuffer( )
-    {
-        m_PxMeshInstances.clear( );
-        m_CacheBuffer.clear( );
-    }
-
-    bool
-    HasData( )
-    {
-        REQUIRED( m_CacheBuffer.empty( ) == m_PxMeshInstances.empty( ) )
-        return !m_CacheBuffer.empty( );
-    }
-
-    const auto&
-    GetCacheBuffer( ) const { return m_CacheBuffer; }
-
-private:
-    const std::filesystem::path PATH_PREFIX = "Assets/Physics/Cache/Convexes/";
-    std::string                 m_GroupName { };
-
-    // [buffer size(size_t), buffer type(ColliderType), buffer], ...
-    std::vector<uint8_t>             m_CacheBuffer;
-    std::vector<PhysicsMeshInstance> m_PxMeshInstances;
-
-    static constexpr ColliderType DefaultColliderType = ColliderType::eConvex;
-
-    /*
-     *
-     * Physx
-     *
-     * */
-    PhysicsEngine* m_PhyEngine = nullptr;
-};
-
 // FIXME: Use PureConcept
 class Collider : public Concept
 {
@@ -561,9 +116,10 @@ Collider::~Collider( )
         m_RigidActor = nullptr;
     }
 }
+
 /*
  *
- * Collider got meshes, should not be shared
+ * Collider from meshes, should not be shared
  *
  * */
 class ColliderMesh : public Collider
@@ -580,10 +136,10 @@ public:
     ColliderMesh( std::shared_ptr<ConceptMesh> StaticMesh, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false, Mapping&& ColliderMapping = nullptr )
         : Collider( PhyEngine )
     {
-        SetGroupMeshCollider( std::make_shared<GroupMeshColliderSerializer>( *StaticMesh, m_PhyEngine, ColliderMapping ), Material, Static );
+        SetGroupMeshCollider( std::make_shared<ColliderSerializerGroupMesh>( StaticMesh, m_PhyEngine, ColliderMapping ), Material, Static );
     }
 
-    ColliderMesh( std::shared_ptr<GroupMeshColliderSerializer> GroupMeshCollider, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false )
+    ColliderMesh( std::shared_ptr<ColliderSerializerGroupMesh> GroupMeshCollider, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false )
         : Collider( PhyEngine )
     {
         SetGroupMeshCollider( GroupMeshCollider, Material, Static );
@@ -595,7 +151,7 @@ public:
      *
      * */
     void
-    SetGroupMeshCollider( std::shared_ptr<GroupMeshColliderSerializer> GroupMeshCollider, physx::PxMaterial* Material, bool Static )
+    SetGroupMeshCollider( std::shared_ptr<ColliderSerializerGroupMesh> GroupMeshCollider, physx::PxMaterial* Material, bool Static )
     {
         m_GroupMeshCollider = GroupMeshCollider;
         REQUIRED( m_GroupMeshCollider->HasData( ), throw std::runtime_error( "GroupMeshCollider has no data" ) )
@@ -623,7 +179,7 @@ private:
      * Collider
      *
      * */
-    std::shared_ptr<GroupMeshColliderSerializer> m_GroupMeshCollider;
+    std::shared_ptr<ColliderSerializerGroupMesh> m_GroupMeshCollider;
 };
 DEFINE_CONCEPT_DS( ColliderMesh )
 
@@ -771,9 +327,9 @@ GameManager::GameManager( )
                 {
                     auto  RM             = AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", m_PhyEngine.get( ), Material, true, []( auto& SubMeshSpan ) {
                         if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
-                            return GroupMeshColliderSerializer::ColliderType::eTriangle;
+                            return ColliderSerializerGroupMesh::ColliderType::eTriangle;
                         else
-                            return GroupMeshColliderSerializer::ColliderType::eConvex;
+                            return ColliderSerializerGroupMesh::ColliderType::eConvex;
                     } );
                     auto& RenderableMesh = RM->GetRenderable( );
                     RenderableMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
@@ -787,7 +343,7 @@ GameManager::GameManager( )
                     SerializerModel Serializer;
                     auto            Mesh = CreateConcept<ConceptMesh>( );
                     Serializer.ToMesh( "Assets/Model/red_cube.glb", Mesh.get( ) );
-                    auto MeshColliderData = std::make_shared<GroupMeshColliderSerializer>( *StaticMesh, m_PhyEngine.get( ) );
+                    auto MeshColliderData = std::make_shared<ColliderSerializerGroupMesh>( StaticMesh, m_PhyEngine.get( ) );
 
                     for ( int i = 0; i < 10; ++i )
                     {

@@ -1,0 +1,3 @@
+add_library(ColliderSerializerGroupMesh.lib ColliderSerializerGroupMesh.hpp ColliderSerializerGroupMesh.cpp)
+
+target_link_libraries(ColliderSerializerGroupMesh.lib PhysX::PhysX spdlog::spdlog PhysicsEngine.lib ConceptMesh.lib)
