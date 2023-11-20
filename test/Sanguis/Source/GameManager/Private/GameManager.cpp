@@ -20,6 +20,7 @@
 #include <Engine/Core/Physics/PhysicsEngine.hpp>
 #include <Engine/Core/Physics/PhysicsScene.hpp>
 #include <Engine/Core/Physics/Collider/Serializer/ColliderSerializerGroupMesh.hpp>
+#include <Engine/Core/Physics/Collider/ColliderMesh.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
@@ -82,107 +83,6 @@ protected:
 };
 DEFINE_CONCEPT_DS( LightRotate )
 
-// FIXME: Use PureConcept
-class Collider : public Concept
-{
-    DECLARE_CONCEPT( Collider, Concept )
-
-public:
-    Collider( PhysicsEngine* PhyEngine )
-        : m_PhyEngine( PhyEngine )
-    { }
-
-    physx::PxRigidActor*
-    GetRigidBodyHandle( )
-    {
-        return m_RigidActor;
-    }
-
-protected:
-    /*
-     *
-     * Physx
-     *
-     * */
-    PhysicsEngine*       m_PhyEngine  = nullptr;
-    physx::PxRigidActor* m_RigidActor = nullptr;
-};
-DEFINE_CONCEPT( Collider )
-Collider::~Collider( )
-{
-    if ( m_RigidActor != nullptr )
-    {
-        m_RigidActor->release( );
-        m_RigidActor = nullptr;
-    }
-}
-
-/*
- *
- * Collider from meshes, should not be shared
- *
- * */
-class ColliderMesh : public Collider
-{
-    DECLARE_CONCEPT( ColliderMesh, Collider )
-
-public:
-    /*
-     *
-     * This will generate a new collider for the mesh
-     *
-     * */
-    template <typename Mapping = void*>
-    ColliderMesh( std::shared_ptr<ConceptMesh> StaticMesh, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false, Mapping&& ColliderMapping = nullptr )
-        : Collider( PhyEngine )
-    {
-        SetGroupMeshCollider( std::make_shared<ColliderSerializerGroupMesh>( StaticMesh, m_PhyEngine, ColliderMapping ), Material, Static );
-    }
-
-    ColliderMesh( std::shared_ptr<ColliderSerializerGroupMesh> GroupMeshCollider, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false )
-        : Collider( PhyEngine )
-    {
-        SetGroupMeshCollider( GroupMeshCollider, Material, Static );
-    }
-
-    /*
-     *
-     * GroupMeshCollider need to be loaded and initialized
-     *
-     * */
-    void
-    SetGroupMeshCollider( std::shared_ptr<ColliderSerializerGroupMesh> GroupMeshCollider, physx::PxMaterial* Material, bool Static )
-    {
-        m_GroupMeshCollider = GroupMeshCollider;
-        REQUIRED( m_GroupMeshCollider->HasData( ), throw std::runtime_error( "GroupMeshCollider has no data" ) )
-
-        if ( m_RigidActor != nullptr )
-        {
-            m_RigidActor->release( );
-            m_RigidActor = nullptr;
-        }
-
-        if ( Static )
-            m_RigidActor = m_GroupMeshCollider->CreateStaticRigidBodyFromCacheGroup( *Material );
-        else
-            m_RigidActor = m_GroupMeshCollider->CreateDynamicRigidBodyFromCacheGroup( *Material );
-
-        REQUIRED( this == dynamic_cast<Collider*>( this ) )
-        // FIXME: should set by rigid body
-        m_RigidActor->userData = dynamic_cast<Collider*>( this );
-        m_PhyEngine->GetScene( )->addActor( *m_RigidActor );
-    }
-
-private:
-    /*
-     *
-     * Collider
-     *
-     * */
-    std::shared_ptr<ColliderSerializerGroupMesh> m_GroupMeshCollider;
-};
-DEFINE_CONCEPT_DS( ColliderMesh )
-
 class RigidBody : public ConceptApplicable
     , protected Orientation
 {
@@ -225,7 +125,7 @@ protected:
 
     // FIXME: Consider making these two unique_ptr, for 1 to 1 relationship
     std::shared_ptr<ConceptRenderable> m_Renderable;
-    std::shared_ptr<Collider>          m_Collider;
+    std::shared_ptr<PureConceptCollider>          m_Collider;
 };
 DEFINE_CONCEPT_DS( RigidBody )
 
@@ -255,7 +155,7 @@ public:
         SetCollider( CreateConcept<ColliderMesh>( Mesh, PhyEngine, Material, Static, ColliderMapping ) );
     }
 
-    RigidMesh( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<Collider> C )
+    RigidMesh( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<PureConceptCollider> C )
     {
         SetMesh( std::move( Mesh ) );
         SetCollider( std::move( C ) );
@@ -268,7 +168,7 @@ public:
     }
 
     void
-    SetCollider( std::shared_ptr<Collider> C )
+    SetCollider( std::shared_ptr<PureConceptCollider> C )
     {
         if ( m_Collider != nullptr ) m_Collider->Destroy( );
         REQUIRED( GetOwnership( m_Collider = std::move( C ) ) )
@@ -412,7 +312,7 @@ GameManager::Apply( )
             auto* Data = activeActors[ i ]->userData;
             if ( Data != nullptr )
             {
-                auto* ColliderMeshPtr = static_cast<Collider*>( Data );
+                auto* ColliderMeshPtr = static_cast<PureConceptCollider*>( Data );
 
                 auto* ColliderOwnerPtr = ColliderMeshPtr->GetOwner( );
                 if ( auto RB = ColliderOwnerPtr->TryCast<RigidBody>( ); RB != nullptr )
