@@ -126,7 +126,6 @@ GameManager::GameManager( )
                 AddConcept<LightRotate>( PerspectiveCanvas, LightRenderable );
             }
 
-            if ( true )
             {
                 m_PhyEngine = std::make_shared<PhysicsEngine>( );
 
@@ -134,18 +133,21 @@ GameManager::GameManager( )
                 physx::PxRigidStatic* groundPlane = PxCreatePlane( *m_PhyEngine, physx::PxPlane( 0, 1, 0, 3 ), *Material );
                 m_PhyEngine->GetScene( )->addActor( *groundPlane );
 
+                const auto RenderableShaderSetup = [ this ]( auto& Renderable, const std::string& ShaderName ) {
+                    Renderable->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( ShaderName ) );
+                    Renderable->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
+                    Renderable->SetShaderUniform( "viewPos", m_MainCamera->GetCameraPosition( ) );
+                    Renderable->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
+                };
+
                 {
-                    auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", m_PhyEngine.get( ), Material, true, []( auto& SubMeshSpan ) {
+                    auto RM = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", m_PhyEngine.get( ), Material, true, []( auto& SubMeshSpan ) {
                         if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
                             return ColliderSerializerGroupMesh::ColliderType::eTriangle;
                         else
                             return ColliderSerializerGroupMesh::ColliderType::eConvex;
                     } );
-                    auto& RenderableMesh = RM->GetRenderable( );
-                    RenderableMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
-                    RenderableMesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
-                    RenderableMesh->SetShaderUniform( "viewPos", m_MainCamera->GetCameraPosition( ) );
-                    RenderableMesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
+                    RenderableShaderSetup( RM->GetRenderable( ), "DefaultPhongShader" );
                 }
 
                 {
@@ -156,10 +158,7 @@ GameManager::GameManager( )
                     {
                         auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, m_PhyEngine.get( ), Material ) );
                         auto& RenderableMesh = RM->GetRenderable( );
-                        RenderableMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
-                        RenderableMesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
-                        RenderableMesh->SetShaderUniform( "viewPos", m_MainCamera->GetCameraPosition( ) );
-                        RenderableMesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
+                        RenderableShaderSetup( RenderableMesh, "DefaultPhongShader" );
 
                         auto* RBH = RM->GetCollider( )->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
                         REQUIRED_IF( RBH != nullptr )
