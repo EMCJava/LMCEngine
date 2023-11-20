@@ -369,6 +369,7 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh )
 bool
 SerializerModel::ToMesh( const std::string& FilePath, ConceptMesh* ToMesh )
 {
-    SetFilePath( FilePath );
-    return this->ToMesh( ToMesh );
+    SerializerModel Tmp;
+    Tmp.SetFilePath( FilePath );
+    return Tmp.ToMesh( ToMesh );
 }

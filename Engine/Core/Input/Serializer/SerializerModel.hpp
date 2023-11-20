@@ -39,7 +39,7 @@ public:
     bool
     ToMesh( class ConceptMesh* ToMesh );
 
-    bool
+    static bool
     ToMesh( const std::string& FilePath, class ConceptMesh* ToMesh );
 
     struct aiScene const*

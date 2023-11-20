@@ -20,10 +20,8 @@ RigidMesh::CreateMesh( const std::string& MeshPathStr )
 {
     REQUIRED( !MeshPathStr.empty( ), throw std::runtime_error( "Mesh path cannot be empty" ); )
 
-    SerializerModel Serializer;
-
     auto Mesh = CreateConcept<ConceptMesh>( );
-    Serializer.ToMesh( MeshPathStr, Mesh.get( ) );
+    SerializerModel::ToMesh( MeshPathStr, Mesh.get( ) );
 
     SetMesh( Mesh );
     return Mesh;

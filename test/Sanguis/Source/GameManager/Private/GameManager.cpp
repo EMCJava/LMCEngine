@@ -55,8 +55,8 @@ class LightRotate : public ConceptApplicable
 {
     DECLARE_CONCEPT( LightRotate, ConceptApplicable )
 public:
-    LightRotate( std::shared_ptr<ConceptRenderable> Mesh, std::shared_ptr<RenderableMesh> LightMesh )
-        : m_Mesh( std::move( Mesh ) )
+    LightRotate( std::shared_ptr<Canvas> EffectiveCanvas, std::shared_ptr<RenderableMesh> LightMesh )
+        : m_EffectiveCanvas( std::move( EffectiveCanvas ) )
         , m_LightMesh( std::move( LightMesh ) )
     {
         m_LightOrientation.SetScale( 0.08, 0.08, 0.08 );
@@ -69,16 +69,24 @@ public:
         m_AccumulatedTime += DeltaTime;
 
         const auto Location = glm::vec3( cos( m_AccumulatedTime * 2 ) * 5.0f, 2, sin( m_AccumulatedTime * 2 ) * 5.0f );
-        m_Mesh->SetShaderUniform( "lightPos", Location );
         m_LightOrientation.SetCoordinate( Location, true );
-
         m_LightMesh->SetShaderUniform( "modelMatrix", m_LightOrientation.GetModelMatrix( ) );
+
+        REQUIRED_IF( m_EffectiveCanvas != nullptr )
+        {
+            m_EffectiveCanvas->GetConcepts( m_CanvasRenderables );
+            m_CanvasRenderables.ForEach( [ &Location ]( std::shared_ptr<ConceptRenderable>& Renderable ) {
+                Renderable->SetShaderUniform( "lightPos", Location );
+            } );
+        }
     }
 
 protected:
-    FloatTy                            m_AccumulatedTime { 0.0f };
-    std::shared_ptr<ConceptRenderable> m_Mesh;
-    std::shared_ptr<RenderableMesh>    m_LightMesh;
+    FloatTy                         m_AccumulatedTime { 0.0f };
+    std::shared_ptr<Canvas>         m_EffectiveCanvas;
+    std::shared_ptr<RenderableMesh> m_LightMesh;
+
+    ConceptSetFetchCache<ConceptRenderable> m_CanvasRenderables;
 
     Orientation m_LightOrientation;
 };
@@ -93,6 +101,8 @@ GameManager::GameManager( )
 
     {
         m_MainCamera = AddConcept<PureConceptPerspectiveCamera>( );
+        AddConcept<FirstPersonCameraController>( m_MainCamera );
+
         m_MainCamera->SetRuntimeName( "Main Camera" );
         m_MainCamera->PushToCameraStack( );
 
@@ -107,19 +117,15 @@ GameManager::GameManager( )
         PerspectiveCanvas->SetCanvasCamera( m_MainCamera );
 
         {
-            auto StaticMesh = AddConcept<ConceptMesh>( );
-            StaticMesh->DetachFromOwner( );
 
             {
-                SerializerModel TestModel;
-                TestModel.SetFilePath( "Assets/Model/red_cube.glb" );
-                TestModel.ToMesh( StaticMesh.get( ) );
+                auto LightMesh = CreateConcept<ConceptMesh>( );
+                SerializerModel::ToMesh( "Assets/Model/red_cube.glb", LightMesh.get( ) );
+
+                auto LightRenderable = PerspectiveCanvas->AddConcept<RenderableMesh>( LightMesh );
+                LightRenderable->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultMeshShader" ) );
+                AddConcept<LightRotate>( PerspectiveCanvas, LightRenderable );
             }
-
-            auto LightMesh = PerspectiveCanvas->AddConcept<RenderableMesh>( StaticMesh );
-            LightMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultMeshShader" ) );
-
-            AddConcept<FirstPersonCameraController>( m_MainCamera );
 
             if ( true )
             {
@@ -130,7 +136,7 @@ GameManager::GameManager( )
                 m_PhyEngine->GetScene( )->addActor( *groundPlane );
 
                 {
-                    auto  RM             = AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", m_PhyEngine.get( ), Material, true, []( auto& SubMeshSpan ) {
+                    auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", m_PhyEngine.get( ), Material, true, []( auto& SubMeshSpan ) {
                         if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
                             return ColliderSerializerGroupMesh::ColliderType::eTriangle;
                         else
@@ -141,18 +147,16 @@ GameManager::GameManager( )
                     RenderableMesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
                     RenderableMesh->SetShaderUniform( "viewPos", m_MainCamera->GetCameraPosition( ) );
                     RenderableMesh->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
-                    AddConcept<LightRotate>( RenderableMesh, LightMesh );
                 }
 
                 {
-                    SerializerModel Serializer;
-                    auto            Mesh = CreateConcept<ConceptMesh>( );
-                    Serializer.ToMesh( "Assets/Model/red_cube.glb", Mesh.get( ) );
-                    auto MeshColliderData = std::make_shared<ColliderSerializerGroupMesh>( StaticMesh, m_PhyEngine.get( ) );
+                    auto Mesh = CreateConcept<ConceptMesh>( );
+                    SerializerModel::ToMesh( "Assets/Model/red_cube.glb", Mesh.get( ) );
+                    auto MeshColliderData = std::make_shared<ColliderSerializerGroupMesh>( Mesh, m_PhyEngine.get( ) );
 
                     for ( int i = 0; i < 10; ++i )
                     {
-                        auto  RM             = AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, m_PhyEngine.get( ), Material ) );
+                        auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, m_PhyEngine.get( ), Material ) );
                         auto& RenderableMesh = RM->GetRenderable( );
                         RenderableMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
                         RenderableMesh->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
