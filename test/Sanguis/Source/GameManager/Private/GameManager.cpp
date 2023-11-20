@@ -178,15 +178,15 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-    constexpr int DesieredFPS = 160;
-    constexpr int CapFPS      = DesieredFPS * 2;
+    constexpr int DesiredFPS = 160;
+    constexpr int CapFPS      = DesiredFPS * 2;
 
     const auto DeltaSecond = Engine::GetEngine( )->GetDeltaSecond( );
 
     {
         m_PhyEngine->GetScene( )->simulate( DeltaSecond );
 
-        float         WaitTimeMilliseconds      = 500.F / DesieredFPS;
+        float         WaitTimeMilliseconds      = 500.F / DesiredFPS;
         constexpr int MaxWaitTimeMilliseconds   = 1000;
         int           TotalWaitTimeMilliseconds = 0;
         while ( !m_PhyEngine->GetScene( )->fetchResults( false ) )
