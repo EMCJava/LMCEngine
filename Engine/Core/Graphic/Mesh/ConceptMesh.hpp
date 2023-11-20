@@ -34,6 +34,10 @@ class ConceptMesh : public PureConcept
     DECLARE_CONCEPT( ConceptMesh, PureConcept )
 
 public:
+    ConceptMesh( ) = default;
+
+    ConceptMesh( const std::string& MeshFilePath );
+
     const auto&
     GetVerticesColorPack( ) const noexcept { return m_Vertices_ColorPack; }
 

@@ -119,8 +119,7 @@ GameManager::GameManager( )
         {
 
             {
-                auto LightMesh = CreateConcept<ConceptMesh>( );
-                SerializerModel::ToMesh( "Assets/Model/red_cube.glb", LightMesh.get( ) );
+                auto LightMesh = CreateConcept<ConceptMesh>( "Assets/Model/red_cube.glb" );
 
                 auto LightRenderable = PerspectiveCanvas->AddConcept<RenderableMesh>( LightMesh );
                 LightRenderable->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultMeshShader" ) );
@@ -150,8 +149,7 @@ GameManager::GameManager( )
                 }
 
                 {
-                    auto Mesh = CreateConcept<ConceptMesh>( );
-                    SerializerModel::ToMesh( "Assets/Model/red_cube.glb", Mesh.get( ) );
+                    auto Mesh             = CreateConcept<ConceptMesh>( "Assets/Model/red_cube.glb" );
                     auto MeshColliderData = std::make_shared<ColliderSerializerGroupMesh>( Mesh, m_PhyEngine.get( ) );
 
                     for ( int i = 0; i < 10; ++i )
