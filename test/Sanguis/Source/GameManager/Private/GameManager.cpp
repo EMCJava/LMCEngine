@@ -9,6 +9,7 @@
 #include <Engine/Core/Input/UserInput.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptPerspectiveCamera.hpp>
+#include <Engine/Core/Graphic/Camera/FirstPersonCameraController.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Input/Serializer/SerializerModel.hpp>
 #include <Engine/Core/Graphic/Mesh/ConceptMesh.hpp>
@@ -77,75 +78,6 @@ protected:
     Orientation m_LightOrientation;
 };
 DEFINE_CONCEPT_DS( LightRotate )
-
-class CameraController : public ConceptApplicable
-{
-    DECLARE_CONCEPT( CameraController, ConceptApplicable )
-
-public:
-    explicit CameraController( std::shared_ptr<PureConceptPerspectiveCamera> Camera )
-        : m_Camera( std::move( Camera ) )
-    {
-        Engine::GetEngine( )->GetUserInputHandle( )->LockCursor( true );
-    }
-
-    void
-    Apply( ) override
-    {
-        const auto    DeltaTime      = Engine::GetEngine( )->GetDeltaSecond( );
-        const FloatTy DeltaChange    = DeltaTime * m_ViewControlSensitivity;
-        auto          CameraPosition = m_Camera->GetCameraPosition( );
-
-        int FrontMovement = 0;
-        int RightMovement = 0;
-
-        auto* UserInputHandle = Engine::GetEngine( )->GetUserInputHandle( );
-
-        const bool Accelerated = UserInputHandle->GetKeyState( GLFW_KEY_LEFT_CONTROL ).isDown;
-
-        if ( UserInputHandle->GetKeyState( GLFW_KEY_W ).isDown ) FrontMovement += 1;
-        if ( UserInputHandle->GetKeyState( GLFW_KEY_S ).isDown ) FrontMovement -= 1;
-        if ( UserInputHandle->GetKeyState( GLFW_KEY_D ).isDown ) RightMovement += 1;
-        if ( UserInputHandle->GetKeyState( GLFW_KEY_A ).isDown ) RightMovement -= 1;
-
-        if ( Accelerated )
-        {
-            FrontMovement <<= 4;
-            RightMovement <<= 4;
-        }
-
-        if ( FrontMovement != 0 ) CameraPosition += m_Camera->GetCameraFacing( ) * ( FrontMovement * DeltaChange );
-        if ( RightMovement != 0 ) CameraPosition += m_Camera->GetCameraRightVector( ) * ( RightMovement * DeltaChange );
-        if ( FrontMovement || RightMovement ) m_Camera->SetCameraPosition( CameraPosition );
-
-        if ( UserInputHandle->GetKeyState( GLFW_KEY_ESCAPE ).isPressed )
-        {
-            Engine::GetEngine( )->GetUserInputHandle( )->LockCursor( ( m_MouseLocked = !m_MouseLocked ) );
-        }
-
-        if ( m_MouseLocked )
-        {
-            const auto Delta = UserInputHandle->GetCursorDeltaPosition( );
-            // spdlog::info( "Delta movement: {},{}", Delta.first, Delta.second );
-            m_Camera->AlterCameraPrincipalAxes( Delta.first * 0.05F, -Delta.second * 0.05F );
-        }
-    }
-
-protected:
-    std::shared_ptr<PureConceptPerspectiveCamera> m_Camera;
-    FloatTy                                       m_ViewControlSensitivity { 1.0f };
-
-    bool m_MouseLocked { true };
-
-    ENABLE_IMGUI( CameraController )
-};
-CameraController::~CameraController( )
-{
-    Engine::GetEngine( )->GetUserInputHandle( )->LockCursor( false );
-}
-DEFINE_CONCEPT( CameraController )
-DEFINE_SIMPLE_IMGUI_TYPE( CameraController, m_ViewControlSensitivity )
-
 
 class PhysicsScene
 {
@@ -925,7 +857,7 @@ GameManager::GameManager( )
             auto LightMesh = PerspectiveCanvas->AddConcept<RenderableMesh>( StaticMesh );
             LightMesh->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultMeshShader" ) );
 
-            AddConcept<CameraController>( m_MainCamera );
+            AddConcept<FirstPersonCameraController>( m_MainCamera );
 
             if ( true )
             {

@@ -147,6 +147,7 @@ declare_library(
         Orientation.lib
         Canvas.lib
         PureConceptPerspectiveCamera.lib
+        FirstPersonCameraController.lib
         SerializerModel.lib
         ConceptMesh.lib
         RenderableMesh.lib
