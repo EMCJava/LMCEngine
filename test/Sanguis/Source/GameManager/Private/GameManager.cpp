@@ -21,6 +21,7 @@
 #include <Engine/Core/Physics/PhysicsScene.hpp>
 #include <Engine/Core/Physics/Collider/Serializer/ColliderSerializerGroupMesh.hpp>
 #include <Engine/Core/Physics/Collider/ColliderMesh.hpp>
+#include <Engine/Core/Physics/RigidBody/RigidMesh.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
@@ -82,102 +83,6 @@ protected:
     Orientation m_LightOrientation;
 };
 DEFINE_CONCEPT_DS( LightRotate )
-
-class RigidBody : public ConceptApplicable
-    , protected Orientation
-{
-    DECLARE_CONCEPT( RigidBody, ConceptApplicable )
-public:
-    RigidBody( )
-    {
-        // For collider or renderable etc.
-        SetSearchThrough( true );
-    }
-
-    void
-    Apply( ) override
-    {
-        if ( OrientationChanged )
-        {
-            if ( m_Renderable != nullptr )
-            {
-                m_Renderable->SetShaderUniform( "modelMatrix", GetModelMatrix( ) );
-            }
-            OrientationChanged = false;
-        }
-    }
-
-    [[nodiscard]] const auto&
-    GetRenderable( ) const
-    {
-        return m_Renderable;
-    }
-
-    Orientation&
-    GetOrientation( )
-    {
-        OrientationChanged = true;
-        return *static_cast<Orientation*>( this );
-    }
-
-protected:
-    bool OrientationChanged = true;
-
-    // FIXME: Consider making these two unique_ptr, for 1 to 1 relationship
-    std::shared_ptr<ConceptRenderable> m_Renderable;
-    std::shared_ptr<PureConceptCollider>          m_Collider;
-};
-DEFINE_CONCEPT_DS( RigidBody )
-
-/*
- *
- * Contain renderable mesh and collider
- *
- * */
-class RigidMesh : public RigidBody
-{
-    DECLARE_CONCEPT( RigidMesh, RigidBody )
-
-public:
-    template <typename Mapping = void*>
-    RigidMesh( const std::string& MeshPathStr, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false, Mapping&& ColliderMapping = nullptr )
-    {
-        REQUIRED( !MeshPathStr.empty( ), throw std::runtime_error( "Mesh path cannot be empty" ); )
-
-        SerializerModel Serializer;
-
-        auto Mesh = CreateConcept<ConceptMesh>( );
-        Serializer.ToMesh( MeshPathStr, Mesh.get( ) );
-
-        SetMesh( Mesh );
-
-        REQUIRED( PhyEngine != nullptr && Material != nullptr, throw std::runtime_error( "Physx engine and material cannot be nullptr" ); )
-        SetCollider( CreateConcept<ColliderMesh>( Mesh, PhyEngine, Material, Static, ColliderMapping ) );
-    }
-
-    RigidMesh( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<PureConceptCollider> C )
-    {
-        SetMesh( std::move( Mesh ) );
-        SetCollider( std::move( C ) );
-    }
-
-    void
-    SetMesh( std::shared_ptr<ConceptMesh> Mesh )
-    {
-        m_Renderable = AddConcept<RenderableMesh>( std::move( Mesh ) );
-    }
-
-    void
-    SetCollider( std::shared_ptr<PureConceptCollider> C )
-    {
-        if ( m_Collider != nullptr ) m_Collider->Destroy( );
-        REQUIRED( GetOwnership( m_Collider = std::move( C ) ) )
-    }
-
-    [[nodiscard]] const auto&
-    GetCollider( ) const noexcept { return m_Collider; }
-};
-DEFINE_CONCEPT_DS( RigidMesh )
 
 GameManager::GameManager( )
 {

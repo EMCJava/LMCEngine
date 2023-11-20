@@ -149,6 +149,7 @@ declare_library(
         PureConceptPerspectiveCamera.lib
         FirstPersonCameraController.lib
         ColliderMesh.lib
+        RigidMesh.lib
         ColliderSerializerGroupMesh.lib
         SerializerModel.lib
         ConceptMesh.lib
