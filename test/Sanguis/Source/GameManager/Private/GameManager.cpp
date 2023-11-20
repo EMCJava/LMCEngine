@@ -17,6 +17,8 @@
 #include <Engine/Core/Graphic/Canvas/Canvas.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
+#include <Engine/Core/Physics/PhysicsEngine.hpp>
+#include <Engine/Core/Physics/PhysicsScene.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
@@ -78,107 +80,6 @@ protected:
     Orientation m_LightOrientation;
 };
 DEFINE_CONCEPT_DS( LightRotate )
-
-class PhysicsScene
-{
-    void InitializeScene( );
-
-public:
-    PhysicsScene( physx::PxPhysics* Physics )
-        : m_Physics( Physics )
-    {
-        physx::PxSceneDesc sceneDesc( Physics->getTolerancesScale( ) );
-        sceneDesc.gravity       = physx::PxVec3( 0.0f, -9.81f, 0.0f );
-        m_Dispatcher            = physx::PxDefaultCpuDispatcherCreate( 4 );
-        sceneDesc.cpuDispatcher = m_Dispatcher;
-        sceneDesc.filterShader  = physx::PxDefaultSimulationFilterShader;
-        m_Scene                 = Physics->createScene( sceneDesc );
-
-        // flags
-        m_Scene->setFlag( physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS, true );
-
-        physx::PxPvdSceneClient* pvdClient = m_Scene->getScenePvdClient( );
-        if ( pvdClient )
-        {
-            spdlog::info( "Setting PVD flag" );
-            pvdClient->setScenePvdFlag( physx::PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true );
-            pvdClient->setScenePvdFlag( physx::PxPvdSceneFlag::eTRANSMIT_CONTACTS, true );
-            pvdClient->setScenePvdFlag( physx::PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true );
-        }
-    }
-
-    operator physx::PxScene&( ) { return *m_Scene; }
-    auto* operator->( ) { return m_Scene; }
-
-private:
-    physx::PxScene*                m_Scene      = nullptr;
-    physx::PxDefaultCpuDispatcher* m_Dispatcher = nullptr;
-
-    physx::PxPhysics* m_Physics = nullptr;
-};
-class PhysicsEngine
-{
-    void
-    InitializePhysx( )
-    {
-        // init physx
-        m_Foundation = PxCreateFoundation( PX_PHYSICS_VERSION, m_DefaultAllocatorCallback, m_DefaultErrorCallback );
-        if ( !m_Foundation ) throw std::runtime_error( "PxCreateFoundation failed!" );
-
-        m_Pvd                            = PxCreatePvd( *m_Foundation );
-        physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate( "127.0.0.1", 5425, 10 );
-        m_Pvd->connect( *transport, physx::PxPvdInstrumentationFlag::eALL );
-
-        m_ToleranceScale.length = 1;      // typical length of an object
-        m_ToleranceScale.speed  = 9.81;   // typical speed of an object, gravity*1s is a reasonable choice
-        m_Physics               = PxCreatePhysics( PX_PHYSICS_VERSION, *m_Foundation, m_ToleranceScale, true, m_Pvd );
-        // mPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *mFoundation, mToleranceScale);
-
-        m_MainScene = std::make_shared<PhysicsScene>( m_Physics );
-        m_Cooking   = PxCreateCooking( PX_PHYSICS_VERSION, *m_Foundation, physx::PxCookingParams( m_ToleranceScale ) );
-        if ( !m_Cooking ) throw std::runtime_error( "PxCreateCooking failed!" );
-    }
-
-public:
-    PhysicsEngine( )
-    {
-        InitializePhysx( );
-    }
-
-    ~PhysicsEngine( )
-    {
-        m_Physics->release( );
-        m_Cooking->release( );
-        m_Foundation->release( );
-
-        spdlog::info( "PhysX released!" );
-    }
-
-    auto*
-    GetPhysxHandle( ) { return m_Physics; }
-
-    auto&
-    GetScene( ) { return *m_MainScene; }
-
-    auto&
-    GetCooking( ) { return *m_Cooking; }
-
-    operator physx::PxPhysics&( ) { return *m_Physics; }
-    auto* operator->( ) { return GetPhysxHandle( ); }
-
-private:
-    physx::PxDefaultAllocator     m_DefaultAllocatorCallback;
-    physx::PxDefaultErrorCallback m_DefaultErrorCallback;
-    physx::PxTolerancesScale      m_ToleranceScale;
-
-    physx::PxCooking*    m_Cooking    = nullptr;
-    physx::PxFoundation* m_Foundation = nullptr;
-    physx::PxPhysics*    m_Physics    = nullptr;
-
-    std::shared_ptr<PhysicsScene> m_MainScene;
-
-    physx::PxPvd* m_Pvd = nullptr;
-};
 
 template <typename Span>
 concept SpanLike = requires( Span span ) {
@@ -486,20 +387,20 @@ public:
         physx::PxDefaultMemoryOutputStream     CookingBuffer;
         physx::PxConvexMeshCookingResult::Enum result;
 
-        auto& PhysxCooking = m_PhyEngine->GetCooking( );
-        auto  TriParams = PhysxCooking.getParams( ), ParamsCopy = TriParams;
+        auto* PhysxCooking = m_PhyEngine->GetCooking( );
+        auto  TriParams = PhysxCooking->getParams( ), ParamsCopy = TriParams;
 
         TriParams.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eWELD_VERTICES;
         TriParams.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eFORCE_32BIT_INDICES;
-        m_PhyEngine->GetCooking( ).setParams( TriParams );
+        m_PhyEngine->GetCooking( )->setParams( TriParams );
 
-        if ( !m_PhyEngine->GetCooking( ).cookConvexMesh( convexDesc, CookingBuffer, &result ) )
+        if ( !m_PhyEngine->GetCooking( )->cookConvexMesh( convexDesc, CookingBuffer, &result ) )
         {
-            m_PhyEngine->GetCooking( ).setParams( ParamsCopy );
+            m_PhyEngine->GetCooking( )->setParams( ParamsCopy );
             throw std::runtime_error( "Failed to cook convex mesh" );
         }
 
-        m_PhyEngine->GetCooking( ).setParams( ParamsCopy );
+        m_PhyEngine->GetCooking( )->setParams( ParamsCopy );
         PushCookedBuffer( CookingBuffer, ColliderType::eConvex );
     }
 
@@ -520,7 +421,7 @@ public:
 
         physx::PxDefaultMemoryOutputStream       CookingBuffer;
         physx::PxTriangleMeshCookingResult::Enum result;
-        if ( !m_PhyEngine->GetCooking( ).cookTriangleMesh( meshDesc, CookingBuffer, &result ) )
+        if ( !m_PhyEngine->GetCooking( )->cookTriangleMesh( meshDesc, CookingBuffer, &result ) )
             throw std::runtime_error( "Failed to cook triangle mesh" );
 
         PushCookedBuffer( CookingBuffer, ColliderType::eTriangle );

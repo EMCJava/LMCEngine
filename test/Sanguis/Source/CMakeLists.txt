@@ -151,6 +151,8 @@ declare_library(
         SerializerModel.lib
         ConceptMesh.lib
         RenderableMesh.lib
+        PhysicsEngine.lib
+        PhysicsScene.lib
 
         DEPS
         spdlog::spdlog
