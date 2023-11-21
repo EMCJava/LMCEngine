@@ -43,12 +43,7 @@
 #include <ranges>
 #include <utility>
 
-DEFINE_CONCEPT_MA_SE( GameManager )
-GameManager::~GameManager( )
-{
-    // FIXME: Tmp fix to avoid PhyEng destructing before all concepts
-    RemoveConcepts<PureConcept>( );
-}
+DEFINE_CONCEPT_DS_MA_SE( GameManager )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, ConceptApplicable, TestInvokable )
 
 class LightRotate : public ConceptApplicable
@@ -127,11 +122,11 @@ GameManager::GameManager( )
             }
 
             {
-                m_PhyEngine = std::make_shared<PhysicsEngine>( );
+                auto* PhyEngine = Engine::GetEngine( )->GetPhysicsEngine( );
 
-                physx::PxMaterial*    Material    = ( *m_PhyEngine )->createMaterial( 0.5f, 0.5f, 0.6f );
-                physx::PxRigidStatic* groundPlane = PxCreatePlane( *m_PhyEngine, physx::PxPlane( 0, 1, 0, 3 ), *Material );
-                m_PhyEngine->GetScene( )->addActor( *groundPlane );
+                physx::PxMaterial*    Material    = ( *PhyEngine )->createMaterial( 0.5f, 0.5f, 0.6f );
+                physx::PxRigidStatic* groundPlane = PxCreatePlane( *PhyEngine, physx::PxPlane( 0, 1, 0, 3 ), *Material );
+                PhyEngine->GetScene( )->addActor( *groundPlane );
 
                 const auto RenderableShaderSetup = [ this ]( auto& Renderable, const std::string& ShaderName ) {
                     Renderable->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( ShaderName ) );
@@ -141,7 +136,7 @@ GameManager::GameManager( )
                 };
 
                 {
-                    auto RM = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", m_PhyEngine.get( ), Material, true, []( auto& SubMeshSpan ) {
+                    auto RM = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", PhyEngine, Material, true, []( auto& SubMeshSpan ) {
                         if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
                             return ColliderSerializerGroupMesh::ColliderType::eTriangle;
                         else
@@ -152,11 +147,11 @@ GameManager::GameManager( )
 
                 {
                     auto Mesh             = CreateConcept<ConceptMesh>( "Assets/Model/red_cube.glb" );
-                    auto MeshColliderData = std::make_shared<ColliderSerializerGroupMesh>( Mesh, m_PhyEngine.get( ) );
+                    auto MeshColliderData = std::make_shared<ColliderSerializerGroupMesh>( Mesh, PhyEngine );
 
                     for ( int i = 0; i < 10; ++i )
                     {
-                        auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, m_PhyEngine.get( ), Material ) );
+                        auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, PhyEngine, Material ) );
                         auto& RenderableMesh = RM->GetRenderable( );
                         RenderableShaderSetup( RenderableMesh, "DefaultPhongShader" );
 
@@ -179,17 +174,20 @@ void
 GameManager::Apply( )
 {
     constexpr int DesiredFPS = 160;
-    constexpr int CapFPS      = DesiredFPS * 2;
+    constexpr int CapFPS     = DesiredFPS * 2;
 
     const auto DeltaSecond = Engine::GetEngine( )->GetDeltaSecond( );
 
+    // Move the following to Engine
+    auto* PhyEngine = Engine::GetEngine( )->GetPhysicsEngine( );
+
     {
-        m_PhyEngine->GetScene( )->simulate( DeltaSecond );
+        PhyEngine->GetScene( )->simulate( DeltaSecond );
 
         float         WaitTimeMilliseconds      = 500.F / DesiredFPS;
         constexpr int MaxWaitTimeMilliseconds   = 1000;
         int           TotalWaitTimeMilliseconds = 0;
-        while ( !m_PhyEngine->GetScene( )->fetchResults( false ) )
+        while ( !PhyEngine->GetScene( )->fetchResults( false ) )
         {
             const auto SleepTime = std::min( MaxWaitTimeMilliseconds, int( WaitTimeMilliseconds ) );
             TotalWaitTimeMilliseconds += SleepTime;
@@ -208,7 +206,7 @@ GameManager::Apply( )
 
     // retrieve array of actors that moved
     physx::PxU32     nbActiveActors;
-    physx::PxActor** activeActors = m_PhyEngine->GetScene( )->getActiveActors( nbActiveActors );
+    physx::PxActor** activeActors = PhyEngine->GetScene( )->getActiveActors( nbActiveActors );
 
     if ( nbActiveActors != 0 )
     {

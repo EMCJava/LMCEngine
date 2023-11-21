@@ -31,10 +31,9 @@ target_link_libraries(Engine.lib
         ShaderProgram.lib
         Shader.lib
         Font.lib
+        PhysicsEngine.lib
 
         SpriteSquare.lib
-
-        PhysX::PhysX
 )
 
 add_subdirectory(Test)

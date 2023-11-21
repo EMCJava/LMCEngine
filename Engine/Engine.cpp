@@ -41,6 +41,7 @@
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
+#include <Engine/Core/Physics/PhysicsEngine.hpp>
 #include <Engine/Core/Audio/AudioEngine.hpp>
 #include <Engine/Core/Input/UserInput.hpp>
 #include <Engine/Core/UI/Font/Font.hpp>
@@ -119,6 +120,8 @@ Engine::Engine( )
     m_DefaultLogGroup = new LogGroup;
 
     m_AudioEngine = new AudioEngine;
+
+    m_PhysicsEngine = new PhysicsEngine;
 
     m_ActiveProject = new Project;
 
@@ -232,6 +235,9 @@ Engine::~Engine( )
     delete m_AudioEngine;
     m_AudioEngine = nullptr;
 
+    delete m_PhysicsEngine;
+    m_PhysicsEngine = nullptr;
+
 #ifdef LMC_EDITOR
     // After "almost" everything is deallocated
     // We then unload the dll safely
@@ -286,10 +292,7 @@ Engine::UpdateRootConcept( )
             ResetAllDLLDependencies( );
             RootConcept.Reload( false );
 
-            spdlog::info( "Reloading Audio engine" );
-
-            delete m_AudioEngine;
-            m_AudioEngine = new AudioEngine;
+            ResetProjectDependentSystem( );
 
             /*
              *
@@ -465,10 +468,7 @@ Engine::LoadProject( const std::string& Path )
 
     if ( !RootConcept.empty( ) )
     {
-        spdlog::info( "Reloading Audio engine" );
-
-        delete m_AudioEngine;
-        m_AudioEngine = new AudioEngine;
+        ResetProjectDependentSystem( );
 
         spdlog::info( "Loading root concepts: {}", RootConcept );
 
@@ -562,6 +562,12 @@ AudioEngine*
 Engine::GetAudioEngine( )
 {
     return m_AudioEngine;
+}
+
+PhysicsEngine*
+Engine::GetPhysicsEngine( )
+{
+    return m_PhysicsEngine;
 }
 
 UserInput*
@@ -685,6 +691,20 @@ Engine::ResetAllDLLDependencies( )
 #endif
 
     GetGlobalResourcePool( )->Get<PureConceptCameraStack>( "DefaultCameraStack" )->Clear( );
+}
+
+void
+Engine::ResetProjectDependentSystem( )
+{
+    spdlog::info( "Reloading Audio engine" );
+
+    delete m_AudioEngine;
+    m_AudioEngine = new AudioEngine;
+
+    spdlog::info( "Reloading Physics system" );
+
+    delete m_PhysicsEngine;
+    m_PhysicsEngine = new PhysicsEngine;
 }
 
 void ( *Engine::GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* )

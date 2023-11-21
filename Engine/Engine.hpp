@@ -41,6 +41,9 @@ class Engine
     void
     ResetAllDLLDependencies( );
 
+    void
+    ResetProjectDependentSystem( );
+
 public:
     Engine( );
     ~Engine( );
@@ -169,6 +172,14 @@ public:
 
     /*
      *
+     * Physics related
+     *
+     * */
+    class PhysicsEngine*
+    GetPhysicsEngine( );
+
+    /*
+     *
      * Input related
      *
      * */
@@ -279,6 +290,13 @@ private:
      *
      * */
     class AudioEngine* m_AudioEngine = nullptr;
+
+    /*
+     *
+     * Physics
+     *
+     * */
+    class PhysicsEngine* m_PhysicsEngine = nullptr;
 
     /*
      *
