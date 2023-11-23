@@ -17,9 +17,7 @@ class PureConceptCollider : public PureConcept
     DECLARE_CONCEPT( PureConceptCollider, PureConcept )
 
 public:
-    PureConceptCollider( PhysicsEngine* PhyEngine )
-        : m_PhyEngine( PhyEngine )
-    { }
+    PureConceptCollider( );
 
     physx::PxRigidActor*
     GetRigidBodyHandle( ) { return m_RigidActor; }

@@ -74,10 +74,7 @@ public:
      * This will not load or generate any data
      *
      * */
-    ColliderSerializerGroupMesh( std::string Name, PhysicsEngine* PhyEngine )
-        : m_GroupName( std::move( Name ) )
-        , m_PhyEngine( PhyEngine )
-    { }
+    ColliderSerializerGroupMesh( std::string Name );
 
     /*
      *
@@ -85,9 +82,8 @@ public:
      * Mesh: any pointer like type to ConceptMesh
      * */
     template <typename Mapping = void*>
-    ColliderSerializerGroupMesh( const auto& Mesh, PhysicsEngine* PhyEngine, Mapping&& ColliderMapping = nullptr )
-        : m_GroupName( GetHashFilePath( Mesh->GetFilePath( ) ) )
-        , m_PhyEngine( PhyEngine )
+    ColliderSerializerGroupMesh( const auto& Mesh, Mapping&& ColliderMapping = nullptr )
+        : ColliderSerializerGroupMesh( GetHashFilePath( Mesh->GetFilePath( ) ) )
     {
         auto& SubMeshes  = Mesh->GetSubMeshes( );
         bool  ShouldLoad = !TryLoad( ) || !IsColliderTypeCorrect( SubMeshes, ColliderMapping );

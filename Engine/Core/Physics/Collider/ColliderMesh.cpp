@@ -11,8 +11,7 @@
 
 DEFINE_CONCEPT_DS( ColliderMesh )
 
-ColliderMesh::ColliderMesh( std::shared_ptr<ColliderSerializerGroupMesh> GroupMeshCollider, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static )
-    : PureConceptCollider( PhyEngine )
+ColliderMesh::ColliderMesh( std::shared_ptr<ColliderSerializerGroupMesh> GroupMeshCollider, physx::PxMaterial* Material, bool Static )
 {
     SetGroupMeshCollider( GroupMeshCollider, Material, Static );
 }

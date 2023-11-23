@@ -23,11 +23,11 @@ public:
      *
      * */
     template <typename Mapping = void*>
-    ColliderMesh( std::shared_ptr<class ConceptMesh> StaticMesh, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false, Mapping&& ColliderMapping = nullptr )
-        : ColliderMesh( std::make_shared<ColliderSerializerGroupMesh>( StaticMesh, PhyEngine, ColliderMapping ), PhyEngine, Material, Static )
+    ColliderMesh( std::shared_ptr<class ConceptMesh> StaticMesh, physx::PxMaterial* Material, bool Static = false, Mapping&& ColliderMapping = nullptr )
+        : ColliderMesh( std::make_shared<ColliderSerializerGroupMesh>( StaticMesh, ColliderMapping ), Material, Static )
     { }
 
-    ColliderMesh( std::shared_ptr<ColliderSerializerGroupMesh> GroupMeshCollider, PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false );
+    ColliderMesh( std::shared_ptr<ColliderSerializerGroupMesh> GroupMeshCollider, physx::PxMaterial* Material, bool Static = false );
 
     /*
      *

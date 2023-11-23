@@ -26,12 +26,12 @@ class RigidMesh : public RigidBody
 
 public:
     template <typename Mapping = void*>
-    RigidMesh( const std::string& MeshPathStr, class PhysicsEngine* PhyEngine, physx::PxMaterial* Material, bool Static = false, Mapping&& ColliderMapping = nullptr )
+    RigidMesh( const std::string& MeshPathStr, physx::PxMaterial* Material, bool Static = false, Mapping&& ColliderMapping = nullptr )
     {
         auto Mesh = CreateMesh( MeshPathStr );
 
-        REQUIRED( PhyEngine != nullptr && Material != nullptr, throw std::runtime_error( "Physx engine and material cannot be nullptr" ); )
-        SetCollider( CreateConcept<ColliderMesh>( Mesh, PhyEngine, Material, Static, ColliderMapping ) );
+        REQUIRED( Material != nullptr, throw std::runtime_error( "Physx engine and material cannot be nullptr" ); )
+        SetCollider( CreateConcept<ColliderMesh>( Mesh, Material, Static, ColliderMapping ) );
     }
 
     RigidMesh( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<PureConceptCollider> C );

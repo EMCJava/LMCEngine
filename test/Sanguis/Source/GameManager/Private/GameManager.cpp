@@ -136,7 +136,7 @@ GameManager::GameManager( )
                 };
 
                 {
-                    auto RM = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", PhyEngine, Material, true, []( auto& SubMeshSpan ) {
+                    auto RM = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", Material, true, []( auto& SubMeshSpan ) {
                         if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
                             return ColliderSerializerGroupMesh::ColliderType::eTriangle;
                         else
@@ -151,7 +151,7 @@ GameManager::GameManager( )
 
                     for ( int i = 0; i < 10; ++i )
                     {
-                        auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, PhyEngine, Material ) );
+                        auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, Material ) );
                         auto& RenderableMesh = RM->GetRenderable( );
                         RenderableShaderSetup( RenderableMesh, "DefaultPhongShader" );
 

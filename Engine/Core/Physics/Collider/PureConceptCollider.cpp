@@ -15,3 +15,8 @@ PureConceptCollider::~PureConceptCollider( )
         m_RigidActor = nullptr;
     }
 }
+
+PureConceptCollider::PureConceptCollider( )
+{
+    m_PhyEngine = Engine::GetEngine( )->GetPhysicsEngine( );
+}

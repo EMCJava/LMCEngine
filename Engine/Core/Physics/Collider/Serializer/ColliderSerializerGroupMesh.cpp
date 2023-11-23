@@ -239,6 +239,12 @@ ColliderSerializerGroupMesh::HasData( )
     return !m_CacheBuffer.empty( );
 }
 
+ColliderSerializerGroupMesh::ColliderSerializerGroupMesh( std::string Name )
+    : m_GroupName( std::move( Name ) )
+{
+    m_PhyEngine = Engine::GetEngine( )->GetPhysicsEngine( );
+}
+
 ColliderSerializerGroupMesh::PhysicsMeshInstance::PhysicsMeshInstance( std::pair<std::ptrdiff_t, size_t> BufferSpan, ColliderType Type, physx::PxBase* PxMesh )
     : BufferSpan( BufferSpan )
     , Type( Type )
