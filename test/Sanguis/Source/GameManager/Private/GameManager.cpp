@@ -104,6 +104,11 @@ GameManager::GameManager( )
         m_MainCamera->SetCameraPerspectiveFOV( 45, false );
         m_MainCamera->SetCameraPosition( glm::vec3( 0.0f, 3.0f, 3.0f ), false );
         m_MainCamera->SetCameraFacing( glm::vec3( 0.0f, -0.70710678118F, -0.70710678118F ), false );
+
+        m_MainCamera->SetCameraPosition( glm::vec3( -10.5, 7.2, 5.2 ), false );
+        m_MainCamera->SetCameraPosition( glm::vec3( -22.228, 14.06, 10.178 ), false );
+        m_MainCamera->SetCameraPrincipalAxes( -26.6, -26.4 );
+        m_MainCamera->SetCameraPrincipalAxes( -25.25, -29 );
     }
 
     {
@@ -191,7 +196,7 @@ GameManager::Apply( )
         {
             const auto SleepTime = std::min( MaxWaitTimeMilliseconds, int( WaitTimeMilliseconds ) );
             TotalWaitTimeMilliseconds += SleepTime;
-            spdlog::info( "Wait fetchResults for {}ms, acc: {}ms.", SleepTime, TotalWaitTimeMilliseconds );
+            // spdlog::info( "Wait fetchResults for {}ms, acc: {}ms.", SleepTime, TotalWaitTimeMilliseconds );
             std::this_thread::sleep_for( std::chrono::milliseconds( SleepTime ) );
             WaitTimeMilliseconds = SleepTime * 1.1F;
         }

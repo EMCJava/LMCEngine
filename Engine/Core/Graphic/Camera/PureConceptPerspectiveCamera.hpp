@@ -42,6 +42,8 @@ public:
 
     void
     AlterCameraPrincipalAxes( FloatTy Yaw, FloatTy Pitch );
+    void
+    SetCameraPrincipalAxes( FloatTy Yaw, FloatTy Pitch );
 
 protected:
     // In degrees

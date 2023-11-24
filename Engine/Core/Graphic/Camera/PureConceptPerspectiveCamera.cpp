@@ -4,9 +4,15 @@
 
 #include "PureConceptPerspectiveCamera.hpp"
 
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 DEFINE_CONCEPT_DS( PureConceptPerspectiveCamera )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( PureConceptPerspectiveCamera, PureConceptCamera,
+                                  m_CameraPerspectiveFOV, m_CameraPerspectiveNear, m_CameraPerspectiveFar,
+                                  m_CameraViewingYaw, m_CameraViewingPitch,
+                                  m_CameraPosition, m_CameraFrontVec, m_CameraRightVec, m_CameraUpVec )
 
 void
 PureConceptPerspectiveCamera::UpdateProjectionMatrix( )
@@ -77,6 +83,19 @@ PureConceptPerspectiveCamera::AlterCameraPrincipalAxes( FloatTy Yaw, FloatTy Pit
 {
     m_CameraViewingYaw += Yaw;
     m_CameraViewingPitch = glm::clamp( m_CameraViewingPitch + Pitch, -89.f, 89.f );
+
+    SetCameraFacing(
+        glm::vec3 { cos( glm::radians( m_CameraViewingYaw ) ) * cos( glm::radians( m_CameraViewingPitch ) ),
+                    sin( glm::radians( m_CameraViewingPitch ) ),
+                    sin( glm::radians( m_CameraViewingYaw ) ) * cos( glm::radians( m_CameraViewingPitch ) ) },
+        true );
+}
+
+void
+PureConceptPerspectiveCamera::SetCameraPrincipalAxes( FloatTy Yaw, FloatTy Pitch )
+{
+    m_CameraViewingYaw = Yaw;
+    m_CameraViewingPitch = Pitch;
 
     SetCameraFacing(
         glm::vec3 { cos( glm::radians( m_CameraViewingYaw ) ) * cos( glm::radians( m_CameraViewingPitch ) ),
