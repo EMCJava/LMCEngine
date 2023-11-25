@@ -94,6 +94,10 @@ UserInput::LockCursor( bool Lock )
     {
         ( reinterpret_cast<decltype( &glfwSetInputMode )>( glfwSetInputModePtr ) )( m_EventWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL );
     }
+
+    // Reset CursorDeltaPosition
+    UpdateMouse( );
+    UpdateMouse( );
 }
 
 void
