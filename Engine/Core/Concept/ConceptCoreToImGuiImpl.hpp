@@ -60,6 +60,12 @@ ToImGuiWidget( const char* Name, glm::vec4* Value )
 }
 
 inline void
+ToImGuiWidget( const char* Name, glm::quat* Value )
+{
+    ToImGuiWidget( Name, (glm::vec4*) Value );
+}
+
+inline void
 ToImGuiWidget( const char* Name, bool* Value )
 {
     ImGui::Checkbox( Name, Value );
