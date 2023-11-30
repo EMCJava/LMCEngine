@@ -322,8 +322,8 @@ Orientation::UpdateModelMatrix( )
     m_ModelMatrix = m_TranslationMatrix * m_RotationMatrix * m_ScaleMatrix;
 }
 
-glm::mat4&
-Orientation::GetModelMatrix( )
+const glm::mat4&
+Orientation::GetModelMatrix( ) const
 {
     return m_ModelMatrix;
 }

@@ -60,139 +60,6 @@ PackColor( aiColor3D color )
         + round( color.b * 255.0 ) * 256.0 * 256.0;
 }
 
-class BoxFrameRenderer : public ConceptRenderable
-{
-    DECLARE_CONCEPT( BoxFrameRenderer, ConceptRenderable )
-
-    void RenderBox( )
-    {
-        const auto* gl = Engine::GetEngine( )->GetGLContext( );
-
-        gl->PolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-        GL_CHECK( gl->BindVertexArray( m_VAO ) )
-        GL_CHECK( gl->DrawArrays( GL_TRIANGLES, 0, 3 * 2 * 6 ) )
-        gl->PolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-    }
-
-public:
-    BoxFrameRenderer( aiVector3D start, aiVector3D end )
-    {
-        const auto* gl = Engine::GetEngine( )->GetGLContext( );
-        GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
-
-        float vertices[] = {
-            // front
-            0.5f, -0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-            -0.5f, -0.5f, 0.5f,
-            0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-            0.5f, -0.5f, 0.5f,
-
-            // back
-            -0.5f, -0.5f, -0.5f,
-            0.5f, 0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            -0.5f, 0.5f, -0.5f,
-            0.5f, 0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-
-            // left
-            -0.5f, -0.5f, 0.5f,
-            -0.5f, 0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, -0.5f,
-            -0.5f, -0.5f, 0.5f,
-
-            // right
-            0.5f, -0.5f, -0.5f,
-            0.5f, 0.5f, 0.5f,
-            0.5f, -0.5f, 0.5f,
-            0.5f, 0.5f, -0.5f,
-            0.5f, 0.5f, 0.5f,
-            0.5f, -0.5f, -0.5f,
-
-            // up
-            0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, -0.5f,
-            -0.5f, 0.5f, 0.5f,
-            0.5f, 0.5f, -0.5f,
-            -0.5f, 0.5f, -0.5f,
-            0.5f, 0.5f, 0.5f,
-
-            // down
-            0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, 0.5f,
-            -0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, 0.5f,
-            -0.5f, -0.5f, 0.5f,
-            0.5f, -0.5f, -0.5f };
-
-        const auto diff = end - start;
-
-        for ( int i = 0; i < sizeof( vertices ) / sizeof( float ); i += 3 )
-        {
-            vertices[ i + 0 ] += 0.5f;
-            vertices[ i + 1 ] += 0.5f;
-            vertices[ i + 2 ] += 0.5f;
-
-            vertices[ i + 0 ] *= diff[ 0 ];
-            vertices[ i + 1 ] *= diff[ 1 ];
-            vertices[ i + 2 ] *= diff[ 2 ];
-
-            vertices[ i + 0 ] += start[ 0 ];
-            vertices[ i + 1 ] += start[ 1 ];
-            vertices[ i + 2 ] += start[ 2 ];
-        }
-
-        GL_CHECK( gl->GenVertexArrays( 1, &m_VAO ) )
-        GL_CHECK( gl->BindVertexArray( m_VAO ) )
-
-        // 2. copy our vertices array in a buffer for OpenGL to use
-        GL_CHECK( gl->GenBuffers( 1, &m_VBO ) )
-        GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, m_VBO ) )
-        GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, sizeof( vertices ), vertices, GL_STATIC_DRAW ) )
-
-        // 3. then set our vertex attributes pointers
-        GL_CHECK( gl->VertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof( float ), nullptr ) )
-        GL_CHECK( gl->EnableVertexAttribArray( 0 ) )
-
-        m_Shader = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultColorShader" );
-        SetShaderUniform( "fragColor", glm::vec4( 0, 1, 0, 1 ) );
-    }
-
-    void
-    Render( ) override
-    {
-        const auto* gl = Engine::GetEngine( )->GetGLContext( );
-        GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
-
-        m_Shader->Bind( );
-        SetCameraMatrix( );
-
-        auto* Owner = GetOwner( );
-        REQUIRED( !"ConceptMesh is no longer renderable" )
-        //        if ( ConceptMesh * OwnerMesh; Owner && Owner->TryCast( OwnerMesh ) )
-        //            m_Shader->SetMat4( "modelMatrix", OwnerMesh->GetModelMatrix( ) );
-        //        else
-        //            m_Shader->SetMat4( "modelMatrix", glm::mat4( 1.0f ) );
-
-        ApplyShaderUniforms( );
-
-        const bool DepthTest = gl->IsEnabled( GL_DEPTH_TEST );
-        GL_CHECK( gl->Disable( GL_DEPTH_TEST ) )
-
-        RenderBox( );
-
-        if ( DepthTest ) GL_CHECK( gl->Enable( GL_DEPTH_TEST ) )
-    }
-
-private:
-    uint32_t m_VAO { }, m_VBO { };
-};
-DEFINE_CONCEPT_DS( BoxFrameRenderer )
-
 void
 FetchMesh( aiScene const* ModelScene, const aiNode* Node, const aiMatrix4x4& Transform, auto&& MeshProcessor )
 {
@@ -302,13 +169,6 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh )
             for ( int i = 0; i < NumberOfIndices; ++i )
                 RebasedIndexRange[ i ] = ToMesh->m_Indices[ OldIndicesSize + i ] - OldVerticesSize;
         }
-
-        /*
-         *
-         * Hit boxes
-         *
-         * */
-        // ToMesh->AddConcept<BoxFrameRenderer>( Transform * Mesh->mAABB.mMin, Transform * Mesh->mAABB.mMax );
     } );
 
     {
@@ -359,9 +219,6 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh )
     GL_CHECK( gl->GenBuffers( 1, &GLBuffer.EBO ) )
     GL_CHECK( gl->BindBuffer( GL_ELEMENT_ARRAY_BUFFER, GLBuffer.EBO ) )
     GL_CHECK( gl->BufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( uint32_t ) * ToMesh->m_Indices.size( ), ToMesh->m_Indices.data( ), GL_STATIC_DRAW ) )
-
-    // For hitBox render
-    // ToMesh->SetSearchThrough( );
 
     return true;
 }

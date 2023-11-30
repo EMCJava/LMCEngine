@@ -34,7 +34,7 @@ public:
         SetCollider( CreateConcept<ColliderMesh>( Mesh, Material, Static, ColliderMapping ) );
     }
 
-    RigidMesh( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<PureConceptCollider> C );
+    RigidMesh( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<Collider> C );
 
     std::shared_ptr<ConceptMesh>
     CreateMesh( const std::string& MeshPathStr );
@@ -43,7 +43,7 @@ public:
     SetMesh( std::shared_ptr<ConceptMesh> Mesh );
 
     void
-    SetCollider( std::shared_ptr<PureConceptCollider> C );
+    SetCollider( std::shared_ptr<Collider> C );
 
     ENABLE_IMGUI( RigidMesh )
 };

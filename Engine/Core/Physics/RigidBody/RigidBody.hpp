@@ -38,9 +38,16 @@ public:
 protected:
     bool m_OrientationChanged = true;
 
+    /*
+     *
+     * There could be two or more renderables, one for the rigid body, and one for the collider
+     *
+     * */
+    ConceptSetFetchCache<class ConceptRenderable> m_RenderableSet;
+
     // FIXME: Consider making these two unique_ptr, for 1 to 1 relationship
-    std::shared_ptr<class ConceptRenderable>   m_Renderable;
-    std::shared_ptr<class PureConceptCollider> m_Collider;
+    std::shared_ptr<class ConceptRenderable> m_Renderable;
+    std::shared_ptr<class Collider>          m_Collider;
 
     ENABLE_IMGUI( RigidBody )
 };

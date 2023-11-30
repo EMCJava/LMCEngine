@@ -2,12 +2,12 @@
 // Created by samsa on 11/21/2023.
 //
 
-#include "PureConceptCollider.hpp"
+#include "Collider.hpp"
 
 #include <PxPhysicsAPI.h>
 
 DEFINE_CONCEPT( PureConceptCollider )
-PureConceptCollider::~PureConceptCollider( )
+Collider::~Collider( )
 {
     if ( m_RigidActor != nullptr )
     {
@@ -16,7 +16,7 @@ PureConceptCollider::~PureConceptCollider( )
     }
 }
 
-PureConceptCollider::PureConceptCollider( )
+Collider::Collider( )
 {
     m_PhyEngine = Engine::GetEngine( )->GetPhysicsEngine( );
 }

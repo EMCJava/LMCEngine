@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "PureConceptCollider.hpp"
+#include "Collider.hpp"
 #include "Serializer/ColliderSerializerGroupMesh.hpp"
 
 /*
@@ -12,9 +12,9 @@
  * PureConceptCollider from meshes, should not be shared
  *
  * */
-class ColliderMesh : public PureConceptCollider
+class ColliderMesh : public Collider
 {
-    DECLARE_CONCEPT( ColliderMesh, PureConceptCollider )
+    DECLARE_CONCEPT( ColliderMesh, Collider )
 
 public:
     /*

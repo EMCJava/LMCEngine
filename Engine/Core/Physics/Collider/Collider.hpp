@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <Engine/Core/Concept/PureConcept.hpp>
+#include <Engine/Core/Concept/Concept.hpp>
 #include <Engine/Core/Physics/PhysicsEngine.hpp>
 
 namespace physx
@@ -12,12 +12,12 @@ namespace physx
 class PxRigidActor;
 }
 
-class PureConceptCollider : public PureConcept
+class Collider : public Concept
 {
-    DECLARE_CONCEPT( PureConceptCollider, PureConcept )
+    DECLARE_CONCEPT( Collider, Concept )
 
 public:
-    PureConceptCollider( );
+    Collider( );
 
     physx::PxRigidActor*
     GetRigidBodyHandle( ) { return m_RigidActor; }

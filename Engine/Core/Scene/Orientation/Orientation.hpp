@@ -92,8 +92,8 @@ public:
     void       UpdateScaleMatrix( );
     glm::mat4& GetScaleMatrix( );
 
-    void       UpdateModelMatrix( );
-    glm::mat4& GetModelMatrix( );
+    void             UpdateModelMatrix( );
+    const glm::mat4& GetModelMatrix( ) const;
 
     /*
      *

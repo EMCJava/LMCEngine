@@ -62,8 +62,15 @@ private:
 
         void
         GenerateMeshIfNull( PhysicsEngine* PhyEngine, uint8_t* Data );
-    };
 
+        /*
+         *
+         * Generate and append render ready buffer
+         *
+         * */
+        void
+        AppendRenderBuffer( std::vector<float>& Vertices, std::vector<uint32_t>& Indices ) const;
+    };
 
     void
     PushCookedBuffer( physx::PxDefaultMemoryOutputStream& CookingBuffer, ColliderType CType );
@@ -108,67 +115,10 @@ public:
      * */
     bool TryLoad( );
 
-    bool IsColliderTypeCorrect( const std::vector<SubMeshSpan>& ModelSubMeshSpan, auto&& ColliderMapping )
-    {
-        // Check if mapping is the same
-        if ( ModelSubMeshSpan.size( ) != m_PxMeshInstances.size( ) )
-            return false;
-
-        for ( int i = 0; i < ModelSubMeshSpan.size( ); ++i )
-        {
-            if constexpr ( requires { { ColliderMapping( ModelSubMeshSpan[ i ] ) } -> std::convertible_to<ColliderSerializerGroupMesh::ColliderType>; } )
-            {
-                ColliderSerializerGroupMesh::ColliderType Type = ColliderMapping( ModelSubMeshSpan[ i ] );
-
-                if ( Type != m_PxMeshInstances[ i ].Type )
-                {
-                    return false;
-                }
-            } else
-            {
-                if ( DefaultColliderType != m_PxMeshInstances[ i ].Type )
-                {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
+    bool IsColliderTypeCorrect( const std::vector<SubMeshSpan>& ModelSubMeshSpan, auto&& ColliderMapping );
 
     void
-    GenerateFrom( const std::vector<SubMeshSpan>& ModelSubMeshSpan, auto&& ColliderMapping )
-    {
-        ClearBuffer( );
-        for ( auto& SubMeshSpan : ModelSubMeshSpan )
-        {
-            try
-            {
-                if constexpr ( requires { { ColliderMapping( SubMeshSpan ) } -> std::convertible_to<ColliderSerializerGroupMesh::ColliderType>; } )
-                {
-                    ColliderSerializerGroupMesh::ColliderType Type = ColliderMapping( SubMeshSpan );
-                    switch ( Type )
-                    {
-                    case ColliderType::eNone: break;
-                    case ColliderType::eConvex:
-                        AppendConvexCache( SubMeshSpan.VertexRange );
-                        break;
-                    case ColliderType::eTriangle:
-                        AppendTriangleCache( SubMeshSpan.VertexRange, SubMeshSpan.RebasedIndexRange );
-                        break;
-                    }
-                } else
-                {
-                    spdlog::warn( "Using convex mesh by default" );
-                    AppendConvexCache( SubMeshSpan.VertexRange );
-                }
-            }
-            catch ( std::runtime_error& e )
-            {
-                spdlog::error( "Failed to generate model: {}", e.what( ) );
-            }
-        }
-    }
+    GenerateFrom( const std::vector<SubMeshSpan>& ModelSubMeshSpan, auto&& ColliderMapping );
 
     struct CountStrideData {
         size_t      Count  = 0;
@@ -194,10 +144,10 @@ public:
     }
 
     physx::PxRigidDynamic*
-    CreateDynamicRigidBodyFromCacheGroup( const physx::PxMaterial& material );
+    CreateDynamicRigidBodyFromCacheGroup( const physx::PxMaterial& material, std::shared_ptr<class RenderableMeshHitBox>* HitBoxFrame = nullptr );
 
     physx::PxRigidStatic*
-    CreateStaticRigidBodyFromCacheGroup( const physx::PxMaterial& material );
+    CreateStaticRigidBodyFromCacheGroup( const physx::PxMaterial& material, std::shared_ptr<class RenderableMeshHitBox>* HitBoxFrame = nullptr );
 
     void WriteCacheToFile( );
 
@@ -227,3 +177,66 @@ private:
      * */
     PhysicsEngine* m_PhyEngine = nullptr;
 };
+
+bool
+ColliderSerializerGroupMesh::IsColliderTypeCorrect( const std::vector<SubMeshSpan>& ModelSubMeshSpan, auto&& ColliderMapping )
+{
+    // Check if mapping is the same
+    if ( ModelSubMeshSpan.size( ) != m_PxMeshInstances.size( ) )
+        return false;
+
+    for ( int i = 0; i < ModelSubMeshSpan.size( ); ++i )
+    {
+        if constexpr ( requires { { ColliderMapping( ModelSubMeshSpan[ i ] ) } -> std::convertible_to<ColliderSerializerGroupMesh::ColliderType>; } )
+        {
+            ColliderSerializerGroupMesh::ColliderType Type = ColliderMapping( ModelSubMeshSpan[ i ] );
+
+            if ( Type != m_PxMeshInstances[ i ].Type )
+            {
+                return false;
+            }
+        } else
+        {
+            if ( DefaultColliderType != m_PxMeshInstances[ i ].Type )
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+void
+ColliderSerializerGroupMesh::GenerateFrom( const std::vector<SubMeshSpan>& ModelSubMeshSpan, auto&& ColliderMapping )
+{
+    ClearBuffer( );
+    for ( auto& SubMeshSpan : ModelSubMeshSpan )
+    {
+        try
+        {
+            if constexpr ( requires { { ColliderMapping( SubMeshSpan ) } -> std::convertible_to<ColliderSerializerGroupMesh::ColliderType>; } )
+            {
+                ColliderSerializerGroupMesh::ColliderType Type = ColliderMapping( SubMeshSpan );
+                switch ( Type )
+                {
+                case ColliderType::eNone: break;
+                case ColliderType::eConvex:
+                    AppendConvexCache( SubMeshSpan.VertexRange );
+                    break;
+                case ColliderType::eTriangle:
+                    AppendTriangleCache( SubMeshSpan.VertexRange, SubMeshSpan.RebasedIndexRange );
+                    break;
+                }
+            } else
+            {
+                spdlog::warn( "Using convex mesh by default" );
+                AppendConvexCache( SubMeshSpan.VertexRange );
+            }
+        }
+        catch ( std::runtime_error& e )
+        {
+            spdlog::error( "Failed to generate model: {}", e.what( ) );
+        }
+    }
+}

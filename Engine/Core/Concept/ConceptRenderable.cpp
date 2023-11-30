@@ -65,6 +65,7 @@ ConceptRenderable::ApplyShaderUniforms( )
 {
     for ( const auto& ShaderUniform : m_ShaderUniformSaves )
     {
+        if ( ShaderUniform.first == -1 ) continue;
         std::visit( [ this, Location = ShaderUniform.first ]( const auto& Value ) { m_Shader->SetUniform( Location, Value ); }, ShaderUniform.second );
     }
 }

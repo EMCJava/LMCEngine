@@ -19,12 +19,15 @@ RigidBody::RigidBody( )
 void
 RigidBody::Apply( )
 {
+    // Make sure it get release if child removed
+    GetConcepts( m_RenderableSet );
+
     if ( m_OrientationChanged )
     {
-        if ( m_Renderable != nullptr )
-        {
-            m_Renderable->SetShaderUniform( "modelMatrix", GetModelMatrix( ) );
-        }
+        const auto& Matrix = GetModelMatrix( );
+        m_RenderableSet.ForEach( [ &Matrix ]( std::shared_ptr<ConceptRenderable>& renderable ) {
+            renderable->SetShaderUniform( "modelMatrix", Matrix );
+        } );
         m_OrientationChanged = false;
     }
 }

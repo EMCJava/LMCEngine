@@ -115,7 +115,6 @@ GameManager::GameManager( )
         PerspectiveCanvas->SetCanvasCamera( m_MainCamera );
 
         {
-
             {
                 auto LightMesh = CreateConcept<ConceptMesh>( "Assets/Model/red_cube.glb" );
 
@@ -150,7 +149,7 @@ GameManager::GameManager( )
 
                 {
                     auto Mesh             = CreateConcept<ConceptMesh>( "Assets/Model/red_cube.glb" );
-                    auto MeshColliderData = std::make_shared<ColliderSerializerGroupMesh>( Mesh, PhyEngine );
+                    auto MeshColliderData = std::make_shared<ColliderSerializerGroupMesh>( Mesh );
 
                     for ( int i = 0; i < 10; ++i )
                     {
@@ -219,7 +218,7 @@ GameManager::Apply( )
             auto* Data = activeActors[ i ]->userData;
             if ( Data != nullptr )
             {
-                auto* ColliderMeshPtr = static_cast<PureConceptCollider*>( Data );
+                auto* ColliderMeshPtr = static_cast<Collider*>( Data );
 
                 auto* ColliderOwnerPtr = ColliderMeshPtr->GetOwner( );
                 if ( auto RB = ColliderOwnerPtr->TryCast<RigidBody>( ); RB != nullptr )

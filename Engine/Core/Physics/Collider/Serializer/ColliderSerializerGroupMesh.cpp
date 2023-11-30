@@ -6,6 +6,7 @@
 
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 #include <Engine/Core/Physics/PhysicsEngine.hpp>
+#include <Engine/Core/Graphic/Mesh/RenderableMeshHitBox.hpp>
 
 #include <PxPhysicsAPI.h>
 
@@ -26,6 +27,74 @@ BufferReadValue( auto*& Buffer, Ty& Value )
 
     static_assert( sizeof( Buffer[ 0 ] ) == sizeof( char ) );
     Buffer += sizeof( Ty );
+}
+void
+AppendConvexRenderBuffer( physx::PxConvexMesh* ConvexMesh, std::vector<float>& Vertices, std::vector<uint32_t>& Indices )
+{
+    physx::PxHullPolygon HullPolygonData;
+
+    // Iterate over the polygons in the mesh
+    REQUIRED( Vertices.size( ) % 3 == 0, throw std::runtime_error( "Vertices size must be a multiple of 3(assume for vec3)" ) );
+    size_t     VerticesBase = Vertices.size( ) / 3;
+    const auto NbPolygons   = ConvexMesh->getNbPolygons( );
+    for ( unsigned int i = 0; i < NbPolygons; i++ )
+    {
+        bool Status = ConvexMesh->getPolygonData( i, HullPolygonData );
+        REQUIRED( Status && HullPolygonData.mNbVerts >= 3 )
+        {
+            const auto* MeshVerticesPtr = ConvexMesh->getVertices( );
+            const auto* MeshIndexPtr    = ConvexMesh->getIndexBuffer( );
+
+            // Iterate over tho vertices in the polygon
+            LMC_ASSUME( HullPolygonData.mNbVerts >= 3 );
+            for ( int j = 0; j < HullPolygonData.mNbVerts; j++ )
+            {
+                const auto  vertIndex = MeshIndexPtr[ HullPolygonData.mIndexBase + j ];
+                const auto& vertex    = MeshVerticesPtr[ vertIndex ];
+
+                // Add the vertex to the vertex buffer
+                Vertices.push_back( vertex.x );
+                Vertices.push_back( vertex.y );
+                Vertices.push_back( vertex.z );
+
+                // FIXME: Could use another loop over the range [2, HullPolygonData.mNbVerts), need verify
+                if ( j >= 2 )
+                {
+                    // Newly added vertex form a new triangle
+                    Indices.push_back( VerticesBase );
+                    Indices.push_back( VerticesBase + j - 1 );
+                    Indices.push_back( VerticesBase + j );
+                }
+            }
+
+            VerticesBase += HullPolygonData.mNbVerts;
+        }
+    }
+}
+void
+AppendTriangleRenderBuffer( physx::PxTriangleMesh* TriangleMesh, std::vector<float>& Vertices, std::vector<uint32_t>& Indices )
+{
+    REQUIRED( Vertices.size( ) % 3 == 0, throw std::runtime_error( "Vertices size must be a multiple of 3(assume for vec3)" ) );
+    size_t VerticesBase = Vertices.size( ) / 3;
+
+    static_assert( sizeof( decltype( TriangleMesh->getVertices( )[ 0 ] ) ) == sizeof( float ) * 3 );
+    const auto* vertices = (float*) TriangleMesh->getVertices( );
+    Vertices.insert( Vertices.end( ), vertices, vertices + TriangleMesh->getNbVertices( ) * 3 );
+
+    Indices.reserve( Indices.size( ) + TriangleMesh->getNbTriangles( ) * 3 );
+    const auto IndexCount = TriangleMesh->getNbTriangles( ) * 3;
+    const auto MeshFlag   = TriangleMesh->getTriangleMeshFlags( );
+    REQUIRED( !( MeshFlag & physx::PxTriangleMeshFlag::eADJACENCY_INFO ), throw std::runtime_error( "Triangle mesh with adjacency info not verified" ) )
+    const void* indices = TriangleMesh->getTriangles( );
+    if ( MeshFlag & physx::PxTriangleMeshFlag::e16_BIT_INDICES )
+    {
+        for ( size_t i = 0; i < IndexCount; i++ )
+            Indices.push_back( ( (uint16_t*) indices )[ i ] + VerticesBase );
+    } else
+    {
+        for ( size_t i = 0; i < IndexCount; i++ )
+            Indices.push_back( ( (uint32_t*) indices )[ i ] + VerticesBase );
+    }
 }
 }   // namespace
 
@@ -113,7 +182,6 @@ ColliderSerializerGroupMesh::AppendConvexCache( ColliderSerializerGroupMesh::Cou
     convexDesc.points.stride = VertexBuffer.Stride;
     convexDesc.points.data   = VertexBuffer.Data;
     convexDesc.flags         = physx::PxConvexFlag::eCOMPUTE_CONVEX
-        | physx::PxConvexFlag::eCHECK_ZERO_AREA_TRIANGLES
         | physx::PxConvexFlag::eSHIFT_VERTICES;   // Need to verify
     convexDesc.vertexLimit = ConvexVertexLimit;
 
@@ -130,7 +198,7 @@ ColliderSerializerGroupMesh::AppendConvexCache( ColliderSerializerGroupMesh::Cou
     if ( !m_PhyEngine->GetCooking( )->cookConvexMesh( convexDesc, CookingBuffer, &result ) )
     {
         m_PhyEngine->GetCooking( )->setParams( ParamsCopy );
-        throw std::runtime_error( "Failed to cook convex mesh" );
+        throw std::runtime_error( "Failed to cook convex mesh {" + std::to_string( result ) + "}" );
     }
 
     m_PhyEngine->GetCooking( )->setParams( ParamsCopy );
@@ -160,45 +228,67 @@ ColliderSerializerGroupMesh::AppendTriangleCache( ColliderSerializerGroupMesh::C
 }
 
 physx::PxRigidDynamic*
-ColliderSerializerGroupMesh::CreateDynamicRigidBodyFromCacheGroup( const physx::PxMaterial& material )
+ColliderSerializerGroupMesh::CreateDynamicRigidBodyFromCacheGroup( const physx::PxMaterial& material, std::shared_ptr<class RenderableMeshHitBox>* HitBoxFrame )
 {
     auto* hfActor = ( *m_PhyEngine )->createRigidDynamic( physx::PxTransform( physx::PxVec3( 0 ) ) );
     hfActor->setName( m_GroupName.c_str( ) );
 
+    /*
+     *
+     * Buffer ready for rendering, generated from physx mesh
+     *
+     * */
+    std::vector<float>    Vertices;
+    std::vector<uint32_t> Indices;
+
     for ( auto& PxMeshInstance : m_PxMeshInstances )
     {
-        PxMeshInstance.GenerateMeshIfNull( m_PhyEngine, m_CacheBuffer.data( ) );
         if ( PxMeshInstance.Type != ColliderType::eConvex )
         {
             spdlog::warn( "Skipping non-convex mesh for dynamic rigid body(not supported by Physx)." );
             continue;
         }
 
+        PxMeshInstance.GenerateMeshIfNull( m_PhyEngine, m_CacheBuffer.data( ) );
+        if ( HitBoxFrame != nullptr ) PxMeshInstance.AppendRenderBuffer( Vertices, Indices );
         physx::PxShape* aShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, PxMeshInstance.GenerateGeometry( ).any( ), material );
         REQUIRED( aShape != nullptr )
     }
+
+    if ( HitBoxFrame != nullptr ) *HitBoxFrame = PureConcept::CreateConcept<RenderableMeshHitBox>( Vertices, Indices );
 
     return hfActor;
 }
 
 physx::PxRigidStatic*
-ColliderSerializerGroupMesh::CreateStaticRigidBodyFromCacheGroup( const physx::PxMaterial& material )
+ColliderSerializerGroupMesh::CreateStaticRigidBodyFromCacheGroup( const physx::PxMaterial& material, std::shared_ptr<class RenderableMeshHitBox>* HitBoxFrame )
 {
     auto* hfActor = ( *m_PhyEngine )->createRigidStatic( physx::PxTransform( physx::PxVec3( 0 ) ) );
     hfActor->setName( m_GroupName.c_str( ) );
 
+    /*
+     *
+     * Buffer ready for rendering, generated from physx mesh
+     *
+     * */
+    std::vector<float>    Vertices;
+    std::vector<uint32_t> Indices;
+
     for ( auto& PxMeshInstance : m_PxMeshInstances )
     {
-        PxMeshInstance.GenerateMeshIfNull( m_PhyEngine, m_CacheBuffer.data( ) );
         if ( PxMeshInstance.Type == ColliderType::eNone )
         {
             spdlog::warn( "Skipping non-defined mesh type for rigid body." );
             continue;
         }
 
+        PxMeshInstance.GenerateMeshIfNull( m_PhyEngine, m_CacheBuffer.data( ) );
+        if ( HitBoxFrame != nullptr ) PxMeshInstance.AppendRenderBuffer( Vertices, Indices );
         physx::PxShape* aShape = physx::PxRigidActorExt::createExclusiveShape( *hfActor, PxMeshInstance.GenerateGeometry( ).any( ), material );
         REQUIRED( aShape != nullptr )
     }
+
+    if ( HitBoxFrame != nullptr ) *HitBoxFrame = PureConcept::CreateConcept<RenderableMeshHitBox>( Vertices, Indices );
 
     return hfActor;
 }
@@ -307,5 +397,21 @@ ColliderSerializerGroupMesh::PhysicsMeshInstance::GenerateMeshIfNull( PhysicsEng
     case ColliderType::eTriangle:
         PxMesh = ( *PhyEngine )->createTriangleMesh( PxMemoryBuffer );
         break;
+    }
+}
+
+void
+ColliderSerializerGroupMesh::PhysicsMeshInstance::AppendRenderBuffer( std::vector<float>& Vertices, std::vector<uint32_t>& Indices ) const
+{
+    switch ( Type )
+    {
+    case ColliderType::eConvex:
+        AppendConvexRenderBuffer( (physx::PxConvexMesh*) PxMesh, Vertices, Indices );
+        break;
+    case ColliderType::eTriangle:
+        AppendTriangleRenderBuffer( (physx::PxTriangleMesh*) PxMesh, Vertices, Indices );
+        break;
+    default:
+        spdlog::warn( "Skipping non-defined mesh type" );
     }
 }

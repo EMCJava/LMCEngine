@@ -10,7 +10,7 @@
 DEFINE_CONCEPT_DS( RigidMesh )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RigidMesh, RigidBody )
 
-RigidMesh::RigidMesh( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<PureConceptCollider> C )
+RigidMesh::RigidMesh( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<Collider> C )
 {
     SetMesh( std::move( Mesh ) );
     SetCollider( std::move( C ) );
@@ -35,7 +35,7 @@ RigidMesh::SetMesh( std::shared_ptr<ConceptMesh> Mesh )
 }
 
 void
-RigidMesh::SetCollider( std::shared_ptr<PureConceptCollider> C )
+RigidMesh::SetCollider( std::shared_ptr<Collider> C )
 {
     if ( m_Collider != nullptr ) m_Collider->Destroy( );
     REQUIRED( GetOwnership( m_Collider = std::move( C ) ) )

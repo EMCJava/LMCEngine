@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <Engine/Core/Concept/PureConcept.hpp>
+#include <Engine/Core/Concept/Concept.hpp>
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -29,9 +29,9 @@ struct GLBufferHandle {
  * Can be shared
  *
  * */
-class ConceptMesh : public PureConcept
+class ConceptMesh : public Concept
 {
-    DECLARE_CONCEPT( ConceptMesh, PureConcept )
+    DECLARE_CONCEPT( ConceptMesh, Concept )
 
 public:
     ConceptMesh( ) = default;
