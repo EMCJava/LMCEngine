@@ -5,6 +5,7 @@
 #pragma once
 
 #include <Engine/Core/Core.hpp>
+#include <Engine/Core/Concept/ConceptCoreRuntime.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -125,6 +126,8 @@ protected:
 
     glm::mat4 m_TranslationMatrix { 1 }, m_RotationMatrix { 1 }, m_ScaleMatrix { 1 };
     glm::mat4 m_ModelMatrix { 1 };
+
+    ENABLE_IMGUI( Orientation )
 };
 
 template <>

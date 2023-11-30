@@ -4,10 +4,16 @@
 
 #include "Orientation.hpp"
 
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
 #include <new>
+
+DEFINE_SIMPLE_IMGUI_TYPE(Orientation, m_TranslationOrigin, m_RotationOrigin, m_ScaleOrigin, m_Coordinate, m_Scale,
+                          m_UsingQuat, m_Rotation, m_Quat,
+                          m_SameRotationScaleOrigin)
 
 glm::vec3
 Orientation::GetWorldCoordinate( ) const
