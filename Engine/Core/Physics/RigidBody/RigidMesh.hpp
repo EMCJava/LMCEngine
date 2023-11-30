@@ -44,4 +44,6 @@ public:
 
     void
     SetCollider( std::shared_ptr<PureConceptCollider> C );
+
+    ENABLE_IMGUI( RigidMesh )
 };

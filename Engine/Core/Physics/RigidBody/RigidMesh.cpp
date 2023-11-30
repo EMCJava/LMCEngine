@@ -8,6 +8,7 @@
 #include <Engine/Core/Graphic/Mesh/RenderableMesh.hpp>
 
 DEFINE_CONCEPT_DS( RigidMesh )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RigidMesh, RigidBody )
 
 RigidMesh::RigidMesh( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<PureConceptCollider> C )
 {
