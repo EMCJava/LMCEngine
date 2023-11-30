@@ -5,8 +5,10 @@
 #include "RigidBody.hpp"
 
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
 DEFINE_CONCEPT_DS( RigidBody )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RigidBody, Orientation, m_OrientationChanged )
 
 RigidBody::RigidBody( )
 {

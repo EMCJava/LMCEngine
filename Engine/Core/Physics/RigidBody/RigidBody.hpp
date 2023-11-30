@@ -41,4 +41,6 @@ protected:
     // FIXME: Consider making these two unique_ptr, for 1 to 1 relationship
     std::shared_ptr<class ConceptRenderable>   m_Renderable;
     std::shared_ptr<class PureConceptCollider> m_Collider;
+
+    ENABLE_IMGUI( RigidBody )
 };
