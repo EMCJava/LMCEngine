@@ -105,9 +105,7 @@ GameManager::GameManager( )
         m_MainCamera->SetCameraPosition( glm::vec3( 0.0f, 3.0f, 3.0f ), false );
         m_MainCamera->SetCameraFacing( glm::vec3( 0.0f, -0.70710678118F, -0.70710678118F ), false );
 
-        m_MainCamera->SetCameraPosition( glm::vec3( -10.5, 7.2, 5.2 ), false );
         m_MainCamera->SetCameraPosition( glm::vec3( -22.228, 14.06, 10.178 ), false );
-        m_MainCamera->SetCameraPrincipalAxes( -26.6, -26.4 );
         m_MainCamera->SetCameraPrincipalAxes( -25.25, -29 );
     }
 
