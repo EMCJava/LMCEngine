@@ -398,6 +398,16 @@ EditorWindow::BuildReleaseConfigCmake( )
         try
         {
             std::string Arguments = ProjectFolderPath.string( );
+
+            std::string VCPKG_ROOT = m_VcpkgToolChain;
+            if ( VCPKG_ROOT.empty( ) )
+            {
+                const auto* VCPKG_ROOT_ENV = std::getenv( "VCPKG_ROOT" );
+                if ( VCPKG_ROOT_ENV == nullptr ) throw std::runtime_error( "VCPKG_ROOT not found in ENV, please set vcpkg root" );
+                VCPKG_ROOT = VCPKG_ROOT_ENV;
+            }
+
+            Arguments += " -DCMAKE_TOOLCHAIN_FILE=" + VCPKG_ROOT + R"(\scripts\buildsystems\vcpkg.cmake)";
             Arguments += " -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + m_BuildPath.string( );
             Arguments += " -DEditorBuild=false";
             Arguments += " -B " + ( m_BuildPath / "cmake" ).string( );
@@ -605,6 +615,7 @@ EditorWindow::RenderBuildOverlay( )
 
             ToImGuiWidget( "Preferred Compiler", &m_PreferredCompiler );
             ToImGuiWidget( "Preferred Generator", &m_PreferredGenerator );
+            ToImGuiWidget( "Vcpkg Root", &m_VcpkgToolChain );
 
             ImGui::Spacing( );
             ImGuiGroup::EndGroupPanel( );

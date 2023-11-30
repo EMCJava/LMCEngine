@@ -143,6 +143,7 @@ private:
     bool                         m_ShouldActivateOverlay { };
     std::string                  m_PreferredCompiler { };
     std::string                  m_PreferredGenerator { };
+    std::string                  m_VcpkgToolChain { };
     std::filesystem::path        m_BuildPath { };
     bool                         m_ShouldBuild = true;
     std::unique_ptr<std::thread> m_BuildThread { };
