@@ -95,6 +95,53 @@ static_assert( false, "Platform not defined" );
 #    endif
 #endif
 
+#ifdef _MSC_VER
+#    define LMC_ASSUME( x ) __assume( x )
+#elif defined( __clang__ )
+#    define LMC_ASSUME( x ) __builtin_assume( x )
+#elif defined( __GNUC__ )
+#    define LMC_ASSUME( x )                         \
+        do                                          \
+        {                                           \
+            if ( !( x ) ) __builtin_unreachable( ); \
+        } while ( 0 )
+#else
+#    define LMC_ASSUME( x ) ( (void) 0 )
+#endif
+
+// From https://stackoverflow.com/a/76613283
+// preferred option: C++ standard attribute
+#ifdef __has_cpp_attribute
+#    if __has_cpp_attribute( assume ) >= 202207L
+#        define LMC_ASSUME( ... ) [[assume( __VA_ARGS__ )]]
+#    endif
+#endif
+// first fallback: compiler intrinsics/attributes for assumptions
+#ifndef LMC_ASSUME
+#    if defined( __clang__ )
+#        define LMC_ASSUME( ... )                \
+            do                                   \
+            {                                    \
+                __builtin_assume( __VA_ARGS__ ); \
+            } while ( 0 )
+#    elif defined( _MSC_VER )
+#        define LMC_ASSUME( ... )        \
+            do                           \
+            {                            \
+                __assume( __VA_ARGS__ ); \
+            } while ( 0 )
+#    elif defined( __GNUC__ )
+#        if __GNUC__ >= 13
+#            define LMC_ASSUME( ... ) __attribute__( ( __assume__( __VA_ARGS__ ) ) )
+#        endif
+#    endif
+#endif
+// second fallback: define macro as doing nothing
+#ifndef LMC_ASSUME
+#    define LMC_ASSUME( ... )
+#endif
+
+
 #define LMC_GVariable( name ) __G_##name##_
 
 #ifdef _MSC_VER
