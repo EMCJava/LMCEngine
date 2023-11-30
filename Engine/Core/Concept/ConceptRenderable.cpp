@@ -56,7 +56,7 @@ ConceptRenderable::SetShaderUniform( const std::string& UniformName, const Conce
 {
     REQUIRED_IF( m_Shader != nullptr )
     {
-        m_ShaderUniformSaves[ m_Shader->GetUniformLocation( UniformName ) ] = Value;
+        m_ShaderUniformSaves[ m_ShaderUniformIDs[ UniformName ] = m_Shader->GetUniformLocation( UniformName ) ] = Value;
     }
 }
 
@@ -73,4 +73,15 @@ void
 ConceptRenderable::ClearShaderUniforms( )
 {
     m_ShaderUniformSaves.clear( );
+}
+
+void
+ConceptRenderable::CopyShaderUniforms( const ConceptRenderable& other )
+{
+    m_ShaderUniformIDs = other.m_ShaderUniformIDs;
+
+    for ( auto& [ UniformName, OtherID ] : m_ShaderUniformIDs )
+    {
+        m_ShaderUniformSaves[ m_ShaderUniformIDs[ UniformName ] = m_Shader->GetUniformLocation( UniformName ) ] = other.m_ShaderUniformSaves.at( OtherID );
+    }
 }

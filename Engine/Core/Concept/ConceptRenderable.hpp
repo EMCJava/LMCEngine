@@ -52,11 +52,14 @@ public:
     void
     ClearShaderUniforms( );
 
+    void CopyShaderUniforms( const ConceptRenderable& other );
+
 protected:
     class PureConceptCamera*      m_ActiveCamera = nullptr;
     std::shared_ptr<class Shader> m_Shader;
 
     std::map<int, ShaderUniformTypes> m_ShaderUniformSaves;
+    std::map<std::string, int>        m_ShaderUniformIDs;
 
     ENABLE_IMGUI( ConceptRenderable )
 };
