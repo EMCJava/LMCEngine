@@ -37,7 +37,7 @@ TileSpriteSet::Render( )
                 SpShader->Bind( );
                 if ( m_ActiveCamera != nullptr )
                 {
-                    SpShader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
+                    SpShader->SetMat4( "projectionMatrix", m_ActiveCamera->GetCameraMatrix( ) );
                 }
 
                 SpShader->SetMat4( "modelMatrix", Tile.ModelMatrixCache );

@@ -17,15 +17,24 @@ DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( PureConceptPerspectiveCamera, PureConceptCamer
 void
 PureConceptPerspectiveCamera::UpdateProjectionMatrix( )
 {
-    const glm::mat4 Projection = glm::perspective(
+    m_ProjectionMatrix = glm::perspective(
         glm::radians( m_CameraPerspectiveFOV ),
         m_CameraWidth / m_CameraHeight,
         m_CameraPerspectiveNear,
         m_CameraPerspectiveFar );
+}
 
-    const glm::mat4 View = glm::lookAt( m_CameraPosition, m_CameraPosition + m_CameraFrontVec, m_CameraUpVec );
-
-    m_ProjectionMatrix = Projection * View;
+void
+PureConceptPerspectiveCamera::UpdateViewMatrix( )
+{
+    m_ViewMatrix = glm::lookAt( m_CameraPosition, m_CameraPosition + m_CameraFrontVec, m_CameraUpVec );
+}
+void
+PureConceptPerspectiveCamera::UpdateCameraMatrix( )
+{
+    PureConceptPerspectiveCamera::UpdateProjectionMatrix( );
+    PureConceptPerspectiveCamera::UpdateViewMatrix( );
+    m_CameraMatrixCache = m_ProjectionMatrix * m_ViewMatrix;
 }
 
 void
@@ -34,7 +43,8 @@ PureConceptPerspectiveCamera::SetCameraPosition( const glm::vec3& Position, bool
     m_CameraPosition = Position;
     if ( UpdateMatrix )
     {
-        UpdateProjectionMatrix( );
+        PureConceptPerspectiveCamera::UpdateCameraMatrix( );
+        m_ProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     }
 }
 
@@ -46,7 +56,8 @@ PureConceptPerspectiveCamera::SetCameraFacing( const glm::vec3& Vector, bool Upd
 
     if ( UpdateMatrix )
     {
-        UpdateProjectionMatrix( );
+        PureConceptPerspectiveCamera::UpdateCameraMatrix( );
+        m_ProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     }
 }
 
@@ -58,7 +69,8 @@ PureConceptPerspectiveCamera::SetCameraUpVector( const glm::vec3& Vector, bool U
 
     if ( UpdateMatrix )
     {
-        UpdateProjectionMatrix( );
+        PureConceptPerspectiveCamera::UpdateCameraMatrix( );
+        m_ProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     }
 }
 
@@ -68,7 +80,8 @@ PureConceptPerspectiveCamera::SetCameraPerspectiveFOV( FloatTy FOV, bool UpdateM
     m_CameraPerspectiveFOV = FOV;
     if ( UpdateMatrix )
     {
-        UpdateProjectionMatrix( );
+        PureConceptPerspectiveCamera::UpdateCameraMatrix( );
+        m_ProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     }
 }
 
@@ -81,20 +94,13 @@ PureConceptPerspectiveCamera::CalculateCameraRightVector( ) const
 void
 PureConceptPerspectiveCamera::AlterCameraPrincipalAxes( FloatTy Yaw, FloatTy Pitch )
 {
-    m_CameraViewingYaw += Yaw;
-    m_CameraViewingPitch = glm::clamp( m_CameraViewingPitch + Pitch, -89.f, 89.f );
-
-    SetCameraFacing(
-        glm::vec3 { cos( glm::radians( m_CameraViewingYaw ) ) * cos( glm::radians( m_CameraViewingPitch ) ),
-                    sin( glm::radians( m_CameraViewingPitch ) ),
-                    sin( glm::radians( m_CameraViewingYaw ) ) * cos( glm::radians( m_CameraViewingPitch ) ) },
-        true );
+    SetCameraPrincipalAxes( m_CameraViewingYaw + Yaw, glm::clamp( m_CameraViewingPitch + Pitch, -89.f, 89.f ) );
 }
 
 void
 PureConceptPerspectiveCamera::SetCameraPrincipalAxes( FloatTy Yaw, FloatTy Pitch )
 {
-    m_CameraViewingYaw = Yaw;
+    m_CameraViewingYaw   = Yaw;
     m_CameraViewingPitch = Pitch;
 
     SetCameraFacing(

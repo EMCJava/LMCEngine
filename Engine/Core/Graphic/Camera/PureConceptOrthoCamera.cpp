@@ -13,7 +13,7 @@ PureConceptOrthoCamera::SetScale( FloatTy Scale )
 {
     m_Scale = Scale;
 
-    UpdateProjectionMatrix( );
+    UpdateCameraMatrix( );
 }
 
 FloatTy
@@ -57,7 +57,7 @@ PureConceptOrthoCamera::SetCoordinate( FloatTy X, FloatTy Y, FloatTy )
     m_Coordinate.x = X;
     m_Coordinate.y = Y;
 
-    UpdateProjectionMatrix( );
+    UpdateCameraMatrix( );
 }
 
 const glm::vec3&
@@ -74,4 +74,11 @@ PureConceptOrthoCamera::UpdateProjectionMatrix( )
                                               -m_CameraHeight / m_Scale / 2 + m_Coordinate.y,
                                               m_CameraHeight / m_Scale / 2 + m_Coordinate.y,
                                               -1, 1 );
+}
+
+void
+PureConceptOrthoCamera::UpdateCameraMatrix( )
+{
+    PureConceptOrthoCamera::UpdateProjectionMatrix( );
+    m_CameraMatrixCache = m_ProjectionMatrix;
 }

@@ -12,6 +12,10 @@ class PureConceptPerspectiveCamera : public PureConceptCamera
 public:
     void
     UpdateProjectionMatrix( ) override;
+    void
+    UpdateViewMatrix( ) override;
+    void
+    UpdateCameraMatrix( ) override;
 
     void
     SetCameraPerspectiveFOV( FloatTy FOV, bool UpdateMatrix = true );

@@ -12,6 +12,10 @@ class PureConceptOrthoCamera : public PureConceptCamera
 public:
     void
     UpdateProjectionMatrix( ) override;
+    void
+    UpdateViewMatrix( ) override { }
+    void
+    UpdateCameraMatrix( ) override;
 
     void
     SetCoordinate( FloatTy X, FloatTy Y, FloatTy = 0 );

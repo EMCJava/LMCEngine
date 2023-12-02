@@ -24,15 +24,28 @@ public:
     ConceptLateInitialize( );
 
     [[nodiscard]] const glm::mat4&
-    GetProjectionMatrix( ) const;
+    GetProjectionMatrix( ) const { return m_ProjectionMatrix; }
+    [[nodiscard]] const glm::mat4&
+    GetViewMatrix( ) const { return m_ViewMatrix; }
+    [[nodiscard]] const glm::mat4&
+    GetCameraMatrix( ) const { return m_CameraMatrixCache; }
 
     void
     SetDimensions( int Width, int Height );
     std::pair<FloatTy, FloatTy>
     GetDimensions( ) const;
 
+    // Update projection matrices
     virtual void
     UpdateProjectionMatrix( ) = 0;
+
+    // Update view matrices
+    virtual void
+    UpdateViewMatrix( ) = 0;
+
+    // Update both projection and view matrices
+    virtual void
+    UpdateCameraMatrix( ) = 0;
 
     /*
      *
@@ -60,7 +73,12 @@ public:
 
 protected:
     glm::mat4 m_ProjectionMatrix { 1 };
-    FloatTy   m_CameraWidth { }, m_CameraHeight { };
+    glm::mat4 m_ViewMatrix { 1 };
+
+    // From m_ProjectionMatrix * m_ViewMatrix
+    glm::mat4 m_CameraMatrixCache { 1 };
+
+    FloatTy m_CameraWidth { }, m_CameraHeight { };
 
     ENABLE_IMGUI( PureConceptCamera )
 };

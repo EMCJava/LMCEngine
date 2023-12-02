@@ -1332,7 +1332,7 @@ GameManager::GameManager( )
         auto FixedCamera = AddConcept<PureConceptOrthoCamera>( );
 
         FixedCamera->SetScale( 1 / 1.5F );
-        FixedCamera->UpdateProjectionMatrix( );
+        FixedCamera->UpdateCameraMatrix( );
 
         m_UICanvas = AddConcept<Canvas>( );
         m_UICanvas->SetRuntimeName( "UI Canvas" );
@@ -1456,14 +1456,14 @@ GameManager::Apply( )
                 if ( m_CameraLerp >= 1 )
                 {
                     m_Camera->SetCoordinate( m_CameraEnd.x, m_CameraEnd.y );
-                    m_Camera->UpdateProjectionMatrix( );
+                    m_Camera->UpdateCameraMatrix( );
 
                     m_CameraLerp = 1;
                 } else
                 {
                     const auto LerpCoordinate = glm::lerp( m_CameraStart, m_CameraEnd, m_CameraLerp );
                     m_Camera->SetCoordinate( LerpCoordinate.x, LerpCoordinate.y );
-                    m_Camera->UpdateProjectionMatrix( );
+                    m_Camera->UpdateCameraMatrix( );
                 }
             }
 
@@ -1725,7 +1725,7 @@ GameManager::SetupCamera( )
     m_Camera = AddConcept<PureConceptOrthoCamera>( );
 
     m_Camera->SetScale( 1 / 1.5F );
-    m_Camera->UpdateProjectionMatrix( );
+    m_Camera->UpdateCameraMatrix( );
 
     m_Camera->PushToCameraStack( );
 }

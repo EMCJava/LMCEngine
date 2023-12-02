@@ -46,7 +46,7 @@ ConceptRenderable::SetCameraMatrix( )
         m_Shader->Bind( );
         if ( m_ActiveCamera != nullptr )
         {
-            m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetProjectionMatrix( ) );
+            m_Shader->SetMat4( "projectionMatrix", m_ActiveCamera->GetCameraMatrix( ) );
         }
     }
 }

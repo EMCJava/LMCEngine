@@ -26,13 +26,7 @@ PureConceptCamera::SetDimensions( int Width, int Height )
     m_CameraWidth  = Width;
     m_CameraHeight = Height;
 
-    UpdateProjectionMatrix( );
-}
-
-const glm::mat4&
-PureConceptCamera::GetProjectionMatrix( ) const
-{
-    return m_ProjectionMatrix;
+    UpdateCameraMatrix( );
 }
 
 std::pair<FloatTy, FloatTy>
@@ -58,5 +52,5 @@ void
 PureConceptCamera::ConceptLateInitialize( )
 {
     PureConcept::ConceptLateInitialize( );
-    UpdateProjectionMatrix( );
+    UpdateCameraMatrix( );
 }
