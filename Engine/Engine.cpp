@@ -339,6 +339,9 @@ Engine::Render( )
     ImGui_ImplGlfw_NewFrame( );
     ImGui::NewFrame( );
 
+    ImGuizmo::SetOrthographic( false );
+    ImGuizmo::BeginFrame( );
+
     try
     {
         m_MainWindow->UpdateImGui( );

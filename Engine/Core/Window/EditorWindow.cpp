@@ -9,12 +9,16 @@
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/HotReloadFrameBuffer/HotReloadFrameBuffer.hpp>
 #include <Engine/Core/Exception/Runtime/ImGuiContextInvalid.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptPerspectiveCamera.hpp>
+#include <Engine/Core/Physics/RigidBody/RigidBody.hpp>
 #include <Engine/Core/File/OSFile.hpp>
 #include <Engine/Core/Project/Project.hpp>
 #include <Engine/Engine.hpp>
 
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
+
+#include <glm/gtc/type_ptr.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -24,6 +28,15 @@
 
 #include <filesystem>
 #include <regex>
+
+namespace
+{
+std::pair<int, int>
+ToPair( const auto& Vec )
+{
+    return std::make_pair<int, int>( Vec.x, Vec.y );
+}
+}   // namespace
 
 void
 EditorWindow::Update( )
@@ -84,6 +97,69 @@ EditorWindow::~EditorWindow( )
 }
 
 void
+EditorWindow::RenderImGuizmoPanel( float* matrix )
+{
+    if ( ImGui::IsKeyPressed( ImGuiKey_T ) )
+        m_CurrentGizmoOperation = ImGuizmo::TRANSLATE;
+    if ( ImGui::IsKeyPressed( ImGuiKey_E ) )
+        m_CurrentGizmoOperation = ImGuizmo::ROTATE;
+    if ( ImGui::IsKeyPressed( ImGuiKey_R ) )   // r Key
+        m_CurrentGizmoOperation = ImGuizmo::SCALE;
+    if ( ImGui::RadioButton( "Translate", m_CurrentGizmoOperation == ImGuizmo::TRANSLATE ) )
+        m_CurrentGizmoOperation = ImGuizmo::TRANSLATE;
+    ImGui::SameLine( );
+    if ( ImGui::RadioButton( "Rotate", m_CurrentGizmoOperation == ImGuizmo::ROTATE ) )
+        m_CurrentGizmoOperation = ImGuizmo::ROTATE;
+    ImGui::SameLine( );
+    if ( ImGui::RadioButton( "Scale", m_CurrentGizmoOperation == ImGuizmo::SCALE ) )
+        m_CurrentGizmoOperation = ImGuizmo::SCALE;
+    float matrixTranslation[ 3 ], matrixRotation[ 3 ], matrixScale[ 3 ];
+    ImGuizmo::DecomposeMatrixToComponents( matrix, matrixTranslation, matrixRotation, matrixScale );
+    ImGui::InputFloat3( "Tr", matrixTranslation );
+    ImGui::InputFloat3( "Rt", matrixRotation );
+    ImGui::InputFloat3( "Sc", matrixScale );
+    ImGuizmo::RecomposeMatrixFromComponents( matrixTranslation, matrixRotation, matrixScale, matrix );
+
+    if ( m_CurrentGizmoOperation != ImGuizmo::SCALE )
+    {
+        if ( ImGui::RadioButton( "Local", m_CurrentGizmoMode == ImGuizmo::LOCAL ) )
+            m_CurrentGizmoMode = ImGuizmo::LOCAL;
+        ImGui::SameLine( );
+        if ( ImGui::RadioButton( "World", m_CurrentGizmoMode == ImGuizmo::WORLD ) )
+            m_CurrentGizmoMode = ImGuizmo::WORLD;
+    }
+    if ( ImGui::IsKeyPressed( ImGuiKey_S ) )
+        m_GizmoUseSnap = !m_GizmoUseSnap;
+    ImGui::Checkbox( "##UseSnap", &m_GizmoUseSnap );
+    ImGui::SameLine( );
+
+    switch ( m_CurrentGizmoOperation )
+    {
+    case ImGuizmo::TRANSLATE:
+        ImGui::InputFloat3( "Snap", &m_GizmoSnapValue );
+        break;
+    case ImGuizmo::ROTATE:
+        ImGui::InputFloat( "Angle Snap", &m_GizmoSnapValue );
+        break;
+    case ImGuizmo::SCALE:
+        ImGui::InputFloat( "Scale Snap", &m_GizmoSnapValue );
+        break;
+    }
+}
+
+void
+EditorWindow::RenderImGuizmoGizmo( float* matrix )
+{
+    // ImGuizmo::DrawCubes( m_GizmoCameraView, m_GizmoCameraProjection, matrix, 1 );
+    ImGuizmo::Manipulate( m_GizmoCameraView, m_GizmoCameraProjection,
+                          m_CurrentGizmoOperation,
+                          m_CurrentGizmoMode,
+                          matrix,
+                          nullptr,
+                          m_GizmoUseSnap ? &m_GizmoSnapValue : nullptr );
+}
+
+void
 EditorWindow::UpdateImGui( )
 {
     MakeContextCurrent( );
@@ -93,6 +169,7 @@ EditorWindow::UpdateImGui( )
     gl->ClearColor( 0, 0, 0, 0 );
     gl->Clear( GL_COLOR_BUFFER_BIT );
 
+    const auto& ImGuiIO = ImGui::GetIO( );
     ImGui::DockSpaceOverViewport( ImGui::GetMainViewport( ) );
 
     if ( m_ShowImGuiDemoWindow )
@@ -181,13 +258,8 @@ EditorWindow::UpdateImGui( )
     {
         ImGui::Begin( "Main viewport" );
 
-        // Using a Child allow to fill all the space of the window.
-        // It also alows customization
         ImGui::BeginChild( "Render" );
-        auto ChildStartPosition = ImGui::GetWindowPos( );
-
-        ImVec2      ChildStartPos = ImGui::GetCursorScreenPos( );
-        const auto& io            = ImGui::GetIO( );
+        auto RenderWindowStartPosition = ImGui::GetCursorScreenPos( );
 
         const auto                WindowDimensions    = ImGui::GetContentRegionAvail( );
         const std::pair<int, int> WindowDimensionPair = { WindowDimensions.x, WindowDimensions.y };
@@ -198,26 +270,44 @@ EditorWindow::UpdateImGui( )
 
         const auto ImageSize = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
 
-        const FloatTy XOffset = ( WindowDimensions.x - ImageSize.first ) * 0.5f;
-        const FloatTy YOffset = ( WindowDimensions.y - ImageSize.second ) * 0.5f;
-
-        ImGui::SetCursorPosX( XOffset );
-        ImGui::SetCursorPosY( YOffset );
-
-        Engine::GetEngine( )->GetUserInputHandle( )->SetCursorTopLeftPosition( { ChildStartPosition.x + XOffset, ChildStartPosition.y + YOffset } );
+        // Offset the frame so that it is centered on the render window
+        const auto RenderOffset = ( WindowDimensions - ImVec2( ImageSize.first, ImageSize.second ) ) / 2;
+        Engine::GetEngine( )->GetUserInputHandle( )->SetCursorTopLeftPosition( ToPair( RenderWindowStartPosition + RenderOffset ) );
+        ImGui::SetCursorPos( RenderOffset );
 
         ImGui::Image( reinterpret_cast<void*>( m_PreviousFrameTextureID ),
                       ImVec2( ImageSize.first, ImageSize.second ), ImVec2( 0, 1 ), ImVec2( 1, 0 ) );
 
+        ImGui::SetCursorScreenPos( RenderWindowStartPosition );
+        const auto ImGuizmoRegion = std::make_tuple( RenderWindowStartPosition.x + RenderOffset.x, RenderWindowStartPosition.y + RenderOffset.y, ImageSize.first, ImageSize.second );
+        RenderImGuizmo( ImGuizmoRegion );
+
+        // On screen debug information
         {
-            ImGui::SetCursorScreenPos( ChildStartPos );
+            ImGui::SetCursorScreenPos( RenderWindowStartPosition );
             const ImGuiWindowFlags OverlayFlag = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
             ImGui::SetNextWindowBgAlpha( 0.35f );   // Transparent background
-            ImGui::SetNextWindowPos( ChildStartPosition, ImGuiCond_Always );
+            ImGui::SetNextWindowPos( RenderWindowStartPosition, ImGuiCond_Always );
             if ( ImGui::Begin( "Example: Simple overlay", nullptr, OverlayFlag ) )
             {
-                ImGui::Text( "%.1f FPS", io.Framerate );
+                ImGui::Text( "%.1f FPS", ImGuiIO.Framerate );
             }
+
+            if ( ImGuizmo::IsUsing( ) )
+            {
+                ImGui::Text( "Using gizmo" );
+            } else
+            {
+                ImGui::Text( ImGuizmo::IsOver( ) ? "Over gizmo" : "" );
+                ImGui::SameLine( );
+                ImGui::Text( ImGuizmo::IsOver( ImGuizmo::TRANSLATE ) ? "Over translate gizmo" : "" );
+                ImGui::SameLine( );
+                ImGui::Text( ImGuizmo::IsOver( ImGuizmo::ROTATE ) ? "Over rotate gizmo" : "" );
+                ImGui::SameLine( );
+                ImGui::Text( ImGuizmo::IsOver( ImGuizmo::SCALE ) ? "Over scale gizmo" : "" );
+            }
+            ImGui::Separator( );
+
             ImGui::End( );
         }
 
@@ -900,5 +990,62 @@ EditorWindow::RenderMenuBar( )
         }
 
         ImGui::EndMainMenuBar( );
+    }
+}
+float objectMatrix[ 4 ][ 16 ] = {
+    {1.f, 0.f, 0.f, 0.f,
+     0.f, 1.f, 0.f, 0.f,
+     0.f, 0.f, 1.f, 0.f,
+     0.f, 0.f, 0.f, 1.f},
+
+    {1.f, 0.f, 0.f, 0.f,
+     0.f, 1.f, 0.f, 0.f,
+     0.f, 0.f, 1.f, 0.f,
+     2.f, 0.f, 0.f, 1.f},
+
+    {1.f, 0.f, 0.f, 0.f,
+     0.f, 1.f, 0.f, 0.f,
+     0.f, 0.f, 1.f, 0.f,
+     2.f, 0.f, 2.f, 1.f},
+
+    {1.f, 0.f, 0.f, 0.f,
+     0.f, 1.f, 0.f, 0.f,
+     0.f, 0.f, 1.f, 0.f,
+     0.f, 0.f, 2.f, 1.f}
+};
+void
+EditorWindow::RenderImGuizmo( const auto& RenderRect )
+{
+    std::apply( ImGuizmo::SetRect, RenderRect );
+    static auto IdentityMatrix = glm::mat4( 1.F );
+
+    if ( m_RootConceptFakeShared )
+    {
+        auto* RootConcept = m_RootConceptFakeShared->TryCast<Concept>( );
+
+        const auto PerspectiveCamera = RootConcept->GetConcept<PureConceptPerspectiveCamera>( );
+        if ( PerspectiveCamera )
+        {
+
+            m_GizmoCameraView       = glm::value_ptr( PerspectiveCamera->GetViewMatrix( ) );
+            m_GizmoCameraProjection = glm::value_ptr( PerspectiveCamera->GetProjectionMatrix( ) );
+
+            ImGuizmo::DrawGrid( m_GizmoCameraView, m_GizmoCameraProjection, glm::value_ptr( IdentityMatrix ), 100.f );
+
+            if ( !m_ConceptInspectionCache.SelectedConcept.expired( ) )
+            {
+                const auto SelectedConcept = m_ConceptInspectionCache.SelectedConcept.lock( );
+                if ( auto* RB = SelectedConcept->TryCast<RigidBody>( ); RB != nullptr )
+                {
+                    auto ModelMatrix = RB->GetOrientation( ).GetModelMatrix( );
+                    ImGuizmo::SetID( (int) SelectedConcept.get( ) );
+                    RenderImGuizmoGizmo( glm::value_ptr( ModelMatrix ) );
+                    if ( ImGuizmo::IsUsing( ) )
+                    {
+                        spdlog::info( "Using ImGuizmo" );
+                    }
+                }
+            }
+        }
     }
 }

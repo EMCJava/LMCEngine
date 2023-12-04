@@ -44,7 +44,7 @@ PureConceptPerspectiveCamera::SetCameraPosition( const glm::vec3& Position, bool
     if ( UpdateMatrix )
     {
         PureConceptPerspectiveCamera::UpdateCameraMatrix( );
-        m_ProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
+        m_CameraMatrixCache = m_ProjectionMatrix * m_ViewMatrix;
     }
 }
 
@@ -57,7 +57,7 @@ PureConceptPerspectiveCamera::SetCameraFacing( const glm::vec3& Vector, bool Upd
     if ( UpdateMatrix )
     {
         PureConceptPerspectiveCamera::UpdateCameraMatrix( );
-        m_ProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
+        m_CameraMatrixCache = m_ProjectionMatrix * m_ViewMatrix;
     }
 }
 
@@ -70,7 +70,7 @@ PureConceptPerspectiveCamera::SetCameraUpVector( const glm::vec3& Vector, bool U
     if ( UpdateMatrix )
     {
         PureConceptPerspectiveCamera::UpdateCameraMatrix( );
-        m_ProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
+        m_CameraMatrixCache = m_ProjectionMatrix * m_ViewMatrix;
     }
 }
 
@@ -81,7 +81,7 @@ PureConceptPerspectiveCamera::SetCameraPerspectiveFOV( FloatTy FOV, bool UpdateM
     if ( UpdateMatrix )
     {
         PureConceptPerspectiveCamera::UpdateCameraMatrix( );
-        m_ProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
+        m_CameraMatrixCache = m_ProjectionMatrix * m_ViewMatrix;
     }
 }
 

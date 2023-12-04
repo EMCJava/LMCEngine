@@ -41,6 +41,20 @@ class EditorWindow : public GameWindow
     RenderConceptHierarchy( std::shared_ptr<PureConcept>& ConShared );
 
     void
+    RenderImGuizmo( const auto& RenderRect );
+
+    /*
+     *
+     * Render intractable ImGuizmo gizmo
+     *
+     * */
+    void
+    RenderImGuizmoGizmo( float* matrix );
+
+    void
+    RenderImGuizmoPanel( float* matrix );
+
+    void
     ConceptMemoryViewGroup( const char* Name, PureConcept* Con );
 
     void
@@ -105,6 +119,19 @@ public:
 
 private:
     ConceptInspectionCache m_ConceptInspectionCache { };
+
+    /*
+     *
+     * ImGuizmo settings
+     *
+     * */
+    ImGuizmo::OPERATION m_CurrentGizmoOperation = ImGuizmo::TRANSLATE;
+    ImGuizmo::MODE      m_CurrentGizmoMode      = ImGuizmo::LOCAL;
+    bool                m_GizmoUseSnap          = false;
+    FloatTy             m_GizmoSnapValue        = 1.0;
+    // For Internal usage only, not valid most of the time
+    const FloatTy* m_GizmoCameraProjection = nullptr;
+    const FloatTy* m_GizmoCameraView       = nullptr;
 
     /*
      *

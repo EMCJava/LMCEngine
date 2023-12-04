@@ -24,6 +24,9 @@ add_library(imgui.demo.lib STATIC ${imgui_SOURCE_DIR}/imgui_demo.cpp)
 target_link_libraries(imgui.lib glfw)
 target_link_libraries(imgui.demo.lib PRIVATE imgui.lib)
 
+find_package(imguizmo CONFIG REQUIRED)
+target_link_libraries(imgui.lib imguizmo::imguizmo)
+
 ## -------------- GLFW --------------
 FetchContent_Declare(
         glfw

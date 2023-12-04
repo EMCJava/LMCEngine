@@ -48,6 +48,10 @@ public:
     AlterCameraPrincipalAxes( FloatTy Yaw, FloatTy Pitch );
     void
     SetCameraPrincipalAxes( FloatTy Yaw, FloatTy Pitch );
+    FloatTy
+    GetCameraPrincipalYaw( ) const noexcept { return m_CameraViewingYaw; }
+    FloatTy
+    GetCameraPrincipalPitch( ) const noexcept { return m_CameraViewingPitch; }
 
 protected:
     // In degrees
