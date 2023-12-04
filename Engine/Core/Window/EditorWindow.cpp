@@ -36,6 +36,11 @@ ToPair( const auto& Vec )
 {
     return std::make_pair<int, int>( Vec.x, Vec.y );
 }
+ImVec2
+ToImVec2( const auto& Vec )
+{
+    return ImVec2( Vec.first, Vec.second );
+}
 }   // namespace
 
 void
@@ -257,37 +262,51 @@ EditorWindow::UpdateImGui( )
 
     {
         ImGui::Begin( "Main viewport" );
+        auto MainViewPortStartPosition = ImGui::GetCursorScreenPos( );
 
-        ImGui::BeginChild( "Render" );
-        auto RenderWindowStartPosition = ImGui::GetCursorScreenPos( );
-
-        const auto                WindowDimensions    = ImGui::GetContentRegionAvail( );
-        const std::pair<int, int> WindowDimensionPair = { WindowDimensions.x, WindowDimensions.y };
-        if ( m_ViewportPhysicalDimension != WindowDimensionPair )
         {
-            Engine::GetEngine( )->SetPhysicalMainWindowViewPortDimensions( m_ViewportPhysicalDimension = WindowDimensionPair );
+            // Check for any resize
+            const auto                WindowDimensions    = ImGui::GetContentRegionAvail( );
+            const std::pair<int, int> WindowDimensionPair = { WindowDimensions.x, WindowDimensions.y };
+            if ( m_ViewportPhysicalDimension != WindowDimensionPair )
+            {
+                Engine::GetEngine( )->SetPhysicalMainWindowViewPortDimensions( m_ViewportPhysicalDimension = WindowDimensionPair );
+            }
+
+            // Offset the frame so that it is centered on the render window
+            const auto ImageSize    = ToImVec2( Engine::GetEngine( )->GetMainWindowViewPortDimensions( ) );
+            const auto RenderOffset = ( WindowDimensions - ImageSize ) / 2;
+            Engine::GetEngine( )->GetUserInputHandle( )->SetCursorTopLeftPosition( ToPair( MainViewPortStartPosition + RenderOffset ) );
+
+            // Create rendering window
+            ImGui::SetNextWindowPos( MainViewPortStartPosition + RenderOffset, ImGuiCond_Always );
+            ImGui::SetNextWindowSize( ImageSize, ImGuiCond_Always );
+            spdlog::info( "Rendering window size: {},{}", ImageSize.x, ImageSize.y );
+            ImGui::BeginChild( "Render", ImageSize, ImGuiChildFlags_None, ImGuiWindowFlags_NoDecoration );
+            const auto* Window = ImGui::GetCurrentWindow( );
+
+            // Render main game view
+            ImGui::Image( reinterpret_cast<void*>( m_PreviousFrameTextureID ),
+                          ImageSize,
+                          ImVec2( 0, 1 ),
+                          ImVec2( 1, 0 ) );
+
+            // Reset render position
+            ImGui::SetCursorScreenPos( { } );
+
+            // Render Gizmo overlay
+            const auto ImGuizmoRegion = std::make_tuple( MainViewPortStartPosition.x + RenderOffset.x, MainViewPortStartPosition.y + RenderOffset.y, ImageSize.x, ImageSize.y );
+            RenderImGuizmo( ImGuizmoRegion );
+
+            ImGui::EndChild( );
         }
-
-        const auto ImageSize = Engine::GetEngine( )->GetMainWindowViewPortDimensions( );
-
-        // Offset the frame so that it is centered on the render window
-        const auto RenderOffset = ( WindowDimensions - ImVec2( ImageSize.first, ImageSize.second ) ) / 2;
-        Engine::GetEngine( )->GetUserInputHandle( )->SetCursorTopLeftPosition( ToPair( RenderWindowStartPosition + RenderOffset ) );
-        ImGui::SetCursorPos( RenderOffset );
-
-        ImGui::Image( reinterpret_cast<void*>( m_PreviousFrameTextureID ),
-                      ImVec2( ImageSize.first, ImageSize.second ), ImVec2( 0, 1 ), ImVec2( 1, 0 ) );
-
-        ImGui::SetCursorScreenPos( RenderWindowStartPosition );
-        const auto ImGuizmoRegion = std::make_tuple( RenderWindowStartPosition.x + RenderOffset.x, RenderWindowStartPosition.y + RenderOffset.y, ImageSize.first, ImageSize.second );
-        RenderImGuizmo( ImGuizmoRegion );
 
         // On screen debug information
         {
-            ImGui::SetCursorScreenPos( RenderWindowStartPosition );
+            ImGui::SetCursorScreenPos( MainViewPortStartPosition );
             const ImGuiWindowFlags OverlayFlag = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
             ImGui::SetNextWindowBgAlpha( 0.35f );   // Transparent background
-            ImGui::SetNextWindowPos( RenderWindowStartPosition, ImGuiCond_Always );
+            ImGui::SetNextWindowPos( MainViewPortStartPosition, ImGuiCond_Always );
             if ( ImGui::Begin( "Example: Simple overlay", nullptr, OverlayFlag ) )
             {
                 ImGui::Text( "%.1f FPS", ImGuiIO.Framerate );
@@ -311,7 +330,6 @@ EditorWindow::UpdateImGui( )
             ImGui::End( );
         }
 
-        ImGui::EndChild( );
         ImGui::End( );
     }
 
@@ -992,30 +1010,11 @@ EditorWindow::RenderMenuBar( )
         ImGui::EndMainMenuBar( );
     }
 }
-float objectMatrix[ 4 ][ 16 ] = {
-    {1.f, 0.f, 0.f, 0.f,
-     0.f, 1.f, 0.f, 0.f,
-     0.f, 0.f, 1.f, 0.f,
-     0.f, 0.f, 0.f, 1.f},
 
-    {1.f, 0.f, 0.f, 0.f,
-     0.f, 1.f, 0.f, 0.f,
-     0.f, 0.f, 1.f, 0.f,
-     2.f, 0.f, 0.f, 1.f},
-
-    {1.f, 0.f, 0.f, 0.f,
-     0.f, 1.f, 0.f, 0.f,
-     0.f, 0.f, 1.f, 0.f,
-     2.f, 0.f, 2.f, 1.f},
-
-    {1.f, 0.f, 0.f, 0.f,
-     0.f, 1.f, 0.f, 0.f,
-     0.f, 0.f, 1.f, 0.f,
-     0.f, 0.f, 2.f, 1.f}
-};
 void
 EditorWindow::RenderImGuizmo( const auto& RenderRect )
 {
+    ImGuizmo::SetDrawlist( ImGui::GetWindowDrawList( ) );
     std::apply( ImGuizmo::SetRect, RenderRect );
     static auto IdentityMatrix = glm::mat4( 1.F );
 
