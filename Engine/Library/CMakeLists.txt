@@ -47,7 +47,7 @@ if (NOT imguizmo_POPULATED)
     file(COPY ${imguizmo_header} DESTINATION ${imguizmo_SOURCE_DIR}/include/ImGuizmo)
 
     add_library(imguizmo.lib STATIC ${imguizmo_source})
-    target_include_directories(imgui.lib PUBLIC ${imguizmo_SOURCE_DIR}/include/ImGuizmo)
+    target_include_directories(imgui.lib PUBLIC ${imguizmo_SOURCE_DIR}/include)
     target_link_libraries(imguizmo.lib imgui.lib)
 endif ()
 
