@@ -1,7 +1,6 @@
 {
   "dependencies": [
-    "physx",
-    "imguizmo"
+    "physx"
   ],
   "overrides": [
     {

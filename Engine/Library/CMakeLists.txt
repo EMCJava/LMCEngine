@@ -24,8 +24,32 @@ add_library(imgui.demo.lib STATIC ${imgui_SOURCE_DIR}/imgui_demo.cpp)
 target_link_libraries(imgui.lib glfw)
 target_link_libraries(imgui.demo.lib PRIVATE imgui.lib)
 
-find_package(imguizmo CONFIG REQUIRED)
-target_link_libraries(imgui.lib imguizmo::imguizmo)
+## -------------- ImGuizmo --------------
+FetchContent_Declare(
+        imguizmo
+        GIT_REPOSITORY https://github.com/CedricGuillemet/ImGuizmo.git
+        GIT_TAG master
+)
+
+FetchContent_GetProperties(imguizmo)
+if (NOT imguizmo_POPULATED)
+    FetchContent_Populate(imguizmo)
+
+    file(GLOB imguizmo_source
+            ${imguizmo_SOURCE_DIR}/*.cpp
+    )
+    file(GLOB imguizmo_header
+            ${imguizmo_SOURCE_DIR}/*.h
+    )
+
+    file(MAKE_DIRECTORY ${imguizmo_SOURCE_DIR}/include)
+    file(MAKE_DIRECTORY ${imguizmo_SOURCE_DIR}/include/ImGuizmo)
+    file(COPY ${imguizmo_header} DESTINATION ${imguizmo_SOURCE_DIR}/include/ImGuizmo)
+
+    add_library(imguizmo.lib STATIC ${imguizmo_source})
+    target_include_directories(imgui.lib PUBLIC ${imguizmo_SOURCE_DIR}/include/ImGuizmo)
+    target_link_libraries(imguizmo.lib imgui.lib)
+endif ()
 
 ## -------------- GLFW --------------
 FetchContent_Declare(
