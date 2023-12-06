@@ -1,71 +1,25 @@
 include(FetchContent)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
+## -------------- GLFW --------------
+find_package(glfw3 CONFIG REQUIRED)
+
+add_library(glfw.lib INTERFACE)
+target_link_libraries(glfw.lib INTERFACE glfw)
+
 ## -------------- IMGUI --------------
-FetchContent_Declare(
-        imgui
-        GIT_REPOSITORY https://github.com/ocornut/imgui.git
-        GIT_TAG docking
-)
+find_package(imgui CONFIG REQUIRED)
 
-FetchContent_MakeAvailable(imgui)
-
-file(GLOB imgui_source
-        ${imgui_SOURCE_DIR}/*.cpp
-        ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-        ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-)
-
-add_library(imgui.lib STATIC ${imgui_source})
-target_include_directories(imgui.lib PUBLIC ${imgui_SOURCE_DIR})
-
-add_library(imgui.demo.lib STATIC ${imgui_SOURCE_DIR}/imgui_demo.cpp)
-
-target_link_libraries(imgui.lib glfw)
-target_link_libraries(imgui.demo.lib PRIVATE imgui.lib)
+add_library(imgui.lib INTERFACE)
+target_link_libraries(imgui.lib INTERFACE imgui::imgui)
+target_link_libraries(imgui.lib INTERFACE glfw.lib)
 
 ## -------------- ImGuizmo --------------
-FetchContent_Declare(
-        imguizmo
-        GIT_REPOSITORY https://github.com/CedricGuillemet/ImGuizmo.git
-        GIT_TAG master
-)
+find_package(imguizmo CONFIG REQUIRED)
 
-FetchContent_GetProperties(imguizmo)
-if (NOT imguizmo_POPULATED)
-    FetchContent_Populate(imguizmo)
-
-    file(GLOB imguizmo_source
-            ${imguizmo_SOURCE_DIR}/*.cpp
-    )
-    file(GLOB imguizmo_header
-            ${imguizmo_SOURCE_DIR}/*.h
-    )
-
-    file(MAKE_DIRECTORY ${imguizmo_SOURCE_DIR}/include)
-    file(MAKE_DIRECTORY ${imguizmo_SOURCE_DIR}/include/ImGuizmo)
-    file(COPY ${imguizmo_header} DESTINATION ${imguizmo_SOURCE_DIR}/include/ImGuizmo)
-
-    add_library(imguizmo.lib STATIC ${imguizmo_source})
-    target_include_directories(imgui.lib PUBLIC ${imguizmo_SOURCE_DIR}/include)
-    target_link_libraries(imguizmo.lib imgui.lib)
-endif ()
-
-## -------------- GLFW --------------
-FetchContent_Declare(
-        glfw
-        GIT_REPOSITORY https://github.com/glfw/glfw.git
-        GIT_TAG 3.3.8
-)
-
-FetchContent_GetProperties(glfw)
-if (NOT glfw_POPULATED)
-    FetchContent_Populate(glfw)
-    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-    add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
-endif ()
+add_library(imguizmo.lib INTERFACE)
+target_link_libraries(imguizmo.lib INTERFACE imguizmo::imguizmo)
+target_link_libraries(imguizmo.lib INTERFACE imgui.lib)
 
 ## -------------- GLAD --------------
 add_library(glad.lib glad/gl.h glad/gl.c)

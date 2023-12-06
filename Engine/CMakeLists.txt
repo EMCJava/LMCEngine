@@ -15,7 +15,7 @@ target_link_libraries(Engine.lib
         GameWindow.lib
         spdlog::spdlog
         glad.lib
-        glfw
+        glfw.lib
         imgui.lib
         DynamicConcept.lib
         ConceptApplicable.lib
