@@ -95,7 +95,7 @@ declare_library(
         Witchcraft.ControlNode.lib
         Witchcraft.ControlNodeSimpleEffect.lib
         Witchcraft.ControlNodePlaceholder.lib
-        yaml-cpp::yaml-cpp
+        yaml.lib
 
         DEPS
         Witchcraft.Effect.lib

@@ -43,12 +43,10 @@ if (APPLE)
 endif ()
 
 ## -------------- yaml-cpp --------------
-FetchContent_Declare(
-        cppyaml
-        URL https://github.com/jbeder/yaml-cpp/archive/refs/tags/0.8.0.zip
-)
+find_package(yaml-cpp CONFIG REQUIRED)
 
-FetchContent_MakeAvailable(cppyaml)
+add_library(yaml.lib INTERFACE)
+target_link_libraries(yaml.lib INTERFACE yaml-cpp::yaml-cpp)
 
 ## -------------- spdlog --------------
 FetchContent_Declare(
