@@ -1,3 +1,3 @@
 add_library(HotReloadFrameBuffer.lib HotReloadFrameBuffer.hpp HotReloadFrameBuffer.cpp)
 
-target_link_libraries(HotReloadFrameBuffer.lib PRIVATE spdlog::spdlog)
+target_link_libraries(HotReloadFrameBuffer.lib PRIVATE spdlog.lib)

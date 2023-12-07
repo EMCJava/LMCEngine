@@ -1,6 +1,7 @@
 {
   "dependencies": [
     "physx",
+    "spdlog",
     "yaml-cpp",
     "glfw3",
     "imguizmo",

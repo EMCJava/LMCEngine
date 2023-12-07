@@ -49,18 +49,10 @@ add_library(yaml.lib INTERFACE)
 target_link_libraries(yaml.lib INTERFACE yaml-cpp::yaml-cpp)
 
 ## -------------- spdlog --------------
-FetchContent_Declare(
-        spdlog
-        GIT_REPOSITORY https://github.com/gabime/spdlog.git
-        GIT_TAG v1.x
-)
+find_package(spdlog CONFIG REQUIRED)
 
-FetchContent_GetProperties(spdlog)
-if (NOT spdlog_POPULATED)
-    FetchContent_Populate(spdlog)
-    message(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR})
-    add_subdirectory(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR})
-endif ()
+add_library(spdlog.lib INTERFACE)
+target_link_libraries(spdlog.lib INTERFACE spdlog::spdlog)
 
 ## -------------- json --------------
 FetchContent_Declare(

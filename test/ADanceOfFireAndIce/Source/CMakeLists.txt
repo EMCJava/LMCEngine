@@ -23,7 +23,7 @@ declare_library(
 
         P_DEPS
         SpriteSquareTexture.lib
-        spdlog::spdlog
+        spdlog.lib
 
         DEPS
 
@@ -41,7 +41,7 @@ declare_library(
         SpriteSquareTexture.lib
         Effect.ToleranceBarStrike.lib
         PureConceptImage.lib
-        spdlog::spdlog
+        spdlog.lib
 
         DEPS
 
@@ -74,6 +74,6 @@ declare_library(
 
         DEPS
         ConceptApplicable.lib
-        spdlog::spdlog
+        spdlog.lib
         Audio.lib
 )

@@ -9,7 +9,7 @@ declare_library(
         Engine.lib
 
         DEPS
-        spdlog::spdlog
+        spdlog.lib
 
         STATIC
 )
@@ -27,7 +27,7 @@ declare_library(
 
         DEPS
         Witchcraft.Effect.lib
-        spdlog::spdlog
+        spdlog.lib
 
         STATIC
 )
@@ -43,7 +43,7 @@ declare_library(
         Engine.lib
 
         DEPS
-        spdlog::spdlog
+        spdlog.lib
 
         STATIC
 )
@@ -60,7 +60,7 @@ declare_library(
 
         DEPS
         Witchcraft.ControlNode.lib
-        spdlog::spdlog
+        spdlog.lib
 
         STATIC
 )
@@ -77,7 +77,7 @@ declare_library(
 
         DEPS
         Witchcraft.ControlNode.lib
-        spdlog::spdlog
+        spdlog.lib
 
         STATIC
 )
@@ -99,7 +99,7 @@ declare_library(
 
         DEPS
         Witchcraft.Effect.lib
-        spdlog::spdlog
+        spdlog.lib
 
         STATIC
 )
@@ -125,7 +125,7 @@ declare_library(
         Canvas.lib
         Engine.lib
 
-        spdlog::spdlog
+        spdlog.lib
 
         DEPS
 
@@ -158,5 +158,5 @@ declare_library(
         PhysicsScene.lib
 
         DEPS
-        spdlog::spdlog
+        spdlog.lib
 )

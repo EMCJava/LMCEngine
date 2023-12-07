@@ -13,7 +13,7 @@ target_link_libraries(Engine.lib
         WindowPool.lib
         EditorWindow.lib
         GameWindow.lib
-        spdlog::spdlog
+        spdlog.lib
         glad.lib
         glfw.lib
         imgui.lib
