@@ -281,7 +281,6 @@ EditorWindow::UpdateImGui( )
             // Create rendering window
             ImGui::SetNextWindowPos( MainViewPortStartPosition + RenderOffset, ImGuiCond_Always );
             ImGui::SetNextWindowSize( ImageSize, ImGuiCond_Always );
-            spdlog::info( "Rendering window size: {},{}", ImageSize.x, ImageSize.y );
             ImGui::BeginChild( "Render", ImageSize, ImGuiChildFlags_None, ImGuiWindowFlags_NoDecoration );
             const auto* Window = ImGui::GetCurrentWindow( );
 
