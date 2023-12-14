@@ -11,6 +11,9 @@
 #pragma warning( Using dynamic_pointer_cast, performance can be impacted )
 #define ConceptCasting std::dynamic_pointer_cast
 
+class PureConcept;
+template <typename Ty>
+concept PureConceptDescendants = Ty::template CanCastS<PureConcept>( );
 class PureConcept
 {
     DECLARE_CONCEPT( PureConcept )
@@ -67,6 +70,7 @@ public:
     IsEnabled( ) { return m_Enabled; }
 
     template <class ConceptType, typename... Args>
+        requires PureConceptDescendants<ConceptType>
     static std::shared_ptr<ConceptType> CreateConcept( Args&&... params );
 
 protected:
@@ -94,11 +98,10 @@ private:
 };
 
 template <class ConceptType, typename... Args>
+    requires PureConceptDescendants<ConceptType>
 std::shared_ptr<ConceptType>
 PureConcept::CreateConcept( Args&&... params )
 {
-    static_assert( ConceptType::template CanCastS<PureConcept>( ) );
-
     auto Result = std::make_shared<ConceptType>( std::forward<Args>( params )... );
     Result->SetRuntimeName( Result->GetClassName( ) );
     Result->ConceptType::ConceptLateInitialize( );
