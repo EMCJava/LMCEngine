@@ -5,6 +5,7 @@
 #pragma once
 
 #include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
+#include <Engine/Core/Concept/ConceptSetFetchCache.hpp>
 
 class ToleranceBar : public SpriteSquareTexture
 {

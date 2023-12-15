@@ -1329,7 +1329,7 @@ GameManager::GameManager( )
     AddConcept<WhiteBackground>( );
 
     {
-        auto FixedCamera = AddConcept<PureConceptOrthoCamera>( );
+        auto FixedCamera = AddConcept<PureConceptOrthoCamera>( ).Get( );
 
         FixedCamera->SetScale( 1 / 1.5F );
         FixedCamera->UpdateCameraMatrix( );
@@ -1603,7 +1603,7 @@ GameManager::Apply( )
                      *
                      * */
                     const auto TileTransformBefore = TileSpriteSetShared->GetCurrentTileTransform( );
-                    auto       NewExplosion        = ( AddConcept<SpriteSquareAnimatedTexture>( 512, 512 ) );
+                    auto       NewExplosion        = AddConcept<SpriteSquareAnimatedTexture>( 512, 512 ).Get( );
                     ( *NewExplosion ) << *m_ExplosionSpriteTemplate;
                     NewExplosion->SetCoordinate( TileTransformBefore.x, TileTransformBefore.y, TileTransformBefore.z );
 

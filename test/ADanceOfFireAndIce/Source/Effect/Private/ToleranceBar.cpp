@@ -72,7 +72,7 @@ ToleranceBar::Render( )
 void
 ToleranceBar::AddBar( FloatTy Location )
 {
-    auto Strike = AddConcept<ToleranceBarStrike>( m_BarSize.first, m_BarSize.second );
+    auto Strike = AddConcept<ToleranceBarStrike>( m_BarSize.first, m_BarSize.second ).Get( );
     ( *Strike ) << *m_ToleranceBarStrikeTemplate;
     FloatTy Scale = 1;
     REQUIRED_IF( m_ActiveCamera != nullptr && m_ActiveCamera->CanCastVT<PureConceptOrthoCamera>( ) )

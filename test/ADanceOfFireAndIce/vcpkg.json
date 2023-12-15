@@ -1,6 +1,19 @@
 {
   "dependencies": [
-    "physx"
+    "physx",
+    "spdlog",
+    "yaml-cpp",
+    "glfw3",
+    "imguizmo",
+    {
+      "name": "imgui",
+      "version>=": "1.90",
+      "features": [
+        "docking-experimental",
+        "glfw-binding",
+        "opengl3-binding"
+      ]
+    }
   ],
   "overrides": [
     {

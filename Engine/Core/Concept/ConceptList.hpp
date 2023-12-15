@@ -11,13 +11,42 @@ class ConceptList : public PureConcept
     DECLARE_CONCEPT( ConceptList, PureConcept )
 
 public:
+    // Avoid unnecessary casting/copying if return value is not used
+    template <class UnderlyingType, class Ty>
+    struct SharedPtrProxy {
+        SharedPtrProxy( std::shared_ptr<UnderlyingType>& SharedObjectRef )
+            : SharedObjectRef( SharedObjectRef )
+        { }
+
+        operator std::shared_ptr<Ty>( )
+        {
+            return Get( );
+        }
+
+        operator std::weak_ptr<Ty>( )
+        {
+            return Get( );
+        }
+
+        auto Get( )
+        {
+            return ConceptCasting<Ty>( SharedObjectRef );
+        }
+
+        std::shared_ptr<UnderlyingType>& SharedObjectRef;
+    };
+
+    // Avoid returning a copy of shared_ptr for nullptr pointer compatible
+    template <class Ty>
+    using OptionalRef = std::optional<std::reference_wrapper<std::decay<Ty>>>;
+
     /*
      *
      * Construct and append concept
      *
      * */
     template <class ConceptType, typename... Args>
-    std::shared_ptr<ConceptType>
+    SharedPtrProxy<PureConcept, ConceptType>
     AddConcept( Args&&... params );
 
     /*
@@ -182,16 +211,16 @@ private:
 };
 
 template <class ConceptType, typename... Args>
-std::shared_ptr<ConceptType>
-ConceptList::AddConcept( Args&&... params )
+auto
+ConceptList::AddConcept( Args&&... params ) -> SharedPtrProxy<PureConcept, ConceptType>
 {
     ResetSubConceptCache( );
     static_assert( ConceptType::template CanCastS<PureConcept>( ) );
 
-    auto Result = ConceptCasting<ConceptType>( m_SubConcepts.emplace_back( CreateConcept<ConceptType>( std::forward<Args>( params )... ) ) );
-
+    auto Result         = CreateConcept<ConceptType>( std::forward<Args>( params )... );
     Result->m_BelongsTo = this;
-    return Result;
+
+    return m_SubConcepts.emplace_back( std::move( Result ) );
 }
 
 template <class ConceptType>

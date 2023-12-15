@@ -76,7 +76,7 @@ WandEditorScene::WandEditorScene( )
             m_UICanvas = AddConcept<Canvas>( );
             m_UICanvas->SetRuntimeName( "UI Canvas" );
 
-            auto SystemUICamera = m_UICanvas->AddConcept<PureConceptOrthoCamera>( );
+            auto SystemUICamera = m_UICanvas->AddConcept<PureConceptOrthoCamera>( ).Get( );
             SystemUICamera->SetRuntimeName( "System UI Camera" );
             SystemUICamera->PushToCameraStack( );
 
@@ -87,7 +87,7 @@ WandEditorScene::WandEditorScene( )
     m_WandEditorCanvas->AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/Inv.png" ) );
 
     {
-        auto Sp           = m_WandEditorCanvas->AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/Boards/StarterBoard.png" ) );
+        auto Sp           = m_WandEditorCanvas->AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/Boards/StarterBoard.png" ) ).Get( );
         m_BoardDimensions = { Sp->GetSpriteDimensions( ).first, Sp->GetSpriteDimensions( ).second, 0 };
         Sp->SetCenterAsOrigin( );
 
@@ -137,7 +137,7 @@ WandEditorScene::WandEditorScene( )
     }
 
     {
-        auto Sp = m_WandEditorCanvas->AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/wand.png" ) );
+        auto Sp = m_WandEditorCanvas->AddConcept<SpriteSquareTexture>( DefaultShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/wand.png" ) ).Get( );
         Sp->SetCenterAsOrigin( );
 
         Sp->SetScale( m_EditorAreaScale, m_EditorAreaScale );

@@ -31,7 +31,7 @@ RigidMesh::CreateMesh( const std::string& MeshPathStr )
 void
 RigidMesh::SetMesh( std::shared_ptr<ConceptMesh> Mesh )
 {
-    m_Renderable = AddConcept<RenderableMesh>( std::move( Mesh ) );
+    m_Renderable = AddConcept<RenderableMesh>( std::move( Mesh ) ).Get( );
 }
 
 void

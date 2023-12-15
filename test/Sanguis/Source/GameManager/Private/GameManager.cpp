@@ -110,7 +110,7 @@ GameManager::GameManager( )
     }
 
     {
-        const auto& PerspectiveCanvas = AddConcept<Canvas>( );
+        const auto& PerspectiveCanvas = AddConcept<Canvas>( ).Get( );
         PerspectiveCanvas->SetRuntimeName( "Perspective Canvas" );
         PerspectiveCanvas->SetCanvasCamera( m_MainCamera );
 
@@ -118,7 +118,7 @@ GameManager::GameManager( )
             {
                 auto LightMesh = CreateConcept<ConceptMesh>( "Assets/Model/red_cube.glb" );
 
-                auto LightRenderable = PerspectiveCanvas->AddConcept<RenderableMesh>( LightMesh );
+                auto LightRenderable = PerspectiveCanvas->AddConcept<RenderableMesh>( LightMesh ).Get( );
                 LightRenderable->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultMeshShader" ) );
                 AddConcept<LightRotate>( PerspectiveCanvas, LightRenderable );
             }
@@ -138,7 +138,7 @@ GameManager::GameManager( )
                 };
 
                 {
-                    auto RM = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", Material, true, []( auto& SubMeshSpan ) {
+                    std::shared_ptr<RigidMesh> RM = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", Material, true, []( auto& SubMeshSpan ) {
                         if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
                             return ColliderSerializerGroupMesh::ColliderType::eTriangle;
                         else
@@ -153,7 +153,7 @@ GameManager::GameManager( )
 
                     for ( int i = 0; i < 10; ++i )
                     {
-                        auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, Material ) );
+                        auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, Material ) ).Get( );
                         auto& RenderableMesh = RM->GetRenderable( );
                         RenderableShaderSetup( RenderableMesh, "DefaultPhongShader" );
 
@@ -252,7 +252,7 @@ GameManager::TestInvokable( )
             GetOwnership( m_WandEditorScene );
         } else
         {
-            m_WandEditorScene = AddConcept<WandEditorScene>( );
+            m_WandEditorScene = AddConcept<WandEditorScene>( ).Get( );
         }
     }
 }
