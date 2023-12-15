@@ -157,7 +157,7 @@ GameManager::GameManager( )
                         auto& RenderableMesh = RM->GetRenderable( );
                         RenderableShaderSetup( RenderableMesh, "DefaultPhongShader" );
 
-                        auto* RBH = RM->GetCollider( )->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
+                        auto* RBH = RM->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
                         REQUIRED_IF( RBH != nullptr )
                         {
                             RBH->setGlobalPose( physx::PxTransform { physx::PxVec3( 0, 15 + i * 3, 0 ) } );
@@ -175,63 +175,6 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-    constexpr int DesiredFPS = 160;
-    constexpr int CapFPS     = DesiredFPS * 2;
-
-    const auto DeltaSecond = Engine::GetEngine( )->GetDeltaSecond( );
-
-    // Move the following to Engine
-    auto* PhyEngine = Engine::GetEngine( )->GetPhysicsEngine( );
-
-    {
-        PhyEngine->GetScene( )->simulate( DeltaSecond );
-
-        float         WaitTimeMilliseconds      = 500.F / DesiredFPS;
-        constexpr int MaxWaitTimeMilliseconds   = 1000;
-        int           TotalWaitTimeMilliseconds = 0;
-        while ( !PhyEngine->GetScene( )->fetchResults( false ) )
-        {
-            const auto SleepTime = std::min( MaxWaitTimeMilliseconds, int( WaitTimeMilliseconds ) );
-            TotalWaitTimeMilliseconds += SleepTime;
-            // spdlog::info( "Wait fetchResults for {}ms, acc: {}ms.", SleepTime, TotalWaitTimeMilliseconds );
-            std::this_thread::sleep_for( std::chrono::milliseconds( SleepTime ) );
-            WaitTimeMilliseconds = SleepTime * 1.1F;
-        }
-
-        const auto SleepTime = 1000.F / CapFPS - DeltaSecond * 1000;
-        if ( SleepTime > TotalWaitTimeMilliseconds )
-        {
-            std::this_thread::sleep_for( std::chrono::milliseconds( int( SleepTime ) - TotalWaitTimeMilliseconds ) );
-            spdlog::info( "Sleep for stable framerate: {}ms.", int( SleepTime ) - TotalWaitTimeMilliseconds );
-        }
-    }
-
-    // retrieve array of actors that moved
-    physx::PxU32     nbActiveActors;
-    physx::PxActor** activeActors = PhyEngine->GetScene( )->getActiveActors( nbActiveActors );
-
-    if ( nbActiveActors != 0 )
-    {
-        // update each render object with the new transform
-        for ( physx::PxU32 i = 0; i < nbActiveActors; ++i )
-        {
-            auto* Data = activeActors[ i ]->userData;
-            if ( Data != nullptr )
-            {
-                auto* ColliderMeshPtr = static_cast<Collider*>( Data );
-
-                auto* ColliderOwnerPtr = ColliderMeshPtr->GetOwner( );
-                if ( auto RB = ColliderOwnerPtr->TryCast<RigidBody>( ); RB != nullptr )
-                {
-                    const auto& GP = ( (physx::PxRigidActor*) activeActors[ i ] )->getGlobalPose( );
-                    RB->GetOrientation( ).SetCoordinate( GP.p.x, GP.p.y, GP.p.z );
-
-                    static_assert( sizeof( physx::PxQuat ) == sizeof( glm::quat ) );
-                    RB->GetOrientation( ).SetQuat( *( (glm::quat*) &GP.q ) );
-                }
-            }
-        }
-    }
 }
 
 void

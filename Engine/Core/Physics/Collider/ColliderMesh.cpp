@@ -7,6 +7,7 @@
 #include <Engine/Core/Graphic/Mesh/ConceptMesh.hpp>
 #include <Engine/Core/Physics/PhysicsScene.hpp>
 #include <Engine/Core/Graphic/Mesh/RenderableMeshHitBox.hpp>
+#include <utility>
 
 #include <PxPhysicsAPI.h>
 
@@ -14,32 +15,27 @@ DEFINE_CONCEPT_DS( ColliderMesh )
 
 ColliderMesh::ColliderMesh( std::shared_ptr<ColliderSerializerGroupMesh> GroupMeshCollider, physx::PxMaterial* Material, bool Static )
 {
-    SetGroupMeshCollider( GroupMeshCollider, Material, Static );
-    SetSearchThrough( );
+    SetGroupMeshCollider( std::move( GroupMeshCollider ), Material, Static );
 }
 
 void
 ColliderMesh::SetGroupMeshCollider( std::shared_ptr<ColliderSerializerGroupMesh> GroupMeshCollider, physx::PxMaterial* Material, bool Static )
 {
-    m_GroupMeshCollider = GroupMeshCollider;
+    m_GroupMeshCollider = std::move( GroupMeshCollider );
     REQUIRED( m_GroupMeshCollider->HasData( ), throw std::runtime_error( "GroupMeshCollider has no data" ) )
+    m_ColliderIsStatic = Static;
+    m_Material         = Material;
+}
 
-    if ( m_RigidActor != nullptr )
-    {
-        m_RigidActor->release( );
-        m_RigidActor = nullptr;
-    }
+physx::PxRigidActor*
+ColliderMesh::GenerateActor( std::shared_ptr<RenderableMeshHitBox>* HitBoxFrame )
+{
+    physx::PxRigidActor* Result = nullptr;
 
-    std::shared_ptr<RenderableMeshHitBox> HitBox;
-    if ( Static )
-        m_RigidActor = m_GroupMeshCollider->CreateStaticRigidBodyFromCacheGroup( *Material, &HitBox );
+    if ( m_ColliderIsStatic )
+        Result = m_GroupMeshCollider->CreateStaticRigidBodyFromCacheGroup( *m_Material, HitBoxFrame );
     else
-        m_RigidActor = m_GroupMeshCollider->CreateDynamicRigidBodyFromCacheGroup( *Material, &HitBox );
+        Result = m_GroupMeshCollider->CreateDynamicRigidBodyFromCacheGroup( *m_Material, HitBoxFrame );
 
-    if ( HitBox != nullptr ) GetOwnership( HitBox );
-
-    REQUIRED( this == dynamic_cast<Collider*>( this ) )
-    // FIXME: should set by rigid body
-    m_RigidActor->userData = dynamic_cast<Collider*>( this );
-    m_PhyEngine->GetScene( )->addActor( *m_RigidActor );
+    return Result;
 }

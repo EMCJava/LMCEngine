@@ -6,6 +6,10 @@
 
 #include <Engine/Core/Input/Serializer/SerializerModel.hpp>
 #include <Engine/Core/Graphic/Mesh/RenderableMesh.hpp>
+#include <Engine/Core/Graphic/Mesh/RenderableMeshHitBox.hpp>
+#include <Engine/Core/Physics/PhysicsScene.hpp>
+
+#include <PxPhysicsAPI.h>
 
 DEFINE_CONCEPT_DS( RigidMesh )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RigidMesh, RigidBody )
@@ -37,6 +41,25 @@ RigidMesh::SetMesh( std::shared_ptr<ConceptMesh> Mesh )
 void
 RigidMesh::SetCollider( std::shared_ptr<Collider> C )
 {
+    if ( m_RigidActor != nullptr )
+    {
+        m_RigidActor->release( );
+        m_RigidActor = nullptr;
+    }
+
     if ( m_Collider != nullptr ) m_Collider->Destroy( );
     REQUIRED( GetOwnership( m_Collider = std::move( C ) ) )
+
+    std::shared_ptr<RenderableMeshHitBox> HitBoxFrame;
+    m_RigidActor = m_Collider->GenerateActor( &HitBoxFrame );
+    if ( HitBoxFrame != nullptr ) GetOwnership( HitBoxFrame );
+
+    auto* UserData = dynamic_cast<RigidBody*>( this );
+    REQUIRED( m_RigidActor && this == UserData )
+    {
+        m_RigidActor->userData = UserData;
+
+        auto PhyEngine = Engine::GetEngine( )->GetPhysicsEngine( );
+        PhyEngine->GetScene( )->addActor( *m_RigidActor );
+    }
 }

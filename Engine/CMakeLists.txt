@@ -32,6 +32,7 @@ target_link_libraries(Engine.lib
         Shader.lib
         Font.lib
         PhysicsEngine.lib
+        PhysicsScene.lib
 
         SpriteSquare.lib
 )

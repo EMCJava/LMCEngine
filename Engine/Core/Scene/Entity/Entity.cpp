@@ -8,4 +8,4 @@
 #include <ImGui/ImGui.hpp>
 
 DEFINE_CONCEPT_DS( Entity )
-DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( Entity, Orientation )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( Entity, Orientation, m_AlterManually )

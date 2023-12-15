@@ -8,6 +8,11 @@
 #include <Engine/Core/Concept/ConceptSetFetchCache.hpp>
 #include <Engine/Core/Scene/Orientation/Orientation.hpp>
 
+namespace physx
+{
+class PxRigidActor;
+}
+
 class RigidBody : public ConceptApplicable
     , protected Orientation   // Update to Orientation need to forward to child, wrapper is needed
 {
@@ -36,7 +41,18 @@ public:
         return *static_cast<Orientation*>( this );
     }
 
+    physx::PxRigidActor*
+    GetRigidBodyHandle( ) { return m_RigidActor; }
+
 protected:
+    /*
+     *
+     * Physx
+     *
+     * */
+    PhysicsEngine*       m_PhyEngine  = nullptr;
+    physx::PxRigidActor* m_RigidActor = nullptr;
+
     bool m_OrientationChanged = true;
 
     /*

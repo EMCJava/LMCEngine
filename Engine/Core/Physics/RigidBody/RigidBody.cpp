@@ -7,13 +7,24 @@
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
-DEFINE_CONCEPT_DS( RigidBody )
+#include <PxPhysicsAPI.h>
+
+DEFINE_CONCEPT( RigidBody )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RigidBody, Orientation, m_OrientationChanged )
 
 RigidBody::RigidBody( )
 {
     // For collider or renderable etc.
     SetSearchThrough( true );
+}
+
+RigidBody::~RigidBody( )
+{
+    if ( m_RigidActor != nullptr )
+    {
+        m_RigidActor->release( );
+        m_RigidActor = nullptr;
+    }
 }
 
 void

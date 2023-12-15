@@ -12,22 +12,10 @@ namespace physx
 class PxRigidActor;
 }
 
-class Collider : public ConceptList
+class Collider : public PureConcept
 {
-    DECLARE_CONCEPT( Collider, ConceptList )
-
+    DECLARE_CONCEPT( Collider, PureConcept )
 public:
-    Collider( );
-
-    physx::PxRigidActor*
-    GetRigidBodyHandle( ) { return m_RigidActor; }
-
-protected:
-    /*
-     *
-     * Physx
-     *
-     * */
-    PhysicsEngine*       m_PhyEngine  = nullptr;
-    physx::PxRigidActor* m_RigidActor = nullptr;
+    virtual physx::PxRigidActor*
+    GenerateActor( std::shared_ptr<class RenderableMeshHitBox>* HitBoxFrame ) = 0;
 };

@@ -44,6 +44,16 @@ class Engine
     void
     ResetProjectDependentSystem( );
 
+    /*
+     *
+     * Physics system
+     *
+     * */
+    void
+    StartPhysicsResolve( );
+    void
+    FetchPhysicsResolve( );
+
 public:
     Engine( );
     ~Engine( );
@@ -256,7 +266,7 @@ private:
     ImVector<struct ImRect>* m_ImGuiGroupPanelLabelStack = nullptr;
 
     void* ( *m_ImGuiContext_alloc_func )( size_t sz, void* user_data ) = nullptr;
-    void ( *m_ImGuiContext_free_func )( void* ptr, void* user_data )   = nullptr;
+    void  ( *m_ImGuiContext_free_func )( void* ptr, void* user_data )  = nullptr;
     void* m_ImGuiContext_user_data                                     = nullptr;
 
     /*

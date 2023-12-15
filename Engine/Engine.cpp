@@ -42,6 +42,8 @@
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
 #include <Engine/Core/Physics/PhysicsEngine.hpp>
+#include <Engine/Core/Physics/PhysicsScene.hpp>
+#include <Engine/Core/Physics/RigidBody/RigidBody.hpp>
 #include <Engine/Core/Audio/AudioEngine.hpp>
 #include <Engine/Core/Input/UserInput.hpp>
 #include <Engine/Core/UI/Font/Font.hpp>
@@ -51,6 +53,8 @@
 #include <regex>
 #include <string>
 #include <string_view>
+
+#include <PxPhysicsAPI.h>
 
 // For some reason, the following initialization will create multiple static variable for different translation unit on MAC
 // So now we are using inline in header file instead
@@ -268,10 +272,38 @@ Engine::Update( )
         m_DeltaSecond                             = fs.count( );
     }
 
+    StartPhysicsResolve( );
+
     m_UserInput->Update( );
     UpdateRootConcept( );
 
     Render( );
+
+    {
+        FetchPhysicsResolve( );
+
+        // retrieve array of actors that moved
+        physx::PxU32     nbActiveActors;
+        physx::PxActor** activeActors = m_PhysicsEngine->GetScene( )->getActiveActors( nbActiveActors );
+
+        if ( nbActiveActors != 0 )
+        {
+            // update each render object with the new transform
+            for ( physx::PxU32 i = 0; i < nbActiveActors; ++i )
+            {
+                auto* Data = activeActors[ i ]->userData;
+                if ( Data != nullptr )
+                {
+                    auto*       RigidBodyPtr = static_cast<RigidBody*>( Data );
+                    const auto& GP           = ( (physx::PxRigidActor*) activeActors[ i ] )->getGlobalPose( );
+                    RigidBodyPtr->GetOrientation( ).SetCoordinate( GP.p.x, GP.p.y, GP.p.z );
+
+                    static_assert( sizeof( physx::PxQuat ) == sizeof( glm::quat ) );
+                    RigidBodyPtr->GetOrientation( ).SetQuat( *( (glm::quat*) &GP.q ) );
+                }
+            }
+        }
+    }
 
     m_ShouldShutdown |= m_MainWindow->WindowShouldClose( );
     m_LastUpdateTime = m_CurrentUpdateTime;
@@ -708,6 +740,43 @@ Engine::ResetProjectDependentSystem( )
 
     delete m_PhysicsEngine;
     m_PhysicsEngine = new PhysicsEngine;
+}
+
+void
+Engine::StartPhysicsResolve( )
+{
+    // Kick-start physx engine
+    m_PhysicsEngine->GetScene( )->simulate( std::clamp( m_DeltaSecond, 1 / 165.F, 1 / 30.F ) );
+}
+
+void
+Engine::FetchPhysicsResolve( )
+{
+    constexpr auto DesiredFPS = 165;
+
+    float         WaitTimeMilliseconds      = 500.F / DesiredFPS;
+    constexpr int MaxWaitTimeMilliseconds   = 1000;
+    int           TotalWaitTimeMilliseconds = 0;
+
+    // FIXME: for some reason getSimulationStage() != Sc::SimulationStage::eADVANCE
+    // and the API is not exposed, need to debug later
+    while ( !m_PhysicsEngine->GetScene( )->fetchResults( true ) && false )
+    {
+        // Result not ready
+        const auto SleepTime = std::min( MaxWaitTimeMilliseconds, int( WaitTimeMilliseconds ) );
+        TotalWaitTimeMilliseconds += SleepTime;
+        spdlog::trace( "Wait fetchResults for {}ms, acc: {}ms.", SleepTime, TotalWaitTimeMilliseconds );
+        std::this_thread::sleep_for( std::chrono::milliseconds( SleepTime ) );
+        WaitTimeMilliseconds = SleepTime * 1.1F;
+    }
+
+    const int  CapFPS    = DesiredFPS * 2;
+    const auto SleepTime = 1000.F / CapFPS - m_DeltaSecond * 1000;
+    if ( SleepTime > TotalWaitTimeMilliseconds )
+    {
+        spdlog::trace( "Sleep for stable framerate: {}ms.", int( SleepTime ) - TotalWaitTimeMilliseconds );
+        std::this_thread::sleep_for( std::chrono::milliseconds( int( SleepTime ) - TotalWaitTimeMilliseconds ) );
+    }
 }
 
 void ( *Engine::GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* )

@@ -37,7 +37,14 @@ public:
     void
     SetGroupMeshCollider( std::shared_ptr<ColliderSerializerGroupMesh> GroupMeshCollider, physx::PxMaterial* Material, bool Static );
 
+
+    physx::PxRigidActor*
+    GenerateActor( std::shared_ptr<RenderableMeshHitBox>* HitBoxFrame ) override;
+
 private:
+    bool               m_ColliderIsStatic = false;
+    physx::PxMaterial* m_Material         = nullptr;
+
     /*
      *
      * PureConceptCollider
