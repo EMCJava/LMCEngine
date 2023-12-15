@@ -5,7 +5,7 @@
 #pragma once
 
 #include <Engine/Core/Window/GameWindow.hpp>
-#include <Engine/Core/Concept/Concept.hpp>
+#include <Engine/Core/Concept/ConceptList.hpp>
 
 #include "Window.hpp"
 

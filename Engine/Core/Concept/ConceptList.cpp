@@ -1,14 +1,14 @@
 //
-// Created by loyus on 7/4/2023.
+// Created by samsa on 12/14/2023.
 //
 
-#include "Concept.hpp"
+#include "ConceptList.hpp"
 
 #include <random>
 
-DEFINE_CONCEPT( Concept )
+DEFINE_CONCEPT( ConceptList )
 
-Concept::~Concept( )
+ConceptList::~ConceptList( )
 {
     for ( auto& Con : m_SubConcepts )
     {
@@ -18,17 +18,11 @@ Concept::~Concept( )
         }
     }
 
-    spdlog::trace( "{}::~{} -> {}", "Concept", "Concept", fmt::ptr( this ) );
+    spdlog::trace( "{}::~{} -> {}", "ConceptList", "ConceptList", fmt::ptr( this ) );
 }
 
 bool
-Concept::HasSubConcept( ) const
-{
-    return !m_SubConcepts.empty( );
-}
-
-bool
-Concept::RemoveConcept( PureConcept* ConceptPtr )
+ConceptList::RemoveConcept( PureConcept* ConceptPtr )
 {
     for ( auto It = m_SubConcepts.begin( ); It != m_SubConcepts.end( ); ++It )
     {
@@ -49,7 +43,7 @@ Concept::RemoveConcept( PureConcept* ConceptPtr )
 }
 
 bool
-Concept::GetOwnership( PureConcept* ConceptPtr )
+ConceptList::GetOwnership( PureConcept* ConceptPtr )
 {
     if ( ConceptPtr->m_BelongsTo != nullptr && ConceptPtr->m_BelongsTo != this ) [[likely]]
     {
@@ -59,7 +53,7 @@ Concept::GetOwnership( PureConcept* ConceptPtr )
                                              return SubConcept.get( ) == ConceptPtr;
                                          } );
 
-        REQUIRED_IF( OccIt != OriginalSet.end( ) )
+        REQUIRED_IF( OccIt != OriginalSet.end( ), throw std::runtime_error( "Can't find self in owner concept" ) )
         {
             m_SubConcepts.emplace_back( std::move( *OccIt ) );
             ResetSubConceptCache( );
@@ -76,7 +70,7 @@ Concept::GetOwnership( PureConcept* ConceptPtr )
 }
 
 void
-Concept::SetSearchThrough( bool SearchThrough )
+ConceptList::SetSearchThrough( bool SearchThrough )
 {
     if ( m_SearchThrough != SearchThrough ) [[likely]]
     {
@@ -86,7 +80,7 @@ Concept::SetSearchThrough( bool SearchThrough )
 }
 
 void
-Concept::ResetSubConceptCache( )
+ConceptList::ResetSubConceptCache( )
 {
     m_ConceptsStateHash.NextUint64( );
     if ( m_SearchThrough && m_BelongsTo != nullptr )
@@ -100,7 +94,7 @@ PureConcept::MoveToFirstAsSubConcept( )
 {
     if ( m_BelongsTo != nullptr )
     {
-        TEST( m_BelongsTo->CanCastVT<Concept>( ) )
+        TEST( m_BelongsTo->CanCastVT<ConceptList>( ) )
 
         const auto pivot = std::find_if( m_BelongsTo->m_SubConcepts.begin( ),
                                          m_BelongsTo->m_SubConcepts.end( ),
@@ -131,7 +125,7 @@ PureConcept::MoveToLastAsSubConcept( )
 {
     if ( m_BelongsTo != nullptr )
     {
-        TEST( m_BelongsTo->CanCastVT<Concept>( ) )
+        TEST( m_BelongsTo->CanCastVT<ConceptList>( ) )
 
         const auto pivot = std::find_if( m_BelongsTo->m_SubConcepts.begin( ),
                                          m_BelongsTo->m_SubConcepts.end( ),

@@ -57,7 +57,7 @@ public:
     void
     MoveToLastAsSubConcept( );
 
-    class Concept*
+    class ConceptList*
     GetOwner( ) const noexcept { return m_BelongsTo; }
 
     void
@@ -91,9 +91,9 @@ private:
      * Useful in e.g. Destroy concept, PureConcept should not be able to delete itself
      *
      * */
-    class Concept* m_BelongsTo = nullptr;
+    class ConceptList* m_BelongsTo = nullptr;
 
-    friend class Concept;
+    friend class ConceptList;
     ENABLE_IMGUI( PureConcept )
 };
 

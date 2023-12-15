@@ -4,7 +4,7 @@
 
 #include "PureConcept.hpp"
 
-#include <Engine/Core/Concept/Concept.hpp>
+#include <Engine/Core/Concept/ConceptList.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
 DEFINE_CONCEPT( PureConcept )

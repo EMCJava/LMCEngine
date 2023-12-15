@@ -204,9 +204,9 @@ EditorWindow::UpdateImGui( )
         {
             if ( m_ConceptDragStart != nullptr && m_ConceptDragEnd != nullptr )
             {
-                if ( m_ConceptDragEnd->CanCastV( Concept::TypeID ) ) [[likely]]
+                if ( m_ConceptDragEnd->CanCastV( ConceptList::TypeID ) ) [[likely]]
                 {
-                    ( (Concept*) m_ConceptDragEnd )->GetOwnership( m_ConceptDragStart );
+                    ( (ConceptList*) m_ConceptDragEnd )->GetOwnership( m_ConceptDragStart );
                     spdlog::info( "Transferred subConcept ownership" );
                 }
             }
@@ -392,7 +392,7 @@ EditorWindow::RenderConceptHierarchy( std::shared_ptr<PureConcept>& ConShared )
             m_ConceptInspectionCache.SelectedConcept = ConShared;
         }
 
-        if ( ConShared->CanCastVT<Concept>( ) && ( (Concept*) ConShared.get( ) )->HasSubConcept( ) )
+        if ( ConShared->CanCastVT<ConceptList>( ) && ( (ConceptList*) ConShared.get( ) )->HasSubConcept( ) )
         {
             // Has sub node
             const bool Enabled = ConShared->IsEnabled( );
@@ -407,7 +407,7 @@ EditorWindow::RenderConceptHierarchy( std::shared_ptr<PureConcept>& ConShared )
 
             if ( node_open )
             {
-                ( (Concept*) ConShared.get( ) )->ForEachSubConcept( [ this ]( std::shared_ptr<PureConcept>& ConShared ) {
+                ( (ConceptList*) ConShared.get( ) )->ForEachSubConcept( [ this ]( std::shared_ptr<PureConcept>& ConShared ) {
                     ImGui::PushID( ConShared.get( ) );
 
                     if ( RenderConceptHierarchy( ConShared ) )
@@ -1019,7 +1019,7 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
 
     if ( m_RootConceptFakeShared )
     {
-        auto* RootConcept = m_RootConceptFakeShared->TryCast<Concept>( );
+        auto* RootConcept = m_RootConceptFakeShared->TryCast<ConceptList>( );
 
         const auto PerspectiveCamera = RootConcept->GetConcept<PureConceptPerspectiveCamera>( );
         if ( PerspectiveCamera )

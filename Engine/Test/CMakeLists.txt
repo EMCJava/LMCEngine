@@ -7,7 +7,7 @@ target_link_libraries(Catch2Test PRIVATE Catch2::Catch2WithMain)
 target_link_libraries(Catch2Test PRIVATE
         NetServerLib
         NetClientLib
-        Concept.lib
+        ConceptList.lib
         imgui.lib
         ParticleAttributesRandomizer.lib)
 

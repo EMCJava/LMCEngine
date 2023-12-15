@@ -1,54 +1,70 @@
 //
-// Created by loyus on 7/4/2023.
+// Created by samsa on 12/14/2023.
 //
 
 #pragma once
 
-#include "ConceptCore.hpp"
 #include "PureConcept.hpp"
-#include "ConceptSetFetchCache.hpp"
 
-#include <memory>
-#include <vector>
-#include <algorithm>
-
-/*
- *
- * Virtual Concept system in this engine
- *
- * */
-class Concept : public PureConcept
+class ConceptList : public PureConcept
 {
-    DECLARE_CONCEPT( Concept, PureConcept )
+    DECLARE_CONCEPT( ConceptList, PureConcept )
 
 public:
     /*
      *
-     * Operations to sub concepts
+     * Construct and append concept
      *
      * */
-
     template <class ConceptType, typename... Args>
     std::shared_ptr<ConceptType>
     AddConcept( Args&&... params );
 
+    /*
+     *
+     * Remove a concept by pointer
+     * return true if success
+     *
+     * */
     bool
     RemoveConcept( PureConcept* ConceptPtr );
 
+    /*
+     *
+     * Remove single concept by type
+     * return true if success
+     *
+     * */
     template <class ConceptType>
     bool
     RemoveConcept( );
 
+    /*
+     *
+     * Remove all concepts of type
+     * return number of removed concepts
+     *
+     * */
     template <class ConceptType>
     int
     RemoveConcepts( );
 
+    /*
+     *
+     * Get a concept by index in range [0, size)
+     *
+     * */
     template <class ConceptType = PureConcept>
-    std::shared_ptr<ConceptType>
-    GetConceptAt( size_t SubConceptIndex ) const;
+    [[nodiscard]] std::shared_ptr<ConceptType>
+    GetConceptAt( size_t SubConceptIndex ) const noexcept;
 
+    /*
+     *
+     *
+     *
+     * */
     [[nodiscard]] size_t
-    GetSubConceptCount( ) const { return m_SubConcepts.size( ); }
+    GetSubConceptCount( ) const noexcept { return m_SubConcepts.size( ); }
 
     /*
      *
@@ -57,8 +73,14 @@ public:
      * */
     template <class ConceptType = PureConcept>
     [[nodiscard]] std::shared_ptr<ConceptType>
-    GetConcept( ) const;
+    GetConcept( ) const noexcept;
 
+    /*
+     *
+     * If the template argument is not specified,
+     * Element type of the shared_ptr will be fetched
+     *
+     * */
     template <class ConceptType = void, class ElementTy = void>
     void
     GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough = true ) const;
@@ -72,21 +94,39 @@ public:
     void
     GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThrough = true ) const;
 
+    /*
+     *
+     * Return the first name matching concept
+     *
+     * */
     template <class ConceptType = PureConcept>
     std::shared_ptr<ConceptType>
     GetConceptByName( std::string_view Name, bool CanSearchThrough = true ) const;
 
+    /*
+     *
+     * A simple for-each loop on the list
+     * lambda/function passed in should a shared_ptr reference argument
+     * Template argument specifies the type of the shared_ptr, default is PureConcept
+     *
+     * */
     template <class ConceptType = PureConcept>
     void
     ForEachSubConcept( auto&& Func );
 
+    /*
+     *
+     * Returns true if the list is not empty
+     *
+     * */
     [[nodiscard]] bool
-    HasSubConcept( ) const;
+    HasSubConcept( ) const noexcept { return !m_SubConcepts.empty( ); }
 
     /*
      *
      * Get ownership of a sub concept
      * Action: Remove from old owner(needed) and add to new owner(this)
+     * Return false if no action is performed
      *
      * */
     bool
@@ -96,18 +136,24 @@ public:
      *
      * Get ownership of a sub concept, it also works when concept is not previously owned by other
      * Action: Remove from old owner(only if not shared and owned, not required) and add to new owner(this)
+     * Return false if no action is performed
      *
      * */
     template <typename ConceptType>
     bool
     GetOwnership( std::shared_ptr<ConceptType> ConceptPtr );
 
+    /*
+     *
+     * Set when doing a search, whether recursive search on sub-ConceptList is performed
+     *
+     * */
     void
     SetSearchThrough( bool SearchThrough = true );
 
     /*
      *
-     * Should consider edge case when m_SearchThrough == true
+     * Reset hash, and owner's hash if m_SearchThrough == true
      *
      * */
     void
@@ -137,7 +183,7 @@ private:
 
 template <class ConceptType, typename... Args>
 std::shared_ptr<ConceptType>
-Concept::AddConcept( Args&&... params )
+ConceptList::AddConcept( Args&&... params )
 {
     ResetSubConceptCache( );
     static_assert( ConceptType::template CanCastS<PureConcept>( ) );
@@ -150,7 +196,7 @@ Concept::AddConcept( Args&&... params )
 
 template <class ConceptType>
 std::shared_ptr<ConceptType>
-Concept::GetConcept( ) const
+ConceptList::GetConcept( ) const noexcept
 {
     for ( auto& Concept : m_SubConcepts )
     {
@@ -165,7 +211,7 @@ Concept::GetConcept( ) const
 
 template <class ConceptType>
 std::shared_ptr<ConceptType>
-Concept::GetConceptAt( size_t SubConceptIndex ) const
+ConceptList::GetConceptAt( size_t SubConceptIndex ) const noexcept
 {
     REQUIRED_IF( SubConceptIndex < m_SubConcepts.size( ) )
     {
@@ -177,13 +223,13 @@ Concept::GetConceptAt( size_t SubConceptIndex ) const
 
 template <class ConceptType>
 bool
-Concept::RemoveConcept( )
+ConceptList::RemoveConcept( )
 {
     for ( size_t i = 0; i < m_SubConcepts.size( ); ++i )
     {
         if ( m_SubConcepts[ i ]->CanCastV( ConceptType::TypeID ) )
         {
-            TEST( m_SubConcepts[ i ]->m_BelongsTo == this );
+            TEST( m_SubConcepts[ i ]->m_BelongsTo == this )
             m_SubConcepts[ i ]->m_BelongsTo = nullptr;
 
             m_SubConcepts.erase( m_SubConcepts.begin( ) + i );
@@ -197,10 +243,10 @@ Concept::RemoveConcept( )
 
 template <class ConceptType, class ElementTy>
 void
-Concept::GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough ) const
+ConceptList::GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough ) const
 {
     const auto CheckSubConcept = [ &Out ]( const std::shared_ptr<PureConcept>& ConceptSharePtr ) {
-        const Concept* const ConceptPtr = (Concept*) ConceptSharePtr.get( );
+        const auto* const ConceptPtr = (ConceptList*) ConceptSharePtr.get( );
 
         // Need to check for sub-concept
         if ( ConceptPtr->m_SearchThrough )
@@ -218,11 +264,11 @@ Concept::GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out, boo
                 Out.emplace_back( ConceptSharePtr );
             } else
             {
-                Out.emplace_back( std::dynamic_pointer_cast<ElementTy>( ConceptSharePtr ) );
+                Out.emplace_back( ConceptCasting<ElementTy>( ConceptSharePtr ) );
             }
 
             // Can avoid calling virtual functions
-            if constexpr ( ConceptType::template CanCastS<Concept>( ) )
+            if constexpr ( ConceptType::template CanCastS<ConceptList>( ) )
             {
                 CheckSubConcept( ConceptSharePtr );
                 continue;
@@ -230,7 +276,7 @@ Concept::GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out, boo
         }
 
         // No sub-concept
-        if ( !CanSearchThrough || !ConceptSharePtr->CanCastV( Concept::TypeID ) )
+        if ( !CanSearchThrough || !ConceptSharePtr->CanCastV( ConceptList::TypeID ) )
         {
             continue;
         }
@@ -241,7 +287,7 @@ Concept::GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out, boo
 
 template <class ConceptType, class ElementTy>
 void
-Concept::GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough ) const
+ConceptList::GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough ) const
 {
     Out.clear( );
 
@@ -257,30 +303,32 @@ Concept::GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSear
 
 template <typename ConceptType>
 bool
-Concept::GetOwnership( std::shared_ptr<ConceptType> ConceptPtr )
+ConceptList::GetOwnership( std::shared_ptr<ConceptType> ConceptPtr )
 {
-    if ( ConceptPtr == nullptr )
+    if ( ConceptPtr == nullptr ) [[unlikely]]
     {
         return false;
     }
 
-    if ( GetOwnership( ConceptPtr.get( ) ) )
+    /*
+     *
+     * Dangling concept
+     *
+     * */
+    if ( ConceptPtr->m_BelongsTo == nullptr )
     {
+        ConceptPtr->m_BelongsTo = this;
+        m_SubConcepts.emplace_back( std::move( ConceptPtr ) );
+        ResetSubConceptCache( );
         return true;
     }
 
-    // Own already by other, can it be???
-    REQUIRED( ConceptPtr->m_BelongsTo == nullptr, return false )
-
-    ConceptPtr->m_BelongsTo = this;
-    m_SubConcepts.emplace_back( std::move( ConceptPtr ) );
-    ResetSubConceptCache( );
-    return true;
+    return GetOwnership( ConceptPtr.get( ) );
 }
 
 template <class ConceptType>
 int
-Concept::RemoveConcepts( )
+ConceptList::RemoveConcepts( )
 {
     auto PartIt = std::partition( m_SubConcepts.begin( ), m_SubConcepts.end( ),
                                   []( auto& SubConcept ) {
@@ -304,7 +352,7 @@ Concept::RemoveConcepts( )
 
 template <class ConceptType>
 void
-Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThrough ) const
+ConceptList::GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThrough ) const
 {
     const auto StateHash = GetHash( );
     if ( Out.m_CacheHash == StateHash )
@@ -319,7 +367,7 @@ Concept::GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThro
 
 template <class ConceptType>
 std::shared_ptr<ConceptType>
-Concept::GetConceptByName( std::string_view Name, bool CanSearchThrough ) const
+ConceptList::GetConceptByName( std::string_view Name, bool CanSearchThrough ) const
 {
     for ( auto& ConceptSharePtr : m_SubConcepts )
     {
@@ -329,12 +377,12 @@ Concept::GetConceptByName( std::string_view Name, bool CanSearchThrough ) const
         }
 
         // No sub-concept / can't search through
-        if ( !CanSearchThrough || !( ConceptSharePtr->CanCastV( Concept::TypeID ) && ( (Concept*) ConceptSharePtr.get( ) )->m_SearchThrough ) )
+        if ( !CanSearchThrough || !( ConceptSharePtr->CanCastV( ConceptList::TypeID ) && ( (ConceptList*) ConceptSharePtr.get( ) )->m_SearchThrough ) )
         {
             continue;
         }
 
-        if ( auto Result = ( (Concept*) ConceptSharePtr.get( ) )->GetConceptByName( Name, CanSearchThrough ) )
+        if ( auto Result = ( (ConceptList*) ConceptSharePtr.get( ) )->GetConceptByName( Name, CanSearchThrough ) )
         {
             return Result;
         }
@@ -343,7 +391,7 @@ Concept::GetConceptByName( std::string_view Name, bool CanSearchThrough ) const
 
 template <class ConceptType>
 void
-Concept::ForEachSubConcept( auto&& Func )
+ConceptList::ForEachSubConcept( auto&& Func )
 {
     for ( auto& ConceptSharePtr : m_SubConcepts )
     {

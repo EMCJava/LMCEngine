@@ -51,7 +51,7 @@ public:
     void
     DeAllocateConcept( );
 
-    class Concept*
+    class ConceptList*
     operator->( )
     {
         return m_Concept;
@@ -73,5 +73,5 @@ private:
 
     std::map<uint32_t, void ( * )( const char*, void* )> m_ConceptToImGuiFuncPtrMap { };
 
-    class Concept* m_Concept = nullptr;
+    class ConceptList* m_Concept = nullptr;
 };

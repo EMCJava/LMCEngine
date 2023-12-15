@@ -317,7 +317,7 @@ Engine::UpdateRootConcept( )
         TEST( RootConcept->CanCastVT<ConceptApplicable>( ) )
         RootConcept.As<ConceptApplicable>( )->Apply( );
 
-        RootConcept.As<Concept>( )->GetConcepts( *m_RootApplicableCache );
+        RootConcept.As<ConceptList>( )->GetConcepts( *m_RootApplicableCache );
         m_RootApplicableCache->ForEach( []( std::shared_ptr<ConceptApplicable>& Applicable ) {
             Applicable->Apply( );
         } );

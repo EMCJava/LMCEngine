@@ -5,6 +5,7 @@
 #pragma once
 
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
+#include <Engine/Core/Concept/ConceptSetFetchCache.hpp>
 #include <Engine/Core/Scene/Orientation/Orientation.hpp>
 
 class RigidBody : public ConceptApplicable

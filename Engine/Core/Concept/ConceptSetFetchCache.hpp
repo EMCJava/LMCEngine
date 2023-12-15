@@ -33,7 +33,7 @@ private:
 
     std::vector<std::shared_ptr<Ty>> m_CachedConcepts { };
 
-    friend class Concept;
+    friend class ConceptList;
 };
 
 template <typename Ty>

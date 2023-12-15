@@ -4,15 +4,15 @@
 
 #pragma once
 
-#include "Concept.hpp"
+#include "ConceptList.hpp"
 
 #include <glm/glm.hpp>
 
 #include <variant>
 
-class ConceptRenderable : public Concept
+class ConceptRenderable : public ConceptList
 {
-    DECLARE_CONCEPT( ConceptRenderable, Concept )
+    DECLARE_CONCEPT( ConceptRenderable, ConceptList )
 
 public:
     using ShaderUniformTypes = std::variant<glm::mat4, glm::vec4, glm::vec3, float>;

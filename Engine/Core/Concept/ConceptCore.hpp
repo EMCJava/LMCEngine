@@ -28,7 +28,7 @@ struct IDCollisionsChecker {
     }
 };
 
-inline IDCollisionsChecker<class Concept> __G_IDCollisionsChecker { };
+inline IDCollisionsChecker<class PureConcept> __G_IDCollisionsChecker { };
 
 /*
  *
@@ -48,7 +48,7 @@ struct ConceptValueWrapper {
 };
 
 #if !defined( NDEBUG ) && defined( LMC_API_EXPORTS )
-#    define DEC_CONCEPT_CHECK_ID( class_name ) inline static const IDCollisionsChecker<class Concept> __IDCollisionsChecker { class_name::TypeID };
+#    define DEC_CONCEPT_CHECK_ID( class_name ) inline static const IDCollisionsChecker<class PureConcept> __IDCollisionsChecker { class_name::TypeID };
 #else
 #    define DEC_CONCEPT_CHECK_ID( class_name )
 #endif

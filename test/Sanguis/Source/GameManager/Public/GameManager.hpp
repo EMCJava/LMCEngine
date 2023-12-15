@@ -30,7 +30,7 @@ private:
      * Scenes
      *
      * */
-    std::shared_ptr<class Concept> m_WandEditorScene;
+    std::shared_ptr<class ConceptList> m_WandEditorScene;
 
     ENABLE_IMGUI( GameManager )
 };

@@ -283,8 +283,8 @@
 #define LMCENGINE_PASTE63_2( func, arg1, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62 )      LMCENGINE_PASTE2_2( func, arg1, v1 ) LMCENGINE_PASTE62_2( func, arg1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62 )
 #define LMCENGINE_PASTE64_2( func, arg1, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63 ) LMCENGINE_PASTE2_2( func, arg1, v1 ) LMCENGINE_PASTE63_2( func, arg1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63 )
 
-#define LMCENGINE_FOREACH( func, ... )         LMCENGINE_EXPAND( LMCENGINE_PASTE( func __VA_OPT__(,) __VA_ARGS__ ) )
-#define LMCENGINE_FOREACH_2( func, arg1, ... ) LMCENGINE_EXPAND( LMCENGINE_PASTE_2( func, arg1 __VA_OPT__(,) __VA_ARGS__ ) )
+#define LMCENGINE_FOREACH( func, ... )         LMCENGINE_EXPAND( LMCENGINE_PASTE( func __VA_OPT__(, ) __VA_ARGS__ ) )
+#define LMCENGINE_FOREACH_2( func, arg1, ... ) LMCENGINE_EXPAND( LMCENGINE_PASTE_2( func, arg1 __VA_OPT__(, ) __VA_ARGS__ ) )
 
 #define SIMPLE_DEFAULT_IMGUI_TYPE( VAR )                        ToImGuiPointerSwitch( #VAR, &Value->VAR );
 #define SIMPLE_DEFAULT_IMGUI_TYPE_MEMBER_PTR( class_name, VAR ) ToImGuInvokableSwitch( #VAR, Value, &class_name::VAR );
@@ -386,7 +386,7 @@ struct NamingCollection {
     }
 };
 
-inline NamingCollection<class Concept> __G_NamingCollection { };
+inline NamingCollection<class PureConcept> __G_NamingCollection { };
 
 struct NameIDPair {
     char*    NamePre = nullptr;

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <Engine/Core/Concept/Concept.hpp>
+#include <Engine/Core/Concept/ConceptList.hpp>
 #include <Engine/Core/Physics/PhysicsEngine.hpp>
 
 namespace physx
@@ -12,9 +12,9 @@ namespace physx
 class PxRigidActor;
 }
 
-class Collider : public Concept
+class Collider : public ConceptList
 {
-    DECLARE_CONCEPT( Collider, Concept )
+    DECLARE_CONCEPT( Collider, ConceptList )
 
 public:
     Collider( );

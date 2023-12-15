@@ -105,7 +105,7 @@ DynamicConcept::AllocateConcept( )
     DeAllocateConcept( );
     if ( m_Allocator != nullptr )
     {
-        m_Concept = (class Concept*) m_Allocator( );
+        m_Concept = (class ConceptList*) m_Allocator( );
     }
 }
 
