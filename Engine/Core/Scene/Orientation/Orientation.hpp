@@ -23,7 +23,7 @@ public:
     const glm::vec3&
     SetCoordinate( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
     const glm::vec3&
-    SetCoordinate( glm::vec3 Coor, bool UpdateMatrix = true );
+    SetCoordinate( const glm::vec3&, bool UpdateMatrix = true );
     const glm::vec3&
     AlterCoordinate( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
     const glm::vec3&

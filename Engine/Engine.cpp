@@ -287,7 +287,7 @@ Engine::Update( )
         physx::PxU32     nbActiveActors;
         physx::PxActor** activeActors = m_PhysicsEngine->GetScene( )->getActiveActors( nbActiveActors );
 
-        if ( nbActiveActors != 0 )
+        if ( nbActiveActors != 0 && false )
         {
             // update each render object with the new transform
             for ( physx::PxU32 i = 0; i < nbActiveActors; ++i )

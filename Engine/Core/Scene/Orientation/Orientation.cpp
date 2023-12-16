@@ -182,7 +182,7 @@ Orientation::UpdateTranslationMatrix( )
 }
 
 const glm::vec3&
-Orientation::SetCoordinate( glm::vec3 Coor, bool UpdateMatrix )
+Orientation::SetCoordinate( const glm::vec3& Coor, bool UpdateMatrix )
 {
     m_Coordinate = Coor;
 

@@ -19,6 +19,7 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -106,9 +107,9 @@ EditorWindow::RenderImGuizmoPanel( float* matrix )
 {
     if ( ImGui::IsKeyPressed( ImGuiKey_T ) )
         m_CurrentGizmoOperation = ImGuizmo::TRANSLATE;
-    if ( ImGui::IsKeyPressed( ImGuiKey_E ) )
+    if ( ImGui::IsKeyPressed( ImGuiKey_R ) )
         m_CurrentGizmoOperation = ImGuizmo::ROTATE;
-    if ( ImGui::IsKeyPressed( ImGuiKey_R ) )   // r Key
+    if ( ImGui::IsKeyPressed( ImGuiKey_E ) )
         m_CurrentGizmoOperation = ImGuizmo::SCALE;
     if ( ImGui::RadioButton( "Translate", m_CurrentGizmoOperation == ImGuizmo::TRANSLATE ) )
         m_CurrentGizmoOperation = ImGuizmo::TRANSLATE;
@@ -152,16 +153,16 @@ EditorWindow::RenderImGuizmoPanel( float* matrix )
     }
 }
 
-void
+bool
 EditorWindow::RenderImGuizmoGizmo( float* matrix )
 {
     // ImGuizmo::DrawCubes( m_GizmoCameraView, m_GizmoCameraProjection, matrix, 1 );
-    ImGuizmo::Manipulate( m_GizmoCameraView, m_GizmoCameraProjection,
-                          m_CurrentGizmoOperation,
-                          m_CurrentGizmoMode,
-                          matrix,
-                          nullptr,
-                          m_GizmoUseSnap ? &m_GizmoSnapValue : nullptr );
+    return ImGuizmo::Manipulate( m_GizmoCameraView, m_GizmoCameraProjection,
+                                 m_CurrentGizmoOperation,
+                                 m_CurrentGizmoMode,
+                                 matrix,
+                                 nullptr,
+                                 m_GizmoUseSnap ? &m_GizmoSnapValue : nullptr );
 }
 
 void
@@ -1024,6 +1025,12 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
         const auto PerspectiveCamera = RootConcept->GetConcept<PureConceptPerspectiveCamera>( );
         if ( PerspectiveCamera )
         {
+            if ( ImGui::IsKeyPressed( ImGuiKey_T ) )
+                m_CurrentGizmoOperation = ImGuizmo::TRANSLATE;
+            if ( ImGui::IsKeyPressed( ImGuiKey_R ) )
+                m_CurrentGizmoOperation = ImGuizmo::ROTATE;
+            if ( ImGui::IsKeyPressed( ImGuiKey_E ) )
+                m_CurrentGizmoOperation = ImGuizmo::SCALE;
 
             m_GizmoCameraView       = glm::value_ptr( PerspectiveCamera->GetViewMatrix( ) );
             m_GizmoCameraProjection = glm::value_ptr( PerspectiveCamera->GetProjectionMatrix( ) );
@@ -1037,10 +1044,33 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
                 {
                     auto ModelMatrix = RB->GetOrientation( ).GetModelMatrix( );
                     ImGuizmo::SetID( (int) SelectedConcept.get( ) );
-                    RenderImGuizmoGizmo( glm::value_ptr( ModelMatrix ) );
-                    if ( ImGuizmo::IsUsing( ) )
+
+                    auto* ModelMatrixPtr = glm::value_ptr( ModelMatrix );
+                    bool  Manipulated    = RenderImGuizmoGizmo( ModelMatrixPtr );
+                    if ( Manipulated )
                     {
-                        spdlog::info( "Using ImGuizmo" );
+                        if ( ImGuizmo::IsUsing( ) ) [[likely]]   // shouldn't it a must?
+                        {
+                            auto& RBGetOrientation = RB->GetOrientation( );
+                            spdlog::info( "Using ImGuizmo" );
+                            switch ( m_CurrentGizmoOperation )
+                            {
+                            case ImGuizmo::TRANSLATE:
+                                RBGetOrientation.SetCoordinate( *(glm::vec3*) &ModelMatrix[ 3 ] );
+                                break;
+                            case ImGuizmo::ROTATE:
+                                ModelMatrix[ 0 ] /= RBGetOrientation.GetScale( ).x;
+                                ModelMatrix[ 1 ] /= RBGetOrientation.GetScale( ).y;
+                                ModelMatrix[ 2 ] /= RBGetOrientation.GetScale( ).z;
+                                RBGetOrientation.SetQuat( glm::quat_cast( ModelMatrix ) );
+                                break;
+                            case ImGuizmo::SCALE:
+                                RBGetOrientation.SetScale( glm::length( *(glm::vec3*) &ModelMatrix[ 0 ] ),
+                                                           glm::length( *(glm::vec3*) &ModelMatrix[ 1 ] ),
+                                                           glm::length( *(glm::vec3*) &ModelMatrix[ 2 ] ) );
+                                break;
+                            }
+                        }
                     }
                 }
             }

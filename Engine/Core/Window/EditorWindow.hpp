@@ -48,7 +48,7 @@ class EditorWindow : public GameWindow
      * Render intractable ImGuizmo gizmo
      *
      * */
-    void
+    bool
     RenderImGuizmoGizmo( float* matrix );
 
     void
