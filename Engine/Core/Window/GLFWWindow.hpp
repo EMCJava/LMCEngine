@@ -98,6 +98,7 @@ public:
 
 protected:
     int         m_Width, m_Height;
+    int         m_MaxRefreshRate;
     bool        m_Fullscreen;
     std::string m_Title;
 

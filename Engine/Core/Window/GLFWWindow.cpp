@@ -38,10 +38,13 @@ ShutdownWindowEnvironment( )
 
 Window::Window( int Width, int Height, const char* Title, bool Fullscreen, bool Create )
 {
-    m_Width      = Width;
-    m_Height     = Height;
-    m_Title      = Title;
-    m_Fullscreen = Fullscreen;
+    const auto* VideoMode = glfwGetVideoMode( glfwGetPrimaryMonitor( ) );
+
+    m_Width          = Width;
+    m_Height         = Height;
+    m_Title          = Title;
+    m_Fullscreen     = Fullscreen;
+    m_MaxRefreshRate = VideoMode->refreshRate;
 
     if ( Create )
     {
@@ -53,10 +56,11 @@ Window::Window( const char* Title, bool Create )
 {
     const auto* VideoMode = glfwGetVideoMode( glfwGetPrimaryMonitor( ) );
 
-    m_Width      = VideoMode->width;
-    m_Height     = VideoMode->height;
-    m_Title      = Title;
-    m_Fullscreen = true;
+    m_Width          = VideoMode->width;
+    m_Height         = VideoMode->height;
+    m_Title          = Title;
+    m_Fullscreen     = true;
+    m_MaxRefreshRate = VideoMode->refreshRate;
 
     if ( Create )
     {
