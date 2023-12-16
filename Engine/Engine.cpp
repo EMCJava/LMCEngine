@@ -127,6 +127,11 @@ Engine::Engine( )
 
     m_PhysicsEngine = new PhysicsEngine;
 
+    m_ImGuiGroupPanelLabelStack = new ImVector<ImRect>;
+
+    m_MainWindow = new PrimaryWindow( 1920, 1080, "" );
+    m_GLContext  = m_MainWindow->GetGLContext( );
+
     m_ActiveProject = new Project;
 
 #ifndef LMC_EDITOR
@@ -134,11 +139,6 @@ Engine::Engine( )
     LoadProject( GAME_CONFIG_PATH );
 
 #endif
-
-    m_ImGuiGroupPanelLabelStack = new ImVector<ImRect>;
-
-    m_MainWindow = new PrimaryWindow( 1920, 1080, m_ActiveProject->GetConfig( ).project_name.c_str( ) );
-    m_GLContext  = m_MainWindow->GetGLContext( );
 
     m_UserInput = new UserInput( m_MainWindow->GetWindowHandle( ) );
     m_UserInput->StoreGLFWContext( );
@@ -487,10 +487,12 @@ Engine::GetEngine( )
 void
 Engine::LoadProject( const std::string& Path )
 {
-
     m_ActiveProject->LoadProject( Path );
+#ifndef LMC_EDITOR
+    m_MainWindow->SetTitle( m_ActiveProject->GetConfig( ).project_name );
+#else
+    m_MainWindow->SetTitle( "LMCEngine - " + m_ActiveProject->GetConfig( ).project_name );
 
-#ifdef LMC_EDITOR
     if ( m_RootConcept != nullptr )
     {
         ResetAllDLLDependencies( );

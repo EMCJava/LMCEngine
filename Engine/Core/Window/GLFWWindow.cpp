@@ -172,3 +172,19 @@ Window::GetGLContext( ) const
 {
     return m_GLContext;
 }
+
+void
+Window::SetTitle( std::string Title )
+{
+    m_Title = std::move( Title );
+    if ( m_Window )
+    {
+        glfwSetWindowTitle( m_Window, m_Title.c_str( ) );
+    }
+}
+
+const std::string&
+Window::GetTitle( )
+{
+    return m_Title;
+}

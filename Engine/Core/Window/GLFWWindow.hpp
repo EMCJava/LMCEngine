@@ -96,6 +96,16 @@ public:
     struct GladGLContext*
     GetGLContext( ) const;
 
+    /*
+     *
+     * Window title
+     *
+     * */
+    void
+    SetTitle( std::string Title );
+    const std::string&
+    GetTitle( );
+
 protected:
     int         m_Width, m_Height;
     int         m_MaxRefreshRate;
