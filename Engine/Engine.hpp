@@ -69,7 +69,16 @@ public:
 
     /*
      *
-     * Engine's main update loop
+     * Reload root concept of necessary
+     * return true if a reload a performed
+     *
+     * */
+    bool
+    RefreshRootConcept( );
+
+    /*
+     *
+     * Games main update loop
      *
      * */
     void

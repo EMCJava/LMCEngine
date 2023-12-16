@@ -272,6 +272,7 @@ Engine::Update( )
         m_DeltaSecond                             = fs.count( );
     }
 
+    RefreshRootConcept( );
     StartPhysicsResolve( );
 
     m_UserInput->Update( );
@@ -309,20 +310,18 @@ Engine::Update( )
     m_LastUpdateTime = m_CurrentUpdateTime;
 }
 
-void
-Engine::UpdateRootConcept( )
+bool
+Engine::RefreshRootConcept( )
 {
 #ifdef LMC_EDITOR
     if ( m_RootConcept != nullptr )
     {
-        auto& RootConcept = *m_RootConcept;
-
-        if ( RootConcept.ShouldReload( ) ) [[unlikely]]
+        if ( m_RootConcept->ShouldReload( ) ) [[unlikely]]
         {
             spdlog::info( "RootConcept changes detected, hot reloading" );
 
             ResetAllDLLDependencies( );
-            RootConcept.Reload( false );
+            m_RootConcept->Reload( false );
 
             ResetProjectDependentSystem( );
 
@@ -331,8 +330,8 @@ Engine::UpdateRootConcept( )
              * Make sure the library can access the same memory space
              *
              * */
-            RootConcept.SetEngineContext( this );
-            RootConcept.AllocateConcept( );
+            m_RootConcept->SetEngineContext( this );
+            m_RootConcept->AllocateConcept( );
             m_MainWindow->SetRootConcept( m_RootConcept );
             m_MainWindow->MakeContextCurrent( );
 
@@ -344,11 +343,25 @@ Engine::UpdateRootConcept( )
              *
              * */
             m_ViewportPhysicalDimension = { };
+            return true;
         }
+    }
+
+    return false;
+#endif
+    return false;
+}
+
+void
+Engine::UpdateRootConcept( )
+{
+#ifdef LMC_EDITOR
+    if ( m_RootConcept != nullptr )
+    {
+        auto& RootConcept = *m_RootConcept;
 
         TEST( RootConcept->CanCastVT<ConceptApplicable>( ) )
         RootConcept.As<ConceptApplicable>( )->Apply( );
-
         RootConcept.As<ConceptList>( )->GetConcepts( *m_RootApplicableCache );
         m_RootApplicableCache->ForEach( []( std::shared_ptr<ConceptApplicable>& Applicable ) {
             Applicable->Apply( );
@@ -754,31 +767,9 @@ Engine::StartPhysicsResolve( )
 void
 Engine::FetchPhysicsResolve( )
 {
-    constexpr auto DesiredFPS = 165;
-
-    float         WaitTimeMilliseconds      = 500.F / DesiredFPS;
-    constexpr int MaxWaitTimeMilliseconds   = 1000;
-    int           TotalWaitTimeMilliseconds = 0;
-
     // FIXME: for some reason getSimulationStage() != Sc::SimulationStage::eADVANCE
     // and the API is not exposed, need to debug later
-    while ( !m_PhysicsEngine->GetScene( )->fetchResults( true ) && false )
-    {
-        // Result not ready
-        const auto SleepTime = std::min( MaxWaitTimeMilliseconds, int( WaitTimeMilliseconds ) );
-        TotalWaitTimeMilliseconds += SleepTime;
-        spdlog::trace( "Wait fetchResults for {}ms, acc: {}ms.", SleepTime, TotalWaitTimeMilliseconds );
-        std::this_thread::sleep_for( std::chrono::milliseconds( SleepTime ) );
-        WaitTimeMilliseconds = SleepTime * 1.1F;
-    }
-
-    const int  CapFPS    = DesiredFPS * 2;
-    const auto SleepTime = 1000.F / CapFPS - m_DeltaSecond * 1000;
-    if ( SleepTime > TotalWaitTimeMilliseconds )
-    {
-        spdlog::trace( "Sleep for stable framerate: {}ms.", int( SleepTime ) - TotalWaitTimeMilliseconds );
-        std::this_thread::sleep_for( std::chrono::milliseconds( int( SleepTime ) - TotalWaitTimeMilliseconds ) );
-    }
+    m_PhysicsEngine->GetScene( )->fetchResults( true );
 }
 
 void ( *Engine::GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* )
