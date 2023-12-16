@@ -41,8 +41,10 @@ RigidMesh::SetMesh( std::shared_ptr<ConceptMesh> Mesh )
 void
 RigidMesh::SetCollider( std::shared_ptr<Collider> C )
 {
+    auto PhyEngine = Engine::GetEngine( )->GetPhysicsEngine( );
     if ( m_RigidActor != nullptr )
     {
+        PhyEngine->GetScene( )->removeActor( *m_RigidActor );
         m_RigidActor->release( );
         m_RigidActor = nullptr;
     }
@@ -59,7 +61,6 @@ RigidMesh::SetCollider( std::shared_ptr<Collider> C )
     {
         m_RigidActor->userData = UserData;
 
-        auto PhyEngine = Engine::GetEngine( )->GetPhysicsEngine( );
         PhyEngine->GetScene( )->addActor( *m_RigidActor );
     }
 }
