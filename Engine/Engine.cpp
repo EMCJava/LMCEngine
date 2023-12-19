@@ -753,8 +753,8 @@ Engine::ResetProjectDependentSystem( )
 
     spdlog::info( "Reloading Physics system" );
 
-    delete m_PhysicsEngine;
-    m_PhysicsEngine = new PhysicsEngine;
+    // delete m_PhysicsEngine;
+    // m_PhysicsEngine = new PhysicsEngine;
 }
 
 void
