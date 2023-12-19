@@ -50,9 +50,7 @@ class Engine
      *
      * */
     void
-    StartPhysicsResolve( );
-    void
-    FetchPhysicsResolve( );
+    PhysicsThread( );
 
 public:
     Engine( );
@@ -219,6 +217,15 @@ public:
 
 private:
     bool m_ShouldShutdown = false;
+
+    /*
+     *
+     * Thread related
+     *
+     * */
+    bool                         m_PhysicsThreadShouldRun = true;
+    std::mutex                   m_PhysicsThreadMutex;
+    std::unique_ptr<std::thread> m_PhysicsThread;
 
     /*
      *

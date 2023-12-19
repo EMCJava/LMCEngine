@@ -127,6 +127,8 @@ Engine::Engine( )
 
     m_PhysicsEngine = new PhysicsEngine;
 
+    m_PhysicsThread = std::make_unique<std::thread>( &Engine::PhysicsThread, this );
+
     m_ImGuiGroupPanelLabelStack = new ImVector<ImRect>;
 
     m_MainWindow = new PrimaryWindow( 1920, 1080, "" );
@@ -239,6 +241,11 @@ Engine::~Engine( )
     delete m_AudioEngine;
     m_AudioEngine = nullptr;
 
+    m_PhysicsThreadShouldRun = false;
+    if ( m_PhysicsThread && m_PhysicsThread->joinable( ) )
+        m_PhysicsThread->join( );
+    m_PhysicsThread.reset( );
+
     delete m_PhysicsEngine;
     m_PhysicsEngine = nullptr;
 
@@ -273,7 +280,6 @@ Engine::Update( )
     }
 
     RefreshRootConcept( );
-    StartPhysicsResolve( );
 
     m_UserInput->Update( );
     UpdateRootConcept( );
@@ -281,13 +287,13 @@ Engine::Update( )
     Render( );
 
     {
-        FetchPhysicsResolve( );
+        std::lock_guard Lock( m_PhysicsThreadMutex );
 
         // retrieve array of actors that moved
         physx::PxU32     nbActiveActors;
         physx::PxActor** activeActors = m_PhysicsEngine->GetScene( )->getActiveActors( nbActiveActors );
 
-        if ( nbActiveActors != 0 && false )
+        if ( nbActiveActors != 0 )
         {
             // update each render object with the new transform
             for ( physx::PxU32 i = 0; i < nbActiveActors; ++i )
@@ -758,18 +764,47 @@ Engine::ResetProjectDependentSystem( )
 }
 
 void
-Engine::StartPhysicsResolve( )
+Engine::PhysicsThread( )
 {
-    // Kick-start physx engine
-    m_PhysicsEngine->GetScene( )->simulate( std::clamp( m_DeltaSecond, 1 / 165.F, 1 / 30.F ) );
-}
+    using std::chrono::duration_cast;
+    using std::chrono::microseconds;
+    using std::chrono::milliseconds;
 
-void
-Engine::FetchPhysicsResolve( )
-{
-    // FIXME: for some reason getSimulationStage() != Sc::SimulationStage::eADVANCE
-    // and the API is not exposed, need to debug later
-    m_PhysicsEngine->GetScene( )->fetchResults( true );
+    static constexpr auto SchedulerTimeMs = 10;
+    static constexpr auto TargetFrameRate = 60;
+    static constexpr auto TargetFrameTime = 1'000'000 / TargetFrameRate;
+
+    auto CurrentPhysicsFrame = TimerTy::now( );
+    auto NextPhysicsFrame    = TimerTy::now( );
+    while ( m_PhysicsThreadShouldRun )
+    {
+        const auto TimeNow = TimerTy::now( );
+        if ( TimeNow < NextPhysicsFrame )   // Need sleep
+        {
+            // Normal sleep
+            const auto LeftTime = duration_cast<milliseconds>( NextPhysicsFrame - TimeNow ).count( );
+            if ( LeftTime > SchedulerTimeMs ) std::this_thread::sleep_until( NextPhysicsFrame - milliseconds( SchedulerTimeMs ) );
+
+            // Spin lock
+            while ( TimerTy::now( ) < NextPhysicsFrame )
+            { }
+        }
+
+        {
+            std::lock_guard Lock( m_PhysicsThreadMutex );
+
+            const auto CurrentTime = TimerTy::now( );
+            const auto FrameTime   = duration_cast<milliseconds>( CurrentTime - CurrentPhysicsFrame ).count( ) / FloatTy( 1000 );
+            CurrentPhysicsFrame    = CurrentTime;
+            NextPhysicsFrame       = CurrentPhysicsFrame + microseconds( TargetFrameTime );
+
+            static constexpr auto MinClampTime = FloatTy( 1 * 1.1 ) / TargetFrameRate;
+            static constexpr auto MaxClampTime = FloatTy( 1 * 0.9 ) / TargetFrameRate;
+            const auto            PhysicsTime  = std::clamp( FrameTime, MinClampTime, MaxClampTime );
+            m_PhysicsEngine->GetScene( )->simulate( PhysicsTime );
+            m_PhysicsEngine->GetScene( )->fetchResults( true );
+        }
+    }
 }
 
 void ( *Engine::GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* )
