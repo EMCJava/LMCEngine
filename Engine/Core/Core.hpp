@@ -103,7 +103,7 @@ static_assert( false, "Platform not defined" );
 #    endif
 #endif
 #ifndef LMC_ASSUME
-#    ifdef _MSC_VER
+#    if defined( _MSC_VER ) && !defined( __clang__ )
 #        define LMC_ASSUME( x ) __assume( x )
 #    elif defined( __clang__ )
 #        define LMC_ASSUME( x ) __builtin_assume( x )
@@ -118,7 +118,7 @@ static_assert( false, "Platform not defined" );
 
 #define LMC_GVariable( name ) __G_##name##_
 
-#ifdef _MSC_VER
+#if defined( _MSC_VER ) && !defined( __clang__ )
 #    define LMC_INIT_PRIORITY( priority )
 #else
 #    define LMC_INIT_PRIORITY( priority ) __attribute__( ( init_priority( priority ) ) )
