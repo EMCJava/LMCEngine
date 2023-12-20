@@ -798,8 +798,8 @@ Engine::PhysicsThread( )
             CurrentPhysicsFrame    = CurrentTime;
             NextPhysicsFrame       = CurrentPhysicsFrame + microseconds( TargetFrameTime );
 
-            static constexpr auto MinClampTime = FloatTy( 1 * 1.1 ) / TargetFrameRate;
-            static constexpr auto MaxClampTime = FloatTy( 1 * 0.9 ) / TargetFrameRate;
+            static constexpr auto MinClampTime = FloatTy( 1 * 0.9 ) / TargetFrameRate;
+            static constexpr auto MaxClampTime = FloatTy( 1 * 1.1 ) / TargetFrameRate;
             const auto            PhysicsTime  = std::clamp( FrameTime, MinClampTime, MaxClampTime );
             m_PhysicsEngine->GetScene( )->simulate( PhysicsTime );
             m_PhysicsEngine->GetScene( )->fetchResults( true );
