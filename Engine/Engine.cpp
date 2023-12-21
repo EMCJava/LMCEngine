@@ -774,6 +774,8 @@ Engine::PhysicsThread( )
     static constexpr auto TargetFrameRate = 60;
     static constexpr auto TargetFrameTime = 1'000'000 / TargetFrameRate;
 
+    std::vector<std::function<void( PhysicsEngine* )>> CallbackBackBuffer;
+
     auto CurrentPhysicsFrame = TimerTy::now( );
     auto NextPhysicsFrame    = TimerTy::now( );
     while ( m_PhysicsThreadShouldRun )
@@ -803,6 +805,17 @@ Engine::PhysicsThread( )
             const auto            PhysicsTime  = std::clamp( FrameTime, MinClampTime, MaxClampTime );
             m_PhysicsEngine->GetScene( )->simulate( PhysicsTime );
             m_PhysicsEngine->GetScene( )->fetchResults( true );
+        }
+
+        {
+            {
+                std::lock_guard Lock( m_PhysicsThreadCallbackMutex );
+                CallbackBackBuffer.swap( m_PhysicsThreadCallbacks );
+            }
+
+            for ( auto& Callback : CallbackBackBuffer )
+                Callback( m_PhysicsEngine );
+            CallbackBackBuffer.clear( );
         }
     }
 }

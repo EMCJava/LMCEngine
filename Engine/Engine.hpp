@@ -8,6 +8,7 @@
 
 #include <string>
 #include <memory>
+#include <functional>
 
 namespace spdlog
 {
@@ -197,6 +198,14 @@ public:
 
     /*
      *
+     * Clear and called after every physics update
+     *
+     * */
+    void
+    AddPhysicsCallback( auto&& Callback ) { m_PhysicsThreadCallbacks.push_back( Callback ); }
+
+    /*
+     *
      * Input related
      *
      * */
@@ -220,12 +229,15 @@ private:
 
     /*
      *
-     * Thread related
+     * Physics thread related
      *
      * */
     bool                         m_PhysicsThreadShouldRun = true;
     std::mutex                   m_PhysicsThreadMutex;
     std::unique_ptr<std::thread> m_PhysicsThread;
+
+    std::mutex                                               m_PhysicsThreadCallbackMutex;
+    std::vector<std::function<void( class PhysicsEngine* )>> m_PhysicsThreadCallbacks;
 
     /*
      *

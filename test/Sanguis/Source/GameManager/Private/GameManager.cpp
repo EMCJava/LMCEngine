@@ -128,7 +128,9 @@ GameManager::GameManager( )
 
                 physx::PxMaterial*    Material    = ( *PhyEngine )->createMaterial( 0.5f, 0.5f, 0.6f );
                 physx::PxRigidStatic* groundPlane = PxCreatePlane( *PhyEngine, physx::PxPlane( 0, 1, 0, 3 ), *Material );
-                PhyEngine->GetScene( )->addActor( *groundPlane );
+                Engine::GetEngine( )->AddPhysicsCallback( [ Actor = groundPlane ]( auto* PhyEngine ) {
+                    PhyEngine->GetScene( )->addActor( *Actor );
+                } );
 
                 const auto RenderableShaderSetup = [ this ]( auto& Renderable, const std::string& ShaderName ) {
                     Renderable->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( ShaderName ) );
