@@ -1042,7 +1042,7 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
                 const auto SelectedConcept = m_ConceptInspectionCache.SelectedConcept.lock( );
                 if ( auto* RB = SelectedConcept->TryCast<RigidBody>( ); RB != nullptr )
                 {
-                    auto ModelMatrix = RB->GetOrientation( ).GetModelMatrix( );
+                    auto ModelMatrix = RB->GetConstOrientation( ).GetModelMatrix( );
                     ImGuizmo::SetID( (int) SelectedConcept.get( ) );
 
                     auto* ModelMatrixPtr = glm::value_ptr( ModelMatrix );

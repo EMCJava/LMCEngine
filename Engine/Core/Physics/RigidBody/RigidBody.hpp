@@ -34,6 +34,17 @@ public:
      * For forwarding changes, assume always after this call
      *
      * */
+    const Orientation&
+    GetConstOrientation( )
+    {
+        return *static_cast<Orientation*>( this );
+    }
+
+    /*
+     *
+     * For forwarding changes, assume always after this call
+     *
+     * */
     Orientation&
     GetOrientation( )
     {
