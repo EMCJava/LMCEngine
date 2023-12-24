@@ -20,6 +20,7 @@
 #include <glm/glm.hpp>
 
 #include <string>
+#include <numeric>
 
 SerializerModel::SerializerModel( )  = default;
 SerializerModel::~SerializerModel( ) = default;
@@ -201,20 +202,24 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh )
      *
      * */
     // * 2 for normals
-    GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER, sizeof( glm::vec4 ) * ToMesh->m_Vertices_ColorPack.size( ) + sizeof( glm::vec3 ) * ToMesh->m_Normals.size( ), nullptr, GL_STATIC_DRAW ) )
-    GL_CHECK( gl->BufferSubData( GL_ARRAY_BUFFER, 0,
-                                 sizeof( glm::vec4 ) * ToMesh->m_Vertices_ColorPack.size( ), /* Vertices size */
-                                 ToMesh->m_Vertices_ColorPack.data( ) ) )
-    GL_CHECK( gl->BufferSubData( GL_ARRAY_BUFFER,
-                                 sizeof( glm::vec4 ) * ToMesh->m_Vertices_ColorPack.size( ), /* Vertices size */
-                                 sizeof( glm::vec3 ) * ToMesh->m_Normals.size( ),            /* Normals size */
-                                 ToMesh->m_Normals.data( ) ) )
 
-    // 3. then set our vertex attributes pointers
-    GL_CHECK( gl->VertexAttribPointer( 0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof( float ), nullptr ) )
-    GL_CHECK( gl->EnableVertexAttribArray( 0 ) )
-    GL_CHECK( gl->VertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof( float ), (void*) ( sizeof( glm::vec4 ) * ToMesh->m_Vertices_ColorPack.size( ) ) /* Vertices size */ ) )
-    GL_CHECK( gl->EnableVertexAttribArray( 1 ) )
+    std::vector<GLBufferRange> BufferSpans;
+    BufferSpans.emplace_back( ToMesh->m_Vertices_ColorPack );
+    BufferSpans.emplace_back( ToMesh->m_Normals );
+
+    GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER,
+                              std::accumulate( BufferSpans.begin( ), BufferSpans.end( ), 0, []( int Size, const GLBufferRange& GLBR ) {
+                                  return GLBR.Size + Size;
+                              } ),
+                              nullptr, GL_STATIC_DRAW ) )
+
+    std::accumulate( BufferSpans.begin( ), BufferSpans.end( ), 0, [ gl, Index = 0 ]( size_t Offset, const GLBufferRange& GLBR ) mutable {
+        GL_CHECK( gl->BufferSubData( GL_ARRAY_BUFFER, Offset, GLBR.Size, GLBR.Data ) )
+        REQUIRED( GLBR.Stride % sizeof( float ) == 0, throw std::runtime_error( "Stride is not a multiple of 4" ) )
+        GL_CHECK( gl->VertexAttribPointer( Index, GLBR.Stride / sizeof( float ), GL_FLOAT, GL_FALSE, GLBR.Stride, (void*) Offset ) )
+        GL_CHECK( gl->EnableVertexAttribArray( Index++ ) )
+        return Offset + GLBR.Size;
+    } );
 
     GL_CHECK( gl->GenBuffers( 1, &GLBuffer.EBO ) )
     GL_CHECK( gl->BindBuffer( GL_ELEMENT_ARRAY_BUFFER, GLBuffer.EBO ) )
