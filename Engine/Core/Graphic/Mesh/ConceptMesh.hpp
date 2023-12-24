@@ -6,6 +6,7 @@
 
 #include <Engine/Core/Concept/ConceptList.hpp>
 
+#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
@@ -24,6 +25,13 @@ struct GLBufferHandle {
     ENABLE_IMGUI( GLBufferHandle )
 };
 
+enum MeshVertexFeature : uint32_t {
+    eFeaturePosition = 1 << 1,
+    eFeatureNormal   = 1 << 2,
+    eFeatureUV0      = 1 << 3,
+    eFeatureDefault  = eFeaturePosition | eFeatureNormal
+};
+
 /*
  *
  * Can be shared
@@ -36,7 +44,7 @@ class ConceptMesh : public ConceptList
 public:
     ConceptMesh( ) = default;
 
-    ConceptMesh( const std::string& MeshFilePath );
+    ConceptMesh( const std::string& MeshFilePath, const uint32_t Features = MeshVertexFeature::eFeatureDefault );
 
     const auto&
     GetVerticesColorPack( ) const noexcept { return m_Vertices_ColorPack; }
@@ -53,11 +61,23 @@ public:
     [[nodiscard]] const auto&
     GetFilePath( ) const noexcept { return m_FilePath; }
 
+    void
+    SetVertexFeature( const MeshVertexFeature Feature ) noexcept { m_VertexFeatures = Feature; }
+
 protected:
-    std::vector<glm::vec4>   m_Vertices_ColorPack;
-    std::vector<glm::vec3>   m_Normals;
+    /*
+     *
+     * Vertex features
+     *
+     * */
+    std::vector<glm::vec4> m_Vertices_ColorPack;
+    std::vector<glm::vec3> m_Normals;
+    std::vector<glm::vec2> m_UV0s;
+
     std::vector<uint32_t>    m_Indices;
     std::vector<SubMeshSpan> m_SubMeshes;
+
+    MeshVertexFeature m_VertexFeatures = MeshVertexFeature::eFeatureDefault;
 
     std::string m_FilePath { };
 

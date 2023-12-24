@@ -19,6 +19,7 @@
 #include <Engine/Library/ImGui/Ext/LogGroup.hpp>
 
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultMeshShader.hpp>
+#include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultTexturePhongShader.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultTextureShaderInstancing.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultColorPreVertexShader.hpp>
 #include <Engine/Core/Environment/GlobalConstResources/SahderCode/DefaultTextureShader.hpp>
@@ -685,6 +686,7 @@ Engine::SetupGlobalResources( )
     DEFINE_SHADER( DefaultPhong )
     DEFINE_SHADER( DefaultMesh )
     DEFINE_SHADER( DefaultTextureInstancing )
+    DEFINE_SHADER( DefaultTexturePhong )
 
 
 #undef DEFINE_SHADER

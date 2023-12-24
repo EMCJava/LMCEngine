@@ -11,7 +11,8 @@ DEFINE_CONCEPT_DS( ConceptMesh )
 DEFINE_SIMPLE_IMGUI_TYPE( GLBufferHandle, VAO, VBO, EBO )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( ConceptMesh, PureConcept, m_GLBufferHandle )
 
-ConceptMesh::ConceptMesh( const std::string& MeshFilePath )
+ConceptMesh::ConceptMesh( const std::string& MeshFilePath, const uint32_t Features )
 {
+    SetVertexFeature( (MeshVertexFeature) Features );
     SerializerModel::ToMesh( MeshFilePath, this );
 }

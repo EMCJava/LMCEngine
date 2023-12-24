@@ -20,6 +20,9 @@
 #include <Engine/Core/Physics/PhysicsEngine.hpp>
 #include <Engine/Core/Physics/PhysicsScene.hpp>
 #include <Engine/Core/Physics/Collider/Serializer/ColliderSerializerGroupMesh.hpp>
+#include <Engine/Core/Graphic/Shader/Shader.hpp>
+#include <Engine/Core/Graphic/Material/Material.hpp>
+#include <Engine/Core/Graphic/Texture/Texture.hpp>
 #include <Engine/Core/Physics/Collider/ColliderMesh.hpp>
 #include <Engine/Core/Physics/RigidBody/RigidMesh.hpp>
 
@@ -126,8 +129,8 @@ GameManager::GameManager( )
             {
                 auto* PhyEngine = Engine::GetEngine( )->GetPhysicsEngine( );
 
-                physx::PxMaterial*    Material    = ( *PhyEngine )->createMaterial( 0.5f, 0.5f, 0.6f );
-                physx::PxRigidStatic* groundPlane = PxCreatePlane( *PhyEngine, physx::PxPlane( 0, 1, 0, 3 ), *Material );
+                physx::PxMaterial*    PhyMaterial = ( *PhyEngine )->createMaterial( 0.5f, 0.5f, 0.6f );
+                physx::PxRigidStatic* groundPlane = PxCreatePlane( *PhyEngine, physx::PxPlane( 0, 1, 0, 0 ), *PhyMaterial );
                 Engine::GetEngine( )->AddPhysicsCallback( [ Actor = groundPlane ]( auto* PhyEngine ) {
                     PhyEngine->GetScene( )->addActor( *Actor );
                 } );
@@ -140,7 +143,23 @@ GameManager::GameManager( )
                 };
 
                 {
-                    std::shared_ptr<RigidMesh> RM = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", Material, true, []( auto& SubMeshSpan ) {
+                    auto CottageMaterial = std::make_shared<Material>( );
+                    Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTexturePhongShader" )->Bind( );
+                    CottageMaterial->ColorTexture.Texture = std::make_shared<Texture>( "Assets/Model/Texture/cottage_textures/cottage_diffuse.png" );
+                    CottageMaterial->ColorTexture.Texture->LoadTexture( );
+                    CottageMaterial->ColorTexture.Slot = 0;
+
+                    auto CottageRenderable = PerspectiveCanvas->AddConcept<RenderableMesh>( PureConcept::CreateConcept<ConceptMesh>( "Assets/Model/cottage_obj.obj", eFeatureDefault | eFeatureUV0 ) ).Get( );
+                    RenderableShaderSetup( CottageRenderable, "DefaultTexturePhongShader" );
+                    CottageRenderable->SetMaterial( std::move( CottageMaterial ) );
+                    auto TmpOri = Orientation( );
+                    TmpOri.SetScale( 0.05, 0.05, 0.05 );
+                    CottageRenderable->SetShaderUniform( "modelMatrix", TmpOri.GetModelMatrix( ) );
+                    CottageRenderable->SetRuntimeName( "Cottage" );
+                }
+
+                {
+                    std::shared_ptr<RigidMesh> RM = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", PhyMaterial, true, []( auto& SubMeshSpan ) {
                         if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
                             return ColliderSerializerGroupMesh::ColliderType::eTriangle;
                         else
@@ -155,7 +174,7 @@ GameManager::GameManager( )
 
                     for ( int i = 0; i < 10; ++i )
                     {
-                        auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, Material ) ).Get( );
+                        auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, PhyMaterial ) ).Get( );
                         auto& RenderableMesh = RM->GetRenderable( );
                         RenderableShaderSetup( RenderableMesh, "DefaultPhongShader" );
 

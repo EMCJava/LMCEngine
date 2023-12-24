@@ -20,8 +20,12 @@ public:
     void
     SetStaticMesh( std::shared_ptr<class ConceptMesh> Mesh );
 
+    void
+    SetMaterial( std::shared_ptr<class Material> Mat );
+
 protected:
     std::shared_ptr<class ConceptMesh> m_ConceptMesh;
+    std::shared_ptr<class Material>    m_Material;
 
     ENABLE_IMGUI( RenderableMesh )
 };

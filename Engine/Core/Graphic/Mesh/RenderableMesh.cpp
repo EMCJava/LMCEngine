@@ -9,11 +9,12 @@
 
 #include <Engine/Core/Graphic/Camera/PureConceptPerspectiveCamera.hpp>
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
+#include <Engine/Core/Graphic/Material/Material.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 #include <utility>
 
 DEFINE_CONCEPT_DS( RenderableMesh )
-DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RenderableMesh, ConceptRenderable, m_ConceptMesh )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RenderableMesh, ConceptRenderable, m_ConceptMesh, m_Material )
 
 void
 RenderableMesh::Render( )
@@ -26,6 +27,11 @@ RenderableMesh::Render( )
     m_Shader->Bind( );
     SetCameraMatrix( );
     ApplyShaderUniforms( );
+
+    if ( m_Material != nullptr )
+    {
+        m_Material->ActivateMaterial( );
+    }
 
     GL_CHECK( gl->Enable( GL_DEPTH_TEST ) )
     GL_CHECK( gl->DepthFunc( GL_LESS ) )
@@ -43,4 +49,10 @@ void
 RenderableMesh::SetStaticMesh( std::shared_ptr<ConceptMesh> Mesh )
 {
     m_ConceptMesh = std::move( Mesh );
+}
+
+void
+RenderableMesh::SetMaterial( std::shared_ptr<struct Material> Mat )
+{
+    m_Material = std::move( Mat );
 }

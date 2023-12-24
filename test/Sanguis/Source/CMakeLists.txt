@@ -156,6 +156,8 @@ declare_library(
         RenderableMesh.lib
         PhysicsEngine.lib
         PhysicsScene.lib
+        Texture.lib
+        Material.lib
 
         DEPS
         spdlog.lib

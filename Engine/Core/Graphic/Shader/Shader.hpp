@@ -47,6 +47,9 @@ public:
      *
      * */
     void
+    SetUniform( int UniformLocation, int Value ) const;
+
+    void
     SetUniform( int UniformLocation, float Value ) const;
 
     void

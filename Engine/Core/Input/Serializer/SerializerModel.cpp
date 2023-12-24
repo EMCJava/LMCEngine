@@ -80,6 +80,21 @@ FetchMesh( aiScene const* ModelScene, const aiNode* Node, const aiMatrix4x4& Tra
     }
 }
 
+struct GLBufferRange {
+    const void* Data;
+    size_t      Size;
+    // Should be same as the size of the data
+    // Buffers that type are the same will be put together
+    size_t Stride;
+
+    explicit GLBufferRange( const auto& Vec )
+    {
+        Data   = Vec.data( );
+        Size   = Vec.size( ) * sizeof( *Vec.data( ) );
+        Stride = sizeof( *Vec.data( ) );
+    }
+};
+
 bool
 SerializerModel::ToMesh( ConceptMesh* ToMesh )
 {
@@ -91,88 +106,134 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh )
     ToMesh->m_Indices.clear( );
     ToMesh->m_SubMeshes.clear( );
 
-    ::FetchMesh( m_ModelScene, m_ModelScene->mRootNode, m_ModelScene->mRootNode->mTransformation, [ &ToMesh ]( aiScene const* ModelScene, aiMesh* Mesh, const aiMatrix4x4& Transform ) {
-        static_assert( sizeof( glm::vec3 ) == sizeof( decltype( *Mesh->mVertices ) ) );
+    ::FetchMesh( m_ModelScene,
+                 m_ModelScene->mRootNode,
+                 m_ModelScene->mRootNode->mTransformation,
+                 [ &ToMesh ]( aiScene const* ModelScene, aiMesh* Mesh, const aiMatrix4x4& Transform ) {
+                     static_assert( sizeof( glm::vec3 ) == sizeof( decltype( *Mesh->mVertices ) ) );
 
-        /*
-         *
-         * Material setup
-         *
-         * */
-        auto*     Material     = ModelScene->mMaterials[ Mesh->mMaterialIndex ];
-        aiColor3D DiffuseColor = { 1, 0, 0.86 };
-        REQUIRED( Material->Get( AI_MATKEY_COLOR_DIFFUSE, DiffuseColor ) == AI_SUCCESS )
+                     /*
+                      *
+                      * Material setup
+                      *
+                      * */
+                     auto*     Material         = ModelScene->mMaterials[ Mesh->mMaterialIndex ];
+                     aiColor3D DiffuseColor     = { 1, 0, 0.86 };
+                     aiReturn  ColorFetchResult = Material->Get( AI_MATKEY_COLOR_DIFFUSE, DiffuseColor );
+                     if ( ColorFetchResult != AI_SUCCESS ) spdlog::warn( "No diffuse color defined in material:{}", Material->GetName( ).C_Str( ) );
 
-        float ColorPack = PackColor( DiffuseColor );
+                     float ColorPack = PackColor( DiffuseColor );
 
-        /*
-         *
-         * Texture setup
-         *
-         * */
-        //        aiString DiffuseTexturePath;
-        //        REQUIRED_IF( Material->Get( AI_MATKEY_TEXTURE_DIFFUSE( 0 ), DiffuseTexturePath ) == AI_SUCCESS )
-        //        {
-        //            spdlog::info( "> tex: {}", DiffuseTexturePath.C_Str( ) );
-        //        }
+                     /*
+                      *
+                      * Texture setup
+                      *
+                      * */
+                     //                     std::string Keys;
+                     //                     for ( int np = 0; np < Material->mNumProperties; ++np )
+                     //                     {
+                     //                         Keys += Material->mProperties[ np ]->mKey.C_Str( );
+                     //                         Keys += " ";
+                     //                     }
+                     //                     spdlog::info( "Texture keys: {}", Keys );
 
-        /*
-         *
-         * Vertex and normal buffer
-         *
-         * */
-        const auto OldVerticesSize = ToMesh->m_Vertices_ColorPack.size( );
-        ToMesh->m_Vertices_ColorPack.resize( OldVerticesSize + Mesh->mNumVertices );
-        ToMesh->m_Normals.resize( OldVerticesSize + Mesh->mNumVertices );
+                     aiString DiffuseTexturePath;
+                     if ( Material->Get( AI_MATKEY_TEXTURE_DIFFUSE( 0 ), DiffuseTexturePath ) == AI_SUCCESS )
+                     {
+                         spdlog::warn( "> Ignoring texture: {}", DiffuseTexturePath.C_Str( ) );
+                     }
 
-        for ( int i = 0; i < Mesh->mNumVertices; ++i )
-        {
-            // Little hack
-            *(aiVector3D*) ( &ToMesh->m_Vertices_ColorPack[ OldVerticesSize + i ] ) = Transform * Mesh->mVertices[ i ];
-            ToMesh->m_Vertices_ColorPack[ OldVerticesSize + i ].w                   = ColorPack;
-        }
-        memcpy( ToMesh->m_Normals.data( ) + OldVerticesSize, Mesh->mNormals, sizeof( glm::vec3 ) * Mesh->mNumVertices );
+                     /*
+                      *
+                      * Vertex
+                      *
+                      * */
+                     REQUIRED( ToMesh->m_VertexFeatures & eFeaturePosition, throw std::runtime_error( "Vertex position is required" ) );
+                     const auto OldVerticesSize = ToMesh->m_Vertices_ColorPack.size( );
+                     {
+                         ToMesh->m_Vertices_ColorPack.resize( OldVerticesSize + Mesh->mNumVertices );
 
-        /*
-         *
-         * Base on the assumption that mesh only contains triangles
-         *
-         * */
-        size_t NumberOfIndices = Mesh->mNumFaces * 3;
+                         for ( int i = 0; i < Mesh->mNumVertices; ++i )
+                         {
+                             // Little hack
+                             *(aiVector3D*) ( &ToMesh->m_Vertices_ColorPack[ OldVerticesSize + i ] ) = Transform * Mesh->mVertices[ i ];
+                             ToMesh->m_Vertices_ColorPack[ OldVerticesSize + i ].w                   = ColorPack;
+                         }
+                     }
 
-        /*
-         *
-         * Indices buffer
-         *
-         * */
-        const auto OldIndicesSize = ToMesh->m_Indices.size( );
-        ToMesh->m_Indices.resize( ToMesh->m_Indices.size( ) + NumberOfIndices );
-        uint32_t* IndicesData = ToMesh->m_Indices.data( ) + OldIndicesSize;
+                     /*
+                      *
+                      *  Normal buffer
+                      *
+                      * */
+                     if ( ToMesh->m_VertexFeatures & eFeatureNormal )
+                     {
+                         auto OldNormalsSize = ToMesh->m_Normals.size( );
+                         ToMesh->m_Normals.resize( OldVerticesSize + Mesh->mNumVertices );
+                         memcpy( ToMesh->m_Normals.data( ) + OldVerticesSize, Mesh->mNormals, sizeof( glm::vec3 ) * Mesh->mNumVertices );
+                     }
 
-        for ( int j = 0; j < Mesh->mNumFaces; ++j )
-        {
-            for ( int k = 0; k < 3 /* For optimize */; ++k )
-            {
-                IndicesData[ k ] = Mesh->mFaces[ j ].mIndices[ k ] + OldVerticesSize;
-            }
+                     /*
+                      *
+                      *  UV buffer
+                      *
+                      * */
+                     if ( ToMesh->m_VertexFeatures & eFeatureUV0 )
+                     {
+                         const auto TextureIndex = 0;
+                         if ( Mesh->mTextureCoords[ TextureIndex ] != nullptr )
+                         {
+                             REQUIRED_IF( Mesh->mNumUVComponents[ TextureIndex ] == 2 )   // glm::vec2
+                             {
+                                 const auto OldUVsSize = ToMesh->m_UV0s.size( );
+                                 ToMesh->m_UV0s.resize( OldUVsSize + Mesh->mNumVertices );
+                                 for ( int i = 0; i < Mesh->mNumVertices; ++i )
+                                     ToMesh->m_UV0s[ OldUVsSize + i ] = *(glm::vec2*) &Mesh->mTextureCoords[ TextureIndex ][ i ];
+                                 goto FeatureUV0_Found;
+                             }
+                         }
 
-            IndicesData += 3;
-        }
+                         ToMesh->m_UV0s.resize( ToMesh->m_UV0s.size( ) + Mesh->mNumVertices, { 0.0f, 0.0f } );
+                     FeatureUV0_Found: { };
+                     }
 
-        // Keep submesh record
-        {
-            ToMesh->m_SubMeshes.emplace_back( Mesh->mName.C_Str( ),
-                                              std::span<glm::vec4> { (glm::vec4*) nullptr, Mesh->mNumVertices },
-                                              std::vector<uint32_t>( NumberOfIndices ) );
+                     /*
+                      *
+                      * Indices buffer
+                      *
+                      * */
+                     // Base on the assumption that mesh only contains triangles
+                     size_t     NumberOfIndices = Mesh->mNumFaces * 3;
+                     const auto OldIndicesSize  = ToMesh->m_Indices.size( );
+                     {
+                         ToMesh->m_Indices.resize( ToMesh->m_Indices.size( ) + NumberOfIndices );
+                         uint32_t* IndicesData = ToMesh->m_Indices.data( ) + OldIndicesSize;
 
-            // Need to recalculate the indices
-            auto& RebasedIndexRange = ToMesh->m_SubMeshes.back( ).RebasedIndexRange;
-            for ( int i = 0; i < NumberOfIndices; ++i )
-                RebasedIndexRange[ i ] = ToMesh->m_Indices[ OldIndicesSize + i ] - OldVerticesSize;
-        }
-    } );
+                         for ( int j = 0; j < Mesh->mNumFaces; ++j )
+                         {
+                             for ( int k = 0; k < 3 /* For optimize */; ++k )
+                             {
+                                 IndicesData[ k ] = Mesh->mFaces[ j ].mIndices[ k ] + OldVerticesSize;
+                             }
 
-    {
+                             IndicesData += 3;
+                         }
+                     }
+
+                     // Keep submesh record
+                     {
+                         ToMesh->m_SubMeshes.emplace_back( Mesh->mName.C_Str( ),
+                                                           std::span<glm::vec4> { (glm::vec4*) nullptr, Mesh->mNumVertices },
+                                                           std::vector<uint32_t>( NumberOfIndices ) );
+
+                         // Need to recalculate the indices
+                         auto& RebasedIndexRange = ToMesh->m_SubMeshes.back( ).RebasedIndexRange;
+                         for ( int i = 0; i < NumberOfIndices; ++i )
+                             RebasedIndexRange[ i ] = ToMesh->m_Indices[ OldIndicesSize + i ] - OldVerticesSize;
+                     }
+                 } );
+
+    {   // m_SubMeshes filling
         auto* BeginVer = ToMesh->m_Vertices_ColorPack.data( );
 
         for ( auto& SubMesh : ToMesh->m_SubMeshes )
@@ -185,27 +246,24 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh )
                   throw std::runtime_error( "SubMeshesRecord is not valid" ) )
     }
 
+    /*
+     *
+     * Send buffer to GPU
+     *
+     * */
+    std::vector<GLBufferRange> BufferSpans;
+    BufferSpans.emplace_back( ToMesh->m_Vertices_ColorPack );
+    if ( ToMesh->m_VertexFeatures & eFeatureNormal ) BufferSpans.emplace_back( ToMesh->m_Normals );
+    if ( ToMesh->m_VertexFeatures & eFeatureUV0 ) BufferSpans.emplace_back( ToMesh->m_UV0s );
+
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
     GL_CHECK( Engine::GetEngine( )->MakeMainWindowCurrentContext( ) )
 
     auto& GLBuffer = ToMesh->GetGLBufferHandle( );
     GL_CHECK( gl->GenVertexArrays( 1, &GLBuffer.VAO ) )
     GL_CHECK( gl->BindVertexArray( GLBuffer.VAO ) )
-
-    // 2. copy our vertices array in a buffer for OpenGL to use
     GL_CHECK( gl->GenBuffers( 1, &GLBuffer.VBO ) )
     GL_CHECK( gl->BindBuffer( GL_ARRAY_BUFFER, GLBuffer.VBO ) )
-
-    /*
-     *
-     * Data arrange {[Vertices...], [Normals...]}
-     *
-     * */
-    // * 2 for normals
-
-    std::vector<GLBufferRange> BufferSpans;
-    BufferSpans.emplace_back( ToMesh->m_Vertices_ColorPack );
-    BufferSpans.emplace_back( ToMesh->m_Normals );
 
     GL_CHECK( gl->BufferData( GL_ARRAY_BUFFER,
                               std::accumulate( BufferSpans.begin( ), BufferSpans.end( ), 0, []( int Size, const GLBufferRange& GLBR ) {

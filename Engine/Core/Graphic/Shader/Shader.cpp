@@ -91,3 +91,10 @@ Shader::SetVec4( const std::string& Name, const glm::vec4& vec ) const
     const auto* gl = Engine::GetEngine( )->GetGLContext( );
     GL_CHECK( gl->Uniform4fv( GetUniformLocation( Name ), 1, glm::value_ptr( vec ) ) )
 }
+
+void
+Shader::SetUniform( int UniformLocation, int Value ) const
+{
+    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+    GL_CHECK( gl->Uniform1i( UniformLocation, Value ) )
+}
