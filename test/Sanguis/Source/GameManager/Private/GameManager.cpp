@@ -143,18 +143,17 @@ GameManager::GameManager( )
                 };
 
                 {
-                    auto CottageMaterial = std::make_shared<Material>( );
-                    Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTexturePhongShader" )->Bind( );
-                    CottageMaterial->ColorTexture.Texture = std::make_shared<Texture>( "Assets/Model/Texture/cottage_textures/cottage_diffuse.png" );
-                    CottageMaterial->ColorTexture.Texture->LoadTexture( );
-                    CottageMaterial->ColorTexture.Slot = 0;
+                    auto CottageMesh = PureConcept::CreateConcept<ConceptMesh>( "Assets/Model/cottage_obj.obj", eFeatureDefault | eFeatureUV0 );
 
-                    auto CottageRenderable = PerspectiveCanvas->AddConcept<RenderableMesh>( PureConcept::CreateConcept<ConceptMesh>( "Assets/Model/cottage_obj.obj", eFeatureDefault | eFeatureUV0 ) ).Get( );
+                    auto RM = PerspectiveCanvas->AddConcept<RigidMesh>( CottageMesh, PhyMaterial ).Get( );
+
+                    auto CottageRenderable = RM->GetRenderable( );
                     RenderableShaderSetup( CottageRenderable, "DefaultTexturePhongShader" );
-                    CottageRenderable->SetMaterial( std::move( CottageMaterial ) );
-                    auto TmpOri = Orientation( );
-                    TmpOri.SetScale( 0.05, 0.05, 0.05 );
-                    CottageRenderable->SetShaderUniform( "modelMatrix", TmpOri.GetModelMatrix( ) );
+
+                    auto CottageMaterial = std::make_shared<Material>( );
+                    CottageMaterial->ColorTexture.LoadTexture( "Assets/Model/Texture/cottage_textures/cottage_diffuse.png" );
+                    CottageRenderable->TryCast<RenderableMesh>( )->SetMaterial( std::move( CottageMaterial ) );
+
                     CottageRenderable->SetRuntimeName( "Cottage" );
                 }
 

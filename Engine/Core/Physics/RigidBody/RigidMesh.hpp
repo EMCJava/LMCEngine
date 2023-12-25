@@ -33,6 +33,14 @@ public:
         REQUIRED( Material != nullptr, throw std::runtime_error( "Physx engine and material cannot be nullptr" ); )
         SetCollider( CreateConcept<ColliderMesh>( Mesh, Material, Static, ColliderMapping ) );
     }
+    template <typename Mapping = void*>
+    RigidMesh( std::shared_ptr<ConceptMesh> Mesh, physx::PxMaterial* Material, bool Static = false, Mapping&& ColliderMapping = nullptr )
+    {
+        SetMesh( Mesh );
+
+        REQUIRED( Material != nullptr, throw std::runtime_error( "Physx engine and material cannot be nullptr" ); )
+        SetCollider( CreateConcept<ColliderMesh>( Mesh, Material, Static, ColliderMapping ) );
+    }
 
     RigidMesh( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<Collider> C );
 
