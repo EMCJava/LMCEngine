@@ -12,6 +12,14 @@ DEFINE_SIMPLE_IMGUI_TYPE( TextureSlot, Texture, Slot )
 DEFINE_SIMPLE_IMGUI_TYPE( Material, ColorTexture, NormalTexture )
 
 void
+TextureSlot::LoadTexture( const std::string& TexturePath, int TextureSlot )
+{
+    Texture = std::make_shared<class Texture>( TexturePath );
+    Texture->LoadTexture( );
+    this->Slot = TextureSlot;
+}
+
+void
 Material::ActivateMaterial( ) const
 {
     if ( ColorTexture.Texture != nullptr ) ColorTexture.Texture->BindTexture( ColorTexture.Slot );

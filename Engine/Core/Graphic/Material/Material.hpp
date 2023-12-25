@@ -11,6 +11,10 @@
 struct TextureSlot {
     std::shared_ptr<class Texture> Texture;
     uint8_t                        Slot = 0;
+
+    void
+    LoadTexture( const std::string& TexturePath, int TextureSlot = 0 );
+
     ENABLE_IMGUI( TextureSlot )
 };
 
