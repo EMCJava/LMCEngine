@@ -145,7 +145,7 @@ GameManager::GameManager( )
                 {
                     auto CottageMesh = PureConcept::CreateConcept<ConceptMesh>( "Assets/Model/cottage_obj.obj", eFeatureDefault | eFeatureUV0 );
 
-                    auto RM = PerspectiveCanvas->AddConcept<RigidMesh>( CottageMesh, PhyMaterial ).Get( );
+                    auto RM = PerspectiveCanvas->AddConcept<RigidMesh>( CottageMesh, PhyMaterial, true ).Get( );
 
                     auto CottageRenderable = RM->GetRenderable( );
                     RenderableShaderSetup( CottageRenderable, "DefaultTexturePhongShader" );
