@@ -6,6 +6,8 @@
 
 #include "PureConcept.hpp"
 
+#include <Engine/Core/Concept/ConceptSetCache.hpp>
+
 class ConceptList : public PureConcept
 {
     DECLARE_CONCEPT( ConceptList, PureConcept )
@@ -107,21 +109,24 @@ public:
     /*
      *
      * If the template argument is not specified,
-     * Element type of the shared_ptr will be fetched
+     * Element type of the Container will be fetched
      *
      * */
-    template <class ConceptType = void, class ElementTy = void>
+    template <class ConceptType = void, IsSharedPtrOrWeakPtr Container = std::shared_ptr<PureConcept>>
     void
-    GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough = true ) const;
+    GetConcepts( std::vector<Container>& Out, bool CanSearchThrough = true ) const;
 
     /*
      *
      * Won't update the cache if CacheHash is same as last time (no change to sub-concept)
      *
+     * If the template argument is not specified,
+     * Element type of the Container will be fetched
+     *
      * */
-    template <class ConceptType>
+    template <class ConceptType = void, IsSharedPtrOrWeakPtr Container = std::shared_ptr<PureConcept>>
     void
-    GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThrough = true ) const;
+    GetConcepts( ConceptSetCache<Container>& Out, bool CanSearchThrough = true ) const;
 
     /*
      *
@@ -194,9 +199,9 @@ private:
      * Same as GetConcepts but will not clear the vector
      *
      * */
-    template <class ConceptType, class ElementTy>
+    template <class ConceptType, IsSharedPtrOrWeakPtr Container>
     void
-    GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough = true ) const;
+    GetConcepts_Internal( std::vector<Container>& Out, bool CanSearchThrough = true ) const;
 
 private:
     std::vector<std::shared_ptr<PureConcept>> m_SubConcepts;
@@ -270,9 +275,9 @@ ConceptList::RemoveConcept( )
     return false;
 }
 
-template <class ConceptType, class ElementTy>
+template <class ConceptType, IsSharedPtrOrWeakPtr Container>
 void
-ConceptList::GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough ) const
+ConceptList::GetConcepts_Internal( std::vector<Container>& Out, bool CanSearchThrough ) const
 {
     const auto CheckSubConcept = [ &Out ]( const std::shared_ptr<PureConcept>& ConceptSharePtr ) {
         const auto* const ConceptPtr = (ConceptList*) ConceptSharePtr.get( );
@@ -288,12 +293,12 @@ ConceptList::GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out,
     {
         if ( ConceptSharePtr->CanCastV( ConceptType::TypeID ) )
         {
-            if constexpr ( std::is_same_v<PureConcept, ElementTy> )
+            if constexpr ( std::is_same_v<PureConcept, typename Container::element_type> )
             {
                 Out.emplace_back( ConceptSharePtr );
             } else
             {
-                Out.emplace_back( ConceptCasting<ElementTy>( ConceptSharePtr ) );
+                Out.emplace_back( ConceptCasting<typename Container::element_type>( ConceptSharePtr ) );
             }
 
             // Can avoid calling virtual functions
@@ -314,16 +319,16 @@ ConceptList::GetConcepts_Internal( std::vector<std::shared_ptr<ElementTy>>& Out,
     }
 }
 
-template <class ConceptType, class ElementTy>
+template <class ConceptType, IsSharedPtrOrWeakPtr Container>
 void
-ConceptList::GetConcepts( std::vector<std::shared_ptr<ElementTy>>& Out, bool CanSearchThrough ) const
+ConceptList::GetConcepts( std::vector<Container>& Out, bool CanSearchThrough ) const
 {
     Out.clear( );
 
     // Not specified
     if constexpr ( std::is_same_v<ConceptType, void> )
     {
-        GetConcepts_Internal<ElementTy>( Out, CanSearchThrough );
+        GetConcepts_Internal<typename Container::element_type>( Out, CanSearchThrough );
     } else
     {
         GetConcepts_Internal<ConceptType>( Out, CanSearchThrough );
@@ -379,9 +384,9 @@ ConceptList::RemoveConcepts( )
     return RemoveCount;
 }
 
-template <class ConceptType>
+template <class ConceptType, IsSharedPtrOrWeakPtr Container>
 void
-ConceptList::GetConcepts( ConceptSetFetchCache<ConceptType>& Out, bool CanSearchThrough ) const
+ConceptList::GetConcepts( ConceptSetCache<Container>& Out, bool CanSearchThrough ) const
 {
     const auto StateHash = GetHash( );
     if ( Out.m_CacheHash == StateHash )

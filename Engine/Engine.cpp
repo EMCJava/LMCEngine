@@ -38,7 +38,7 @@
 #include <Engine/Core/Window/EditorWindow.hpp>
 #include <Engine/Core/Window/WindowPool.hpp>
 #include <Engine/Core/Project/Project.hpp>
-#include <Engine/Core/Concept/ConceptSetFetchCache.hpp>
+#include <Engine/Core/Concept/ConceptSetCache.hpp>
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 #include <Engine/Core/Runtime/Assertion/Assertion.hpp>
@@ -187,7 +187,7 @@ Engine::Engine( )
     ResetTimer( );
 #endif
 
-    m_RootApplicableCache = new ConceptSetFetchCache<ConceptApplicable>;
+    m_RootApplicableCache = new ConceptSetCacheShared<ConceptApplicable>;
 
     spdlog::info( "========== Engine initialized ==========" );
 }
@@ -370,7 +370,7 @@ Engine::UpdateRootConcept( )
         TEST( RootConcept->CanCastVT<ConceptApplicable>( ) )
         RootConcept.As<ConceptApplicable>( )->Apply( );
         RootConcept.As<ConceptList>( )->GetConcepts( *m_RootApplicableCache );
-        m_RootApplicableCache->ForEach( []( std::shared_ptr<ConceptApplicable>& Applicable ) {
+        m_RootApplicableCache->ForEachShared( []( std::shared_ptr<ConceptApplicable>& Applicable ) {
             Applicable->Apply( );
         } );
     }

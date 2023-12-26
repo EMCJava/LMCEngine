@@ -73,7 +73,7 @@ public:
         REQUIRED_IF( m_EffectiveCanvas != nullptr )
         {
             m_EffectiveCanvas->GetConcepts( m_CanvasRenderables );
-            m_CanvasRenderables.ForEach( [ &Location ]( std::shared_ptr<ConceptRenderable>& Renderable ) {
+            m_CanvasRenderables.ForEachShared( [ &Location ]( std::shared_ptr<ConceptRenderable>& Renderable ) {
                 Renderable->SetShaderUniform( "lightPos", Location );
             } );
         }
@@ -84,7 +84,7 @@ protected:
     std::shared_ptr<Canvas>         m_EffectiveCanvas;
     std::shared_ptr<RenderableMesh> m_LightMesh;
 
-    ConceptSetFetchCache<ConceptRenderable> m_CanvasRenderables;
+    ConceptSetCacheShared<ConceptRenderable> m_CanvasRenderables;
 
     Orientation m_LightOrientation;
 };

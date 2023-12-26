@@ -5,6 +5,7 @@
 #pragma once
 
 #include <Engine/Core/Core.hpp>
+#include <Engine/Core/Concept/ConceptSetCache.hpp>
 
 #include <string>
 #include <memory>
@@ -17,9 +18,6 @@ class logger;
 
 template <typename>
 struct ImVector;
-
-template <class>
-class ConceptSetFetchCache;
 
 class Engine
 {
@@ -341,8 +339,8 @@ private:
      * Root concept in the screen
      *
      * */
-    class RootConceptTy*                           m_RootConcept         = nullptr;
-    ConceptSetFetchCache<class ConceptApplicable>* m_RootApplicableCache = nullptr;
+    class RootConceptTy*                            m_RootConcept         = nullptr;
+    ConceptSetCacheShared<class ConceptApplicable>* m_RootApplicableCache = nullptr;
 
     /*
      *

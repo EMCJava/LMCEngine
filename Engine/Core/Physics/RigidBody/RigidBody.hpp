@@ -5,7 +5,7 @@
 #pragma once
 
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
-#include <Engine/Core/Concept/ConceptSetFetchCache.hpp>
+#include <Engine/Core/Concept/ConceptSetCache.hpp>
 #include <Engine/Core/Scene/Orientation/Orientation.hpp>
 
 namespace physx
@@ -71,7 +71,7 @@ protected:
      * There could be two or more renderables, one for the rigid body, and one for the collider
      *
      * */
-    ConceptSetFetchCache<class ConceptRenderable> m_RenderableSet;
+    ConceptSetCacheWeak<class ConceptRenderable> m_RenderableSet;
 
     // FIXME: Consider making these two unique_ptr, for 1 to 1 relationship
     std::shared_ptr<class ConceptRenderable> m_Renderable;

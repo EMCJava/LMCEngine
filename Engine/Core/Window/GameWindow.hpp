@@ -8,7 +8,7 @@
 
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
-#include <Engine/Core/Concept/ConceptSetFetchCache.hpp>
+#include <Engine/Core/Concept/ConceptSetCache.hpp>
 
 class GameWindow : public Window
 {
@@ -43,6 +43,6 @@ protected:
     std::shared_ptr<PureConcept>
     GetConceptFakeSharedPtr( );
 
-    ConceptSetFetchCache<ConceptRenderable> m_ConceptRenderables { };
-    ConceptSetFetchCache<PureConceptCamera> m_ConceptCameras { };
+    ConceptSetCacheShared<ConceptRenderable> m_ConceptRenderables { };
+    ConceptSetCacheShared<PureConceptCamera> m_ConceptCameras { };
 };

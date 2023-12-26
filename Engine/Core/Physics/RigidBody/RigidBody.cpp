@@ -36,7 +36,7 @@ RigidBody::Apply( )
     if ( m_OrientationChanged )
     {
         const auto& Matrix = GetModelMatrix( );
-        m_RenderableSet.ForEach( [ &Matrix ]( std::shared_ptr<ConceptRenderable>& renderable ) {
+        m_RenderableSet.ForEachShared( [ &Matrix ]( std::shared_ptr<ConceptRenderable>& renderable ) {
             renderable->SetShaderUniform( "modelMatrix", Matrix );
         } );
         m_OrientationChanged = false;

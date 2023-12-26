@@ -40,7 +40,7 @@ GameWindow::Update( )
                 m_GLContext->ClearColor( 0.F, 0.F, 0.F, 1.0f );
                 m_GLContext->Clear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-                m_ConceptRenderables.ForEach( []( std::shared_ptr<ConceptRenderable>& item ) {
+                m_ConceptRenderables.ForEachOriginal( []( std::shared_ptr<ConceptRenderable>& item ) {
                     item->Render( );
                 } );
             }
@@ -102,7 +102,7 @@ GameWindow::UpdateCamerasDimension( )
         spdlog::info( "Camera dimensions changed to {}x{}", m_ViewportLogicalDimension.first, m_ViewportLogicalDimension.second );
 
         ( (ConceptList*) GetConceptPtr( ) )->GetConcepts( m_ConceptCameras );
-        m_ConceptCameras.ForEach( [ this ]( std::shared_ptr<PureConceptCamera>& item ) {
+        m_ConceptCameras.ForEachShared( [ this ]( std::shared_ptr<PureConceptCamera>& item ) {
             item->SetDimensions( m_ViewportLogicalDimension.first, m_ViewportLogicalDimension.second );
         } );
     }
