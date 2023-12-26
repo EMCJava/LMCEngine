@@ -3,7 +3,7 @@ add_library(PureConcept.lib PureConcept.hpp PureConcept.cpp)
 add_library(ConceptList.lib ConceptList.hpp ConceptList.cpp)
 add_library(ConceptApplicable.lib ConceptApplicable.hpp ConceptApplicable.cpp)
 add_library(ConceptRenderable.lib ConceptRenderable.hpp ConceptRenderable.cpp)
-add_library(ConceptSetFetchCache.lib ConceptSetFetchCache.hpp ConceptFetchCache.cpp)
+add_library(ConceptSetFetchCache.lib INTERFACE ConceptSetFetchCache.hpp)
 add_library(ConceptCoreToImGuiImpl.lib INTERFACE ConceptCoreToImGuiImpl.hpp)
 
 add_library(PureConceptAABB.lib PureConceptAABB.hpp PureConceptAABB.cpp)
