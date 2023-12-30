@@ -9,6 +9,7 @@
 
 #include <string>
 #include <memory>
+#include <mutex>
 #include <functional>
 
 namespace spdlog
