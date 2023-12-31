@@ -102,10 +102,10 @@ TEST_CASE( "Concept", "[Concept]" )
         auto cab = std::make_unique<CAB>( );
         REQUIRE( cab->GetSubConceptCount( ) == 0 );
         REQUIRE( cab->GetConceptAt( 0 ) == nullptr );
-        auto FirstChild = cab->AddConcept<CA>( );
+        auto FirstChild = cab->AddConcept<CA>( ).Get( );
         REQUIRE( cab->GetSubConceptCount( ) == 1 );
         REQUIRE( cab->GetConceptAt( 0 ) == FirstChild );
-        auto SecondChild = cab->AddConcept<PCD>( );
+        auto SecondChild = cab->AddConcept<PCD>( ).Get( );
         REQUIRE( cab->GetSubConceptCount( ) == 2 );
         REQUIRE( cab->GetConceptAt( 0 ) == FirstChild );
         REQUIRE( cab->GetConceptAt( 1 ) == SecondChild );
