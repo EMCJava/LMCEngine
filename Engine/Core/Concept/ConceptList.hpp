@@ -8,6 +8,8 @@
 
 #include <Engine/Core/Concept/ConceptSetCache.hpp>
 
+#include <optional>
+
 class ConceptList : public PureConcept
 {
     DECLARE_CONCEPT( ConceptList, PureConcept )

@@ -1043,7 +1043,7 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
                 if ( auto* RB = SelectedConcept->TryCast<RigidBody>( ); RB != nullptr )
                 {
                     auto ModelMatrix = RB->GetConstOrientation( ).GetModelMatrix( );
-                    ImGuizmo::SetID( (int) SelectedConcept.get( ) );
+                    ImGuizmo::SetID( (uint64_t) SelectedConcept.get( ) );
 
                     auto* ModelMatrixPtr = glm::value_ptr( ModelMatrix );
                     bool  Manipulated    = RenderImGuizmoGizmo( ModelMatrixPtr );
