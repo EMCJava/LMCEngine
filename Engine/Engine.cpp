@@ -377,7 +377,7 @@ Engine::UpdateRootConcept( )
 #else
     m_RootConcept->Apply( );
     m_RootConcept->GetConcepts( *m_RootApplicableCache );
-    m_RootApplicableCache->ForEach( []( std::shared_ptr<ConceptApplicable>& Applicable ) {
+    m_RootApplicableCache->ForEachShared( []( std::shared_ptr<ConceptApplicable>& Applicable ) {
         Applicable->Apply( );
     } );
 #endif
