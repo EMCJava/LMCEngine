@@ -110,6 +110,8 @@ static_assert( false, "Platform not defined" );
 #    elif defined( __GNUC__ )
 #        if __GNUC__ >= 13
 #            define LMC_ASSUME( ... ) __attribute__( ( __assume__( __VA_ARGS__ ) ) )
+#        else
+#            define LMC_ASSUME( x ) ( (void) 0 )
 #        endif
 #    else
 #        define LMC_ASSUME( x ) ( (void) 0 )
