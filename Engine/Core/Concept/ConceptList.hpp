@@ -9,6 +9,7 @@
 #include <Engine/Core/Concept/ConceptSetCache.hpp>
 
 #include <optional>
+#include <algorithm>
 
 class ConceptList : public PureConcept
 {
