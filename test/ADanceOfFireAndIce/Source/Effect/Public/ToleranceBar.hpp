@@ -36,8 +36,7 @@ protected:
     std::shared_ptr<class PureConceptImage> m_BarImage;
     std::shared_ptr<class Shader>           m_BarShader;
 
-    std::unique_ptr<class ToleranceBarStrike> m_ToleranceBarStrikeTemplate;
-    ConceptSetFetchCache<class ToleranceBarStrike> m_ToleranceBarStrikeCache;
+    std::unique_ptr<class ToleranceBarStrike>       m_ToleranceBarStrikeTemplate;
 
     std::pair<FloatTy, FloatTy> m_PreviousCameraSize;
     std::pair<int32_t, int32_t> m_BarSize;
