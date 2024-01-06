@@ -105,11 +105,11 @@ EditorWindow::~EditorWindow( )
 void
 EditorWindow::RenderImGuizmoPanel( float* matrix )
 {
-    if ( ImGui::IsKeyPressed( ImGuiKey_T ) )
+    if ( ImGui::IsKeyPressed( ImGuiKey_1 ) )
         m_CurrentGizmoOperation = ImGuizmo::TRANSLATE;
-    if ( ImGui::IsKeyPressed( ImGuiKey_R ) )
+    if ( ImGui::IsKeyPressed( ImGuiKey_2 ) )
         m_CurrentGizmoOperation = ImGuizmo::ROTATE;
-    if ( ImGui::IsKeyPressed( ImGuiKey_E ) )
+    if ( ImGui::IsKeyPressed( ImGuiKey_3 ) )
         m_CurrentGizmoOperation = ImGuizmo::SCALE;
     if ( ImGui::RadioButton( "Translate", m_CurrentGizmoOperation == ImGuizmo::TRANSLATE ) )
         m_CurrentGizmoOperation = ImGuizmo::TRANSLATE;
@@ -1025,13 +1025,6 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
         const auto PerspectiveCamera = RootConcept->GetConcept<PureConceptPerspectiveCamera>( );
         if ( PerspectiveCamera )
         {
-            if ( ImGui::IsKeyPressed( ImGuiKey_T ) )
-                m_CurrentGizmoOperation = ImGuizmo::TRANSLATE;
-            if ( ImGui::IsKeyPressed( ImGuiKey_R ) )
-                m_CurrentGizmoOperation = ImGuizmo::ROTATE;
-            if ( ImGui::IsKeyPressed( ImGuiKey_E ) )
-                m_CurrentGizmoOperation = ImGuizmo::SCALE;
-
             m_GizmoCameraView       = glm::value_ptr( PerspectiveCamera->GetViewMatrix( ) );
             m_GizmoCameraProjection = glm::value_ptr( PerspectiveCamera->GetProjectionMatrix( ) );
 
@@ -1042,6 +1035,13 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
                 const auto SelectedConcept = m_ConceptInspectionCache.SelectedConcept.lock( );
                 if ( auto* RB = SelectedConcept->TryCast<RigidBody>( ); RB != nullptr )
                 {
+                    if ( ImGui::IsKeyPressed( ImGuiKey_1 ) )
+                        m_CurrentGizmoOperation = ImGuizmo::TRANSLATE;
+                    if ( ImGui::IsKeyPressed( ImGuiKey_2 ) )
+                        m_CurrentGizmoOperation = ImGuizmo::ROTATE;
+                    if ( ImGui::IsKeyPressed( ImGuiKey_3 ) )
+                        m_CurrentGizmoOperation = ImGuizmo::SCALE;
+
                     auto ModelMatrix = RB->GetConstOrientation( ).GetModelMatrix( );
                     ImGuizmo::SetID( (uint64_t) SelectedConcept.get( ) );
 
