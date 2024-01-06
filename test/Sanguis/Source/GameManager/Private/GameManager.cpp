@@ -142,6 +142,7 @@ GameManager::GameManager( )
                     Renderable->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
                 };
 
+                if ( false )
                 {
                     auto CottageMesh = PureConcept::CreateConcept<ConceptMesh>( "Assets/Model/cottage_obj.obj", eFeatureDefault | eFeatureUV0 );
 

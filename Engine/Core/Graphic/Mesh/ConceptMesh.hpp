@@ -18,6 +18,13 @@ struct SubMeshSpan {
 
     // Starting from 0 for every sub-mesh
     std::vector<uint32_t> RebasedIndexRange;
+
+    SubMeshSpan( auto&& Name, auto&& VertexRange, auto&& RebasedIndex )
+    {
+        this->SubMeshName = std::forward<decltype( Name )>( Name );
+        this->VertexRange = std::forward<decltype( VertexRange )>( VertexRange );
+        this->RebasedIndexRange = std::forward<decltype( RebasedIndex )>( RebasedIndex );
+    }
 };
 
 struct GLBufferHandle {

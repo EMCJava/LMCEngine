@@ -19,6 +19,7 @@
 #include <Engine/Core/UI/RectButton.hpp>
 
 #include <fstream>
+#include <sstream>
 
 DEFINE_CONCEPT_DS( WandEditorScene )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( WandEditorScene, ConceptApplicable, m_Effect, m_MenuItems, m_BaseSlots )
