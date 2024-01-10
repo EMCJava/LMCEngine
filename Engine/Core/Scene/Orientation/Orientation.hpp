@@ -110,12 +110,16 @@ protected:
     glm::vec3 m_TranslationOrigin { }, m_RotationOrigin { }, m_ScaleOrigin { };
     glm::vec3 m_Coordinate { }, m_Scale { 1, 1, 1 };
 
-    bool m_UsingQuat = true;
     union
     {
         glm::vec3 m_Rotation;
         glm::quat m_Quat { };
     };
+
+    glm::mat4 m_TranslationMatrix { 1 }, m_RotationMatrix { 1 }, m_ScaleMatrix { 1 };
+    glm::mat4 m_ModelMatrix { 1 };
+
+    bool m_UsingQuat = true;
 
     /*
      *
@@ -123,9 +127,6 @@ protected:
      *
      * */
     bool m_SameRotationScaleOrigin = false;
-
-    glm::mat4 m_TranslationMatrix { 1 }, m_RotationMatrix { 1 }, m_ScaleMatrix { 1 };
-    glm::mat4 m_ModelMatrix { 1 };
 
     ENABLE_IMGUI( Orientation )
 };
