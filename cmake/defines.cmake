@@ -7,7 +7,7 @@ if (APPLE)
     # always use our rpath
     set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
     # the / is required by some older versions of OS X
-    set(CMAKE_INSTALL_RPATH "@executable_path/${LIB_RELATIVE_TO_RUNTIME}")
+    set(CMAKE_INSTALL_RPATH "@executable_path${LIB_RELATIVE_TO_RUNTIME}")
     set(CMAKE_MACOSX_RPATH TRUE)
 elseif (NOT WIN32)
     # always use our rpath
