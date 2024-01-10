@@ -140,8 +140,9 @@ elseif (APPLE)
 
     add_custom_target(populate_irrklang)
 elseif (UNIX)
-    # set_target_properties(irrklang PROPERTIES IMPORTED_IMPLIB ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so)
-    set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION libIrrKlang.so)
+    set_target_properties(irrklang PROPERTIES 
+        IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so
+        IMPORTED_NO_SONAME TRUE)
 
     add_custom_target(
             populate_irrklang ALL
