@@ -516,7 +516,7 @@ EditorWindow::BuildReleaseConfigCmake( )
             }
 
             Arguments += " -DCMAKE_TOOLCHAIN_FILE=" + VCPKG_ROOT + R"(\scripts\buildsystems\vcpkg.cmake)";
-            Arguments += " -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + m_BuildPath.string( );
+            Arguments += " -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=" + m_BuildPath.string( );
             Arguments += " -DEditorBuild=false";
             Arguments += " -B " + ( m_BuildPath / "cmake" ).string( );
 
