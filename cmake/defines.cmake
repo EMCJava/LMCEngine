@@ -13,6 +13,8 @@ elseif (NOT WIN32)
     # always use our rpath
     set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
     set(CMAKE_INSTALL_RPATH "\$ORIGIN${LIB_RELATIVE_TO_RUNTIME}")
+elseif(WIN32)
+    set(LIB_RELATIVE_TO_RUNTIME /) # rpath is not a thing on windows
 endif ()
 
 if (${EditorBuild})
