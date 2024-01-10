@@ -112,17 +112,13 @@ set_target_properties(irrklang PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${irrkla
 set(no_irrklang FALSE)
 
 if (WIN32)
-    set_target_properties(irrklang PROPERTIES IMPORTED_IMPLIB ${irrklang_SOURCE_DIR}/lib/Winx64-visualStudio/irrKlang.lib)
-    set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll)
-
-    add_custom_target(populate_irrklang_folder
-            ${CMAKE_COMMAND} -E make_directory ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-    )
+    set_target_properties(irrklang PROPERTIES
+            IMPORTED_IMPLIB ${irrklang_SOURCE_DIR}/lib/Winx64-visualStudio/irrKlang.lib
+            IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll)
 
     add_custom_target(
             populate_irrklang ALL
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/.
-            DEPENDS populate_irrklang_folder
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}irrKlang.dll
             COMMENT "Exporting irrKlang.dll into build tree"
     )
 elseif (APPLE)
@@ -140,13 +136,13 @@ elseif (APPLE)
 
     add_custom_target(populate_irrklang)
 elseif (UNIX)
-    set_target_properties(irrklang PROPERTIES 
-        IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so
-        IMPORTED_NO_SONAME TRUE)
+    set_target_properties(irrklang PROPERTIES
+            IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so
+            IMPORTED_NO_SONAME TRUE)
 
     add_custom_target(
             populate_irrklang ALL
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libIrrKlang.so
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}libIrrKlang.so
             COMMENT "Exporting libIrrKlang.so into build tree"
     )
 else ()
