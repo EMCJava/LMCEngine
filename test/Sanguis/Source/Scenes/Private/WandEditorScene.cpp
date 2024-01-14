@@ -295,10 +295,10 @@ WandEditorScene::Apply( )
 
         auto& PP = m_ParticlePools[ rand( ) % 2 ];
 
-        PP->AddParticle( [ this, &HitPoint ]( auto& Pa ) {
+        PP->AddParticle( [ this, &HitPoint ]( Particle& Pa ) {
             m_PAR->Apply( Pa );
-            Pa.GetOrientation( ).SetOrigin( m_ParticleScriptsize / 2, m_ParticleScriptsize / 2, 0, false );
-            Pa.GetOrientation( ).SetCoordinate( HitPoint.first, HitPoint.second );
+            Pa.GetOrientation( ).SetOrigin( m_ParticleScriptsize / 2, m_ParticleScriptsize / 2, 0 );
+            Pa.GetOrientation( ).Coordinate = { HitPoint.first, HitPoint.second, 0 };
         } );
     }
 }
@@ -331,8 +331,8 @@ WandEditorScene::AddSlotHighlightUI( )
                 SlotPAR->Apply( Pa );
                 Pa.SetLifeTime( std::numeric_limits<FloatTy>::infinity( ) );
                 Pa.GetColor( ) = glm::vec4( 1 );
-                Pa.GetOrientation( ).SetOrigin( m_ParticleScriptsize / 2, m_ParticleScriptsize / 2, 0, false );
-                Pa.GetOrientation( ).SetCoordinate( SlotCoordinate );
+                Pa.GetOrientation( ).SetOrigin( m_ParticleScriptsize / 2, m_ParticleScriptsize / 2, 0 );
+                Pa.GetOrientation( ).Coordinate = SlotCoordinate;
             } );
         }
 

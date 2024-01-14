@@ -103,7 +103,7 @@ public:
                     {
                         new ( Threads + i ) std::thread( [ this, Start = StartIndex + i * ( ParticlePreThread ), End = StartIndex + ( i + 1 ) * ( ParticlePreThread ) ]( ) {
                             const auto RenderFunc = [ this ]( size_t Index, Particle& P ) {
-                                P.GetOrientation( ).CalculateModelMatrix( &m_ModelMatricesGPUMap[ Index ] );
+                                OrientationMatrix::CalculateModelMatrix( &m_ModelMatricesGPUMap[ Index ], P.GetOrientation( ) );
                                 m_ColorsGPUMap[ Index ] = P.GetColor( );
                             };
                             m_ParticlePool.ForEachRange( RenderFunc, Start, End );
@@ -112,7 +112,7 @@ public:
 
                     new ( Threads + ( ThreadCount - 1 ) ) std::thread( [ this, Start = StartIndex + ( ThreadCount - 1 ) * ( ParticlePreThread ), End = EndIndex ]( ) {
                         const auto RenderFunc = [ this ]( size_t Index, Particle& P ) {
-                            P.GetOrientation( ).CalculateModelMatrix( &m_ModelMatricesGPUMap[ Index ] );
+                            OrientationMatrix::CalculateModelMatrix( &m_ModelMatricesGPUMap[ Index ], P.GetOrientation( ) );
                             m_ColorsGPUMap[ Index ] = P.GetColor( );
                         };
                         m_ParticlePool.ForEachRange( RenderFunc, Start, End );

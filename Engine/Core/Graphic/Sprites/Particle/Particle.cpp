@@ -20,8 +20,8 @@ void
 Particle::Update( FloatTy DeltaTime )
 {
     auto& Ori = GetOrientation( );
-    Ori.AlterCoordinate( GetVelocity( ) * DeltaTime, false );
-    Ori.AlterRotation( 0, 0, GetAngularVelocity( ) * DeltaTime, false );
+    Ori.Coordinate += GetVelocity( ) * DeltaTime;
+    Ori.AlterRotation( 0, 0, GetAngularVelocity( ) * DeltaTime );
 
     GetColor( ) += GetLinearColorVelocity( ) * DeltaTime;
     AlterLifeTime( -DeltaTime );

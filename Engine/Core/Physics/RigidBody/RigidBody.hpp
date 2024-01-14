@@ -6,7 +6,7 @@
 
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
 #include <Engine/Core/Concept/ConceptSetCache.hpp>
-#include <Engine/Core/Scene/Orientation/Orientation.hpp>
+#include <Engine/Core/Scene/Orientation/OrientationMatrix.hpp>
 
 namespace physx
 {
@@ -14,7 +14,7 @@ class PxRigidActor;
 }
 
 class RigidBody : public ConceptApplicable
-    , protected Orientation   // Update to Orientation need to forward to child, wrapper is needed
+    , protected OrientationMatrix   // Update to Orientation need to forward to child, wrapper is needed
 {
     DECLARE_CONCEPT( RigidBody, ConceptApplicable )
 public:
@@ -34,10 +34,10 @@ public:
      * For forwarding changes, assume always after this call
      *
      * */
-    const Orientation&
+    const OrientationMatrix&
     GetConstOrientation( )
     {
-        return *static_cast<Orientation*>( this );
+        return *static_cast<OrientationMatrix*>( this );
     }
 
     /*
@@ -45,11 +45,11 @@ public:
      * For forwarding changes, assume always after this call
      *
      * */
-    Orientation&
+    OrientationMatrix&
     GetOrientation( )
     {
         m_OrientationChanged = true;
-        return *static_cast<Orientation*>( this );
+        return *static_cast<OrientationMatrix*>( this );
     }
 
     physx::PxRigidActor*

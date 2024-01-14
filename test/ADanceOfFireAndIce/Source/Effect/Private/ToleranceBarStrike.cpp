@@ -14,16 +14,20 @@ DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( ToleranceBarStrike, SpriteSquareTexture, m_Lif
 ToleranceBarStrike&
 ToleranceBarStrike::operator<<( ToleranceBarStrike& Other )
 {
-    m_Coordinate        = Other.m_Coordinate;
-    m_TranslationOrigin = Other.m_TranslationOrigin;
+    Coordinate        = Other.Coordinate;
+    TranslationOrigin = Other.TranslationOrigin;
     UpdateTranslationMatrix( );
 
-    m_Rotation       = Other.m_Rotation;
-    m_RotationOrigin = Other.m_RotationOrigin;
+    if ( Other.IsUsingQuatRotation( ) )
+        SetQuat( Other.GetQuat( ) );
+    else
+        SetRotation( *( (glm::vec3*) &Other.GetQuatVec4( ) ), false );
+
+    RotationOrigin = Other.RotationOrigin;
     UpdateRotationMatrix( );
 
-    m_Scale       = Other.m_Scale;
-    m_ScaleOrigin = Other.m_ScaleOrigin;
+    Scale       = Other.Scale;
+    ScaleOrigin = Other.ScaleOrigin;
     UpdateScaleMatrix( );
 
     m_LifeTimeTotal  = Other.m_LifeTimeTotal;

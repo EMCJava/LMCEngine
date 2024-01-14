@@ -5,7 +5,7 @@
 #pragma once
 
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
-#include <Engine/Core/Scene/Orientation/Orientation.hpp>
+#include <Engine/Core/Scene/Orientation/OrientationMatrix.hpp>
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 
 #include <map>
@@ -14,7 +14,7 @@
 #include <memory>
 
 class Sprite : public ConceptRenderable
-    , public Orientation
+    , public OrientationMatrix
 {
     DECLARE_CONCEPT( Sprite, ConceptRenderable )
 

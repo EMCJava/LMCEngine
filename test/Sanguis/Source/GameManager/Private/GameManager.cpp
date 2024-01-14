@@ -86,7 +86,7 @@ protected:
 
     ConceptSetCacheShared<ConceptRenderable> m_CanvasRenderables;
 
-    Orientation m_LightOrientation;
+    OrientationMatrix m_LightOrientation;
 };
 DEFINE_CONCEPT_DS( LightRotate )
 

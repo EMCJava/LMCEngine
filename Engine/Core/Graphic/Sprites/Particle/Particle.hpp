@@ -22,19 +22,19 @@ public:
 
 
     auto&
-    GetOrientation( ) { return m_Orientation; }
+    GetOrientation( ) noexcept { return m_Orientation; }
 
     auto&
-    GetColor( ) { return m_Color; }
+    GetColor( ) noexcept { return m_Color; }
 
     auto&
-    GetVelocity( ) { return m_Velocity; }
+    GetVelocity( ) noexcept { return m_Velocity; }
 
     auto&
-    GetAngularVelocity( ) { return m_AngularVelocity; }
+    GetAngularVelocity( ) noexcept { return m_AngularVelocity; }
 
     auto&
-    GetLinearColorVelocity( ) { return m_LinearColorVelocity; }
+    GetLinearColorVelocity( ) noexcept { return m_LinearColorVelocity; }
 
     void
     Update( FloatTy DeltaTime );

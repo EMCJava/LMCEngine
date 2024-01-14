@@ -17,116 +17,70 @@ class Orientation
 public:
     /*
      *
-     * Only allow user to modify the orientation using setter for a easier life to update the marrix
-     *
-     * */
-    const glm::vec3&
-    SetCoordinate( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-    const glm::vec3&
-    SetCoordinate( const glm::vec3&, bool UpdateMatrix = true );
-    const glm::vec3&
-    AlterCoordinate( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-    const glm::vec3&
-    AlterCoordinate( const glm::vec3& DeltaCoordinate, bool UpdateMatrix = true );
-    const glm::vec3&
-    GetCoordinate( ) const;
-
-    /*
-     *
      * Only allow user to modify the orientation using setter for a easier life to update the matrix
      *
      * */
     const glm::vec3&
-    SetOrigin( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
+    SetRotation( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0 );
     const glm::vec3&
-    AlterOrigin( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-
-
-    /*
-     *
-     * Only allow user to modify the orientation using setter for a easier life to update the matrix
-     *
-     * */
-    const glm::vec3&
-    SetRotation( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-    const glm::vec3&
-    AlterRotation( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-    const glm::vec3&
-    GetRotation( ) const;
-
+    AlterRotation( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0 );
     const glm::quat&
-    SetQuat( const glm::quat& Quat, bool UpdateMatrix = true );
+    SetQuat( const glm::quat& Quat );
 
+    const glm::vec4&
+    GetQuatVec4( ) const noexcept;
+    const glm::quat&
+    GetQuat( ) const noexcept;
+
+    /*
+     *
+     * Transform quaternions to euler angles
+     *
+     * */
     void
     ActivateEularRotation( );
 
+    /*
+     *
+     * Transform euler angles to quaternions
+     *
+     * */
     void
     ActivateQuatRotation( );
 
-    /*
-     *
-     * Only allow user to modify the orientation using setter for a easier life to update the matrix
-     *
-     * */
-    const glm::vec3&
-    SetScale( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-    const glm::vec3&
-    AlterScale( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
-    const glm::vec3&
-    GetScale( ) const;
-
-    const glm::vec3&
-    SetTranslationOrigin( const glm::vec3& TranslationOrigin, bool UpdateMatrix = true );
-    const glm::vec3&
-    SetRotationOrigin( const glm::vec3& RotationOrigin, bool UpdateMatrix = true );
-    const glm::vec3&
-    SetScaleOrigin( const glm::vec3& ScaleOrigin, bool UpdateMatrix = true );
-
-
-    void       UpdateTranslationMatrix( );
-    glm::mat4& GetTranslationMatrix( );
-
-    void       UpdateRotationMatrix( );
-    glm::mat4& GetRotationMatrix( );
-
-    void       UpdateScaleMatrix( );
-    glm::mat4& GetScaleMatrix( );
-
-    void             UpdateModelMatrix( );
-    const glm::mat4& GetModelMatrix( ) const;
+    bool IsUsingQuatRotation( ) const noexcept { return m_UsingQuat; }
 
     /*
      *
-     * Calculate matrix realtime in place
+     * Modify three orientation at once
      *
      * */
-    void
-    CalculateModelMatrix( glm::mat4* Result ) const;
+    const glm::vec3&
+    SetOrigin( FloatTy X, FloatTy Y, FloatTy Z );
+    const glm::vec3&
+    AlterOrigin( FloatTy X, FloatTy Y, FloatTy Z );
 
-    glm::vec3
-    GetWorldCoordinate( ) const;
+public:
+    glm::vec3 TranslationOrigin { }, RotationOrigin { }, ScaleOrigin { };
+    glm::vec3 Coordinate { }, Scale { 1, 1, 1 };
 
 protected:
-    glm::vec3 m_TranslationOrigin { }, m_RotationOrigin { }, m_ScaleOrigin { };
-    glm::vec3 m_Coordinate { }, m_Scale { 1, 1, 1 };
-
     union
     {
         glm::vec3 m_Rotation;
+        glm::vec4 m_QuatVec4;
         glm::quat m_Quat { };
     };
 
-    glm::mat4 m_TranslationMatrix { 1 }, m_RotationMatrix { 1 }, m_ScaleMatrix { 1 };
-    glm::mat4 m_ModelMatrix { 1 };
-
     bool m_UsingQuat = true;
 
+public:
     /*
      *
      * Useful when calculating the final model matrix, save two translation
      *
      * */
-    bool m_SameRotationScaleOrigin = false;
+    bool SameRotationScaleOrigin = false;
 
     ENABLE_IMGUI( Orientation )
 };
@@ -136,7 +90,16 @@ struct fmt::formatter<glm::vec3> : fmt::formatter<std::string> {
     static auto
     format( const glm::vec3& C, format_context& ctx ) -> decltype( ctx.out( ) )
     {
-        return fmt::format_to( ctx.out( ), "[Coordinate X={} Y={} Z={}]", C.x, C.y, C.z );
+        return fmt::format_to( ctx.out( ), "[{},{},{}]", C.x, C.y, C.z );
+    }
+};
+
+template <>
+struct fmt::formatter<glm::vec4> : fmt::formatter<std::string> {
+    static auto
+    format( const glm::vec4& C, format_context& ctx ) -> decltype( ctx.out( ) )
+    {
+        return fmt::format_to( ctx.out( ), "[{},{},{}, {}]", C.x, C.y, C.z, C.w );
     }
 };
 template <>
@@ -144,6 +107,8 @@ struct fmt::formatter<Orientation> : fmt::formatter<std::string> {
     static auto
     format( const Orientation& O, format_context& ctx ) -> decltype( ctx.out( ) )
     {
-        return fmt::format_to( ctx.out( ), "[Coordinate:({}), Rotation:({}), Scale:({})]", O.GetCoordinate( ), O.GetRotation( ), O.GetScale( ) );
+        return fmt::format_to( ctx.out( ), "[Coordinate:({}:{}), Rotation:({}:{}), Scale:({}:{})]", O.Coordinate, O.TranslationOrigin,
+                               O.GetQuatVec4( ), O.RotationOrigin,
+                               O.Scale, O.ScaleOrigin );
     }
 };
