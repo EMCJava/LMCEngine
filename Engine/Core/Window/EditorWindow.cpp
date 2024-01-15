@@ -30,6 +30,8 @@
 #include <filesystem>
 #include <regex>
 
+#include <PxPhysicsAPI.h>
+
 namespace
 {
 std::pair<int, int>
@@ -1051,21 +1053,54 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
                     {
                         if ( ImGuizmo::IsUsing( ) ) [[likely]]   // shouldn't it a must?
                         {
-                            auto& RBGetOrientation = RB->GetOrientation( );
+                            auto& RBOrientationMat = RB->GetOrientation( );
                             spdlog::info( "Using ImGuizmo" );
                             switch ( m_CurrentGizmoOperation )
                             {
-                            case ImGuizmo::TRANSLATE:
-                                RBGetOrientation.SetCoordinate( *(glm::vec3*) &ModelMatrix[ 3 ] );
-                                break;
+                            case ImGuizmo::TRANSLATE: {
+                                auto*      RBH     = RB->GetRigidBodyHandle( );
+                                const auto RBHType = RBH->getConcreteType( );
+
+                                if ( RBHType == physx::PxConcreteType::eRIGID_DYNAMIC )
+                                {
+                                    auto* DynamicActor = RBH->is<physx::PxRigidDynamic>( );
+                                    REQUIRED_IF( DynamicActor != nullptr )
+                                    {
+                                        physx::PxTransform targetPose = DynamicActor->getGlobalPose( );
+                                        targetPose.p                  = { ModelMatrix[ 3 ][ 0 ], ModelMatrix[ 3 ][ 1 ], ModelMatrix[ 3 ][ 2 ] };
+
+                                        DynamicActor->setRigidBodyFlag( physx::PxRigidBodyFlag::eKINEMATIC, true );
+                                        DynamicActor->setKinematicTarget( targetPose );
+                                        Engine::GetEngine( )->AddPhysicsCallback( [ DynamicActor ]( auto* ) {
+                                            DynamicActor->setRigidBodyFlag( physx::PxRigidBodyFlag::eKINEMATIC, false );
+                                        } );
+                                    }
+                                }
+
+                                if ( RBHType == physx::PxConcreteType::eRIGID_STATIC )
+                                {
+                                    auto* StaticActor = RBH->is<physx::PxRigidStatic>( );
+                                    REQUIRED_IF( StaticActor != nullptr )
+                                    {
+                                        RB->GetOrientation( ).SetCoordinate( *(glm::vec3*) &ModelMatrix[ 3 ] );
+                                        Engine::GetEngine( )->AddPhysicsCallback( [ StaticActor, P = physx::PxVec3 { ModelMatrix[ 3 ][ 0 ], ModelMatrix[ 3 ][ 1 ], ModelMatrix[ 3 ][ 2 ] } ]( auto* ) {
+                                            physx::PxTransform targetPose = StaticActor->getGlobalPose( );
+                                            targetPose.p                  = P;
+                                            StaticActor->setGlobalPose( targetPose );
+                                        } );
+                                    }
+                                }
+                            }
+
+                            break;
                             case ImGuizmo::ROTATE:
-                                ModelMatrix[ 0 ] /= RBGetOrientation.GetScale( ).x;
-                                ModelMatrix[ 1 ] /= RBGetOrientation.GetScale( ).y;
-                                ModelMatrix[ 2 ] /= RBGetOrientation.GetScale( ).z;
-                                RBGetOrientation.SetQuat( glm::quat_cast( ModelMatrix ) );
+                                ModelMatrix[ 0 ] /= RBOrientationMat.GetScale( ).x;
+                                ModelMatrix[ 1 ] /= RBOrientationMat.GetScale( ).y;
+                                ModelMatrix[ 2 ] /= RBOrientationMat.GetScale( ).z;
+                                RBOrientationMat.SetQuat( glm::quat_cast( ModelMatrix ) );
                                 break;
                             case ImGuizmo::SCALE:
-                                RBGetOrientation.SetScale( glm::length( *(glm::vec3*) &ModelMatrix[ 0 ] ),
+                                RBOrientationMat.SetScale( glm::length( *(glm::vec3*) &ModelMatrix[ 0 ] ),
                                                            glm::length( *(glm::vec3*) &ModelMatrix[ 1 ] ),
                                                            glm::length( *(glm::vec3*) &ModelMatrix[ 2 ] ) );
                                 break;
