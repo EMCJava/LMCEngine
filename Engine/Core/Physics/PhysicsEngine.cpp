@@ -22,11 +22,7 @@ PhysicsEngine::~PhysicsEngine( )
 void
 PhysicsEngine::TerminatePhysx( )
 {
-    m_Physics->release( );
-    m_Cooking->release( );
-    m_Foundation->release( );
-
-    spdlog::info( "PhysX released!" );
+    spdlog::info( "PhysX releasing!" );
 }
 
 void
@@ -52,6 +48,9 @@ PhysicsEngine::InitializePhysx( )
     m_MainScene = std::make_shared<PhysicsScene>( m_Physics );
     m_Cooking   = PxCreateCooking( PX_PHYSICS_VERSION, *m_Foundation, physx::PxCookingParams( *m_ToleranceScale ) );
     if ( !m_Cooking ) throw std::runtime_error( "PxCreateCooking failed!" );
+
+    auto* Controller    = PxCreateControllerManager( *m_MainScene );
+    m_ControllerManager = std::shared_ptr<physx::PxControllerManager>( Controller, []( auto* C ) { C->release( ); } );
 }
 
 PhysicsScene&

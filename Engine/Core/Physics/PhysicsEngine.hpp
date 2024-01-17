@@ -17,6 +17,9 @@ class PxFoundation;
 class PxPhysics;
 class PxScene;
 class PxPvd;
+
+// Controller
+class PxControllerManager;
 }   // namespace physx
 
 class PhysicsScene;
@@ -55,6 +58,8 @@ private:
     physx::PxPhysics*    m_Physics    = nullptr;
 
     std::shared_ptr<PhysicsScene> m_MainScene;
+
+    std::shared_ptr<physx::PxControllerManager> m_ControllerManager;
 
     physx::PxPvd* m_Pvd = nullptr;
 };

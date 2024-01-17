@@ -229,6 +229,13 @@ private:
 
     /*
      *
+     * Physics
+     *
+     * */
+    class PhysicsEngine* m_PhysicsEngine = nullptr;
+
+    /*
+     *
      * Physics thread related
      *
      * */
@@ -328,13 +335,6 @@ private:
      *
      * */
     class AudioEngine* m_AudioEngine = nullptr;
-
-    /*
-     *
-     * Physics
-     *
-     * */
-    class PhysicsEngine* m_PhysicsEngine = nullptr;
 
     /*
      *
