@@ -25,6 +25,7 @@
 #include <Engine/Core/Graphic/Texture/Texture.hpp>
 #include <Engine/Core/Physics/Collider/ColliderMesh.hpp>
 #include <Engine/Core/Physics/RigidBody/RigidMesh.hpp>
+#include <Engine/Core/Physics/Controller/PhyController.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
@@ -186,6 +187,13 @@ GameManager::GameManager( )
                         }
                     }
                 }
+
+                // Controller
+                {
+                    m_CharController = std::make_shared<PhyController>( );
+                    auto Lock        = Engine::GetEngine( )->GetPhysicsThreadLock( );
+                    m_CharController->CreateController( { 0, 100, 0 }, 1.f, 0.3f, PhyMaterial );
+                }
             }
         }
     }
@@ -196,6 +204,10 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
+    m_CharController->MoveRel( { 0, -9.81f, 0 }, Engine::GetEngine( )->GetDeltaSecond( ) );
+    const auto Pos = m_CharController->GetFootPosition( );
+
+    spdlog::info( "Foot Position: {},{},{}", Pos.x, Pos.y, Pos.z );
 }
 
 void

@@ -37,13 +37,16 @@ public:
     ~PhysicsEngine( );
 
     auto*
-    GetPhysxHandle( ) { return m_Physics; }
+    GetPhysxHandle( ) const noexcept { return m_Physics; }
 
     auto*
-    GetCooking( ) { return m_Cooking; }
+    GetCooking( ) const noexcept { return m_Cooking; }
 
     PhysicsScene&
     GetScene( );
+
+    auto*
+    GetControllerManager( ) const noexcept { return m_ControllerManager.get( ); }
 
     operator physx::PxPhysics&( );
     auto* operator->( ) { return GetPhysxHandle( ); }

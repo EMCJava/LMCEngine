@@ -196,6 +196,12 @@ public:
     class PhysicsEngine*
     GetPhysicsEngine( );
 
+    auto GetPhysicsThreadLock( )
+    {
+        std::unique_lock Lock( m_PhysicsThreadMutex );
+        return std::move( Lock );
+    }
+
     /*
      *
      * Clear and called after every physics update

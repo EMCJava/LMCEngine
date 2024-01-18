@@ -158,6 +158,7 @@ declare_library(
         PhysicsScene.lib
         Texture.lib
         Material.lib
+        PhyController.lib
 
         DEPS
         spdlog.lib
