@@ -204,10 +204,11 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-    m_CharController->MoveRel( { 0, -9.81f, 0 }, Engine::GetEngine( )->GetDeltaSecond( ) );
-    const auto Pos = m_CharController->GetFootPosition( );
+    const auto DeltaTime     = Engine::GetEngine( )->GetDeltaSecond( );
+    const auto CollisionFlag = m_CharController->MoveRel( { 0, -9.81f, 0 }, DeltaTime );
+    const auto Pos           = m_CharController->GetFootPosition( );
 
-    spdlog::info( "Foot Position: {},{},{}", Pos.x, Pos.y, Pos.z );
+    spdlog::info( "DeltaTime: {}, Foot Position: {},{},{}, CollisionFlags: {}", DeltaTime, Pos.x, Pos.y, Pos.z, !!CollisionFlag );
 }
 
 void

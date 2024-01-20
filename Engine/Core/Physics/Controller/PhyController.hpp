@@ -34,6 +34,6 @@ public:
     glm::dvec3
     GetFootPosition( );
 
-private:
+protected:
     physx::PxCapsuleController* m_Controller = nullptr;
 };
