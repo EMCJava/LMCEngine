@@ -48,12 +48,12 @@ PhyController::CreateController( const glm::vec3& position, FloatTy Height, Floa
     }
 }
 
-void
-PhyController::MoveRel( const glm::vec3& Velocity, FloatTy DeltaTime )
+physx::PxControllerCollisionFlags
+PhyController::MoveRel( const glm::vec3& Displacement, FloatTy DeltaTime )
 {
     REQUIRED_IF( m_Controller != nullptr )
     {
-        m_Controller->move( *( (physx::PxVec3*) &Velocity ), 0.0f, DeltaTime, physx::PxControllerFilters( ) );
+        return m_Controller->move( *( (physx::PxVec3*) &Displacement ), 0.0f, DeltaTime, physx::PxControllerFilters( ) );
     }
 }
 

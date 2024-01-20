@@ -9,6 +9,8 @@
 
 #include <glm/vec3.hpp>
 
+#include <characterkinematic/PxController.h>
+
 namespace physx
 {
 class PxCapsuleController;
@@ -26,8 +28,8 @@ public:
     physx::PxCapsuleController*
     GetController( ) const noexcept { return m_Controller; }
 
-    void
-    MoveRel( const glm::vec3& Velocity, FloatTy DeltaTime );
+    physx::PxControllerCollisionFlags
+    MoveRel( const glm::vec3& Displacement, FloatTy DeltaTime );
 
     glm::dvec3
     GetFootPosition( );
