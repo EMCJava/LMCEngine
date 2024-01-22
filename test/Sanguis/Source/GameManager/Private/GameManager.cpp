@@ -25,7 +25,7 @@
 #include <Engine/Core/Graphic/Texture/Texture.hpp>
 #include <Engine/Core/Physics/Collider/ColliderMesh.hpp>
 #include <Engine/Core/Physics/RigidBody/RigidMesh.hpp>
-#include <Engine/Core/Physics/Controller/PhyController.hpp>
+#include <Engine/Core/Physics/Controller/EntityPhyController.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
@@ -190,7 +190,7 @@ GameManager::GameManager( )
 
                 // Controller
                 {
-                    m_CharController = std::make_shared<PhyController>( );
+                    m_CharController = std::make_shared<EntityPhyController>( );
                     auto Lock        = Engine::GetEngine( )->GetPhysicsThreadLock( );
                     m_CharController->CreateController( { 0, 100, 0 }, 1.f, 0.3f, PhyMaterial );
                 }
@@ -205,7 +205,7 @@ void
 GameManager::Apply( )
 {
     const auto DeltaTime     = Engine::GetEngine( )->GetDeltaSecond( );
-    const auto CollisionFlag = m_CharController->MoveRel( { 0, -9.81f, 0 }, DeltaTime );
+    const auto CollisionFlag = m_CharController->Move( DeltaTime );
     const auto Pos           = m_CharController->GetFootPosition( );
 
     spdlog::info( "DeltaTime: {}, Foot Position: {},{},{}, CollisionFlags: {}", DeltaTime, Pos.x, Pos.y, Pos.z, !!CollisionFlag );
