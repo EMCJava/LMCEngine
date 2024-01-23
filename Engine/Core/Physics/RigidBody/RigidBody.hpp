@@ -24,7 +24,7 @@ public:
     Apply( ) override;
 
     [[nodiscard]] const auto&
-    GetRenderable( ) const { return m_Renderable; }
+    GetRenderable( ) const noexcept { return m_Renderable; }
 
     [[nodiscard]] const auto&
     GetCollider( ) const noexcept { return m_Collider; }
@@ -35,7 +35,7 @@ public:
      *
      * */
     const OrientationMatrix&
-    GetConstOrientation( )
+    GetConstOrientation( ) noexcept
     {
         return *static_cast<OrientationMatrix*>( this );
     }
@@ -46,14 +46,14 @@ public:
      *
      * */
     OrientationMatrix&
-    GetOrientation( )
+    GetOrientation( ) noexcept
     {
         m_OrientationChanged = true;
         return *static_cast<OrientationMatrix*>( this );
     }
 
     physx::PxRigidActor*
-    GetRigidBodyHandle( ) { return m_RigidActor; }
+    GetRigidBodyHandle( ) const noexcept { return m_RigidActor; }
 
 protected:
     /*
