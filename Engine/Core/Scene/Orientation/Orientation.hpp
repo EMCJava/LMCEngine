@@ -60,6 +60,22 @@ public:
     const glm::vec3&
     AlterOrigin( FloatTy X, FloatTy Y, FloatTy Z );
 
+    /*
+     *
+     * Get difference between two orientations
+     *
+     * */
+    Orientation
+    operator-( const Orientation& Other ) const;
+
+    /*
+     *
+     * Apply difference between two orientations
+     *
+     * */
+    Orientation&
+    operator+=( const Orientation& Other );
+
 public:
     glm::vec3 TranslationOrigin { }, RotationOrigin { }, ScaleOrigin { };
     glm::vec3 Coordinate { }, Scale { 1, 1, 1 };

@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <iostream>
+#include "Engine/Core/Scene/Orientation/Orientation.hpp"
 
 int
 main( )

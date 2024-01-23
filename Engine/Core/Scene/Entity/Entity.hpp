@@ -14,6 +14,14 @@ class Entity : public ConceptList
 public:
     /*
      *
+     * Same as @UpdateOrientation but also alter the @m_RelToParent
+     *
+     * */
+    void
+    UpdateGlobalOrientation( const Orientation& Ori );
+
+    /*
+     *
      * Set its orientation and update orientation of any Entity in sub-concept
      *
      * */

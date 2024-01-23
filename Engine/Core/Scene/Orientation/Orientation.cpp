@@ -28,7 +28,7 @@ Orientation::GetQuatVec4( ) const noexcept
     return m_QuatVec4;
 }
 
-const glm::quat &
+const glm::quat&
 Orientation::GetQuat( ) const noexcept
 {
     return m_Quat;
@@ -108,4 +108,36 @@ Orientation::AlterOrigin( FloatTy X, FloatTy Y, FloatTy Z )
     ScaleOrigin.z += Z;
 
     return TranslationOrigin;
+}
+
+Orientation
+Orientation::operator-( const Orientation& Other ) const
+{
+    Orientation Diff;
+
+    Diff.Coordinate = Coordinate - Other.Coordinate;
+    Diff.Scale      = Scale - Other.Scale;
+
+    Diff.m_UsingQuat = Other.IsUsingQuatRotation( );
+    Diff.m_QuatVec4  = Other.m_QuatVec4;
+    Diff.ActivateQuatRotation( );
+
+    if ( IsUsingQuatRotation( ) )
+        Diff.SetQuat( glm::inverse( Diff.GetQuat( ) ) * m_Quat );
+    else
+        Diff.SetQuat( glm::inverse( Diff.GetQuat( ) ) * glm::quat( m_Rotation ) );
+
+    return Diff;
+}
+
+Orientation&
+Orientation::operator+=( const Orientation& Other )
+{
+    Coordinate += Other.Coordinate;
+    Scale += Other.Scale;
+    ActivateQuatRotation( );
+    REQUIRED( Other.IsUsingQuatRotation( ) )
+    SetQuat( m_Quat * Other.GetQuat( ) );
+
+    return *this;
 }
