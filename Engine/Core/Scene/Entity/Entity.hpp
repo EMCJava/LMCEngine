@@ -8,18 +8,32 @@
 #include <Engine/Core/Scene/Orientation/Orientation.hpp>
 
 class Entity : public ConceptList
-    , protected Orientation   // Update to Orientation need to forward to child, wrapper is needed
 {
     DECLARE_CONCEPT( Entity, ConceptList )
 
-private:
+public:
+    /*
+     *
+     * Set its orientation and update orientation of any Entity in sub-concept
+     *
+     * */
+    void
+    UpdateOrientation( const Orientation& Ori );
 
     /*
      *
-     * Set to false every frame, if orientation is changed in update, then set to true
+     * Alter its orientation(**relatively**) and update orientation of any Entity in sub-concept
      *
      * */
-    bool m_AlterManually = false;
+    void
+    AlterOrientation( const Orientation& Ori );
+
+    const auto&
+    GetOrientation( ) const noexcept { return m_Orientation; }
+
+protected:
+    Orientation m_Orientation;
+    Orientation m_RelToParent;
 
     ENABLE_IMGUI( Entity )
 };
