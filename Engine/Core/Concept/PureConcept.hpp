@@ -103,7 +103,7 @@ std::shared_ptr<ConceptType>
 PureConcept::CreateConcept( Args&&... params )
 {
     auto Result = std::make_shared<ConceptType>( std::forward<Args>( params )... );
-    Result->SetRuntimeName( Result->GetClassName( ) );
+    Result->SetRuntimeName( Result->GetRunTimeClassName( ) );
     Result->ConceptType::ConceptLateInitialize( );
 
     return Result;

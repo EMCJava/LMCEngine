@@ -62,7 +62,7 @@ public:                                                               \
 public:                                                               \
     virtual ~class_name( );                                           \
                                                                       \
-    virtual const char* GetClassName( )                               \
+    virtual const char* GetRunTimeClassName( )                        \
     {                                                                 \
         return #class_name;                                           \
     }                                                                 \
