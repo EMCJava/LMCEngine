@@ -300,6 +300,16 @@ OrientationMatrix::UpdateModelMatrix( )
     m_ModelMatrix = m_TranslationMatrix * m_RotationMatrix * m_ScaleMatrix;
 }
 
+void
+OrientationMatrix::RecalculateModelMatrix( )
+{
+    UpdateTranslationMatrix( );
+    UpdateRotationMatrix( );
+    UpdateRotationMatrix( );
+
+    UpdateModelMatrix( );
+}
+
 const glm::mat4&
 OrientationMatrix::GetModelMatrix( ) const
 {
@@ -355,6 +365,6 @@ OrientationMatrix&
 OrientationMatrix::operator+=( const Orientation& Other )
 {
     Orientation::operator+=( Other );
-    UpdateModelMatrix( );
+    RecalculateModelMatrix( );
     return *this;
 }

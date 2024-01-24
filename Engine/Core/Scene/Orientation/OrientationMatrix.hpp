@@ -80,7 +80,20 @@ public:
     void       UpdateScaleMatrix( );
     glm::mat4& GetScaleMatrix( );
 
-    void             UpdateModelMatrix( );
+    /*
+     *
+     * Recalculate only from other existing matrices
+     *
+     * */
+    void UpdateModelMatrix( );
+
+    /*
+     *
+     * Recalculate from start and update other cache matrices
+     *
+     * */
+    void RecalculateModelMatrix( );
+
     const glm::mat4& GetModelMatrix( ) const;
 
     /*
