@@ -97,6 +97,17 @@ public:
     glm::vec3
     GetWorldCoordinate( ) const;
 
+    /*
+     *
+     * Orientation related
+     *
+     * */
+
+    operator const Orientation&( ) const noexcept { return *this; }
+
+    OrientationMatrix&
+    operator+=( const Orientation& Other );
+
 protected:
     glm::mat4 m_TranslationMatrix { 1 }, m_RotationMatrix { 1 }, m_ScaleMatrix { 1 };
     glm::mat4 m_ModelMatrix { 1 };

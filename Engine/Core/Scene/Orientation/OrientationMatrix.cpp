@@ -353,3 +353,11 @@ OrientationMatrix::SetQuat( const glm::quat& Quat, bool UpdateMatrix )
 
     return this->m_Quat;
 }
+
+OrientationMatrix&
+OrientationMatrix::operator+=( const Orientation& Other )
+{
+    Orientation::operator+=( Other );
+    UpdateModelMatrix( );
+    return *this;
+}

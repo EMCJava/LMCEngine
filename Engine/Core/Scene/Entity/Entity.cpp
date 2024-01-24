@@ -13,7 +13,7 @@ DEFINE_SIMPLE_IMGUI_TYPE( Entity )
 void
 Entity::UpdateOrientation( const Orientation& Ori )
 {
-    AlterOrientation( Ori - m_Orientation );
+    AlterOrientation( Ori - (const Orientation&) m_Orientation );
 }
 
 void
@@ -35,6 +35,8 @@ Entity::UpdateGlobalOrientation( const Orientation& Ori )
 
     if ( auto ParentEntity = GetOwner( )->TryCast<Entity>( ); ParentEntity != nullptr )
     {
-        ParentEntity->m_RelToParent = ParentEntity->m_Orientation - m_Orientation;
+        ParentEntity->m_RelToParent =
+              (const Orientation&) ParentEntity->m_Orientation
+            - (const Orientation&)               m_Orientation;
     }
 }

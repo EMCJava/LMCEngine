@@ -6,6 +6,7 @@
 
 #include <Engine/Core/Concept/ConceptList.hpp>
 #include <Engine/Core/Scene/Orientation/Orientation.hpp>
+#include <Engine/Core/Scene/Orientation/OrientationMatrix.hpp>
 
 class Entity : public ConceptList
 {
@@ -45,8 +46,8 @@ public:
     GetOrientation( ) const noexcept { return m_Orientation; }
 
 protected:
-    Orientation m_Orientation;
-    Orientation m_RelToParent;
+    OrientationMatrix m_Orientation;
+    Orientation       m_RelToParent;
 
     ENABLE_IMGUI( Entity )
 };
