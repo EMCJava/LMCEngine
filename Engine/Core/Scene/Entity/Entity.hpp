@@ -12,6 +12,11 @@ class Entity : public ConceptList
     DECLARE_CONCEPT( Entity, ConceptList )
 
 public:
+    Entity( )
+    {
+        SetSearchThrough( true );
+    }
+
     /*
      *
      * Same as @UpdateOrientation but also alter the @m_RelToParent
