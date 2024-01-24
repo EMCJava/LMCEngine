@@ -4,16 +4,16 @@
 
 #pragma once
 
-#include "PureConcept.hpp"
+#include "ConceptApplicable.hpp"
 
 #include <Engine/Core/Concept/ConceptSetCache.hpp>
 
 #include <optional>
 #include <algorithm>
 
-class ConceptList : public PureConcept
+class ConceptList : public ConceptApplicable
 {
-    DECLARE_CONCEPT( ConceptList, PureConcept )
+    DECLARE_CONCEPT( ConceptList, ConceptApplicable )
 
 public:
     // Avoid unnecessary casting/copying if return value is not used
@@ -195,6 +195,14 @@ public:
      * */
     void
     ResetSubConceptCache( );
+
+    /*
+     *
+     * In-case is not used
+     *
+     * */
+    void
+    Apply( ) override { };
 
 private:
     /*

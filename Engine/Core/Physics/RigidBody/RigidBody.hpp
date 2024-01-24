@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <Engine/Core/Scene/Entity/Entity.hpp>
 #include <Engine/Core/Concept/ConceptApplicable.hpp>
 #include <Engine/Core/Concept/ConceptSetCache.hpp>
 #include <Engine/Core/Scene/Orientation/OrientationMatrix.hpp>
@@ -13,10 +14,10 @@ namespace physx
 class PxRigidActor;
 }
 
-class RigidBody : public ConceptApplicable
+class RigidBody : public Entity
     , protected OrientationMatrix   // Update to Orientation need to forward to child, wrapper is needed
 {
-    DECLARE_CONCEPT( RigidBody, ConceptApplicable )
+    DECLARE_CONCEPT( RigidBody, Entity )
 public:
     RigidBody( );
 

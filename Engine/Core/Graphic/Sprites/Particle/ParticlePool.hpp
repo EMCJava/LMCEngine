@@ -6,15 +6,15 @@
 
 #include "Particle.hpp"
 
-#include <Engine/Core/Concept/ConceptApplicable.hpp>
+#include <Engine/Core/Concept/ConceptList.hpp>
 
 #include <ranges>
 #include <array>
 
 // TODO: Might need to use Sprite instead for more general particle system
-class ParticlePool : public ConceptApplicable
+class ParticlePool : public ConceptList
 {
-    DECLARE_CONCEPT( ParticlePool, ConceptApplicable );
+    DECLARE_CONCEPT( ParticlePool, ConceptList );
 
     friend class ParticlePoolConceptRender;
 

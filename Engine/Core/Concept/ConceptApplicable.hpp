@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "ConceptList.hpp"
+#include "PureConcept.hpp"
 
-class ConceptApplicable : public ConceptList
+class ConceptApplicable : public PureConcept
 {
-    DECLARE_CONCEPT( ConceptApplicable, ConceptList )
+    DECLARE_CONCEPT( ConceptApplicable, PureConcept )
 
 public:
     /*

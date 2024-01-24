@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include <Engine/Core/Concept/ConceptApplicable.hpp>
+#include <Engine/Core/Concept/ConceptList.hpp>
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
-class WandEditorScene : public ConceptApplicable
+class WandEditorScene : public ConceptList
 {
-    DECLARE_CONCEPT( WandEditorScene, ConceptApplicable )
+    DECLARE_CONCEPT( WandEditorScene, ConceptList )
 
     void
     AddSlotHighlightUI( );

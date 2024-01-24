@@ -118,6 +118,7 @@ declare_library(
         PureConceptAABBSquare.lib
         ParticleAttributesRandomizer.lib
         PureConceptOrthoCamera.lib
+        ConceptList.lib
         PureConceptImage.lib
         SpriteSquareTexture.lib
         UserInput.lib
@@ -159,6 +160,7 @@ declare_library(
         Texture.lib
         Material.lib
         EntityPhyController.lib
+        ConceptList.lib
 
         DEPS
         spdlog.lib

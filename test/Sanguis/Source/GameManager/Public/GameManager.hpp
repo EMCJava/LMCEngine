@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include <Engine/Core/Concept/ConceptApplicable.hpp>
+#include <Engine/Core/Concept/ConceptList.hpp>
 
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 
-class GameManager : public ConceptApplicable
+class GameManager : public ConceptList
 {
-    DECLARE_CONCEPT( GameManager, ConceptApplicable )
+    DECLARE_CONCEPT( GameManager, ConceptList )
 
 public:
     GameManager( );

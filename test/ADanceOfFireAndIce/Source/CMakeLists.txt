@@ -71,6 +71,7 @@ declare_library(
         RectButton.lib
         PureConceptOrthoCamera.lib
         Canvas.lib
+        ConceptList.lib
 
         DEPS
         ConceptApplicable.lib

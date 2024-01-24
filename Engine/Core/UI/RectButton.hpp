@@ -4,15 +4,15 @@
 
 #pragma once
 
-#include <Engine/Core/Concept/ConceptApplicable.hpp>
+#include <Engine/Core/Concept/ConceptList.hpp>
 
 #include <glm/glm.hpp>
 
 #include <functional>
 
-class RectButton : public ConceptApplicable
+class RectButton : public ConceptList
 {
-    DECLARE_CONCEPT( RectButton, ConceptApplicable )
+    DECLARE_CONCEPT( RectButton, ConceptList )
 private:
     void
     SetupButton( );

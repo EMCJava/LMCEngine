@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include <Engine/Core/Concept/ConceptApplicable.hpp>
+#include <Engine/Core/Concept/ConceptList.hpp>
 #include <Engine/Core/Audio/AudioEngine.hpp>
 
 #include "TileSpriteSet.hpp"
 
-class GameManager : public ConceptApplicable
+class GameManager : public ConceptList
 {
-    DECLARE_CONCEPT( GameManager, ConceptApplicable )
+    DECLARE_CONCEPT( GameManager, ConceptList )
 
     /*
      *

@@ -13,8 +13,8 @@ target_link_libraries(PureConcept.lib Engine.lib ConceptCoreRuntime.lib imgui.li
 target_link_libraries(PureConceptAABB.lib PureConcept.lib)
 target_link_libraries(PureConceptAABBSquare.lib PureConceptAABB.lib)
 
-target_link_libraries(ConceptList.lib ConceptSetCache.lib PureConcept.lib)
-target_link_libraries(ConceptApplicable.lib ConceptList.lib)
+target_link_libraries(ConceptApplicable.lib PureConcept.lib)
+target_link_libraries(ConceptList.lib ConceptSetCache.lib ConceptApplicable.lib)
 target_link_libraries(ConceptRenderable.lib ConceptList.lib)
 target_link_libraries(ConceptCoreRuntime.lib INTERFACE spdlog.lib PureConcept.lib)
 target_link_libraries(ConceptCoreToImGuiImpl.lib INTERFACE glm::glm)
