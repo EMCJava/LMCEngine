@@ -8,7 +8,7 @@
 #include <ImGui/ImGui.hpp>
 
 DEFINE_CONCEPT_DS( Entity )
-DEFINE_SIMPLE_IMGUI_TYPE( Entity )
+DEFINE_SIMPLE_IMGUI_TYPE( Entity, m_Orientation, m_RelToParent )
 
 void
 Entity::UpdateOrientation( const Orientation& Ori )
@@ -36,7 +36,7 @@ Entity::UpdateGlobalOrientation( const Orientation& Ori )
     if ( auto ParentEntity = GetOwner( )->TryCast<Entity>( ); ParentEntity != nullptr )
     {
         ParentEntity->m_RelToParent =
-              (const Orientation&) ParentEntity->m_Orientation
-            - (const Orientation&)               m_Orientation;
+            (const Orientation&) ParentEntity->m_Orientation
+            - (const Orientation&) m_Orientation;
     }
 }
