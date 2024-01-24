@@ -88,7 +88,8 @@ protected:
         glm::quat m_Quat { };
     };
 
-    bool m_UsingQuat = true;
+    // So that default value 0 make sense on eular
+    bool m_UsingQuat = false;
 
 public:
     /*
