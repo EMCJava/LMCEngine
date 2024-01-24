@@ -26,19 +26,3 @@ RigidBody::~RigidBody( )
         m_RigidActor = nullptr;
     }
 }
-
-void
-RigidBody::Apply( )
-{
-    // Make sure it get release if child removed
-    GetConcepts( m_RenderableSet );
-
-    if ( m_OrientationChanged )
-    {
-        const auto& Matrix = m_Orientation.GetModelMatrix( );
-        m_RenderableSet.ForEachShared( [ &Matrix ]( std::shared_ptr<ConceptRenderable>& renderable ) {
-            renderable->SetShaderUniform( "modelMatrix", Matrix );
-        } );
-        m_OrientationChanged = false;
-    }
-}

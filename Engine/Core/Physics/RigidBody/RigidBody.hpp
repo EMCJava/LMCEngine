@@ -20,9 +20,6 @@ class RigidBody : public Entity
 public:
     RigidBody( );
 
-    void
-    Apply( ) override;
-
     [[nodiscard]] const auto&
     GetRenderable( ) const noexcept { return m_Renderable; }
 
@@ -48,7 +45,6 @@ public:
     OrientationMatrix&
     GetOrientation( ) noexcept
     {
-        m_OrientationChanged = true;
         return m_Orientation;
     }
 
@@ -63,15 +59,6 @@ protected:
      * */
     PhysicsEngine*       m_PhyEngine  = nullptr;
     physx::PxRigidActor* m_RigidActor = nullptr;
-
-    bool m_OrientationChanged = true;
-
-    /*
-     *
-     * There could be two or more renderables, one for the rigid body, and one for the collider
-     *
-     * */
-    ConceptSetCacheWeak<class ConceptRenderable> m_RenderableSet;
 
     // FIXME: Consider making these two unique_ptr, for 1 to 1 relationship
     std::shared_ptr<class ConceptRenderable> m_Renderable;

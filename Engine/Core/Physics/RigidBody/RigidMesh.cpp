@@ -8,6 +8,7 @@
 #include <Engine/Core/Graphic/Mesh/RenderableMesh.hpp>
 #include <Engine/Core/Graphic/Mesh/RenderableMeshHitBox.hpp>
 #include <Engine/Core/Physics/PhysicsScene.hpp>
+#include <Engine/Core/Scene/Entity/EntityRenderable.hpp>
 
 #include <PxPhysicsAPI.h>
 
@@ -35,7 +36,8 @@ RigidMesh::CreateMesh( const std::string& MeshPathStr )
 void
 RigidMesh::SetMesh( std::shared_ptr<ConceptMesh> Mesh )
 {
-    m_Renderable = AddConcept<RenderableMesh>( std::move( Mesh ) ).Get( );
+    m_Renderable = CreateConcept<RenderableMesh>( std::move( Mesh ) );
+    AddConcept<EntityRenderable>( m_Renderable );
 }
 
 void
@@ -56,7 +58,7 @@ RigidMesh::SetCollider( std::shared_ptr<Collider> C )
 
     std::shared_ptr<RenderableMeshHitBox> HitBoxFrame;
     m_RigidActor = m_Collider->GenerateActor( &HitBoxFrame );
-    if ( HitBoxFrame != nullptr ) GetOwnership( HitBoxFrame );
+    if ( HitBoxFrame != nullptr ) AddConcept<EntityRenderable>( HitBoxFrame );
 
     auto* UserData = dynamic_cast<RigidBody*>( this );
     REQUIRED( m_RigidActor && this == UserData )
