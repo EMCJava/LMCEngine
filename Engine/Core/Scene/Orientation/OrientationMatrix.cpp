@@ -14,10 +14,7 @@ DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( OrientationMatrix, Orientation )
 glm::vec3
 OrientationMatrix::GetWorldCoordinate( ) const
 {
-    const auto ModelMatrix = m_TranslationMatrix * m_RotationMatrix * m_ScaleMatrix;
-    glm::vec3  WorldOffset { ModelMatrix[ 3 ] };
-
-    return glm::vec3 { WorldOffset.x, WorldOffset.y, WorldOffset.z };
+    return glm::vec3 { m_ModelMatrix[ 3 ] };
 }
 
 auto
