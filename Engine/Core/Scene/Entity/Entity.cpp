@@ -35,6 +35,6 @@ Entity::UpdateGlobalOrientation( const Orientation& Ori )
 
     if ( auto ParentEntity = GetOwner( )->TryCast<Entity>( ); ParentEntity != nullptr )
     {
-        ParentEntity->m_Orientation;
+        ParentEntity->m_RelToParent = ParentEntity->m_Orientation - m_Orientation;
     }
 }
