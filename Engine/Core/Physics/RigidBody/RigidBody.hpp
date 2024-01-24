@@ -15,7 +15,6 @@ class PxRigidActor;
 }
 
 class RigidBody : public Entity
-    , protected OrientationMatrix   // Update to Orientation need to forward to child, wrapper is needed
 {
     DECLARE_CONCEPT( RigidBody, Entity )
 public:
@@ -35,10 +34,10 @@ public:
      * For forwarding changes, assume always after this call
      *
      * */
-    const OrientationMatrix&
-    GetConstOrientation( ) noexcept
+    [[nodiscard]] const OrientationMatrix&
+    GetConstOrientation( ) const noexcept
     {
-        return *static_cast<OrientationMatrix*>( this );
+        return m_Orientation;
     }
 
     /*
@@ -50,7 +49,7 @@ public:
     GetOrientation( ) noexcept
     {
         m_OrientationChanged = true;
-        return *static_cast<OrientationMatrix*>( this );
+        return m_Orientation;
     }
 
     physx::PxRigidActor*

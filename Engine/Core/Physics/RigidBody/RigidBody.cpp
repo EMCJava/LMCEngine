@@ -10,7 +10,7 @@
 #include <PxPhysicsAPI.h>
 
 DEFINE_CONCEPT( RigidBody )
-DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RigidBody, Orientation, m_OrientationChanged )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RigidBody, Entity )
 
 RigidBody::RigidBody( )
 {
@@ -35,7 +35,7 @@ RigidBody::Apply( )
 
     if ( m_OrientationChanged )
     {
-        const auto& Matrix = GetModelMatrix( );
+        const auto& Matrix = m_Orientation.GetModelMatrix( );
         m_RenderableSet.ForEachShared( [ &Matrix ]( std::shared_ptr<ConceptRenderable>& renderable ) {
             renderable->SetShaderUniform( "modelMatrix", Matrix );
         } );
