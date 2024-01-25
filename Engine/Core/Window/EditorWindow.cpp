@@ -1039,8 +1039,8 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
     if ( m_ConceptInspectionCache.SelectedConcept.expired( ) ) return;
 
     const auto SelectedConcept = m_ConceptInspectionCache.SelectedConcept.lock( );
-    auto*      RB              = SelectedConcept->TryCast<RigidBody>( );
-    if ( RB == nullptr ) return;   // Not a RigidBody
+    auto*      EntityConcept   = SelectedConcept->TryCast<Entity>( );
+    if ( EntityConcept == nullptr ) return;   // Not an Entity
 
     /*
      *
@@ -1053,31 +1053,24 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
 
     ImGuizmo::SetID( (uint64_t) SelectedConcept.get( ) );
 
-    auto ModelMatrix = RB->GetConstOrientation( ).GetModelMatrix( );
+    auto ModelMatrix = EntityConcept->GetOrientation( ).GetModelMatrix( );
     if ( !/* Manipulated */ RenderImGuizmoGizmo( glm::value_ptr( ModelMatrix ) ) ) return;
     if ( !/* Shouldn't it a must? */ ImGuizmo::IsUsing( ) ) [[unlikely]]
         return;
 
-    Orientation        UpdatedOrientation = (const Orientation&) RB->GetOrientation( );
-    auto*              RigidHandle        = RB->GetRigidBodyHandle( );
-    physx::PxTransform TargetPose         = RigidHandle->getGlobalPose( );
-
+    Orientation UpdatedOrientation = (const Orientation&) EntityConcept->GetOrientation( );
     switch ( m_CurrentGizmoOperation )
     {
     case ImGuizmo::TRANSLATE:
         UpdatedOrientation.Coordinate = *(glm::vec3*) &ModelMatrix[ 3 ];
-        TargetPose.p                  = { ModelMatrix[ 3 ][ 0 ], ModelMatrix[ 3 ][ 1 ], ModelMatrix[ 3 ][ 2 ] };
         break;
     case ImGuizmo::ROTATE: {
         ModelMatrix[ 0 ] /= UpdatedOrientation.Scale.x;
         ModelMatrix[ 1 ] /= UpdatedOrientation.Scale.y;
         ModelMatrix[ 2 ] /= UpdatedOrientation.Scale.z;
-        const auto QuatVal = glm::quat_cast( ModelMatrix );
-        UpdatedOrientation.SetQuat( QuatVal );
-        TargetPose.q = *(physx::PxQuat*) &QuatVal;
+        UpdatedOrientation.SetQuat( glm::quat_cast( ModelMatrix ) );
         break;
     }
-    break;
     case ImGuizmo::SCALE:
         UpdatedOrientation.Scale = { glm::length( *(glm::vec3*) &ModelMatrix[ 0 ] ),
                                      glm::length( *(glm::vec3*) &ModelMatrix[ 1 ] ),
@@ -1086,7 +1079,30 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
     }
 
     // Apply th change to RigidBody
-    RB->UpdateOrientation( UpdatedOrientation );
+    EntityConcept->UpdateOrientation( UpdatedOrientation );
+
+    auto* RB = SelectedConcept->TryCast<RigidBody>( );
+    if ( RB == nullptr ) return;   // Not an Entity
+
+    auto*              RigidHandle = RB->GetRigidBodyHandle( );
+    physx::PxTransform TargetPose  = RigidHandle->getGlobalPose( );
+    switch ( m_CurrentGizmoOperation )
+    {
+    case ImGuizmo::TRANSLATE:
+        static_assert( std::is_same_v<decltype( UpdatedOrientation.Coordinate.x ), decltype( physx::PxVec3 { }.x )> );
+        static_assert( sizeof( decltype( UpdatedOrientation.Coordinate ) ) == sizeof( physx::PxVec3 ) );
+        TargetPose.p = *(physx::PxVec3*) &UpdatedOrientation.Coordinate;
+        break;
+    case ImGuizmo::ROTATE: {
+        static_assert( std::is_same_v<decltype( UpdatedOrientation.GetQuat( ).x ), decltype( physx::PxQuat { }.x )> );
+        static_assert( sizeof( decltype( UpdatedOrientation.GetQuat( ) ) ) == sizeof( physx::PxQuat ) );
+        TargetPose.q = *(physx::PxQuat*) &UpdatedOrientation.GetQuat( );
+        break;
+    }
+    case ImGuizmo::SCALE:
+        spdlog::error( "Scale mode is not supported, only visual changes applied" );
+        return;
+    }
 
     // Update physics
     switch ( RigidHandle->getConcreteType( ) )
