@@ -1025,6 +1025,7 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
         return;
 
     auto* RootConcept = m_RootConceptFakeShared->TryCast<ConceptList>( );
+    TEST( RootConcept )
 
     const auto PerspectiveCamera = RootConcept->GetConcept<PureConceptPerspectiveCamera>( );
     // No PerspectiveCamera under root concept, can't render the Guizmo
