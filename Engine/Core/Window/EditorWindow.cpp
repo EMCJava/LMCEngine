@@ -1020,95 +1020,99 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
     std::apply( ImGuizmo::SetRect, RenderRect );
     static const auto IdentityMatrix = glm::mat4( 1.F );
 
-    if ( m_RootConceptFakeShared )
+    // No root concept, likely that no project is loaded
+    if ( m_RootConceptFakeShared == nullptr ) [[unlikely]]
+        return;
+
+    auto* RootConcept = m_RootConceptFakeShared->TryCast<ConceptList>( );
+
+    const auto PerspectiveCamera = RootConcept->GetConcept<PureConceptPerspectiveCamera>( );
+    // No PerspectiveCamera under root concept, can't render the Guizmo
+    if ( PerspectiveCamera == nullptr ) return;
+
+    m_GizmoCameraView       = glm::value_ptr( PerspectiveCamera->GetViewMatrix( ) );
+    m_GizmoCameraProjection = glm::value_ptr( PerspectiveCamera->GetProjectionMatrix( ) );
+
+    ImGuizmo::DrawGrid( m_GizmoCameraView, m_GizmoCameraProjection, glm::value_ptr( IdentityMatrix ), 100.f );
+
+    // Not selected or expired
+    if ( m_ConceptInspectionCache.SelectedConcept.expired( ) ) return;
+
+    const auto SelectedConcept = m_ConceptInspectionCache.SelectedConcept.lock( );
+    auto*      RB              = SelectedConcept->TryCast<RigidBody>( );
+    if ( RB == nullptr ) return;   // Not a RigidBody
+
+    /*
+     *
+     * Change Gizmo mode
+     *
+     * */
+    if ( ImGui::IsKeyPressed( ImGuiKey_1 ) ) m_CurrentGizmoOperation = ImGuizmo::TRANSLATE;
+    if ( ImGui::IsKeyPressed( ImGuiKey_2 ) ) m_CurrentGizmoOperation = ImGuizmo::ROTATE;
+    if ( ImGui::IsKeyPressed( ImGuiKey_3 ) ) m_CurrentGizmoOperation = ImGuizmo::SCALE;
+
+    ImGuizmo::SetID( (uint64_t) SelectedConcept.get( ) );
+
+    auto ModelMatrix = RB->GetConstOrientation( ).GetModelMatrix( );
+    if ( !/* Manipulated */ RenderImGuizmoGizmo( glm::value_ptr( ModelMatrix ) ) ) return;
+    if ( !/* Shouldn't it a must? */ ImGuizmo::IsUsing( ) ) [[unlikely]]
+        return;
+
+    Orientation        UpdatedOrientation = (const Orientation&) RB->GetOrientation( );
+    auto*              RigidHandle        = RB->GetRigidBodyHandle( );
+    physx::PxTransform TargetPose         = RigidHandle->getGlobalPose( );
+
+    switch ( m_CurrentGizmoOperation )
     {
-        auto* RootConcept = m_RootConceptFakeShared->TryCast<ConceptList>( );
+    case ImGuizmo::TRANSLATE:
+        UpdatedOrientation.Coordinate = *(glm::vec3*) &ModelMatrix[ 3 ];
+        TargetPose.p                  = { ModelMatrix[ 3 ][ 0 ], ModelMatrix[ 3 ][ 1 ], ModelMatrix[ 3 ][ 2 ] };
+        break;
+    case ImGuizmo::ROTATE: {
+        ModelMatrix[ 0 ] /= UpdatedOrientation.Scale.x;
+        ModelMatrix[ 1 ] /= UpdatedOrientation.Scale.y;
+        ModelMatrix[ 2 ] /= UpdatedOrientation.Scale.z;
+        const auto QuatVal = glm::quat_cast( ModelMatrix );
+        UpdatedOrientation.SetQuat( QuatVal );
+        TargetPose.q = *(physx::PxQuat*) &QuatVal;
+        break;
+    }
+    break;
+    case ImGuizmo::SCALE:
+        UpdatedOrientation.Scale = { glm::length( *(glm::vec3*) &ModelMatrix[ 0 ] ),
+                                     glm::length( *(glm::vec3*) &ModelMatrix[ 1 ] ),
+                                     glm::length( *(glm::vec3*) &ModelMatrix[ 2 ] ) };
+        break;
+    }
 
-        const auto PerspectiveCamera = RootConcept->GetConcept<PureConceptPerspectiveCamera>( );
-        if ( PerspectiveCamera )
+    // Apply th change to RigidBody
+    RB->UpdateOrientation( UpdatedOrientation );
+
+    // Update physics
+    switch ( RigidHandle->getConcreteType( ) )
+    {
+    case physx::PxConcreteType::eRIGID_DYNAMIC: {
+        auto* DynamicActor = RigidHandle->is<physx::PxRigidDynamic>( );
+        REQUIRED_IF( DynamicActor != nullptr )
         {
-            m_GizmoCameraView       = glm::value_ptr( PerspectiveCamera->GetViewMatrix( ) );
-            m_GizmoCameraProjection = glm::value_ptr( PerspectiveCamera->GetProjectionMatrix( ) );
-
-            ImGuizmo::DrawGrid( m_GizmoCameraView, m_GizmoCameraProjection, glm::value_ptr( IdentityMatrix ), 100.f );
-
-            if ( !m_ConceptInspectionCache.SelectedConcept.expired( ) )
-            {
-                const auto SelectedConcept = m_ConceptInspectionCache.SelectedConcept.lock( );
-                if ( auto* RB = SelectedConcept->TryCast<RigidBody>( ); RB != nullptr )
-                {
-                    if ( ImGui::IsKeyPressed( ImGuiKey_1 ) )
-                        m_CurrentGizmoOperation = ImGuizmo::TRANSLATE;
-                    if ( ImGui::IsKeyPressed( ImGuiKey_2 ) )
-                        m_CurrentGizmoOperation = ImGuizmo::ROTATE;
-                    if ( ImGui::IsKeyPressed( ImGuiKey_3 ) )
-                        m_CurrentGizmoOperation = ImGuizmo::SCALE;
-
-                    auto ModelMatrix = RB->GetConstOrientation( ).GetModelMatrix( );
-                    ImGuizmo::SetID( (uint64_t) SelectedConcept.get( ) );
-
-                    auto* ModelMatrixPtr = glm::value_ptr( ModelMatrix );
-                    bool  Manipulated    = RenderImGuizmoGizmo( ModelMatrixPtr );
-                    if ( Manipulated )
-                    {
-                        if ( ImGuizmo::IsUsing( ) ) [[likely]]   // shouldn't it a must?
-                        {
-                            auto               RBOrientationMat = (const Orientation&) RB->GetOrientation( );
-                            auto*              RBH              = RB->GetRigidBodyHandle( );
-                            const auto         RBHType          = RBH->getConcreteType( );
-                            physx::PxTransform TargetPose       = RBH->getGlobalPose( );
-
-                            switch ( m_CurrentGizmoOperation )
-                            {
-                            case ImGuizmo::TRANSLATE:
-                                RBOrientationMat.Coordinate = *(glm::vec3*) &ModelMatrix[ 3 ];
-                                TargetPose.p                = { ModelMatrix[ 3 ][ 0 ], ModelMatrix[ 3 ][ 1 ], ModelMatrix[ 3 ][ 2 ] };
-                                break;
-                            case ImGuizmo::ROTATE: {
-                                ModelMatrix[ 0 ] /= RBOrientationMat.Scale.x;
-                                ModelMatrix[ 1 ] /= RBOrientationMat.Scale.y;
-                                ModelMatrix[ 2 ] /= RBOrientationMat.Scale.z;
-                                const auto QuatVal = glm::quat_cast( ModelMatrix );
-                                RBOrientationMat.SetQuat( QuatVal );
-                                TargetPose.q = *(physx::PxQuat*) &QuatVal;
-                            }
-                            break;
-                            case ImGuizmo::SCALE:
-                                RBOrientationMat.Scale = { glm::length( *(glm::vec3*) &ModelMatrix[ 0 ] ),
-                                                           glm::length( *(glm::vec3*) &ModelMatrix[ 1 ] ),
-                                                           glm::length( *(glm::vec3*) &ModelMatrix[ 2 ] ) };
-                                break;
-                            }
-
-                            RB->UpdateOrientation( RBOrientationMat );
-
-                            if ( RBHType == physx::PxConcreteType::eRIGID_DYNAMIC )
-                            {
-                                auto* DynamicActor = RBH->is<physx::PxRigidDynamic>( );
-                                REQUIRED_IF( DynamicActor != nullptr )
-                                {
-                                    DynamicActor->setRigidBodyFlag( physx::PxRigidBodyFlag::eKINEMATIC, true );
-                                    DynamicActor->setKinematicTarget( TargetPose );
-                                    Engine::GetEngine( )->AddPhysicsCallback( [ DynamicActor ]( auto* ) {
-                                        DynamicActor->setRigidBodyFlag( physx::PxRigidBodyFlag::eKINEMATIC, false );
-                                    } );
-                                }
-                            }
-
-                            if ( RBHType == physx::PxConcreteType::eRIGID_STATIC )
-                            {
-                                auto* StaticActor = RBH->is<physx::PxRigidStatic>( );
-                                REQUIRED_IF( StaticActor != nullptr )
-                                {
-                                    Engine::GetEngine( )->AddPhysicsCallback( [ StaticActor, TargetPose ]( auto* ) {
-                                        StaticActor->setGlobalPose( TargetPose );
-                                    } );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            DynamicActor->setRigidBodyFlag( physx::PxRigidBodyFlag::eKINEMATIC, true );
+            DynamicActor->setKinematicTarget( TargetPose );
+            Engine::GetEngine( )->AddPhysicsCallback( [ DynamicActor ]( auto* ) {
+                DynamicActor->setRigidBodyFlag( physx::PxRigidBodyFlag::eKINEMATIC, false );
+            } );
         }
+        break;
+    }
+    case physx::PxConcreteType::eRIGID_STATIC: {
+        auto* StaticActor = RigidHandle->is<physx::PxRigidStatic>( );
+        REQUIRED_IF( StaticActor != nullptr )
+        {
+            Engine::GetEngine( )->AddPhysicsCallback( [ StaticActor, TargetPose ]( auto* ) {
+                StaticActor->setGlobalPose( TargetPose );
+            } );
+        }
+        break;
+    }
+    default: [[unlikely]] std::unreachable( );
     }
 }
