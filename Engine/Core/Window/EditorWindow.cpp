@@ -1018,7 +1018,7 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
 {
     ImGuizmo::SetDrawlist( ImGui::GetWindowDrawList( ) );
     std::apply( ImGuizmo::SetRect, RenderRect );
-    static auto IdentityMatrix = glm::mat4( 1.F );
+    static const auto IdentityMatrix = glm::mat4( 1.F );
 
     if ( m_RootConceptFakeShared )
     {
