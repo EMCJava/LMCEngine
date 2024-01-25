@@ -1053,7 +1053,7 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
                     {
                         if ( ImGuizmo::IsUsing( ) ) [[likely]]   // shouldn't it a must?
                         {
-                            auto&              RBOrientationMat = RB->GetOrientation( );
+                            auto               RBOrientationMat = (const Orientation&) RB->GetOrientation( );
                             auto*              RBH              = RB->GetRigidBodyHandle( );
                             const auto         RBHType          = RBH->getConcreteType( );
                             physx::PxTransform TargetPose       = RBH->getGlobalPose( );
@@ -1061,25 +1061,26 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
                             switch ( m_CurrentGizmoOperation )
                             {
                             case ImGuizmo::TRANSLATE:
-                                RB->GetOrientation( ).SetCoordinate( *(glm::vec3*) &ModelMatrix[ 3 ] );
-                                TargetPose.p = { ModelMatrix[ 3 ][ 0 ], ModelMatrix[ 3 ][ 1 ], ModelMatrix[ 3 ][ 2 ] };
+                                RBOrientationMat.Coordinate = *(glm::vec3*) &ModelMatrix[ 3 ];
+                                TargetPose.p                = { ModelMatrix[ 3 ][ 0 ], ModelMatrix[ 3 ][ 1 ], ModelMatrix[ 3 ][ 2 ] };
                                 break;
                             case ImGuizmo::ROTATE: {
-                                ModelMatrix[ 0 ] /= RBOrientationMat.GetScale( ).x;
-                                ModelMatrix[ 1 ] /= RBOrientationMat.GetScale( ).y;
-                                ModelMatrix[ 2 ] /= RBOrientationMat.GetScale( ).z;
+                                ModelMatrix[ 0 ] /= RBOrientationMat.Scale.x;
+                                ModelMatrix[ 1 ] /= RBOrientationMat.Scale.y;
+                                ModelMatrix[ 2 ] /= RBOrientationMat.Scale.z;
                                 const auto QuatVal = glm::quat_cast( ModelMatrix );
-                                RB->GetOrientation( ).SetQuat( QuatVal );
+                                RBOrientationMat.SetQuat( QuatVal );
                                 TargetPose.q = *(physx::PxQuat*) &QuatVal;
                             }
                             break;
                             case ImGuizmo::SCALE:
-                                RBOrientationMat.SetScale( glm::length( *(glm::vec3*) &ModelMatrix[ 0 ] ),
+                                RBOrientationMat.Scale = { glm::length( *(glm::vec3*) &ModelMatrix[ 0 ] ),
                                                            glm::length( *(glm::vec3*) &ModelMatrix[ 1 ] ),
-                                                           glm::length( *(glm::vec3*) &ModelMatrix[ 2 ] ) );
+                                                           glm::length( *(glm::vec3*) &ModelMatrix[ 2 ] ) };
                                 break;
                             }
 
+                            RB->UpdateOrientation( RBOrientationMat );
 
                             if ( RBHType == physx::PxConcreteType::eRIGID_DYNAMIC )
                             {
