@@ -20,6 +20,9 @@ public:
     void
     SetFreeCamera( bool Free ) noexcept { m_FreeCamera = Free; }
 
+    auto&
+    GetCamera( ) const noexcept { return m_Camera; }
+
 protected:
     std::shared_ptr<PureConceptPerspectiveCamera> m_Camera;
     FloatTy                                       m_ViewControlSensitivity { 1.0f };

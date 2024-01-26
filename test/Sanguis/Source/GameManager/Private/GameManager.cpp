@@ -25,7 +25,8 @@
 #include <Engine/Core/Graphic/Texture/Texture.hpp>
 #include <Engine/Core/Physics/Collider/ColliderMesh.hpp>
 #include <Engine/Core/Physics/RigidBody/RigidMesh.hpp>
-#include <Engine/Core/Physics/Controller/EntityPhyController.hpp>
+#include <Engine/Core/Physics/Controller/PhyControllerEntity.hpp>
+#include <Engine/Core/Physics/Controller/PhyControllerEntityPlayer.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
@@ -100,7 +101,7 @@ GameManager::GameManager( )
 
     {
         m_MainCamera = AddConcept<PureConceptPerspectiveCamera>( );
-        AddConcept<FirstPersonCameraController>( m_MainCamera );
+        // AddConcept<FirstPersonCameraController>( m_MainCamera );
 
         m_MainCamera->SetRuntimeName( "Main Camera" );
         m_MainCamera->PushToCameraStack( );
@@ -111,6 +112,8 @@ GameManager::GameManager( )
 
         m_MainCamera->SetCameraPosition( glm::vec3( -22.228, 14.06, 10.178 ), false );
         m_MainCamera->SetCameraPrincipalAxes( -25.25, -29 );
+
+        AddConcept<PhyControllerEntityPlayer>( m_MainCamera );
     }
 
     {
@@ -190,7 +193,7 @@ GameManager::GameManager( )
 
                 // Controller
                 {
-                    m_CharController = std::make_shared<EntityPhyController>( );
+                    m_CharController = std::make_shared<PhyControllerEntity>( );
                     auto Lock        = Engine::GetEngine( )->GetPhysicsThreadLock( );
                     m_CharController->CreateController( { 0, 100, 0 }, 1.f, 0.3f, PhyMaterial );
                 }
@@ -208,7 +211,7 @@ GameManager::Apply( )
     const auto CollisionFlag = m_CharController->Move( DeltaTime );
     const auto Pos           = m_CharController->GetFootPosition( );
 
-    spdlog::info( "DeltaTime: {}, Foot Position: {},{},{}, CollisionFlags: {}", DeltaTime, Pos.x, Pos.y, Pos.z, !!CollisionFlag );
+    // spdlog::info( "DeltaTime: {}, Foot Position: {},{},{}, CollisionFlags: {}", DeltaTime, Pos.x, Pos.y, Pos.z, !!CollisionFlag );
 }
 
 void

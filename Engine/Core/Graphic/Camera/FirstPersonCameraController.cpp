@@ -57,6 +57,7 @@ FirstPersonCameraController::Apply( )
         if ( RightMovement != 0 ) CameraPosition += m_Camera->GetCameraRightVector( ) * ( RightMovement * DeltaChange );
         if ( FrontMovement || RightMovement ) m_Camera->SetCameraPosition( CameraPosition );
     }
+
     if ( UserInputHandle->GetKeyState( GLFW_KEY_ESCAPE ).isPressed )
     {
         Engine::GetEngine( )->GetUserInputHandle( )->LockCursor( ( m_MouseLocked = !m_MouseLocked ) );

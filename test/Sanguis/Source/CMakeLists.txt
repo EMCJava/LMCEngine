@@ -159,8 +159,9 @@ declare_library(
         PhysicsScene.lib
         Texture.lib
         Material.lib
-        EntityPhyController.lib
+        PhyControllerEntity.lib
         ConceptList.lib
+        PhyControllerEntityPlayer.lib
 
         DEPS
         spdlog.lib

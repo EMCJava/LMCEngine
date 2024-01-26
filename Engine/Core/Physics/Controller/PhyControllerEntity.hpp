@@ -6,15 +6,17 @@
 
 #include "PhyController.hpp"
 
+#include <Engine/Core/Scene/Entity/Entity.hpp>
+
 /*
  *
  * A PhyController with common utilities (gravity, friction, etc.)
  *
  * */
-class EntityPhyController : public PhyController
+class PhyControllerEntity : public PhyController
+    , public Entity
 {
-
-
+    DECLARE_CONCEPT( PhyControllerEntity, Entity )
 public:
     /*
      *
