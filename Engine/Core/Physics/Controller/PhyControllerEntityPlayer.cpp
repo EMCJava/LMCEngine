@@ -65,16 +65,21 @@ PhyControllerEntityPlayer::Apply( )
     if ( UserInputHandle->GetKeyState( GLFW_KEY_D ).isDown ) RightMovement += 1;
     if ( UserInputHandle->GetKeyState( GLFW_KEY_A ).isDown ) RightMovement -= 1;
 
-    if ( /* Accelerated */ UserInputHandle->GetKeyState( GLFW_KEY_LEFT_CONTROL ).isDown )
-    {
-        FrontMovement <<= 4;
-        RightMovement <<= 4;
-    }
-
     glm::vec3 DeltaPosition = { };
     if ( FrontMovement != 0 ) DeltaPosition += m_CameraController->GetCamera( )->GetCameraFacing( ) * (FloatTy) FrontMovement;
     if ( RightMovement != 0 ) DeltaPosition += m_CameraController->GetCamera( )->GetCameraRightVector( ) * (FloatTy) RightMovement;
-    if ( FrontMovement || RightMovement ) AddFrameForce( DeltaPosition );
+    if ( FrontMovement || RightMovement )
+    {
+        DeltaPosition.y = 0;
+        DeltaPosition   = glm::normalize( DeltaPosition ) * 4.f;
+
+        if ( /* Accelerated */ UserInputHandle->GetKeyState( GLFW_KEY_LEFT_CONTROL ).isDown )
+        {
+            DeltaPosition *= 1.7;
+        }
+
+        AddFrameForce( DeltaPosition );
+    }
 
     /*
      *
