@@ -51,7 +51,7 @@ PureConceptPerspectiveCamera::SetCameraPosition( const glm::vec3& Position, bool
 void
 PureConceptPerspectiveCamera::SetCameraFacing( const glm::vec3& Vector, bool UpdateMatrix )
 {
-    m_CameraFrontVec = Vector;
+    m_CameraFrontVec = glm::normalize( Vector );
     m_CameraRightVec = glm::normalize( CalculateCameraRightVector( ) );
 
     if ( UpdateMatrix )

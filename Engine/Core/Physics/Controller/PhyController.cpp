@@ -30,8 +30,7 @@ PhyController::CreateController( const glm::vec3& position, FloatTy Height, Floa
     auto* Controller        = ControllerManager->createController( CapsuleDesc );
     m_Controller            = static_cast<physx::PxCapsuleController*>( Controller );
 
-    // remove controller shape from scene query for standup overlap test
-    return;
+    // remove controller shape from scene query avoid any raycast hit
     physx::PxRigidDynamic* actor = m_Controller->getActor( );
     if ( actor )
     {

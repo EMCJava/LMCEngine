@@ -19,7 +19,8 @@ public:
     } RayToCast;
 
     struct HitInfo {
-        bool      HasHit = false;
+        bool      HasHit      = false;
+        FloatTy   HitDistance = 0;
         glm::vec3 HitPosition, HitNormal;
 
         operator bool( ) const noexcept
@@ -30,4 +31,5 @@ public:
 
     HitInfo        Cast( );
     static HitInfo Cast( const Ray& RayToCast );
+    static HitInfo Cast( class PureConceptPerspectiveCamera* RayFromCamera, FloatTy Distance = 100 );
 };

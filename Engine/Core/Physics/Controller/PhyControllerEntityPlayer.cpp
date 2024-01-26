@@ -8,9 +8,11 @@
 #include <Engine/Core/Input/UserInput.hpp>
 #include <Engine/Core/Graphic/Camera/FirstPersonCameraController.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptPerspectiveCamera.hpp>
-#include <utility>
+#include <Engine/Core/Physics/Queries/RayCast.hpp>
 
 #include <GLFW/glfw3.h>
+
+#include <utility>
 
 DEFINE_CONCEPT_DS( PhyControllerEntityPlayer )
 
@@ -84,4 +86,7 @@ PhyControllerEntityPlayer::Apply( )
     {
         AddFrameVelocity( { 0, std::sqrt( 2 * JumpHeight * -m_Gravity ), 0 } );
     }
+
+    auto CastResult = RayCast::Cast( m_CameraController->GetCamera( ).get( ) );
+    spdlog::info( "CastResult: {}-{}", CastResult.HitDistance, CastResult.HitPosition );
 }
