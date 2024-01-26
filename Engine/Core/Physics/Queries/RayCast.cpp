@@ -50,10 +50,5 @@ RayCast::Cast( PureConceptPerspectiveCamera* RayFromCamera, FloatTy Distance )
     RayToCast.RayToCast.UnitDirection = RayFromCamera->GetCameraFacing( );
     RayToCast.RayToCast.MaxDistance   = Distance;
 
-    spdlog::info( "UnitDirection: {},{},{}",
-                  RayToCast.RayToCast.UnitDirection.x,
-                  RayToCast.RayToCast.UnitDirection.y,
-                  RayToCast.RayToCast.UnitDirection.z );
-
     return RayToCast.Cast( );
 }
