@@ -34,6 +34,9 @@ public:
     void
     AddFrameVelocity( const glm::vec3& FrameVelocity );
 
+    void
+    AddFrameForce( const glm::vec3& FrameForce );
+
 protected:
     FloatTy m_Gravity = -9.81;
 
@@ -42,6 +45,8 @@ protected:
      * Reset after every frame
      *
      * */
-    glm::vec3 m_FrameVelocity;
-    glm::vec3 m_AccumulatedVelocity;
+    glm::vec3 m_FrameForce { };
+    glm::vec3 m_FrameVelocity { };
+
+    glm::vec3 m_AccumulatedVelocity { };
 };

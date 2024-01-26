@@ -101,7 +101,6 @@ GameManager::GameManager( )
 
     {
         m_MainCamera = AddConcept<PureConceptPerspectiveCamera>( );
-        // AddConcept<FirstPersonCameraController>( m_MainCamera );
 
         m_MainCamera->SetRuntimeName( "Main Camera" );
         m_MainCamera->PushToCameraStack( );
@@ -112,8 +111,6 @@ GameManager::GameManager( )
 
         m_MainCamera->SetCameraPosition( glm::vec3( -22.228, 14.06, 10.178 ), false );
         m_MainCamera->SetCameraPrincipalAxes( -25.25, -29 );
-
-        AddConcept<PhyControllerEntityPlayer>( m_MainCamera );
     }
 
     {
@@ -193,7 +190,7 @@ GameManager::GameManager( )
 
                 // Controller
                 {
-                    m_CharController = std::make_shared<PhyControllerEntity>( );
+                    m_CharController = AddConcept<PhyControllerEntityPlayer>( m_MainCamera );
                     auto Lock        = Engine::GetEngine( )->GetPhysicsThreadLock( );
                     m_CharController->CreateController( { 0, 100, 0 }, 1.f, 0.3f, PhyMaterial );
                 }

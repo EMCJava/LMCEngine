@@ -24,7 +24,7 @@ public:
 
 private:
     std::shared_ptr<class PureConceptPerspectiveCamera> m_MainCamera;
-    std::shared_ptr<class PhyControllerEntity>          m_CharController;
+    std::shared_ptr<class PhyControllerEntityPlayer>    m_CharController;
 
     /*
      *

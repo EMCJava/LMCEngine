@@ -28,8 +28,6 @@ public:
     void
     Apply( ) override
     {
-        const auto Coor = m_Orientation.GetCoordinate( );
-        spdlog::info( "Coor: {}-{}-{}", Coor.x, Coor.y, Coor.z );
         m_Controller->GetCamera( )->SetCameraPosition( m_Orientation.GetCoordinate( ), true );
     }
 
@@ -40,7 +38,6 @@ DEFINE_CONCEPT_DS( FPSEntity )
 
 PhyControllerEntityPlayer::PhyControllerEntityPlayer( std::shared_ptr<PureConceptPerspectiveCamera> Camera )
 {
-    m_Gravity = -0.5;
     SetSearchThrough( true );
 
     m_CameraController = CreateConcept<FirstPersonCameraController>( std::move( Camera ) );
@@ -71,5 +68,16 @@ PhyControllerEntityPlayer::Apply( )
     glm::vec3 DeltaPosition = { };
     if ( FrontMovement != 0 ) DeltaPosition += m_CameraController->GetCamera( )->GetCameraFacing( ) * (FloatTy) FrontMovement;
     if ( RightMovement != 0 ) DeltaPosition += m_CameraController->GetCamera( )->GetCameraRightVector( ) * (FloatTy) RightMovement;
-    if ( FrontMovement || RightMovement ) AddFrameVelocity( DeltaPosition );
+    if ( FrontMovement || RightMovement ) AddFrameForce( DeltaPosition );
+
+    /*
+     *
+     * Jump
+     *
+     * */
+    constexpr FloatTy JumpHeight = 1.0f;
+    if ( UserInputHandle->GetKeyState( GLFW_KEY_SPACE ).isPressed )
+    {
+        AddFrameVelocity( { 0, std::sqrt( 2 * JumpHeight * -m_Gravity ), 0 } );
+    }
 }
