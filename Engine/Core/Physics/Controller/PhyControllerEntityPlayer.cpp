@@ -33,6 +33,8 @@ public:
 
 protected:
     std::shared_ptr<FirstPersonCameraController> m_Controller;
+
+    friend PhyControllerEntityPlayer;
 };
 DEFINE_CONCEPT_DS( FPSEntity )
 
@@ -43,7 +45,9 @@ PhyControllerEntityPlayer::PhyControllerEntityPlayer( std::shared_ptr<PureConcep
     m_CameraController = CreateConcept<FirstPersonCameraController>( std::move( Camera ) );
     m_CameraController->SetFreeCamera( false );
 
-    AddConcept<FPSEntity>( m_CameraController );
+    Orientation ControllerOri;
+    ControllerOri.Coordinate = { 0, 1, 0 };
+    AddConcept<FPSEntity>( m_CameraController ).Get( )->UpdateGlobalOrientation( ControllerOri );
 }
 
 void
