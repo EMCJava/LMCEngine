@@ -19,6 +19,18 @@ PhyControllerEntity::Move( FloatTy DeltaTime )
     if ( m_OnGround || Flag.isSet( physx::PxControllerCollisionFlag::Enum::eCOLLISION_UP ) )
         m_AccumulatedVelocity.y = 0;
 
+    // Friction
+    if ( m_OnGround )
+    {
+        const auto backupY   = m_AccumulatedVelocity.y;
+        const auto fpsFactor = 0.0625f / DeltaTime;
+        m_AccumulatedVelocity -= ( m_AccumulatedVelocity * ( 1 - m_Friction ) ) / fpsFactor;
+        m_AccumulatedVelocity.y = backupY;   // No friction on vertical axis
+
+        m_AccumulatedVelocity = glm::clamp( m_AccumulatedVelocity, -m_MaxVelocity, m_MaxVelocity );
+    }
+
+
     auto UpdatedOri       = (const Orientation&) m_Orientation;
     UpdatedOri.Coordinate = GetFootPosition( );
     UpdateOrientation( UpdatedOri );

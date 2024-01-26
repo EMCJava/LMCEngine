@@ -74,12 +74,28 @@ PhyControllerEntityPlayer::Apply( )
         DeltaPosition.y = 0;
         DeltaPosition   = glm::normalize( DeltaPosition ) * 4.f;
 
-        if ( /* Accelerated */ UserInputHandle->GetKeyState( GLFW_KEY_LEFT_CONTROL ).isDown )
+        /*
+         *
+         * Speed modification
+         *
+         * */
         {
-            DeltaPosition *= 1.7;
+            if ( m_OnGround )
+            {
+                if ( /* Accelerated */ UserInputHandle->GetKeyState( GLFW_KEY_LEFT_CONTROL ).isDown )
+                {
+                    DeltaPosition *= 1.7;
+                }
+            } else
+            {
+                // Air control
+                DeltaPosition *= 0.04f;
+            }
         }
 
-        AddFrameForce( DeltaPosition );
+
+        constexpr auto BaseVelocity = 0.08f;
+        AddFrameVelocity( DeltaPosition * BaseVelocity );
     }
 
     /*
@@ -87,21 +103,24 @@ PhyControllerEntityPlayer::Apply( )
      * Jump
      *
      * */
-    constexpr FloatTy JumpHeight = 1.0f;
-    if ( UserInputHandle->GetKeyState( GLFW_KEY_SPACE ).isPressed )
+    constexpr FloatTy JumpHeight = 1.25f;
+    if ( m_OnGround && UserInputHandle->GetKeyState( GLFW_KEY_SPACE ).isPressed )
     {
         AddFrameVelocity( { 0, std::sqrt( 2 * JumpHeight * -m_Gravity ), 0 } );
     }
 
-    auto CastResult = RayCast::Cast( *this );
-    spdlog::info( "CastResult: {}-{}:{}",
-                  CastResult.HitDistance,
-                  CastResult.HitPosition,
-                  CastResult
-                      ? CastResult.HitUserData
-                          ? CastResult.HitUserData->GetRuntimeName( )
-                          : "NoName"
-                      : "Nan" );
+    // RayCast
+    //    auto CastResult = RayCast::Cast( *this );
+    //    spdlog::info( "CastResult: {}-{}:{}",
+    //                  CastResult.HitDistance,
+    //                  CastResult.HitPosition,
+    //                  CastResult
+    //                      ? CastResult.HitUserData
+    //                          ? CastResult.HitUserData->GetRuntimeName( )
+    //                          : "NoName"
+    //                      : "Nan" );
+
+    spdlog::info( "Velocity: {}", glm::length( glm::vec2 { m_AccumulatedVelocity.x, m_AccumulatedVelocity.z } ) );
 }
 
 PhyControllerEntityPlayer::operator PureConceptPerspectiveCamera*( ) const noexcept

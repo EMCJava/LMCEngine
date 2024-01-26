@@ -40,7 +40,9 @@ public:
     bool IsOnGround( ) const noexcept { return m_OnGround; }
 
 protected:
-    FloatTy m_Gravity = -9.81;
+    FloatTy m_Gravity     = -9.81 * 2;
+    FloatTy m_MaxVelocity = 60;
+    FloatTy m_Friction    = 0.0001f;
 
     /*
      *
