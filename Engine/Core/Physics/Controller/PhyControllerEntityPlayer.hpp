@@ -18,6 +18,11 @@ public:
     void
     Apply( ) override;
 
+    auto&
+    GetCameraController( ) const noexcept { return m_CameraController; }
+
+    explicit operator class PureConceptPerspectiveCamera *( ) const noexcept;
+
 protected:
     std::shared_ptr<class FirstPersonCameraController> m_CameraController;
 };

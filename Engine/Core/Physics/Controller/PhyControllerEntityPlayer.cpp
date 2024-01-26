@@ -93,7 +93,7 @@ PhyControllerEntityPlayer::Apply( )
         AddFrameVelocity( { 0, std::sqrt( 2 * JumpHeight * -m_Gravity ), 0 } );
     }
 
-    auto CastResult = RayCast::Cast( m_CameraController->GetCamera( ).get( ) );
+    auto CastResult = RayCast::Cast( *this );
     spdlog::info( "CastResult: {}-{}:{}",
                   CastResult.HitDistance,
                   CastResult.HitPosition,
@@ -102,4 +102,9 @@ PhyControllerEntityPlayer::Apply( )
                           ? CastResult.HitUserData->GetRuntimeName( )
                           : "NoName"
                       : "Nan" );
+}
+
+PhyControllerEntityPlayer::operator PureConceptPerspectiveCamera*( ) const noexcept
+{
+    return m_CameraController->GetCamera( ).get( );
 }
