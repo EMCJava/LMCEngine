@@ -17,9 +17,19 @@ public:
     void
     Apply( ) override;
 
+    void
+    SetFreeCamera( bool Free ) noexcept { m_FreeCamera = Free; }
+
 protected:
     std::shared_ptr<PureConceptPerspectiveCamera> m_Camera;
     FloatTy                                       m_ViewControlSensitivity { 1.0f };
+
+    /*
+     *
+     * Be able to fly around
+     *
+     * */
+    bool m_FreeCamera = true;
 
     bool m_MouseLocked { true };
 

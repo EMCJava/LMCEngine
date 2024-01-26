@@ -33,28 +33,30 @@ FirstPersonCameraController::Apply( )
     const FloatTy DeltaChange    = DeltaTime * m_ViewControlSensitivity;
     auto          CameraPosition = m_Camera->GetCameraPosition( );
 
-    int FrontMovement = 0;
-    int RightMovement = 0;
-
     auto* UserInputHandle = Engine::GetEngine( )->GetUserInputHandle( );
 
-    const bool Accelerated = UserInputHandle->GetKeyState( GLFW_KEY_LEFT_CONTROL ).isDown;
-
-    if ( UserInputHandle->GetKeyState( GLFW_KEY_W ).isDown ) FrontMovement += 1;
-    if ( UserInputHandle->GetKeyState( GLFW_KEY_S ).isDown ) FrontMovement -= 1;
-    if ( UserInputHandle->GetKeyState( GLFW_KEY_D ).isDown ) RightMovement += 1;
-    if ( UserInputHandle->GetKeyState( GLFW_KEY_A ).isDown ) RightMovement -= 1;
-
-    if ( Accelerated )
+    if ( m_FreeCamera )
     {
-        FrontMovement <<= 4;
-        RightMovement <<= 4;
+        int FrontMovement = 0;
+        int RightMovement = 0;
+
+        const bool Accelerated = UserInputHandle->GetKeyState( GLFW_KEY_LEFT_CONTROL ).isDown;
+
+        if ( UserInputHandle->GetKeyState( GLFW_KEY_W ).isDown ) FrontMovement += 1;
+        if ( UserInputHandle->GetKeyState( GLFW_KEY_S ).isDown ) FrontMovement -= 1;
+        if ( UserInputHandle->GetKeyState( GLFW_KEY_D ).isDown ) RightMovement += 1;
+        if ( UserInputHandle->GetKeyState( GLFW_KEY_A ).isDown ) RightMovement -= 1;
+
+        if ( Accelerated )
+        {
+            FrontMovement <<= 4;
+            RightMovement <<= 4;
+        }
+
+        if ( FrontMovement != 0 ) CameraPosition += m_Camera->GetCameraFacing( ) * ( FrontMovement * DeltaChange );
+        if ( RightMovement != 0 ) CameraPosition += m_Camera->GetCameraRightVector( ) * ( RightMovement * DeltaChange );
+        if ( FrontMovement || RightMovement ) m_Camera->SetCameraPosition( CameraPosition );
     }
-
-    if ( FrontMovement != 0 ) CameraPosition += m_Camera->GetCameraFacing( ) * ( FrontMovement * DeltaChange );
-    if ( RightMovement != 0 ) CameraPosition += m_Camera->GetCameraRightVector( ) * ( RightMovement * DeltaChange );
-    if ( FrontMovement || RightMovement ) m_Camera->SetCameraPosition( CameraPosition );
-
     if ( UserInputHandle->GetKeyState( GLFW_KEY_ESCAPE ).isPressed )
     {
         Engine::GetEngine( )->GetUserInputHandle( )->LockCursor( ( m_MouseLocked = !m_MouseLocked ) );
