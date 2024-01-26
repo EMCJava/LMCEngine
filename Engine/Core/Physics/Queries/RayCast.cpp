@@ -3,3 +3,38 @@
 //
 
 #include "RayCast.hpp"
+
+#include <Engine/Engine.hpp>
+#include <Engine/Core/Physics/PhysicsEngine.hpp>
+#include <Engine/Core/Physics/PhysicsScene.hpp>
+
+#include <PxPhysicsAPI.h>
+
+RayCast::HitInfo
+RayCast::Cast( )
+{
+    physx::PxScene&        Scene = Engine::GetEngine( )->GetPhysicsEngine( )->GetScene( );
+    physx::PxRaycastBuffer PhysxCastResult;
+
+    HitInfo Result;
+    Result.HasHit = Scene.raycast( *(physx::PxVec3*) &RayToCast.RayOrigin,
+                                   *(physx::PxVec3*) &RayToCast.UnitDirection,
+                                   RayToCast.MaxDistance, PhysxCastResult );
+
+    if ( Result.HasHit )
+    {
+        static_assert( sizeof( decltype( Result.HitPosition ) ) == sizeof( PhysxCastResult.block.position ) );
+        static_assert( sizeof( decltype( Result.HitNormal ) ) == sizeof( PhysxCastResult.block.normal ) );
+        Result.HitPosition = *(glm::vec3*) &PhysxCastResult.block.position;
+        Result.HitNormal   = *(glm::vec3*) &PhysxCastResult.block.normal;
+    }
+
+    return Result;
+}
+
+RayCast::HitInfo
+RayCast::Cast( const RayCast::Ray& RayToCast )
+{
+    static_assert( sizeof( RayCast ) == sizeof( RayCast::Ray ) );
+    return ( (RayCast*) &RayToCast )->Cast( );
+}

@@ -16,5 +16,18 @@ public:
         glm::vec3 RayOrigin;
         glm::vec3 UnitDirection;
         FloatTy   MaxDistance;
+    } RayToCast;
+
+    struct HitInfo {
+        bool      HasHit = false;
+        glm::vec3 HitPosition, HitNormal;
+
+        operator bool( ) const noexcept
+        {
+            return HasHit;
+        }
     };
+
+    HitInfo        Cast( );
+    static HitInfo Cast( const Ray& RayToCast );
 };
