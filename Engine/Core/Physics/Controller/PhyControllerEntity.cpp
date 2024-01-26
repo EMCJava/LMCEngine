@@ -15,7 +15,8 @@ PhyControllerEntity::Move( FloatTy DeltaTime )
     auto Flag    = MoveRel( ( m_AccumulatedVelocity + m_FrameForce ) * DeltaTime, DeltaTime );
     m_FrameForce = m_FrameVelocity = { };
 
-    if ( Flag.isSet( physx::PxControllerCollisionFlag::Enum::eCOLLISION_DOWN ) || Flag.isSet( physx::PxControllerCollisionFlag::Enum::eCOLLISION_UP ) )
+    m_OnGround = Flag.isSet( physx::PxControllerCollisionFlag::Enum::eCOLLISION_DOWN );
+    if ( m_OnGround || Flag.isSet( physx::PxControllerCollisionFlag::Enum::eCOLLISION_UP ) )
         m_AccumulatedVelocity.y = 0;
 
     auto UpdatedOri       = (const Orientation&) m_Orientation;

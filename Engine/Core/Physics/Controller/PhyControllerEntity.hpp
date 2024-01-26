@@ -37,6 +37,8 @@ public:
     void
     AddFrameForce( const glm::vec3& FrameForce );
 
+    bool IsOnGround( ) const noexcept { return m_OnGround; }
+
 protected:
     FloatTy m_Gravity = -9.81;
 
@@ -47,6 +49,8 @@ protected:
      * */
     glm::vec3 m_FrameForce { };
     glm::vec3 m_FrameVelocity { };
+
+    bool m_OnGround = false;
 
     glm::vec3 m_AccumulatedVelocity { };
 };
