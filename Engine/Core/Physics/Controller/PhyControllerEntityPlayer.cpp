@@ -9,6 +9,7 @@
 #include <Engine/Core/Graphic/Camera/FirstPersonCameraController.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptPerspectiveCamera.hpp>
 #include <Engine/Core/Physics/Queries/RayCast.hpp>
+#include <Engine/Core/Physics/RigidBody/RigidBody.hpp>
 
 #include <GLFW/glfw3.h>
 
@@ -93,5 +94,12 @@ PhyControllerEntityPlayer::Apply( )
     }
 
     auto CastResult = RayCast::Cast( m_CameraController->GetCamera( ).get( ) );
-    spdlog::info( "CastResult: {}-{}", CastResult.HitDistance, CastResult.HitPosition );
+    spdlog::info( "CastResult: {}-{}:{}",
+                  CastResult.HitDistance,
+                  CastResult.HitPosition,
+                  CastResult
+                      ? CastResult.HitUserData
+                          ? CastResult.HitUserData->GetRuntimeName( )
+                          : "NoName"
+                      : "Nan" );
 }

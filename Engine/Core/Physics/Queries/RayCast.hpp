@@ -19,9 +19,10 @@ public:
     } RayToCast;
 
     struct HitInfo {
-        bool      HasHit      = false;
-        FloatTy   HitDistance = 0;
-        glm::vec3 HitPosition, HitNormal;
+        bool             HasHit      = false;
+        FloatTy          HitDistance = 0;
+        glm::vec3        HitPosition, HitNormal;
+        class RigidBody* HitUserData = nullptr;
 
         operator bool( ) const noexcept
         {
