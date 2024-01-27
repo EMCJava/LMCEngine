@@ -23,6 +23,9 @@
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 #include <Engine/Core/Graphic/Material/Material.hpp>
 #include <Engine/Core/Graphic/Texture/Texture.hpp>
+#include <Engine/Core/Graphic/Sprites/SpriteSquareTexture.hpp>
+#include <Engine/Core/Graphic/Image/PureConceptImage.hpp>
+#include <Engine/Core/Graphic/Camera/PureConceptOrthoCamera.hpp>
 #include <Engine/Core/Physics/Collider/ColliderMesh.hpp>
 #include <Engine/Core/Physics/RigidBody/RigidMesh.hpp>
 #include <Engine/Core/Physics/Controller/PhyControllerEntity.hpp>
@@ -51,6 +54,32 @@
 
 DEFINE_CONCEPT_DS_MA_SE( GameManager )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, ConceptApplicable, TestInvokable )
+
+class Reticle : public ConceptList
+{
+    DECLARE_CONCEPT( Reticle, ConceptList )
+
+public:
+    Reticle( )
+    {
+        SetSearchThrough( true );
+
+        auto FixedCamera = AddConcept<PureConceptOrthoCamera>( ).Get( );
+
+        FixedCamera->SetScale( 1 / 1.5F );
+        FixedCamera->UpdateCameraMatrix( );
+
+        auto UICanvas = AddConcept<Canvas>( ).Get( );
+        UICanvas->SetRuntimeName( "UI Canvas" );
+        UICanvas->SetCanvasCamera( FixedCamera );
+
+        auto TextureShader = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" );
+        auto Sprite        = UICanvas->AddConcept<SpriteSquareTexture>( TextureShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/reticle-red-dot.png" ) ).Get( );
+        Sprite->SetCenterAsOrigin( );
+    }
+};
+
+DEFINE_CONCEPT_DS( Reticle )
 
 class LightRotate : public ConceptApplicable
 {
@@ -199,13 +228,15 @@ GameManager::GameManager( )
         }
     }
 
+    AddConcept<Reticle>( );
+
     spdlog::info( "GameManager concept constructor returned" );
 }
 
 void
 GameManager::Apply( )
 {
-    if ( Engine::GetEngine( )->GetUserInputHandle( )->GetKeyState( GLFW_KEY_E ).isPressed )
+    if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isPressed )
     {
         auto CastResult = RayCast::Cast( *m_CharController );
         spdlog::info( "CastResult: {}-{}:{}",

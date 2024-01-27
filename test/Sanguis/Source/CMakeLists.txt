@@ -163,6 +163,9 @@ declare_library(
         ConceptList.lib
         PhyControllerEntityPlayer.lib
         RayCast.lib
+        PureConceptImage.lib
+        SpriteSquareTexture.lib
+        PureConceptOrthoCamera.lib
 
         DEPS
         spdlog.lib
