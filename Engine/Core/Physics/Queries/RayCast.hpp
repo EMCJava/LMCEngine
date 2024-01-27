@@ -30,6 +30,13 @@ public:
         }
     };
 
+    static Ray CalculateRay( class PureConceptPerspectiveCamera* RayFromCamera, FloatTy Distance = 100 );
+    template <typename Ty>
+    static Ray CalculateRay( Ty&& AnyType, FloatTy Distance = 100 )
+    {
+        return CalculateRay( static_cast<class PureConceptPerspectiveCamera*>( AnyType ), Distance );
+    }
+
     HitInfo        Cast( );
     static HitInfo Cast( const Ray& RayToCast );
     static HitInfo Cast( class PureConceptPerspectiveCamera* RayFromCamera, FloatTy Distance = 100 );

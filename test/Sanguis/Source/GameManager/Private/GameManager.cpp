@@ -27,6 +27,7 @@
 #include <Engine/Core/Physics/RigidBody/RigidMesh.hpp>
 #include <Engine/Core/Physics/Controller/PhyControllerEntity.hpp>
 #include <Engine/Core/Physics/Controller/PhyControllerEntityPlayer.hpp>
+#include <Engine/Core/Physics/Queries/RayCast.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
@@ -204,6 +205,28 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
+    if ( Engine::GetEngine( )->GetUserInputHandle( )->GetKeyState( GLFW_KEY_E ).isPressed )
+    {
+        auto CastResult = RayCast::Cast( *m_CharController );
+        spdlog::info( "CastResult: {}-{}:{}",
+                      CastResult.HitDistance,
+                      CastResult.HitPosition,
+                      CastResult
+                          ? CastResult.HitUserData
+                              ? CastResult.HitUserData->GetRuntimeName( )
+                              : "NoName"
+                          : "Nan" );
+
+        if ( CastResult.HitUserData != nullptr )
+        {
+            auto RB = CastResult.HitUserData->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
+            if ( RB != nullptr )
+            {
+                auto Ray = RayCast::CalculateRay( *m_CharController );
+                physx::PxRigidBodyExt::addForceAtPos( *RB, ( *(physx::PxVec3*) &Ray.UnitDirection ) * 1000, *(physx::PxVec3*) &CastResult.HitPosition );
+            }
+        }
+    }
 }
 
 void

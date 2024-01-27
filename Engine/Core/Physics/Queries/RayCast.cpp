@@ -46,9 +46,18 @@ RayCast::HitInfo
 RayCast::Cast( PureConceptPerspectiveCamera* RayFromCamera, FloatTy Distance )
 {
     RayCast RayToCast;
-    RayToCast.RayToCast.RayOrigin     = RayFromCamera->GetCameraPosition( );
-    RayToCast.RayToCast.UnitDirection = RayFromCamera->GetCameraFacing( );
-    RayToCast.RayToCast.MaxDistance   = Distance;
+    RayToCast.RayToCast = CalculateRay( RayFromCamera, Distance );
 
     return RayToCast.Cast( );
+}
+
+RayCast::Ray
+RayCast::CalculateRay( struct PureConceptPerspectiveCamera* RayFromCamera, FloatTy Distance )
+{
+    Ray RayToCast;
+    RayToCast.RayOrigin     = RayFromCamera->GetCameraPosition( );
+    RayToCast.UnitDirection = RayFromCamera->GetCameraFacing( );
+    RayToCast.MaxDistance   = Distance;
+
+    return RayToCast;
 }

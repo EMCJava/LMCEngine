@@ -162,6 +162,7 @@ declare_library(
         PhyControllerEntity.lib
         ConceptList.lib
         PhyControllerEntityPlayer.lib
+        RayCast.lib
 
         DEPS
         spdlog.lib
