@@ -204,11 +204,6 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-    const auto DeltaTime     = Engine::GetEngine( )->GetDeltaSecond( );
-    const auto CollisionFlag = m_CharController->Move( DeltaTime );
-    const auto Pos           = m_CharController->GetFootPosition( );
-
-    // spdlog::info( "DeltaTime: {}, Foot Position: {},{},{}, CollisionFlags: {}", DeltaTime, Pos.x, Pos.y, Pos.z, !!CollisionFlag );
 }
 
 void

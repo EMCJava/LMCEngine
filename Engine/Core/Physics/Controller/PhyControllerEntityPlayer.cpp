@@ -108,6 +108,8 @@ PhyControllerEntityPlayer::Apply( )
     {
         AddFrameVelocity( { 0, std::sqrt( 2 * JumpHeight * -m_Gravity ), 0 } );
     }
+
+    PhyControllerEntity::Apply( );
 }
 
 PhyControllerEntityPlayer::operator PureConceptPerspectiveCamera*( ) const noexcept

@@ -39,6 +39,9 @@ public:
 
     bool IsOnGround( ) const noexcept { return m_OnGround; }
 
+    void
+    Apply( ) override;
+
 protected:
     FloatTy m_Gravity     = -9.81 * 2;
     FloatTy m_MaxVelocity = 60;
@@ -53,6 +56,8 @@ protected:
     glm::vec3 m_FrameVelocity { };
 
     bool m_OnGround = false;
+
+    uint8_t m_LastFrameCollisionFlag = 0;
 
     glm::vec3 m_AccumulatedVelocity { };
 };

@@ -49,3 +49,9 @@ PhyControllerEntity::AddFrameForce( const glm::vec3& FrameForce )
 {
     m_FrameForce += FrameForce;
 }
+
+void
+PhyControllerEntity::Apply( )
+{
+    m_LastFrameCollisionFlag = Move( Engine::GetEngine( )->GetDeltaSecond( ) );
+}

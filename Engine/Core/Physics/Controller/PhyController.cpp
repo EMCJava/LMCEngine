@@ -52,6 +52,7 @@ PhyController::MoveRel( const glm::vec3& Displacement, FloatTy DeltaTime )
 {
     REQUIRED_IF( m_Controller != nullptr )
     {
+        auto Lock = Engine::GetEngine( )->GetPhysicsThreadLock( );
         return m_Controller->move( *( (physx::PxVec3*) &Displacement ), 0.0f, DeltaTime, physx::PxControllerFilters( ) );
     }
 }
