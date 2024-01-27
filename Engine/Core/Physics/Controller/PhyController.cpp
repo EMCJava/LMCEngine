@@ -69,3 +69,12 @@ PhyController::GetFootPosition( )
 
     return glm::vec3 { };
 }
+
+PhyController::~PhyController( )
+{
+    if ( m_Controller != nullptr )
+    {
+        m_Controller->release( );
+        m_Controller = nullptr;
+    }
+}

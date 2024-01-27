@@ -21,6 +21,7 @@ class PhyController
 {
 public:
     PhyController( ) = default;
+    ~PhyController( );
 
     void
     CreateController( const glm::vec3& position, FloatTy Height, FloatTy Radius, physx::PxMaterial* Material );
