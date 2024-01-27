@@ -108,19 +108,6 @@ PhyControllerEntityPlayer::Apply( )
     {
         AddFrameVelocity( { 0, std::sqrt( 2 * JumpHeight * -m_Gravity ), 0 } );
     }
-
-    // RayCast
-    //    auto CastResult = RayCast::Cast( *this );
-    //    spdlog::info( "CastResult: {}-{}:{}",
-    //                  CastResult.HitDistance,
-    //                  CastResult.HitPosition,
-    //                  CastResult
-    //                      ? CastResult.HitUserData
-    //                          ? CastResult.HitUserData->GetRuntimeName( )
-    //                          : "NoName"
-    //                      : "Nan" );
-
-    spdlog::info( "Velocity: {}", glm::length( glm::vec2 { m_AccumulatedVelocity.x, m_AccumulatedVelocity.z } ) );
 }
 
 PhyControllerEntityPlayer::operator PureConceptPerspectiveCamera*( ) const noexcept
