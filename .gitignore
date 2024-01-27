@@ -2,3 +2,5 @@
 build/
 /.idea/
 ProjectCache
+/.vscode/
+.DS_Store
