@@ -42,6 +42,8 @@ struct KeyState {
     void SetPress( uint32_t frame );
 
     KeyState& Update( uint32_t frame );
+
+    operator bool( ) const { return isDown; }
 };
 
 using KeyIDTY = int;
