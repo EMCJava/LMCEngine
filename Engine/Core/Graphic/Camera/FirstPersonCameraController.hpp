@@ -23,6 +23,9 @@ public:
     auto&
     GetCamera( ) const noexcept { return m_Camera; }
 
+    void
+    SetViewSensitivity( FloatTy Sensitivity ) noexcept { m_ViewControlSensitivity = Sensitivity; }
+
 protected:
     std::shared_ptr<PureConceptPerspectiveCamera> m_Camera;
     FloatTy                                       m_ViewControlSensitivity { 1.0f };

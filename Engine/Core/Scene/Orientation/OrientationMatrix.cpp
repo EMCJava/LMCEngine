@@ -259,6 +259,20 @@ OrientationMatrix::SetScale( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix 
 }
 
 const glm::vec3&
+OrientationMatrix::SetScale( const glm::vec3& Scale, bool UpdateMatrix )
+{
+    this->Scale = Scale;
+
+    if ( UpdateMatrix )
+    {
+        UpdateScaleMatrix( );
+        UpdateModelMatrix( );
+    }
+
+    return Scale;
+}
+
+const glm::vec3&
 OrientationMatrix::AlterScale( FloatTy X, FloatTy Y, FloatTy Z, bool UpdateMatrix )
 {
     Scale.x += X;

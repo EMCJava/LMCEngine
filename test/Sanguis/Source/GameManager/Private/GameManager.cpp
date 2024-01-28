@@ -74,9 +74,16 @@ public:
         UICanvas->SetCanvasCamera( FixedCamera );
 
         auto TextureShader = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultTextureShader" );
-        auto Sprite        = UICanvas->AddConcept<SpriteSquareTexture>( TextureShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/reticle-red-dot.png" ) ).Get( );
-        Sprite->SetCenterAsOrigin( );
+        m_ReticleSprite    = UICanvas->AddConcept<SpriteSquareTexture>( TextureShader, std::make_shared<PureConceptImage>( "Assets/Texture/UI/reticle-red-dot.png" ) ).Get( );
+        m_ReticleSprite->SetCenterAsOrigin( );
+        m_ReticleSprite->SetScale( glm::vec3 { 0.4 } );
     }
+
+    auto&
+    GetSprite( ) { return m_ReticleSprite; }
+
+protected:
+    std::shared_ptr<SpriteSquareTexture> m_ReticleSprite;
 };
 
 DEFINE_CONCEPT_DS( Reticle )
@@ -227,8 +234,13 @@ GameManager::GameManager( )
             }
         }
     }
+    // 373
+    m_Reticle = AddConcept<Reticle>( );
 
-    AddConcept<Reticle>( );
+    m_CameraZoomLerp.Start = /* Zoom FOV */ 30;
+    m_CameraZoomLerp.End   = /* Default FOV */ 45;
+    m_CameraZoomLerp.SetOneRoundTime( 0.06 );
+    m_CameraZoomLerp.Update( 0.06 - 0.0001 );   // Activate once
 
     spdlog::info( "GameManager concept constructor returned" );
 }
@@ -236,7 +248,45 @@ GameManager::GameManager( )
 void
 GameManager::Apply( )
 {
-    if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isPressed )
+    auto* UserInput = Engine::GetEngine( )->GetUserInputHandle( );
+
+    constexpr FloatTy DefaultFOV = 45;
+    constexpr FloatTy ZoomFOV    = 30;
+
+    if ( !m_CameraZoomLerp.HasReachedEnd( ) )
+    {
+        const auto FOV              = m_CameraZoomLerp.Update( Engine::GetEngine( )->GetDeltaSecond( ) );
+        auto&      CameraController = m_CharController->GetCameraController( );
+        CameraController->GetCamera( )->SetCameraPerspectiveFOV( FOV );
+
+        m_Reticle->GetSprite( )->SetScale( glm::vec3 { 30 / FOV } );
+    }
+
+    // Zoom
+    if ( UserInput->GetSecondaryKey( ) )
+    {
+        if ( !m_IsViewZooming )
+        {
+            auto& CameraController = m_CharController->GetCameraController( );
+            CameraController->SetViewSensitivity( 0.4 );
+            m_CameraZoomLerp.Swap( );
+
+            m_IsViewZooming = true;
+        }
+    } else
+    {
+        if ( m_IsViewZooming )
+        {
+            auto& CameraController = m_CharController->GetCameraController( );
+            CameraController->SetViewSensitivity( 1 );
+            m_CameraZoomLerp.Swap( );
+
+            m_IsViewZooming = false;
+        }
+    }
+
+    // Fire
+    if ( UserInput->GetPrimaryKey( ).isPressed )
     {
         auto CastResult = RayCast::Cast( *m_CharController );
         spdlog::info( "CastResult: {}-{}:{}",

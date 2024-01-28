@@ -59,6 +59,8 @@ public:
     const glm::vec3&
     SetScale( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
     const glm::vec3&
+    SetScale( const glm::vec3& Scale, bool UpdateMatrix = true );
+    const glm::vec3&
     AlterScale( FloatTy X = 0, FloatTy Y = 0, FloatTy Z = 0, bool UpdateMatrix = true );
     const glm::vec3&
     GetScale( ) const;

@@ -29,9 +29,8 @@ FirstPersonCameraController::~FirstPersonCameraController( )
 void
 FirstPersonCameraController::Apply( )
 {
-    const auto    DeltaTime      = Engine::GetEngine( )->GetDeltaSecond( );
-    const FloatTy DeltaChange    = DeltaTime * m_ViewControlSensitivity;
-    auto          CameraPosition = m_Camera->GetCameraPosition( );
+    const auto DeltaTime      = Engine::GetEngine( )->GetDeltaSecond( );
+    auto       CameraPosition = m_Camera->GetCameraPosition( );
 
     auto* UserInputHandle = Engine::GetEngine( )->GetUserInputHandle( );
 
@@ -53,8 +52,8 @@ FirstPersonCameraController::Apply( )
             RightMovement <<= 4;
         }
 
-        if ( FrontMovement != 0 ) CameraPosition += m_Camera->GetCameraFacing( ) * ( FrontMovement * DeltaChange );
-        if ( RightMovement != 0 ) CameraPosition += m_Camera->GetCameraRightVector( ) * ( RightMovement * DeltaChange );
+        if ( FrontMovement != 0 ) CameraPosition += m_Camera->GetCameraFacing( ) * ( FrontMovement * DeltaTime );
+        if ( RightMovement != 0 ) CameraPosition += m_Camera->GetCameraRightVector( ) * ( RightMovement * DeltaTime );
         if ( FrontMovement || RightMovement ) m_Camera->SetCameraPosition( CameraPosition );
     }
 
@@ -65,7 +64,7 @@ FirstPersonCameraController::Apply( )
 
     if ( m_MouseLocked )
     {
-        const auto Delta = UserInputHandle->GetCursorDeltaPosition( );
+        const auto Delta = UserInputHandle->GetCursorDeltaPosition( ) * m_ViewControlSensitivity;
         m_Camera->AlterCameraPrincipalAxes( Delta.first * 0.05F, -Delta.second * 0.05F );
     }
 }
