@@ -197,6 +197,21 @@ GameManager::GameManager( )
                 }
 
                 {
+                    auto LandMesh = PureConcept::CreateConcept<ConceptMesh>( "Assets/Model/Swamp/map_1.obj", eFeatureDefault | eFeatureUV0 );
+
+                    auto RM = PerspectiveCanvas->AddConcept<RigidMesh>( LandMesh, PhyMaterial, true ).Get( );
+
+                    auto CottageRenderable = RM->GetRenderable( );
+                    RenderableShaderSetup( CottageRenderable, "DefaultTexturePhongShader" );
+
+//                    auto CottageMaterial = std::make_shared<Material>( );
+//                    CottageMaterial->ColorTexture.LoadTexture( "Assets/Model/Texture/cottage_textures/cottage_diffuse.png" );
+//                    CottageRenderable->TryCast<RenderableMesh>( )->SetMaterial( std::move( CottageMaterial ) );
+
+                    CottageRenderable->SetRuntimeName( "Cottage" );
+                }
+
+                {
                     std::shared_ptr<RigidMesh> RM = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", PhyMaterial, true, []( auto& SubMeshSpan ) {
                         if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
                             return ColliderSerializerGroupMesh::ColliderType::eTriangle;
@@ -249,9 +264,6 @@ void
 GameManager::Apply( )
 {
     auto* UserInput = Engine::GetEngine( )->GetUserInputHandle( );
-
-    constexpr FloatTy DefaultFOV = 45;
-    constexpr FloatTy ZoomFOV    = 30;
 
     if ( !m_CameraZoomLerp.HasReachedEnd( ) )
     {

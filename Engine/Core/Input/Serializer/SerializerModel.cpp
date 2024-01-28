@@ -129,18 +129,42 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh )
                       * Texture setup
                       *
                       * */
-                     //                     std::string Keys;
-                     //                     for ( int np = 0; np < Material->mNumProperties; ++np )
-                     //                     {
-                     //                         Keys += Material->mProperties[ np ]->mKey.C_Str( );
-                     //                         Keys += " ";
-                     //                     }
-                     //                     spdlog::info( "Texture keys: {}", Keys );
-
+                     std::string Keys = "\n";
+                     for ( int np = 0; np < Material->mNumProperties; ++np )
+                     {
+                         Keys += Material->mProperties[ np ]->mKey.C_Str( );
+                         Keys += ": ";
+                         switch ( Material->mProperties[ np ]->mType )
+                         {
+                         case aiPTI_Float:
+                             Keys += std::to_string( *(float*) Material->mProperties[ np ]->mData );
+                             break;
+                         case aiPTI_Double:
+                             Keys += std::to_string( *(double*) Material->mProperties[ np ]->mData );
+                             break;
+                         case aiPTI_String:
+                             Keys += ( (aiString*) Material->mProperties[ np ]->mData )->C_Str( );
+                             break;
+                         case aiPTI_Integer:
+                             Keys += std::to_string( *(int*) Material->mProperties[ np ]->mData );
+                             break;
+                         case aiPTI_Buffer:
+                             Keys += "BUFFER";
+                             break;
+                         case _aiPTI_Force32Bit:
+                             Keys += std::to_string( *(int32_t*) Material->mProperties[ np ]->mData );
+                             break;
+                         }
+                         Keys += "\n";
+                     }
+                     spdlog::info( "Texture keys: {}", Keys );
                      aiString DiffuseTexturePath;
                      if ( Material->Get( AI_MATKEY_TEXTURE_DIFFUSE( 0 ), DiffuseTexturePath ) == AI_SUCCESS )
                      {
-                         spdlog::warn( "> Ignoring texture: {}", DiffuseTexturePath.C_Str( ) );
+                         aiString str;
+                         aiGetMaterialTexture( Material, aiTextureType_DIFFUSE, 0, &str, 0, 0, 0, 0, 0, 0 );
+
+                         spdlog::warn( "> Ignoring texture: {}-{}", DiffuseTexturePath.C_Str( ), str.C_Str( ) );
                      }
 
                      /*
