@@ -15,6 +15,7 @@ public:
     Texture( std::shared_ptr<class PureConceptImage> Img );
     Texture( const std::string& TexturePath );
     Texture( ) = default;
+    ~Texture( );
 
     void
     SetTexturePath( const std::string& TexturePath );
@@ -31,7 +32,7 @@ public:
     LoadTexture( );
 
     void
-    BindTexture( int BindAt = 0) const;
+    BindTexture( int BindAt = 0 ) const;
 
     uint32_t
     GetTextureID( ) const noexcept;

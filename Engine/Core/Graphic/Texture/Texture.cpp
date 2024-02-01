@@ -56,6 +56,12 @@ Texture::Texture( const std::string& TexturePath )
     SetTexturePath( TexturePath );
 }
 
+Texture::~Texture( )
+{
+    const auto* gl = Engine::GetEngine( )->GetGLContext( );
+    gl->DeleteTextures( 1, &m_TextureID );
+}
+
 void
 Texture::SetTexturePath( const std::string& TexturePath )
 {
