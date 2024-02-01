@@ -4,6 +4,11 @@
 
 #include "PhyControllerEntity.hpp"
 
+#include <Engine/Core/Physics/PhysicsEngine.hpp>
+#include <Engine/Core/Physics/PhysicsScene.hpp>
+
+#include <PxPhysicsAPI.h>
+
 DEFINE_CONCEPT_DS( PhyControllerEntity )
 
 physx::PxControllerCollisionFlags
@@ -12,12 +17,32 @@ PhyControllerEntity::Move( FloatTy DeltaTime )
     m_AccumulatedVelocity.y += m_Gravity * DeltaTime;
     m_AccumulatedVelocity += m_FrameVelocity;
 
-    auto Flag    = MoveRel( ( m_AccumulatedVelocity + m_FrameForce ) * DeltaTime, DeltaTime );
+    const auto Displacement = ( m_AccumulatedVelocity + m_FrameForce ) * DeltaTime;
+    auto       Flag         = MoveRel( Displacement, DeltaTime );
     m_FrameForce = m_FrameVelocity = { };
-
-    m_OnGround = Flag.isSet( physx::PxControllerCollisionFlag::Enum::eCOLLISION_DOWN );
-    if ( m_OnGround || Flag.isSet( physx::PxControllerCollisionFlag::Enum::eCOLLISION_UP ) )
+    m_OnGround                     = Flag.isSet( physx::PxControllerCollisionFlag::Enum::eCOLLISION_DOWN );
+    if ( m_OnGround )
+    {
+        // Direct collision
         m_AccumulatedVelocity.y = 0;
+    } else if ( Flag.isSet( physx::PxControllerCollisionFlag::Enum::eCOLLISION_UP ) )
+    {
+        // Direct collision upwards
+        m_AccumulatedVelocity.y = 0;
+    } else if ( !m_OnGround && Displacement.y < 0 )   // not directly colliding to the ground, but potentially / close enough, do a sphere overlap check
+    {
+        const auto* Desc = GetCapsuleDesc( );
+
+        float      radius       = Desc->radius * 0.9f;
+        const auto FootPosition = m_Controller->getFootPosition( );
+        const auto SphereOrigin = FootPosition + physx::PxExtendedVec3 { 0, radius * 0.9f, 0 };
+
+        physx::PxScene&     Scene = Engine::GetEngine( )->GetPhysicsEngine( )->GetScene( );
+        physx::PxOverlapHit HitData;
+
+        auto Lock  = Engine::GetEngine( )->GetPhysicsThreadLock( );
+        m_OnGround = physx::PxSceneQueryExt::overlapAny( Scene, physx::PxSphereGeometry( radius ), physx::PxTransform { toVec3( SphereOrigin ) }, HitData );
+    }
 
     // Friction
     if ( m_OnGround )
