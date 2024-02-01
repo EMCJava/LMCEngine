@@ -3,5 +3,5 @@ add_library(PhyControllerEntity.lib PhyControllerEntity.hpp PhyControllerEntity.
 add_library(PhyControllerEntityPlayer.lib PhyControllerEntityPlayer.hpp PhyControllerEntityPlayer.cpp)
 
 target_link_libraries(PhyController.lib PhysX::PhysX glm::glm Engine.lib PhysicsEngine.lib spdlog.lib)
-target_link_libraries(PhyControllerEntity.lib PhyController.lib Entity.lib)
+target_link_libraries(PhyControllerEntity.lib PhyController.lib Entity.lib PhysicsScene.lib)
 target_link_libraries(PhyControllerEntityPlayer.lib RigidBody.lib PhyControllerEntity.lib ConceptList.lib FirstPersonCameraController.lib Engine.lib UserInput.lib RayCast.lib)

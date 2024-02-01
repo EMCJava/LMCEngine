@@ -10,6 +10,7 @@
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
+#include <Engine/Core/Graphic/Material/Material.hpp>
 
 #include <assimp/Importer.hpp>    // C++ importer interface
 #include <assimp/scene.h>         // Output data structure
@@ -21,6 +22,7 @@
 
 #include <string>
 #include <numeric>
+#include <filesystem>
 
 SerializerModel::SerializerModel( )  = default;
 SerializerModel::~SerializerModel( ) = default;
@@ -53,6 +55,8 @@ SerializerModel::LoadModel( )
     return true;
 }
 
+namespace
+{
 FloatTy
 PackColor( aiColor3D color )
 {
@@ -95,16 +99,95 @@ struct GLBufferRange {
     }
 };
 
+
+}   // namespace
+
 bool
 SerializerModel::ToMesh( ConceptMesh* ToMesh )
 {
-    if ( !m_ModelScene && !LoadModel( ) ) return false;
+    if ( !m_ModelScene && !LoadModel( ) )
+    {
+        spdlog::error( "Failed loading model ===================={}====================", m_FilePath );
+        return false;
+    }
+
+    spdlog::info( "Loading model ===================={}====================", m_FilePath );
 
     ToMesh->m_FilePath = m_FilePath;
     ToMesh->m_Vertices_ColorPack.clear( );
     ToMesh->m_Normals.clear( );
     ToMesh->m_Indices.clear( );
     ToMesh->m_SubMeshes.clear( );
+
+    std::vector<Material> ModelMaterials { m_ModelScene->mNumMaterials };
+    for ( int i = 0; i < m_ModelScene->mNumMaterials; ++i )
+    {
+        auto* Material = m_ModelScene->mMaterials[ i ];
+
+        /*        {
+                    std::string Keys = "\n";
+                    for ( int np = 0; np < Material->mNumProperties; ++np )
+                    {
+                        Keys += Material->mProperties[ np ]->mKey.C_Str( );
+                        Keys += ": ";
+                        switch ( Material->mProperties[ np ]->mType )
+                        {
+                        case aiPTI_Float:
+                            Keys += std::to_string( *(float*) Material->mProperties[ np ]->mData );
+                            break;
+                        case aiPTI_Double:
+                            Keys += std::to_string( *(double*) Material->mProperties[ np ]->mData );
+                            break;
+                        case aiPTI_String:
+                            Keys += ( (aiString*) Material->mProperties[ np ]->mData )->C_Str( );
+                            break;
+                        case aiPTI_Integer:
+                            Keys += std::to_string( *(int*) Material->mProperties[ np ]->mData );
+                            break;
+                        case aiPTI_Buffer:
+                            Keys += "BUFFER";
+                            break;
+                        case _aiPTI_Force32Bit:
+                            Keys += std::to_string( *(int32_t*) Material->mProperties[ np ]->mData );
+                            break;
+                        }
+                        Keys += "\n";
+                    }
+                    spdlog::info( "Material${} Properties: {}", i, Keys );
+                }*/
+
+        aiString DiffuseTexturePath;
+
+        if ( Material->Get( AI_MATKEY_TEXTURE_DIFFUSE( 0 ), DiffuseTexturePath ) == AI_SUCCESS )
+        {
+            using namespace std::filesystem;
+            path TextureCompletePath = ToMesh->GetFilePath( );
+            if ( TextureCompletePath.is_relative( ) )
+            {
+                const auto ModelParentPath = absolute( TextureCompletePath.parent_path( ) );
+                if ( exists( ModelParentPath ) )
+                {
+                    TextureCompletePath = ModelParentPath / DiffuseTexturePath.C_Str( );
+                    if ( !exists( TextureCompletePath ) )
+                    {
+                        TextureCompletePath.clear( );
+                    }
+                } else
+                {
+                    TextureCompletePath.clear( );
+                }
+
+            } else if ( !exists( TextureCompletePath ) )
+            {
+                TextureCompletePath.clear( );
+            }
+
+            if ( !TextureCompletePath.empty( ) )
+            {
+                ModelMaterials[ i ].ColorTexture.LoadTexture( TextureCompletePath.string( ) );
+            }
+        }
+    }
 
     ::FetchMesh( m_ModelScene,
                  m_ModelScene->mRootNode,
@@ -129,43 +212,7 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh )
                       * Texture setup
                       *
                       * */
-                     std::string Keys = "\n";
-                     for ( int np = 0; np < Material->mNumProperties; ++np )
-                     {
-                         Keys += Material->mProperties[ np ]->mKey.C_Str( );
-                         Keys += ": ";
-                         switch ( Material->mProperties[ np ]->mType )
-                         {
-                         case aiPTI_Float:
-                             Keys += std::to_string( *(float*) Material->mProperties[ np ]->mData );
-                             break;
-                         case aiPTI_Double:
-                             Keys += std::to_string( *(double*) Material->mProperties[ np ]->mData );
-                             break;
-                         case aiPTI_String:
-                             Keys += ( (aiString*) Material->mProperties[ np ]->mData )->C_Str( );
-                             break;
-                         case aiPTI_Integer:
-                             Keys += std::to_string( *(int*) Material->mProperties[ np ]->mData );
-                             break;
-                         case aiPTI_Buffer:
-                             Keys += "BUFFER";
-                             break;
-                         case _aiPTI_Force32Bit:
-                             Keys += std::to_string( *(int32_t*) Material->mProperties[ np ]->mData );
-                             break;
-                         }
-                         Keys += "\n";
-                     }
-                     spdlog::info( "Texture keys: {}", Keys );
-                     aiString DiffuseTexturePath;
-                     if ( Material->Get( AI_MATKEY_TEXTURE_DIFFUSE( 0 ), DiffuseTexturePath ) == AI_SUCCESS )
-                     {
-                         aiString str;
-                         aiGetMaterialTexture( Material, aiTextureType_DIFFUSE, 0, &str, 0, 0, 0, 0, 0, 0 );
-
-                         spdlog::warn( "> Ignoring texture: {}-{}", DiffuseTexturePath.C_Str( ), str.C_Str( ) );
-                     }
+                     spdlog::warn( "> Ignoring {} texture(s) on Material${}", Material->GetTextureCount( aiTextureType_DIFFUSE ), Mesh->mMaterialIndex );
 
                      /*
                       *
@@ -306,6 +353,8 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh )
     GL_CHECK( gl->GenBuffers( 1, &GLBuffer.EBO ) )
     GL_CHECK( gl->BindBuffer( GL_ELEMENT_ARRAY_BUFFER, GLBuffer.EBO ) )
     GL_CHECK( gl->BufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( uint32_t ) * ToMesh->m_Indices.size( ), ToMesh->m_Indices.data( ), GL_STATIC_DRAW ) )
+
+    spdlog::info( "Finished loading model ===================={}====================", m_FilePath );
 
     return true;
 }
