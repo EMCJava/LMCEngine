@@ -99,7 +99,7 @@ Texture::LoadTexture( )
         switch ( m_TextureImage->GetImageChannelCount( ) )
         {
         case 1: Format = GL_RED; break;
-        case 2: Format = GL_RGB; break;
+        case 3: Format = GL_RGB; break;
         case 4: Format = GL_RGBA; break;
 
         default:
