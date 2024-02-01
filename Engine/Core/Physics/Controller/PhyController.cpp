@@ -12,23 +12,27 @@
 
 #include <spdlog/spdlog.h>
 
+// For m_CapsuleDesc
+PhyController::PhyController( )
+{ }
+
 void
 PhyController::CreateController( const glm::vec3& position, FloatTy Height, FloatTy Radius, physx::PxMaterial* Material )
 {
-    physx::PxCapsuleControllerDesc CapsuleDesc;
-    CapsuleDesc.material         = Material;
-    CapsuleDesc.position         = { position.x, position.y, position.z };
-    CapsuleDesc.height           = Height;
-    CapsuleDesc.radius           = Radius;
-    CapsuleDesc.slopeLimit       = 0.0f;
-    CapsuleDesc.contactOffset    = 0.1f;
-    CapsuleDesc.stepOffset       = 0.02f;
-    CapsuleDesc.reportCallback   = nullptr;
-    CapsuleDesc.behaviorCallback = nullptr;
+    m_CapsuleDesc                   = std::make_unique<physx::PxCapsuleControllerDesc>( );
+    m_CapsuleDesc->material         = Material;
+    m_CapsuleDesc->position         = { position.x, position.y, position.z };
+    m_CapsuleDesc->height           = Height;
+    m_CapsuleDesc->radius           = Radius;
+    m_CapsuleDesc->slopeLimit       = 0.0f;
+    m_CapsuleDesc->contactOffset    = 0.1f;
+    m_CapsuleDesc->stepOffset       = 0.02f;
+    m_CapsuleDesc->reportCallback   = nullptr;
+    m_CapsuleDesc->behaviorCallback = nullptr;
 
     auto* ControllerManager = Engine::GetEngine( )->GetPhysicsEngine( )->GetControllerManager( );
-    auto* Controller        = ControllerManager->createController( CapsuleDesc );
-    m_Controller            = static_cast<physx::PxCapsuleController*>( Controller );
+    auto* Controller        = ControllerManager->createController( *m_CapsuleDesc );
+    m_Controller            = dynamic_cast<physx::PxCapsuleController*>( Controller );
 
     // remove controller shape from scene query avoid any raycast hit
     physx::PxRigidDynamic* actor = m_Controller->getActor( );

@@ -13,6 +13,7 @@
 
 namespace physx
 {
+class PxCapsuleControllerDesc;
 class PxCapsuleController;
 class PxMaterial;
 }   // namespace physx
@@ -20,7 +21,7 @@ class PxMaterial;
 class PhyController
 {
 public:
-    PhyController( ) = default;
+    PhyController( );
     ~PhyController( );
 
     void
@@ -32,9 +33,13 @@ public:
     physx::PxControllerCollisionFlags
     MoveRel( const glm::vec3& Displacement, FloatTy DeltaTime );
 
+    physx::PxCapsuleControllerDesc*
+    GetCapsuleDesc( ) { return m_CapsuleDesc.get( ); }
+
     glm::dvec3
     GetFootPosition( );
 
 protected:
-    physx::PxCapsuleController* m_Controller = nullptr;
+    std::unique_ptr<physx::PxCapsuleControllerDesc> m_CapsuleDesc;
+    physx::PxCapsuleController*                     m_Controller = nullptr;
 };
