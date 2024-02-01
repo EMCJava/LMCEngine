@@ -33,8 +33,8 @@ public:
     physx::PxControllerCollisionFlags
     MoveRel( const glm::vec3& Displacement, FloatTy DeltaTime );
 
-    physx::PxCapsuleControllerDesc*
-    GetCapsuleDesc( ) { return m_CapsuleDesc.get( ); }
+    const physx::PxCapsuleControllerDesc*
+    GetCapsuleDesc( ) const noexcept { return m_CapsuleDesc.get( ); }
 
     glm::dvec3
     GetFootPosition( );
