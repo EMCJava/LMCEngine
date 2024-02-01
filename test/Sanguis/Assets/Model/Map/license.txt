@@ -1,0 +1,11 @@
+Model Information:
+* title:	Halo>Multiplayer>Killtacular>Turf
+* source:	https://sketchfab.com/3d-models/halomultiplayerkilltacularturf-6a4a759cff3943aca6719ce99954f478
+* author:	jameslucino117 (https://sketchfab.com/jameslucino117)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Halo>Multiplayer>Killtacular>Turf" (https://sketchfab.com/3d-models/halomultiplayerkilltacularturf-6a4a759cff3943aca6719ce99954f478) by jameslucino117 (https://sketchfab.com/jameslucino117) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
