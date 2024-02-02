@@ -197,7 +197,7 @@ GameManager::GameManager( )
                 }
 
                 {
-                    auto LandMesh = PureConcept::CreateConcept<ConceptMesh>( "Assets/Model/Swamp/map_1.obj", eFeatureDefault | eFeatureUV0 );
+                    auto LandMesh = PureConcept::CreateConcept<ConceptMesh>( "Assets/Model/Map/scene.gltf", eFeatureDefault | eFeatureUV0 );
 
                     auto RM = PerspectiveCanvas->AddConcept<RigidMesh>( LandMesh, PhyMaterial, true ).Get( );
 
