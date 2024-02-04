@@ -119,7 +119,10 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh )
     ToMesh->m_Indices.clear( );
     ToMesh->m_SubMeshes.clear( );
 
-    std::vector<Material> ModelMaterials { m_ModelScene->mNumMaterials };
+    std::vector<std::shared_ptr<Material>> ModelMaterials { m_ModelScene->mNumMaterials };
+    for ( auto& Mat : ModelMaterials )
+        Mat = std::make_shared<Material>( );
+
     for ( int i = 0; i < m_ModelScene->mNumMaterials; ++i )
     {
         auto* Material = m_ModelScene->mMaterials[ i ];
@@ -184,7 +187,7 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh )
 
             if ( !TextureCompletePath.empty( ) )
             {
-                ModelMaterials[ i ].ColorTexture.LoadTexture( TextureCompletePath.string( ) );
+                ModelMaterials[ i ]->ColorTexture.LoadTexture( TextureCompletePath.string( ) );
             }
         }
     }
