@@ -40,10 +40,19 @@ public:
     ToMesh( class ConceptMesh* ToMesh );
 
     bool
-    ToMeshCluster( class RenderableMeshCluster* ToMesh, uint32_t AIMesh );
+    ToMeshCluster( class RenderableMeshCluster* ToMesh, uint32_t VertexFeature );
 
     static bool
     ToMesh( const std::string& FilePath, class ConceptMesh* ToMesh );
+
+    static std::shared_ptr<class ConceptMesh>
+    ToMesh( const std::string& FilePath );
+
+    static bool
+    ToMeshCluster( const std::string& FilePath, class RenderableMeshCluster* ToMesh, uint32_t VertexFeature );
+
+    static std::shared_ptr<class RenderableMeshCluster>
+    ToMeshCluster( const std::string& FilePath, uint32_t VertexFeature );
 
     struct aiScene const*
     GetScene( ) const { return m_ModelScene; }

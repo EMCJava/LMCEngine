@@ -599,3 +599,35 @@ SerializerModel::ToMesh( const std::string& FilePath, ConceptMesh* ToMesh )
     Tmp.SetFilePath( FilePath );
     return Tmp.ToMesh( ToMesh );
 }
+
+bool
+SerializerModel::ToMeshCluster( const std::string& FilePath, RenderableMeshCluster* ToMesh, uint32_t VertexFeature )
+{
+    SerializerModel Tmp;
+    Tmp.SetFilePath( FilePath );
+    return Tmp.ToMeshCluster( ToMesh, VertexFeature );
+}
+
+std::shared_ptr<RenderableMeshCluster>
+SerializerModel::ToMeshCluster( const std::string& FilePath, uint32_t VertexFeature )
+{
+    auto RMCluster = PureConcept::CreateConcept<RenderableMeshCluster>( );
+    if ( SerializerModel::ToMeshCluster( FilePath, RMCluster.get( ), VertexFeature ) )
+    {
+        return RMCluster;
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<ConceptMesh>
+SerializerModel::ToMesh( const std::string& FilePath )
+{
+    auto CM = PureConcept::CreateConcept<ConceptMesh>( );
+    if ( SerializerModel::ToMesh( FilePath, CM.get( ) ) )
+    {
+        return CM;
+    }
+
+    return nullptr;
+}
