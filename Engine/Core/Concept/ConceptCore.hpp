@@ -169,7 +169,16 @@ private:
 public:                                                                                                                               \
     using ParentSet = CombineContainersWrapExcludeFirst<ConceptValueWrapper, ConceptParentSetWrapper, class_name, __VA_ARGS__>::type; \
                                                                                                                                       \
+    template <class ConceptType = class_name, typename... Args>                                                                       \
+        requires PureConceptDescendants<ConceptType>                                                                                  \
+    static std::shared_ptr<ConceptType>                                                                                                      \
+    CreateConcept( Args&&... params )                                                                                                 \
+    {                                                                                                                                 \
+        return PureConcept::CreateConcept<class_name>( std::forward<Args>( params )... );                                             \
+    }                                                                                                                                 \
+                                                                                                                                      \
 private:
+
 
 #define DECLARE_CONCEPT_SWITCH( _0,                                               \
                                 _1, _2, _3, _4, _5, _6, _7, _8, _9, _10,          \
