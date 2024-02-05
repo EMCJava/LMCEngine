@@ -6,7 +6,7 @@
 
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 
-class RenderableMeshCluster : ConceptRenderable
+class RenderableMeshCluster : public ConceptRenderable
 {
     DECLARE_CONCEPT( RenderableMeshCluster, ConceptRenderable )
 
