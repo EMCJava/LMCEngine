@@ -202,7 +202,12 @@ GameManager::GameManager( )
                     auto RMC = AddConcept<RenderableMeshCluster>( ).Get( );
                     SM.ToMeshCluster( RMC.get( ), eFeatureDefault | eFeatureUV0 );
                     RenderableShaderSetup( RMC, "DefaultTexturePhongShader" );
-                    AddConcept<EntityRenderable>( RMC ).Get( )->SetRuntimeName( "Map" );
+                    auto ER = AddConcept<EntityRenderable>( RMC ).Get( );
+                    ER->SetRuntimeName( "Map" );
+                    Orientation Ori;
+                    Ori.Coordinate = { 0, -7.04, 0 };
+                    Ori.Scale      = glm::vec3 { 0.85 };
+                    ER->UpdateOrientation( Ori );
                 }
 
                 {
