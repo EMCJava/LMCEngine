@@ -10,6 +10,7 @@
 #include <Engine/Core/Graphic/Shader/Shader.hpp>
 
 DEFINE_CONCEPT_DS( RenderableMeshCluster )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RenderableMeshCluster, ConceptRenderable )
 
 RenderableMeshCluster::RenderableMeshCluster( )
 {

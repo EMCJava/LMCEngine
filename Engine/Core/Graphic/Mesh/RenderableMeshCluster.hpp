@@ -18,4 +18,6 @@ public:
 
 protected:
     ConceptSetCache<std::shared_ptr<class RenderableMesh>> m_RenderableMeshes;
+
+    ENABLE_IMGUI( RenderableMeshCluster )
 };
