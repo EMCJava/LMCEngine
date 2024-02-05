@@ -319,7 +319,7 @@ OrientationMatrix::RecalculateModelMatrix( )
 {
     UpdateTranslationMatrix( );
     UpdateRotationMatrix( );
-    UpdateRotationMatrix( );
+    UpdateScaleMatrix( );
 
     UpdateModelMatrix( );
 }
