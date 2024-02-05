@@ -14,6 +14,7 @@
 #include <Engine/Core/Input/Serializer/SerializerModel.hpp>
 #include <Engine/Core/Graphic/Mesh/ConceptMesh.hpp>
 #include <Engine/Core/Graphic/Mesh/RenderableMesh.hpp>
+#include <Engine/Core/Graphic/Mesh/RenderableMeshCluster.hpp>
 #include <Engine/Core/Graphic/Canvas/Canvas.hpp>
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
@@ -31,6 +32,7 @@
 #include <Engine/Core/Physics/Controller/PhyControllerEntity.hpp>
 #include <Engine/Core/Physics/Controller/PhyControllerEntityPlayer.hpp>
 #include <Engine/Core/Physics/Queries/RayCast.hpp>
+#include <Engine/Core/Scene/Entity/EntityRenderable.hpp>
 
 // To export symbol, used for runtime inspection
 #include <Engine/Core/Concept/ConceptCoreRuntime.inl>
@@ -41,8 +43,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <GLFW/glfw3.h>
-
-#include <assimp/scene.h>
 
 #include <PxPhysicsAPI.h>
 
@@ -197,18 +197,12 @@ GameManager::GameManager( )
                 }
 
                 {
-                    auto LandMesh = PureConcept::CreateConcept<ConceptMesh>( "Assets/Model/Map/scene.gltf", eFeatureDefault | eFeatureUV0 );
-
-                    auto RM = PerspectiveCanvas->AddConcept<RigidMesh>( LandMesh, PhyMaterial, true ).Get( );
-
-                    auto CottageRenderable = RM->GetRenderable( );
-                    RenderableShaderSetup( CottageRenderable, "DefaultTexturePhongShader" );
-
-//                    auto CottageMaterial = std::make_shared<Material>( );
-//                    CottageMaterial->ColorTexture.LoadTexture( "Assets/Model/Texture/cottage_textures/cottage_diffuse.png" );
-//                    CottageRenderable->TryCast<RenderableMesh>( )->SetMaterial( std::move( CottageMaterial ) );
-
-                    CottageRenderable->SetRuntimeName( "Cottage" );
+                    SerializerModel SM;
+                    SM.SetFilePath( "Assets/Model/Map/scene.gltf" );
+                    auto RMC = AddConcept<RenderableMeshCluster>( ).Get( );
+                    SM.ToMeshCluster( RMC.get( ), eFeatureDefault | eFeatureUV0 );
+                    RenderableShaderSetup( RMC, "DefaultTexturePhongShader" );
+                    AddConcept<EntityRenderable>( RMC ).Get( )->SetRuntimeName( "Map" );
                 }
 
                 {

@@ -171,10 +171,10 @@ public:                                                                         
                                                                                                                                       \
     template <class ConceptType = class_name, typename... Args>                                                                       \
         requires PureConceptDescendants<ConceptType>                                                                                  \
-    static std::shared_ptr<ConceptType>                                                                                                      \
+    static std::shared_ptr<ConceptType>                                                                                               \
     CreateConcept( Args&&... params )                                                                                                 \
     {                                                                                                                                 \
-        return PureConcept::CreateConcept<class_name>( std::forward<Args>( params )... );                                             \
+        return PureConcept::CreateConcept<ConceptType>( std::forward<Args>( params )... );                                            \
     }                                                                                                                                 \
                                                                                                                                       \
 private:

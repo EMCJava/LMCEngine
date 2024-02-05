@@ -6,4 +6,4 @@ add_library(RenderableMeshCluster.lib RenderableMeshCluster.hpp RenderableMeshCl
 target_link_libraries(ConceptMesh.lib PureConcept.lib SerializerModel.lib)
 target_link_libraries(RenderableMesh.lib ConceptRenderable.lib ConceptMesh.lib Material.lib)
 target_link_libraries(RenderableMeshHitBox.lib RenderableMesh.lib)
-target_link_libraries(RenderableMeshCluster.lib RenderableMesh.lib)
+target_link_libraries(RenderableMeshCluster.lib RenderableMesh.lib Material.lib)

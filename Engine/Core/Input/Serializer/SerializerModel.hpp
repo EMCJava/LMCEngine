@@ -39,6 +39,9 @@ public:
     bool
     ToMesh( class ConceptMesh* ToMesh );
 
+    bool
+    ToMeshCluster( class RenderableMeshCluster* ToMesh, uint32_t AIMesh );
+
     static bool
     ToMesh( const std::string& FilePath, class ConceptMesh* ToMesh );
 

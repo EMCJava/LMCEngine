@@ -52,7 +52,7 @@ RenderableMesh::SetStaticMesh( std::shared_ptr<ConceptMesh> Mesh )
 }
 
 void
-RenderableMesh::SetMaterial( std::shared_ptr<struct Material> Mat )
+RenderableMesh::SetMaterial( std::shared_ptr<Material> Mat )
 {
     m_Material = std::move( Mat );
 }
