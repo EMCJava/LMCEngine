@@ -16,4 +16,6 @@ public:
 
     void
     Apply( ) override;
+
+    ENABLE_IMGUI( EntityRenderable )
 };

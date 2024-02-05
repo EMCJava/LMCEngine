@@ -7,6 +7,7 @@
 #include <Engine/Core/Concept/ConceptRenderable.hpp>
 
 DEFINE_CONCEPT_DS( EntityRenderable )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( EntityRenderable, Entity )
 
 EntityRenderable::EntityRenderable( std::shared_ptr<ConceptRenderable> RenderableConcept )
 {
