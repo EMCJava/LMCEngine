@@ -8,6 +8,8 @@
 
 #include <memory>
 
+#include <glm/vec4.hpp>
+
 struct TextureSlot {
     std::shared_ptr<class Texture> Texture;
     uint8_t                        Slot = 0;
@@ -22,6 +24,9 @@ struct Material {
     TextureSlot ColorTexture;
     TextureSlot NormalTexture;
 
-    void ActivateMaterial( ) const;
+    glm::vec4 DiffuseColor = glm::vec4( 1.0f );
+
+    void ActivateMaterial( class Shader* Shader ) const;
+
     ENABLE_IMGUI( Material )
 };

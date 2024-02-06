@@ -48,6 +48,16 @@ public:
     static std::shared_ptr<class ConceptMesh>
     ToMesh( const std::string& FilePath );
 
+    /*
+     *
+     * Combine Mesh Cluster
+     *
+     * */
+    static bool
+    ToMesh( const std::shared_ptr<class RenderableMeshCluster>& MeshCluster, class ConceptMesh* ToMesh );
+    static std::shared_ptr<class ConceptMesh>
+    ToMesh( const std::shared_ptr<class RenderableMeshCluster>& MeshCluster );
+
     static bool
     ToMeshCluster( const std::string& FilePath, class RenderableMeshCluster* ToMesh, uint32_t VertexFeature );
 

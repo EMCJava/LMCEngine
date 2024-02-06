@@ -14,21 +14,24 @@
 
 struct SubMeshSpan {
     std::string          SubMeshName { };
-    std::span<glm::vec4> VertexRange;
+    std::span<glm::vec3> VertexRange;
 
     // Starting from 0 for every sub-mesh
     std::vector<uint32_t> RebasedIndexRange;
 
     SubMeshSpan( auto&& Name, auto&& VertexRange, auto&& RebasedIndex )
     {
-        this->SubMeshName = std::forward<decltype( Name )>( Name );
-        this->VertexRange = std::forward<decltype( VertexRange )>( VertexRange );
+        this->SubMeshName       = std::forward<decltype( Name )>( Name );
+        this->VertexRange       = std::forward<decltype( VertexRange )>( VertexRange );
         this->RebasedIndexRange = std::forward<decltype( RebasedIndex )>( RebasedIndex );
     }
 };
 
 struct GLBufferHandle {
     uint32_t VAO { }, VBO { }, EBO { };
+
+    ~GLBufferHandle( );
+
     ENABLE_IMGUI( GLBufferHandle )
 };
 
@@ -54,7 +57,7 @@ public:
     ConceptMesh( const std::string& MeshFilePath, const uint32_t Features = MeshVertexFeature::eFeatureDefault );
 
     const auto&
-    GetVerticesColorPack( ) const noexcept { return m_Vertices_ColorPack; }
+    GetVertices( ) const noexcept { return m_Vertices; }
 
     const auto&
     GetIndices( ) const noexcept { return m_Indices; }
@@ -77,7 +80,7 @@ protected:
      * Vertex features
      *
      * */
-    std::vector<glm::vec4> m_Vertices_ColorPack;
+    std::vector<glm::vec3> m_Vertices;
     std::vector<glm::vec3> m_Normals;
     std::vector<glm::vec2> m_UV0s;
 

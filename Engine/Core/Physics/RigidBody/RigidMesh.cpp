@@ -7,6 +7,7 @@
 #include <Engine/Core/Input/Serializer/SerializerModel.hpp>
 #include <Engine/Core/Graphic/Mesh/RenderableMesh.hpp>
 #include <Engine/Core/Graphic/Mesh/RenderableMeshHitBox.hpp>
+#include <Engine/Core/Graphic/Mesh/RenderableMeshCluster.hpp>
 #include <Engine/Core/Physics/PhysicsScene.hpp>
 #include <Engine/Core/Scene/Entity/EntityRenderable.hpp>
 
@@ -17,27 +18,19 @@ DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RigidMesh, RigidBody )
 
 RigidMesh::RigidMesh( std::shared_ptr<ConceptMesh> Mesh, std::shared_ptr<Collider> C )
 {
-    SetMesh( std::move( Mesh ) );
+    m_Renderable = CreateConcept<RenderableMesh>( std::move( Mesh ) );
+    AddConcept<EntityRenderable>( m_Renderable );
     SetCollider( std::move( C ) );
 }
 
-std::shared_ptr<ConceptMesh>
-RigidMesh::CreateMesh( const std::string& MeshPathStr )
+std::shared_ptr<RenderableMeshCluster>
+RigidMesh::LoadRenderableMesh( const std::string& MeshPathStr )
 {
     REQUIRED( !MeshPathStr.empty( ), throw std::runtime_error( "Mesh path cannot be empty" ); )
 
-    auto Mesh = CreateConcept<ConceptMesh>( );
-    SerializerModel::ToMesh( MeshPathStr, Mesh.get( ) );
-
-    SetMesh( Mesh );
-    return Mesh;
-}
-
-void
-RigidMesh::SetMesh( std::shared_ptr<ConceptMesh> Mesh )
-{
-    m_Renderable = CreateConcept<RenderableMesh>( std::move( Mesh ) );
+    m_Renderable = SerializerModel::ToMeshCluster( MeshPathStr, eFeatureDefault );
     AddConcept<EntityRenderable>( m_Renderable );
+    return std::dynamic_pointer_cast<RenderableMeshCluster>( m_Renderable );
 }
 
 void

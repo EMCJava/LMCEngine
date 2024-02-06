@@ -30,7 +30,7 @@ RenderableMesh::Render( )
 
     if ( m_Material != nullptr )
     {
-        m_Material->ActivateMaterial( );
+        m_Material->ActivateMaterial( m_Shader.get( ) );
     }
 
     GL_CHECK( gl->Enable( GL_DEPTH_TEST ) )

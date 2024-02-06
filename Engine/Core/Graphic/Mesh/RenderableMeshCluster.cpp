@@ -29,9 +29,9 @@ RenderableMeshCluster::Render( )
     SetCameraMatrix( );
     ApplyShaderUniforms( );
 
-    m_RenderableMeshes.ForEachOriginal( [ gl ]( std::shared_ptr<RenderableMesh>& RM ) {
+    m_RenderableMeshes.ForEachOriginal( [ gl, this ]( std::shared_ptr<RenderableMesh>& RM ) {
         const auto& Material = RM->GetMaterial( );
-        if ( Material != nullptr ) Material->ActivateMaterial( );
+        if ( Material != nullptr ) Material->ActivateMaterial( m_Shader.get( ) );
 
         const auto& TargetMesh = RM->GetStaticMesh( );
 

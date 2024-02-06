@@ -6,6 +6,7 @@
 
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 #include <Engine/Core/Graphic/Texture/Texture.hpp>
+#include <Engine/Core/Graphic/Shader/Shader.hpp>
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 
 DEFINE_SIMPLE_IMGUI_TYPE( TextureSlot, Texture, Slot )
@@ -20,8 +21,9 @@ TextureSlot::LoadTexture( const std::string& TexturePath, int TextureSlot )
 }
 
 void
-Material::ActivateMaterial( ) const
+Material::ActivateMaterial( Shader* Shader ) const
 {
     if ( ColorTexture.Texture != nullptr ) ColorTexture.Texture->BindTexture( ColorTexture.Slot );
     if ( NormalTexture.Texture != nullptr ) NormalTexture.Texture->BindTexture( ColorTexture.Slot );
+    Shader->SetVec4( "fragCol", DiffuseColor );
 }
