@@ -7,7 +7,7 @@
 inline const char* DefaultPhongShaderVertexSource =
     R"(
 #version 330 core
-layout (location = 0) in vec4 aPos_Color;
+layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
 
 out vec3 Normal;
@@ -17,19 +17,10 @@ out vec3 FragCol;
 uniform mat4 modelMatrix;
 uniform mat4 projectionMatrix;
 
-vec3 unpackColor(float f) {
-    vec3 color;
-    color.b = floor(f / 256.0 / 256.0);
-    color.g = floor((f - color.b * 256.0 * 256.0) / 256.0);
-    color.r = floor(f - color.b * 256.0 * 256.0 - color.g * 256.0);
-    return color / 255.0;
-}
-
 void main()
 {
-    FragPos = vec3(modelMatrix * vec4(aPos_Color.xyz, 1.0));
+    FragPos = vec3(modelMatrix * vec4(aPos, 1.0));
     Normal = mat3(transpose(inverse(modelMatrix))) * aNormal;
-    FragCol = unpackColor(aPos_Color.w);
 
     gl_Position = projectionMatrix * vec4(FragPos, 1.0);
 })";
@@ -46,6 +37,7 @@ in vec3 FragCol;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform vec3 lightColor;
+uniform vec4 fragCol = vec4(1.0);
 
 void main()
 {
@@ -66,6 +58,5 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
     vec3 specular = specularStrength * spec * lightColor;
 
-    vec3 result = (ambient + diffuse + specular) * FragCol;
-    FragColor = vec4(result, 1.0);
+    FragColor = vec4(ambient + diffuse + specular, 1) * fragCol;
 })";
