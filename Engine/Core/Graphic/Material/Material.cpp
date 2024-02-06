@@ -10,7 +10,7 @@
 #include <Engine/Core/Graphic/API/GraphicAPI.hpp>
 
 DEFINE_SIMPLE_IMGUI_TYPE( TextureSlot, Texture, Slot )
-DEFINE_SIMPLE_IMGUI_TYPE( Material, ColorTexture, NormalTexture )
+DEFINE_SIMPLE_IMGUI_TYPE( Material, ColorTexture, NormalTexture, DiffuseColor )
 
 void
 TextureSlot::LoadTexture( const std::string& TexturePath, int TextureSlot )
