@@ -410,6 +410,14 @@ SerializerModel::ToMesh( const std::shared_ptr<RenderableMeshCluster>& MeshClust
     std::vector<std::shared_ptr<RenderableMesh>> RenderableMeshes;
     MeshCluster->GetConcepts( RenderableMeshes );
 
+    ToMesh->m_Vertices.clear( );
+    ToMesh->m_Normals.clear( );
+    ToMesh->m_Indices.clear( );
+    ToMesh->m_SubMeshes.clear( );
+
+    if ( RenderableMeshes.empty( ) ) throw std::runtime_error( "MeshCluster has no meshes" );
+    ToMesh->m_FilePath = RenderableMeshes[ 0 ]->GetStaticMesh( )->m_FilePath;
+
     struct DataCapacity {
         size_t Vertices = 0;
         size_t Normals  = 0;
@@ -424,13 +432,6 @@ SerializerModel::ToMesh( const std::shared_ptr<RenderableMeshCluster>& MeshClust
         ClusterDataCapacity.Indices += RM->GetStaticMesh( )->m_Indices.size( );
         ClusterDataCapacity.UV0 += RM->GetStaticMesh( )->m_UV0s.size( );
     }
-
-    ToMesh->m_FilePath = "FromMeshCluster";
-    ToMesh->m_Vertices.clear( );
-    ToMesh->m_Normals.clear( );
-    ToMesh->m_Indices.clear( );
-    ToMesh->m_SubMeshes.clear( );
-
     ToMesh->m_Vertices.reserve( ClusterDataCapacity.Vertices );
     ToMesh->m_Normals.reserve( ClusterDataCapacity.Normals );
     ToMesh->m_UV0s.reserve( ClusterDataCapacity.UV0 );
