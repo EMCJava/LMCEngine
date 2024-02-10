@@ -180,22 +180,6 @@ GameManager::GameManager( )
                     Renderable->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
                 };
 
-                if ( false )
-                {
-                    auto CottageMesh = PureConcept::CreateConcept<ConceptMesh>( "Assets/Model/cottage_obj.obj", eFeatureDefault | eFeatureUV0 );
-
-                    auto RM = PerspectiveCanvas->AddConcept<RigidMesh>( CottageMesh, PhyMaterial, true ).Get( );
-
-                    auto CottageRenderable = RM->GetRenderable( );
-                    RenderableShaderSetup( CottageRenderable, "DefaultTexturePhongShader" );
-
-                    auto CottageMaterial = std::make_shared<Material>( );
-                    CottageMaterial->ColorTexture.LoadTexture( "Assets/Model/Texture/cottage_textures/cottage_diffuse.png" );
-                    CottageRenderable->TryCast<RenderableMesh>( )->SetMaterial( std::move( CottageMaterial ) );
-
-                    CottageRenderable->SetRuntimeName( "Cottage" );
-                }
-
                 {
                     auto RMC = SerializerModel::ToMeshCluster( "Assets/Model/Map/scene.gltf", eFeatureDefault | eFeatureUV0 );
                     RenderableShaderSetup( RMC, "DefaultTexturePhongShader" );
