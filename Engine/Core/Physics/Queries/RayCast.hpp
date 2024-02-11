@@ -42,6 +42,7 @@ public:
     static HitInfo Cast( class PureConceptPerspectiveCamera* RayFromCamera, FloatTy Distance = 100 );
 
     template <typename Ty>
+        requires std::is_convertible_v<Ty, class PureConceptPerspectiveCamera*>
     static HitInfo Cast( Ty&& AnyType, FloatTy Distance = 100 )
     {
         return Cast( static_cast<class PureConceptPerspectiveCamera*>( AnyType ), Distance );
