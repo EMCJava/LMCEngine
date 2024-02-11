@@ -69,6 +69,16 @@ set(_PHYSX_CHARACTER_LIBRARY_NAMES
         libPhysXCharacterKinematic_${_PHYSX_LIBRARY_SUFFIX}
         libPhysXCharacterKinematic_static_${_PHYSX_LIBRARY_SUFFIX}
 )
+set(_PHYSX_VEHICLE_LIBRARY_NAMES
+    PhysXVehicle
+    PhysXVehicle_static
+    PhysXVehicle_${_PHYSX_LIBRARY_SUFFIX}
+    PhysXVehicle_static_${_PHYSX_LIBRARY_SUFFIX}
+    libPhysXVehicle
+    libPhysXVehicle_static
+    libPhysXVehicle_${_PHYSX_LIBRARY_SUFFIX}
+    libPhysXVehicle_static_${_PHYSX_LIBRARY_SUFFIX}
+)
 set(_PHYSX_PVD_LIBRARY_NAMES
         PhysXPvdSDK
         PhysXPvdSDK_static
@@ -250,6 +260,7 @@ _find_physx_library(Foundation FOUNDATION_INCLUDE)
 _find_physx_library(Cooking)
 _find_physx_library(Extensions)
 _find_physx_library(Character)
+_find_physx_library(Vehicle)
 _find_physx_library(PVD)
 
 find_package_handle_standard_args(PhysX
@@ -259,6 +270,7 @@ find_package_handle_standard_args(PhysX
         PHYSX_COOKING_LIBRARY
         PHYSX_EXTENSIONS_LIBRARY
         PHYSX_CHARACTER_LIBRARY
+        PHYSX_VEHICLE_LIBRARY
         PHYSX_PVD_LIBRARY
         PHYSX_INCLUDE_DIR
         PHYSX_FOUNDATION_INCLUDE_DIR
@@ -270,6 +282,6 @@ if(PhysX_FOUND AND NOT TARGET PhysX::PhysX)
     set_property(
             TARGET PhysX::PhysX APPEND PROPERTY
             INTERFACE_LINK_LIBRARIES PhysX::Character PhysX::Extensions PhysX::Physics
-            PhysX::PVD PhysX::Cooking PhysX::Common PhysX::Foundation
+            PhysX::PVD PhysX::Cooking PhysX::Common PhysX::Foundation PhysX::Vehicle
     )
 endif()
