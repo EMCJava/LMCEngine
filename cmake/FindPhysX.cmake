@@ -266,7 +266,7 @@ find_package_handle_standard_args(PhysX
 )
 
 if(PhysX_FOUND AND NOT TARGET PhysX::PhysX)
-    add_library(PhysX::PhysX INTERFACE IMPORTED)
+    add_library(PhysX::PhysX INTERFACE IMPORTED GLOBAL)
     set_property(
             TARGET PhysX::PhysX APPEND PROPERTY
             INTERFACE_LINK_LIBRARIES PhysX::Character PhysX::Extensions PhysX::Physics

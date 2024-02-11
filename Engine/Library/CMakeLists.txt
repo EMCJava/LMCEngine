@@ -205,3 +205,21 @@ set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "" FORCE)
 set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(assimp)
+
+## -------------- PhysX --------------
+find_package(PhysX REQUIRED)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(SUFFIX "debug/bin")
+else ()
+    set(SUFFIX "bin")
+endif ()
+
+add_custom_target(populate_physx ALL
+
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/${SUFFIX}/*"
+        ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+
+        COMMENT "Copying physx dynamic library to libs"
+)
+add_dependencies(PhysX::PhysX populate_physx)

@@ -1,18 +1,3 @@
-## -------------- PhysX --------------
-find_package(PhysX REQUIRED)
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(SUFFIX "debug/bin")
-else()
-    set(SUFFIX "bin")
-endif()
-
-add_custom_target(populate_physx)
-add_custom_command(TARGET populate_physx PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/${SUFFIX}/*"
-        ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-add_dependencies(PhysX::PhysX populate_physx)
-
 add_subdirectory(Library)
 include_directories(Library)
 
