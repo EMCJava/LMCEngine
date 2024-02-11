@@ -11,6 +11,8 @@
 
 #include <characterkinematic/PxController.h>
 
+#include <memory>
+
 namespace physx
 {
 class PxCapsuleControllerDesc;
