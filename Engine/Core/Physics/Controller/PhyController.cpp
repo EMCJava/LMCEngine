@@ -32,7 +32,8 @@ PhyController::CreateController( const glm::vec3& position, FloatTy Height, Floa
 
     auto* ControllerManager = Engine::GetEngine( )->GetPhysicsEngine( )->GetControllerManager( );
     auto* Controller        = ControllerManager->createController( *m_CapsuleDesc );
-    m_Controller            = dynamic_cast<physx::PxCapsuleController*>( Controller );
+    // FIXME: type info for dynamic_cast on UNIX platform
+    m_Controller            = static_cast<physx::PxCapsuleController*>( Controller );
 
     // remove controller shape from scene query avoid any raycast hit
     physx::PxRigidDynamic* actor = m_Controller->getActor( );
