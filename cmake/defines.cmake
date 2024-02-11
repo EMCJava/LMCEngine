@@ -62,3 +62,7 @@ message(
 message(
         STATUS "CMAKE_RUNTIME_OUTPUT_DIRECTORY: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
 )
+
+if (NOT CMAKE_SIZEOF_VOID_P EQUAL "8")
+    message(FATAL_ERROR "VCPKG_TARGET_ARCHITECTURE are not set correctly")
+endif ()
