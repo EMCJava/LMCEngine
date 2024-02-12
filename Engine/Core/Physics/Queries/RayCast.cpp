@@ -18,10 +18,12 @@ RayCast::Cast( )
     physx::PxRaycastBuffer PhysxCastResult;
 
     HitInfo Result;
-    Result.HasHit = Scene.raycast( *(physx::PxVec3*) &RayToCast.RayOrigin,
-                                   *(physx::PxVec3*) &RayToCast.UnitDirection,
-                                   RayToCast.MaxDistance, PhysxCastResult );
-
+    {
+        const auto Lock = Engine::GetEngine( )->GetPhysicsThreadLock( );
+        Result.HasHit   = Scene.raycast( *(physx::PxVec3*) &RayToCast.RayOrigin,
+                                         *(physx::PxVec3*) &RayToCast.UnitDirection,
+                                         RayToCast.MaxDistance, PhysxCastResult );
+    }
     if ( Result.HasHit )
     {
         static_assert( sizeof( decltype( Result.HitPosition ) ) == sizeof( PhysxCastResult.block.position ) );
@@ -52,7 +54,7 @@ RayCast::Cast( PureConceptPerspectiveCamera* RayFromCamera, FloatTy Distance )
 }
 
 RayCast::Ray
-RayCast::CalculateRay( struct PureConceptPerspectiveCamera* RayFromCamera, FloatTy Distance )
+RayCast::CalculateRay( PureConceptPerspectiveCamera* RayFromCamera, FloatTy Distance )
 {
     Ray RayToCast;
     RayToCast.RayOrigin     = RayFromCamera->GetCameraPosition( );
