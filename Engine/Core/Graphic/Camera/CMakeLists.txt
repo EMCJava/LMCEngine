@@ -4,7 +4,7 @@ add_library(PureConceptCameraStack.lib PureConceptCameraStack.hpp PureConceptCam
 add_library(PureConceptPerspectiveCamera.lib PureConceptPerspectiveCamera.hpp PureConceptPerspectiveCamera.cpp)
 add_library(FirstPersonCameraController.lib FirstPersonCameraController.hpp FirstPersonCameraController.cpp)
 
-target_link_libraries(PureConceptCamera.lib glm::glm PureConcept.lib)
+target_link_libraries(PureConceptCamera.lib glm::glm PureConcept.lib RayCast.lib)
 target_link_libraries(PureConceptOrthoCamera.lib PureConceptCamera.lib)
 target_link_libraries(PureConceptPerspectiveCamera.lib PureConceptCamera.lib)
 target_link_libraries(PureConceptCameraStack.lib PureConceptCamera.lib)
