@@ -282,23 +282,50 @@ GameManager::Apply( )
     // Fire
     if ( UserInput->GetPrimaryKey( ).isPressed )
     {
-        auto CastResult = RayCast::Cast( *m_CharController );
-        spdlog::info( "CastResult: {}-{}:{}",
-                      CastResult.HitDistance,
-                      CastResult.HitPosition,
-                      CastResult
-                          ? CastResult.HitUserData
-                              ? CastResult.HitUserData->GetRuntimeName( )
-                              : "NoName"
-                          : "Nan" );
-
-        if ( CastResult.HitUserData != nullptr )
+        if ( UserInput->IsCursorLocked( ) )
         {
-            auto RB = CastResult.HitUserData->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
-            if ( RB != nullptr )
+            auto CastResult = RayCast::Cast( *m_CharController );
+            spdlog::info( "CastResult: {}-{}:{}",
+                          CastResult.HitDistance,
+                          CastResult.HitPosition,
+                          CastResult
+                              ? CastResult.HitUserData
+                                  ? CastResult.HitUserData->GetRuntimeName( )
+                                  : "NoName"
+                              : "Nan" );
+
+            if ( CastResult.HitUserData != nullptr )
             {
-                auto Ray = RayCast::CalculateRay( *m_CharController );
-                physx::PxRigidBodyExt::addForceAtPos( *RB, ( *(physx::PxVec3*) &Ray.UnitDirection ) * 1000, *(physx::PxVec3*) &CastResult.HitPosition );
+                auto RB = CastResult.HitUserData->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
+                if ( RB != nullptr )
+                {
+                    auto Ray = RayCast::CalculateRay( *m_CharController );
+                    physx::PxRigidBodyExt::addForceAtPos( *RB, ( *(physx::PxVec3*) &Ray.UnitDirection ) * 1000, *(physx::PxVec3*) &CastResult.HitPosition );
+                }
+            }
+        } else
+        {
+            std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
+
+            // Finally, store the results in the outputs
+            auto CastResult = RayCast::Cast( m_MainCamera->ScreenSpaceToWorldSpaceRay( *(glm::vec2*) &HitPoint, 500 ) );
+            spdlog::info( "CastResult: {}-{}:{}",
+                          CastResult.HitDistance,
+                          CastResult.HitPosition,
+                          CastResult
+                              ? CastResult.HitUserData
+                                  ? CastResult.HitUserData->GetRuntimeName( )
+                                  : "NoName"
+                              : "Nan" );
+
+            if ( CastResult.HitUserData != nullptr )
+            {
+                auto RB = CastResult.HitUserData->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
+                if ( RB != nullptr )
+                {
+                    auto Ray = RayCast::CalculateRay( *m_CharController );
+                    physx::PxRigidBodyExt::addForceAtPos( *RB, ( *(physx::PxVec3*) &Ray.UnitDirection ) * 1000, *(physx::PxVec3*) &CastResult.HitPosition );
+                }
             }
         }
     }
