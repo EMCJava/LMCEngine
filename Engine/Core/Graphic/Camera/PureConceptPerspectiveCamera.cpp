@@ -109,3 +109,22 @@ PureConceptPerspectiveCamera::SetCameraPrincipalAxes( FloatTy Yaw, FloatTy Pitch
                     sin( glm::radians( m_CameraViewingYaw ) ) * cos( glm::radians( m_CameraViewingPitch ) ) },
         true );
 }
+
+RayCast::Ray
+PureConceptPerspectiveCamera::ScreenSpaceToWorldSpaceRay( const glm::vec2& ScreenSpacePoint, FloatTy Distance ) const
+{
+    // glm::unProject
+    const auto CameraPVInverse = inverse( m_CameraMatrixCache );
+
+    glm::vec4 ScreenSpace = glm::vec4( ScreenSpacePoint.x, m_CameraHeight - ScreenSpacePoint.y, 1, 1 );
+    ScreenSpace.x         = ScreenSpace.x / m_CameraWidth;
+    ScreenSpace.y         = ScreenSpace.y / m_CameraHeight;
+    ScreenSpace           = ScreenSpace * 2.f - 1.f;
+
+    const auto WorldSpace = CameraPVInverse * ScreenSpace;
+
+    const glm::vec3 WorldPosition = WorldSpace / WorldSpace.w;
+    const glm::vec3 RayDirection  = glm::normalize( WorldPosition - m_CameraPosition );
+
+    return { m_CameraPosition, RayDirection, Distance };
+}

@@ -82,3 +82,14 @@ PureConceptOrthoCamera::UpdateCameraMatrix( )
     PureConceptOrthoCamera::UpdateProjectionMatrix( );
     m_CameraMatrixCache = m_ProjectionMatrix;
 }
+
+RayCast::Ray
+PureConceptOrthoCamera::ScreenSpaceToWorldSpaceRay( const glm::vec2& ScreenSpacePoint, FloatTy Distance ) const
+{
+    std::pair Coordinate = { ScreenSpacePoint.x, ScreenSpacePoint.y };
+    ScreenCoordToWorldCoord( Coordinate );
+
+    return RayCast::Ray( m_Coordinate,
+                         glm::normalize( glm::vec3( Coordinate.first, Coordinate.second, -1 ) ),
+                         Distance );
+}

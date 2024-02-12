@@ -40,6 +40,9 @@ public:
     void
     ScreenCoordToWorldCoord( std::pair<FloatTy, FloatTy>& ScreenCoord ) const;
 
+    RayCast::Ray
+    ScreenSpaceToWorldSpaceRay( const glm::vec2& ScreenSpacePoint, FloatTy Distance = 0 ) const override;
+
 protected:
     FloatTy   m_Scale { 1 };
     glm::vec3 m_Coordinate;

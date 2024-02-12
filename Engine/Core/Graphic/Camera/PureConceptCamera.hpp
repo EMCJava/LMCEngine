@@ -9,6 +9,7 @@
 #include <Engine/Core/Core.hpp>
 #include <Engine/Core/Concept/PureConcept.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
+#include <Engine/Core/Physics/Queries/RayCast.hpp>
 
 #include <glm/glm.hpp>
 
@@ -46,6 +47,10 @@ public:
     // Update both projection and view matrices
     virtual void
     UpdateCameraMatrix( ) = 0;
+
+    virtual RayCast::Ray
+    ScreenSpaceToWorldSpaceRay( const glm::vec2& ScreenSpacePoint, FloatTy Distance = 0 ) const = 0;
+
 
     /*
      *

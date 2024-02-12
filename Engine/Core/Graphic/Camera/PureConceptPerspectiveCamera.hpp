@@ -53,6 +53,9 @@ public:
     FloatTy
     GetCameraPrincipalPitch( ) const noexcept { return m_CameraViewingPitch; }
 
+    RayCast::Ray
+    ScreenSpaceToWorldSpaceRay( const glm::vec2& ScreenSpacePoint, FloatTy Distance = 0 ) const override;
+
 protected:
     // In degrees
     FloatTy m_CameraPerspectiveFOV { 45.0 };
