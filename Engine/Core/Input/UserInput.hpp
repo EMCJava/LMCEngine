@@ -78,6 +78,7 @@ public:
      * */
     void EnableRowCursorMotion( bool Enable );
     void LockCursor( bool Lock );
+    bool IsCursorLocked( ) const noexcept { return m_IsCursorLocked; }
 
     /*
      *
@@ -121,6 +122,7 @@ private:
     std::pair<int, int> m_CursorTopLeftPosition;
     std::pair<int, int> m_CursorDeltaPosition { };
     std::pair<int, int> m_CursorPosition;
+    bool                m_IsCursorLocked = false;
 
     // TODO: Use list
     std::map<KeyIDTY, KeyState> m_OtherKeysStates { };

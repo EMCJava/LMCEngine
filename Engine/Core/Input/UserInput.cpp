@@ -86,7 +86,7 @@ UserInput::EnableRowCursorMotion( bool Enable )
 void
 UserInput::LockCursor( bool Lock )
 {
-    if ( Lock )
+    if ( ( m_IsCursorLocked = Lock ) )
     {
         ( reinterpret_cast<decltype( &glfwSetInputMode )>( glfwSetInputModePtr ) )( m_EventWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED );
         EnableRowCursorMotion( m_EnableRowCursorMotion );
