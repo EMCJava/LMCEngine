@@ -19,10 +19,10 @@ operator-( const std::pair<Ty, Ty>& A, const std::pair<Ty, Ty>& B )
     return { A.first - B.first, A.second - B.second };
 }
 template <typename Ty, typename ScTy>
-inline std::pair<Ty, Ty>
+inline auto
 operator*( const std::pair<Ty, Ty>& A, const ScTy& B )
 {
-    return { A.first * B, A.second * B };
+    return std::pair { A.first * B, A.second * B };
 }
 }   // namespace
 
