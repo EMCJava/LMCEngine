@@ -181,15 +181,15 @@ GameManager::GameManager( )
                 };
 
                 {
-                    auto RMC = SerializerModel::ToMeshCluster( "Assets/Model/Map/scene.gltf", eFeatureDefault | eFeatureUV0 );
+                    auto RMC = SerializerModel::ToMeshCluster( "Assets/Model/StalkyardMap/scene.gltf", eFeatureDefault | eFeatureUV0 );
                     RenderableShaderSetup( RMC, "DefaultTexturePhongShader" );
 
                     auto ER = AddConcept<EntityRenderable>( RMC ).Get( );
                     ER->SetRuntimeName( "Map" );
 
                     Orientation Ori;
-                    Ori.Coordinate = { 0, -7.04, 0 };
-                    Ori.Scale      = glm::vec3 { 0.85 };
+                    Ori.Coordinate = { 0, -600, -1100 };
+                    Ori.Scale      = glm::vec3 { 1.6 };
                     ER->UpdateOrientation( Ori );
                 }
 
