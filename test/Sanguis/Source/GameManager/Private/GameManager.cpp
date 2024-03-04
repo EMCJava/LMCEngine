@@ -156,13 +156,13 @@ GameManager::GameManager( )
         PerspectiveCanvas->SetCanvasCamera( m_MainCamera );
 
         {
-            {
-                auto LightMesh = CreateConcept<ConceptMesh>( "Assets/Model/red_cube.glb" );
+            /*            {
+                            auto LightMesh = CreateConcept<ConceptMesh>( "Assets/Model/red_cube.glb" );
 
-                auto LightRenderable = PerspectiveCanvas->AddConcept<RenderableMesh>( LightMesh ).Get( );
-                LightRenderable->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultMeshShader" ) );
-                AddConcept<LightRotate>( PerspectiveCanvas, LightRenderable );
-            }
+                            auto LightRenderable = PerspectiveCanvas->AddConcept<RenderableMesh>( LightMesh ).Get( );
+                            LightRenderable->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultMeshShader" ) );
+                            AddConcept<LightRotate>( PerspectiveCanvas, LightRenderable );
+                        }*/
 
             {
                 auto* PhyEngine = Engine::GetEngine( )->GetPhysicsEngine( );
@@ -181,46 +181,55 @@ GameManager::GameManager( )
                 };
 
                 {
-                    auto RMC = SerializerModel::ToMeshCluster( "Assets/Model/StalkyardMap/scene.gltf", eFeatureDefault | eFeatureUV0 );
-                    RenderableShaderSetup( RMC, "DefaultTexturePhongShader" );
+                    auto                       CM = SerializerModel::ToMesh( "Assets/Model/low-poly_fps_map/scene.gltf", glm::scale( glm::mat4 { 1 }, glm::vec3 { 0.35 } ) );
+                    std::shared_ptr<RigidMesh> RM = PerspectiveCanvas->AddConcept<RigidMesh>( CM, CreateConcept<ColliderMesh>( CM, PhyMaterial, true, []( auto& SubMeshSpan ) {
+                                                                                                  return ColliderSerializerGroupMesh::ColliderType::eTriangle;
+                                                                                              } ) );
+
+                    RM->SetRuntimeName( "Map" );
+                    RM->RemoveConcept<EntityRenderable>( );
+
+                    auto RMC = SerializerModel::ToMeshCluster( "Assets/Model/low-poly_fps_map/scene.gltf", eFeatureDefault | eFeatureUV0 );
+                    RenderableShaderSetup( RMC, "DefaultPhongShader" );
 
                     auto ER = AddConcept<EntityRenderable>( RMC ).Get( );
                     ER->SetRuntimeName( "Map" );
 
                     Orientation Ori;
-                    Ori.Coordinate = { 0, -600, -1100 };
-                    Ori.Scale      = glm::vec3 { 1.6 };
+                    Ori.Scale = glm::vec3 { 0.35 };
                     ER->UpdateOrientation( Ori );
+                    RM->GetOwnership( ER );
+                    RM->GetConcept<EntityRenderable>( )->MoveToLastAsSubConcept( );
                 }
 
-                {
-                    std::shared_ptr<RigidMesh> RM = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", PhyMaterial, true, []( auto& SubMeshSpan ) {
-                        if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
-                            return ColliderSerializerGroupMesh::ColliderType::eTriangle;
-                        else
-                            return ColliderSerializerGroupMesh::ColliderType::eConvex;
-                    } );
-                    RenderableShaderSetup( RM->GetRenderable( ), "DefaultPhongShader" );
-                }
+                //                {
+                //                    std::shared_ptr<RigidMesh> RM = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", PhyMaterial, true, []( auto& SubMeshSpan ) {
+                //                        if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
+                //                            return ColliderSerializerGroupMesh::ColliderType::eTriangle;
+                //                        else
+                //                            return ColliderSerializerGroupMesh::ColliderType::eConvex;
+                //                    } );
+                //                    RenderableShaderSetup( RM->GetRenderable( ), "DefaultPhongShader" );
+                //                }
 
-                {
-                    auto Mesh             = CreateConcept<ConceptMesh>( "Assets/Model/red_cube.glb" );
-                    auto MeshColliderData = std::make_shared<ColliderSerializerGroupMesh>( Mesh );
+                /*                {
+                                    auto Mesh             = CreateConcept<ConceptMesh>( "Assets/Model/red_cube.glb" );
+                                    auto MeshColliderData = std::make_shared<ColliderSerializerGroupMesh>( Mesh );
 
-                    for ( int i = 0; i < 10; ++i )
-                    {
-                        auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, PhyMaterial ) ).Get( );
-                        auto& RenderableMesh = RM->GetRenderable( );
-                        RenderableShaderSetup( RenderableMesh, "DefaultPhongShader" );
+                                    for ( int i = 0; i < 10; ++i )
+                                    {
+                                        auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, PhyMaterial ) ).Get( );
+                                        auto& RenderableMesh = RM->GetRenderable( );
+                                        RenderableShaderSetup( RenderableMesh, "DefaultPhongShader" );
 
-                        auto* RBH = RM->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
-                        REQUIRED_IF( RBH != nullptr )
-                        {
-                            RBH->setGlobalPose( physx::PxTransform { physx::PxVec3( 0, 15 + i * 3, 0 ) } );
-                            RBH->setAngularVelocity( { (float) i, (float) 20, (float) -10 }, true );
-                        }
-                    }
-                }
+                                        auto* RBH = RM->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
+                                        REQUIRED_IF( RBH != nullptr )
+                                        {
+                                            RBH->setGlobalPose( physx::PxTransform { physx::PxVec3( 0, 15 + i * 3, 0 ) } );
+                                            RBH->setAngularVelocity( { (float) i, (float) 20, (float) -10 }, true );
+                                        }
+                                    }
+                                }*/
 
                 // Controller
                 {

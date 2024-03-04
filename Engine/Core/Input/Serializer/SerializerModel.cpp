@@ -118,7 +118,12 @@ SerializerModel::ToMesh( ConceptMesh* ToMesh )
      * First read as Cluster then combine
      *
      * */
-    const auto MeshCluster = SerializerModel::ToMeshCluster( m_FilePath, ToMesh->m_VertexFeatures );
+
+    auto MeshCluster = PureConcept::CreateConcept<RenderableMeshCluster>( );
+    if ( !ToMeshCluster( MeshCluster.get( ), ToMesh->m_VertexFeatures ) )
+    {
+        return false;
+    }
 
     bool result = SerializerModel::ToMesh( MeshCluster, ToMesh );
     spdlog::info( "Finished loading model ===================={}====================", m_FilePath );
@@ -199,7 +204,7 @@ SerializerModel::ToMeshCluster( RenderableMeshCluster* ToMeshCluster, uint32_t V
 
     ::FetchMesh( m_ModelScene,
                  m_ModelScene->mRootNode,
-                 m_ModelScene->mRootNode->mTransformation,
+                 *(aiMatrix4x4*) &m_GlobalTransform * m_ModelScene->mRootNode->mTransformation,
                  [ this, &RenderableMeshes, &ModelMaterials, VertexFeature ]( aiScene const* ModelScene, aiMesh* AIMesh, const aiMatrix4x4& Transform ) {
                      static_assert( sizeof( glm::vec3 ) == sizeof( decltype( *AIMesh->mVertices ) ) );
 
@@ -354,9 +359,10 @@ SerializerModel::ToMeshCluster( RenderableMeshCluster* ToMeshCluster, uint32_t V
 }
 
 bool
-SerializerModel::ToMesh( const std::string& FilePath, ConceptMesh* ToMesh )
+SerializerModel::ToMesh( const std::string& FilePath, ConceptMesh* ToMesh, const glm::mat4& Transform )
 {
     SerializerModel Tmp;
+    Tmp.SetGlobalTransform( Transform );
     Tmp.SetFilePath( FilePath );
     return Tmp.ToMesh( ToMesh );
 }
@@ -382,10 +388,10 @@ SerializerModel::ToMeshCluster( const std::string& FilePath, uint32_t VertexFeat
 }
 
 std::shared_ptr<ConceptMesh>
-SerializerModel::ToMesh( const std::string& FilePath )
+SerializerModel::ToMesh( const std::string& FilePath, const glm::mat4& Transform )
 {
     auto CM = PureConcept::CreateConcept<ConceptMesh>( );
-    if ( SerializerModel::ToMesh( FilePath, CM.get( ) ) )
+    if ( SerializerModel::ToMesh( FilePath, CM.get( ), Transform ) )
     {
         return CM;
     }

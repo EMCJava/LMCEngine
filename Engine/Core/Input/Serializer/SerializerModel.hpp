@@ -10,6 +10,7 @@
 #include <span>
 
 #include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
 
 // Forward declarations for Assimp library
 namespace Assimp
@@ -33,6 +34,12 @@ public:
         m_ModelScene = nullptr;
     }
 
+    void
+    SetGlobalTransform( const glm::mat4& GlobalTransform )
+    {
+        m_GlobalTransform = GlobalTransform;
+    }
+
     bool
     LoadModel( );
 
@@ -43,10 +50,10 @@ public:
     ToMeshCluster( class RenderableMeshCluster* ToMesh, uint32_t VertexFeature );
 
     static bool
-    ToMesh( const std::string& FilePath, class ConceptMesh* ToMesh );
+    ToMesh( const std::string& FilePath, class ConceptMesh* ToMesh, const glm::mat4& Transform = glm::mat4( 1.0f ) );
 
     static std::shared_ptr<class ConceptMesh>
-    ToMesh( const std::string& FilePath );
+    ToMesh( const std::string& FilePath, const glm::mat4& Transform = glm::mat4( 1.0f ) );
 
     /*
      *
@@ -69,6 +76,8 @@ public:
 
 protected:
     std::string m_FilePath;
+
+    glm::mat4 m_GlobalTransform { 1 };
 
     std::unique_ptr<Assimp::Importer> m_ImporterContext;
     /*
