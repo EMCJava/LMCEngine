@@ -172,8 +172,18 @@ listener( tcp::acceptor acceptor )
 
     for ( ;; )
     {
+        auto Socket = co_await acceptor.async_accept( asio::use_awaitable );
+
+        const auto              LocalEndpoint  = acceptor.local_endpoint( );
+        asio::ip::tcp::endpoint remoteEndpoint = Socket.remote_endpoint( );
+
+        std::cout << "Client IP: "
+                  << remoteEndpoint.address( ).to_string( ) << ":" << remoteEndpoint.port( )
+                  << " connecting to "
+                  << LocalEndpoint.address( ).to_string( ) << ":" << LocalEndpoint.port( )
+                  << std::endl;
         std::make_shared<chat_session>(
-            co_await acceptor.async_accept( asio::use_awaitable ),
+            std::move( Socket ),
             room )
             ->start( );
     }
@@ -196,7 +206,7 @@ main( int argc, char* argv[] )
         {
             unsigned short port = std::atoi( std::data( word ) );
             co_spawn( io_context,
-                      listener( tcp::acceptor( io_context, { tcp::v4( ), port } ) ),
+                      listener( tcp::acceptor( io_context, { tcp::v4( ), port }, true ) ),
                       detached );
         }
 
