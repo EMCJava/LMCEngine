@@ -5,6 +5,7 @@
     "yaml-cpp",
     "glfw3",
     "imguizmo",
+    "asio",
     {
       "name": "imgui",
       "version>=": "1.90",
