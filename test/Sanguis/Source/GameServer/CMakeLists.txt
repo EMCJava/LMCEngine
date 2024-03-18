@@ -1,0 +1,1 @@
+add_executable(GameServer Private/main.cpp)
