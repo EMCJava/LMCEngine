@@ -79,7 +79,7 @@ private:
     void do_read_body( )
     {
         asio::async_read( socket_,
-                          asio::buffer( read_msg_.data, SanguisNet::MessageDataLength ),
+                          asio::buffer( read_msg_.data, read_msg_.header.length ),
                           [ this ]( std::error_code ec, std::size_t /*length*/ ) {
                               if ( !ec )
                               {
@@ -98,9 +98,7 @@ private:
 
     void do_write( )
     {
-        asio::async_write( socket_,
-                           asio::buffer( &write_msgs_.front( ),
-                                         sizeof( SanguisNet::Message ) ),
+        asio::async_write( socket_, write_msgs_.front( ).GetMinimalAsioBuffer( ),
                            [ this ]( std::error_code ec, std::size_t /*length*/ ) {
                                if ( !ec )
                                {

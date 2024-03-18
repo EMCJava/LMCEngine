@@ -113,13 +113,10 @@ private:
             SanguisNet::Message msg;
             while ( true )
             {
-                co_await asio::async_read( socket_, asio::buffer( &msg, sizeof( msg ) ), asio::use_awaitable );
-
-                std::cout << "Received header: ["
-                          << msg.header.id
-                          << ", "
-                          << msg.header.length
-                          << "]" << std::endl;
+                co_await asio::async_read( socket_, asio::buffer( &msg.header, sizeof( msg.header ) ), asio::use_awaitable );
+                std::cout << "Received header: [" << msg.header << std::endl;
+                co_await asio::async_read( socket_, asio::buffer( &msg.data, msg.header.length ), asio::use_awaitable );
+                std::cout << "Received message: [" << msg << std::endl;
                 room_.deliver( msg );
                 msg.header = { };
             }
@@ -142,9 +139,7 @@ private:
                     co_await timer_.async_wait( redirect_error( asio::use_awaitable, ec ) );
                 } else
                 {
-                    co_await asio::async_write( socket_,
-                                                asio::buffer( &write_msgs_.front( ), sizeof( SanguisNet::Message ) ), asio::use_awaitable );
-                    std::cout << write_msgs_.front( ) << std::endl;
+                    co_await asio::async_write( socket_, write_msgs_.front( ).GetMinimalAsioBuffer( ), asio::use_awaitable );
                     write_msgs_.pop_front( );
                 }
             }

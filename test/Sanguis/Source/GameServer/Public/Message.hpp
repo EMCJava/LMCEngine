@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include <asio.hpp>
 
 namespace SanguisNet
 {
@@ -19,16 +20,24 @@ static constexpr uint32_t MessageDataLength   = MessageHeaderLength * 4;
 struct Message {
     MessageHeader header;
     uint8_t       data[ MessageDataLength ];
+
+    auto GetMinimalAsioBuffer( ) const
+    {
+        return asio::buffer( this, MessageHeaderLength + header.length );
+    }
 };
 
+inline std::ostream&
+operator<<( std::ostream& os, const MessageHeader& header )
+{
+    return os << "[" << header.id << "," << header.length << "]";
+}
 inline std::ostream&
 operator<<( std::ostream& os, const Message& message )
 {
     os << std::hex;
     for ( uint8_t c : std::string_view( (char*) &message, sizeof( message ) ) )
         os << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( c );
-    os << std::dec << std::setw( 0 );
-
-    return os;
+    return os << std::dec << std::setw( 0 );
 }
 }   // namespace SanguisNet
