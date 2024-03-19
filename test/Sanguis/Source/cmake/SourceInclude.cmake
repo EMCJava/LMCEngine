@@ -1,3 +1,5 @@
+include_directories("${CMAKE_SOURCE_DIR}/Source/GameServer/Public")
+
 file(GLOB sources_list LIST_DIRECTORIES true ${CMAKE_SOURCE_DIR}/Source/*)
 foreach (dir ${sources_list})
     IF (IS_DIRECTORY ${dir})
