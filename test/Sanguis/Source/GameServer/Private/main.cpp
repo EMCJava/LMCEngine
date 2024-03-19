@@ -7,6 +7,7 @@
 #include <string>
 #include <ranges>
 
+#include "ServerSectionAcceptor.hpp"
 #include "ServerSectionGroupEcho.hpp"
 #include "GroupParticipantTcp.hpp"
 #include "Message.hpp"
@@ -81,22 +82,26 @@ main( int argc, char* argv[] )
             std::cout << result.size( ) << std::endl;
         }
 
-        std::cout << "Please enter port number(s) to listen on: " << std::flush;
-        std::string ports;
-        std::getline( std::cin, ports );
+        auto AuthenticationSections = std::make_shared<SanguisNet::ServerSectionGroupEcho>( 8800 );
+
+        std::set<std::shared_ptr<SanguisNet::ServerSectionGroup>> ServerSections;
+        ServerSections.insert( { AuthenticationSections } );
 
         asio::io_context io_context( 1 );
 
-        for ( const auto word : std::views::split( ports, ' ' ) )
+        for ( const auto& Section : ServerSections )
         {
-            unsigned short port = std::atoi( std::data( word ) );
+            auto Acceptor = asio::ip::tcp::acceptor( io_context,
+                                                     { asio::ip::tcp::v4( ), Section->GetSectionPort( ) },
+                                                     true );
+
             co_spawn( io_context,
-                      MainServerListener( asio::ip::tcp::acceptor( io_context, { asio::ip::tcp::v4( ), port }, true ) ),
+                      SanguisNet::ServerSectionAccepter<SanguisNet::GroupParticipantTcp>( std::move( Acceptor ), Section ),
                       asio::detached );
         }
 
-        // asio::signal_set signals( io_context, SIGINT, SIGTERM );
-        // signals.async_wait( [ & ]( auto, auto ) { io_context.stop( ); } );
+        //        asio::signal_set signals( io_context, SIGINT, SIGTERM );
+        //        signals.async_wait( [ & ]( auto, auto ) { io_context.stop( ); } );
 
         io_context.run( );
     }

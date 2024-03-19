@@ -11,6 +11,8 @@ namespace SanguisNet
 class ServerSectionGroupEcho : public ServerSectionGroup
 {
 public:
+    using ServerSectionGroup::ServerSectionGroup;
+
     void HandleMessage( const std::shared_ptr<GroupParticipant>& Participants, const Message& Msg ) override;
 };
 }   // namespace SanguisNet
