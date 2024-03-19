@@ -6,6 +6,7 @@
     "glfw3",
     "imguizmo",
     "asio",
+    "sqlite-orm",
     {
       "name": "imgui",
       "version>=": "1.90",

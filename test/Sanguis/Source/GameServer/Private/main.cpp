@@ -2,18 +2,15 @@
 // Created by EMCJava on 3/18/2024.
 //
 
-#include <exception>
-#include <cstdlib>
 #include <iostream>
-#include <list>
 #include <memory>
 #include <string>
-#include <coroutine>
 #include <ranges>
 
 #include "ServerSectionGroup.hpp"
 #include "GroupParticipantTcp.hpp"
 #include "Message.hpp"
+#include "DataBase/DBController.hpp"
 
 asio::awaitable<void>
 listener( asio::ip::tcp::acceptor acceptor )
@@ -48,6 +45,14 @@ main( int argc, char* argv[] )
 {
     try
     {
+        {
+            using namespace sqlite_orm;
+
+            DBController DataBase;
+            auto         result = DataBase.GetStorage( ).select( columns( &User::ID, &User::UserName ),
+                                                                 where( is_equal( &User::UserName, "Player1" ) ) );
+            auto         a      = 0;
+        }
         std::cout << "Please enter port number(s) to listen on: " << std::flush;
         std::string ports;
         std::getline( std::cin, ports );

@@ -1,4 +1,5 @@
 find_package(asio CONFIG REQUIRED)
+find_package(SqliteOrm CONFIG REQUIRED)
 
 # Gather all .cpp files in the current directory
 file(GLOB_RECURSE ALL_CPP RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/Private *.cpp)
@@ -23,4 +24,4 @@ add_library(GameServer.NetLibs.lib ${FILTERED_CPP})
 target_link_libraries(GameServer.NetLibs.lib asio::asio )
 
 add_executable(GameServer Private/main.cpp)
-target_link_libraries(GameServer PRIVATE GameServer.NetLibs.lib)
+target_link_libraries(GameServer PRIVATE GameServer.NetLibs.lib sqlite_orm::sqlite_orm)
