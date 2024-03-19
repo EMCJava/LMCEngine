@@ -36,5 +36,7 @@ private:
     asio::ip::tcp::socket           m_Socket;
     SanguisNet::Message             m_ReadMsg;
     std::deque<SanguisNet::Message> m_MessageQueue;
+
+    bool m_ConnectionReady = false;
 };
 }   // namespace SanguisNet

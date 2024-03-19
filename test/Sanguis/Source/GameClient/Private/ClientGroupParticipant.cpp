@@ -4,6 +4,8 @@
 
 #include "ClientGroupParticipant.hpp"
 
+#include <iostream>
+
 SanguisNet::ClientGroupParticipant::ClientGroupParticipant( asio::io_context& io_context, const asio::ip::basic_resolver<asio::ip::tcp, asio::any_io_executor>::results_type& EndPoint )
     : m_ControlContext( io_context )
     , m_Socket( io_context )
@@ -18,7 +20,7 @@ SanguisNet::ClientGroupParticipant::Post( const SanguisNet::Message& msg )
                 [ this, msg ]( ) {
                     bool Sending = !m_MessageQueue.empty( );
                     m_MessageQueue.push_back( msg );
-                    if ( !Sending )
+                    if ( !Sending && m_ConnectionReady )
                     {
                         SendTopMessage( );
                     }
@@ -38,6 +40,9 @@ SanguisNet::ClientGroupParticipant::DoConnect( const asio::ip::basic_resolver<as
                          [ this ]( std::error_code ec, auto&& ) {
                              if ( !ec )
                              {
+                                 m_ConnectionReady = true;
+                                 if ( !m_MessageQueue.empty( ) ) SendTopMessage( );
+
                                  // Start waiting/reading for incoming messages
                                  ReadMessageHeader( );
                              }
@@ -71,6 +76,7 @@ SanguisNet::ClientGroupParticipant::ReadMessageBody( )
                           if ( !ec )
                           {
                               // TODO: Handle message
+                              std::cout << std::string_view( (char*) m_ReadMsg.data, m_ReadMsg.header.length ) << std::endl;
 
                               // Start waiting/reading next message
                               ReadMessageHeader( );
@@ -104,4 +110,7 @@ void
 SanguisNet::ClientGroupParticipant::Terminate( )
 {
     m_Socket.close( );
+    m_ConnectionReady = false;
+
+    std::cout << "Connection Terminated" << std::endl;
 }

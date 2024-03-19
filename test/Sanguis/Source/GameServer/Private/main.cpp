@@ -8,69 +8,19 @@
 #include <ranges>
 
 #include "ServerSectionAcceptor.hpp"
-#include "ServerSectionGroupEcho.hpp"
+#include "ServerSectionGroupAuth.hpp"
 #include "GroupParticipantTcp.hpp"
 #include "Message.hpp"
 #include "DataBase/DBController.hpp"
 
-std::unique_ptr<DBController> DataBase;
-
-asio::awaitable<void>
-MainServerListener( asio::ip::tcp::acceptor acceptor )
-{
-    using namespace std::chrono_literals;
-
-    auto       SectionGroup  = std::make_shared<SanguisNet::ServerSectionGroupEcho>( );
-    const auto LocalEndpoint = acceptor.local_endpoint( );
-
-    asio::steady_timer DeadlineTimer( acceptor.get_executor( ) );
-
-    std::function<void( std::error_code )> TimeoutHandler;
-    TimeoutHandler = [ & ]( std::error_code ec ) {
-        if ( ec ) return;
-        if ( SectionGroup->GetParticipantsCount( ) == 0 )
-        {
-            std::cout << "[" << LocalEndpoint.address( ).to_string( ) << ":" << LocalEndpoint.port( ) << "] Party releasing..." << std::endl;
-
-            // Release section
-            acceptor.close( );
-        } else
-        {
-            std::cout << "[" << LocalEndpoint.address( ).to_string( ) << ":" << LocalEndpoint.port( ) << "] Waiting for a client to connect..." << std::endl;
-            DeadlineTimer.expires_after( 10s );
-            DeadlineTimer.async_wait( TimeoutHandler );
-        }
-    };
-
-    while ( true )
-    {
-        DeadlineTimer.expires_after( 10s );
-        DeadlineTimer.async_wait( TimeoutHandler );
-        auto Socket = co_await acceptor.async_accept( asio::use_awaitable );
-        DeadlineTimer.cancel( );
-
-        const asio::ip::tcp::endpoint remoteEndpoint = Socket.remote_endpoint( );
-
-        std::cout << "Client IP: "
-                  << remoteEndpoint.address( ).to_string( ) << ":" << remoteEndpoint.port( )
-                  << " connecting to "
-                  << LocalEndpoint.address( ).to_string( ) << ":" << LocalEndpoint.port( )
-                  << std::endl;
-
-        // Using shared_from_this, it won't be deleted
-        std::make_shared<SanguisNet::GroupParticipantTcp>(
-            std::move( Socket ),
-            SectionGroup )
-            ->StartListening( );
-    }
-}
+std::shared_ptr<DBController> DataBase;
 
 int
 main( int argc, char* argv[] )
 {
     try
     {
-        DataBase = std::make_unique<DBController>( );
+        DataBase = std::make_shared<DBController>( );
 
         {
             using namespace sqlite_orm;
@@ -82,7 +32,7 @@ main( int argc, char* argv[] )
             std::cout << result.size( ) << std::endl;
         }
 
-        auto AuthenticationSections = std::make_shared<SanguisNet::ServerSectionGroupEcho>( 8800 );
+        auto AuthenticationSections = std::make_shared<SanguisNet::ServerSectionGroupAuth>( 8800, DataBase );
 
         std::set<std::shared_ptr<SanguisNet::ServerSectionGroup>> ServerSections;
         ServerSections.insert( { AuthenticationSections } );

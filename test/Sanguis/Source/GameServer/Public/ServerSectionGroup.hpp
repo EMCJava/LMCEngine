@@ -18,9 +18,9 @@ public:
         : m_SectionPort( Port )
     { }
 
-    void Join( const std::shared_ptr<GroupParticipant>& Participant );
+    virtual void Join( const std::shared_ptr<GroupParticipant>& Participant );
 
-    void Leave( const std::shared_ptr<GroupParticipant>& participant );
+    virtual void Leave( const std::shared_ptr<GroupParticipant>& participant );
 
     size_t GetParticipantsCount( ) const noexcept { return m_Participants.size( ); }
 

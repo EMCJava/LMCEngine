@@ -12,7 +12,8 @@ namespace SanguisNet
 class GroupParticipant
 {
 public:
-    virtual ~GroupParticipant( ) = default;
+    virtual ~GroupParticipant( )               = default;
     virtual void Deliver( const Message& Msg ) = 0;
+    virtual void Terminate( )                  = 0;
 };
 }   // namespace SanguisNet

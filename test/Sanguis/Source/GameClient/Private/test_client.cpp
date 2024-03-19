@@ -28,6 +28,18 @@ main( int argc, char* argv[] )
         auto                               endpoints = resolver.resolve( argv[ 1 ], argv[ 2 ] );
         SanguisNet::ClientGroupParticipant c( io_context, endpoints );
 
+
+        {
+            SanguisNet::Message LoginMsg { SanguisNet::MessageHeader::ID_LOGIN };
+
+            char login[]           = "Player1|1";
+            LoginMsg.header.length = std::strlen( login );
+            login[ 7 ]             = 0;
+
+            std::memcpy( LoginMsg.data, login, LoginMsg.header.length );
+            c.Post( LoginMsg );
+        }
+
         std::thread t( [ &io_context ]( ) { io_context.run( ); } );
 
         char line[ SanguisNet::MessageDataLength + 1 ];

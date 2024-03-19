@@ -23,11 +23,11 @@ public:
 
     void Deliver( const SanguisNet::Message& Msg ) override;
 
+    void Terminate( ) override;
+
 private:
     asio::awaitable<void> ReaderJob( );
     asio::awaitable<void> WriterJob( );
-
-    void Terminate( );
 
     asio::ip::tcp::socket               m_Socket;
     asio::steady_timer                  m_MessageSignal;
