@@ -2,6 +2,7 @@
 // Created by EMCJava on 3/18/2024.
 //
 
+#include <exception>
 #include <cstdlib>
 #include <deque>
 #include <iostream>
@@ -63,11 +64,7 @@ private:
                           [ this ]( std::error_code ec, std::size_t /*length*/ ) {
                               if ( !ec )
                               {
-                                  std::cout << "Received header: ["
-                                            << read_msg_.header.id
-                                            << ", "
-                                            << read_msg_.header.length
-                                            << "]" << std::endl;
+                                  std::cout << "Received header: " << read_msg_.header << std::endl;
                                   do_read_body( );
                               } else
                               {

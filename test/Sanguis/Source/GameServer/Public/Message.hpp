@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <asio.hpp>
+#include <iomanip>
 
 namespace SanguisNet
 {

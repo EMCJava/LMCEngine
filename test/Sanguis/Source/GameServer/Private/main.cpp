@@ -2,6 +2,7 @@
 // Created by EMCJava on 3/18/2024.
 //
 
+#include <exception>
 #include <cstdlib>
 #include <deque>
 #include <iostream>
@@ -114,9 +115,9 @@ private:
             while ( true )
             {
                 co_await asio::async_read( socket_, asio::buffer( &msg.header, sizeof( msg.header ) ), asio::use_awaitable );
-                std::cout << "Received header: [" << msg.header << std::endl;
+                std::cout << "Received header: " << msg.header << std::endl;
                 co_await asio::async_read( socket_, asio::buffer( &msg.data, msg.header.length ), asio::use_awaitable );
-                std::cout << "Received message: [" << msg << std::endl;
+                std::cout << "Received message: " << msg << std::endl;
                 room_.deliver( msg );
                 msg.header = { };
             }
