@@ -5,7 +5,14 @@
 
 #pragma once
 
+#include "Message.hpp"
 
+namespace SanguisNet
+{
 class GroupParticipant
 {
+public:
+    virtual ~GroupParticipant( ) = default;
+    virtual void Deliver( const Message& Msg ) = 0;
 };
+}   // namespace SanguisNet
