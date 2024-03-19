@@ -96,7 +96,7 @@ main( int argc, char* argv[] )
                                                      true );
 
             co_spawn( io_context,
-                      SanguisNet::ServerSectionAccepter<SanguisNet::GroupParticipantTcp>( std::move( Acceptor ), Section ),
+                      SanguisNet::ServerSectionAcceptor<SanguisNet::GroupParticipantTcp>( std::move( Acceptor ), Section ),
                       asio::detached );
         }
 
