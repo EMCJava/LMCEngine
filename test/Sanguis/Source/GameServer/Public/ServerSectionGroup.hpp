@@ -18,6 +18,8 @@ public:
 
     void Leave( const std::shared_ptr<GroupParticipant>& participant );
 
+    size_t GetParticipantsCount( ) const noexcept { return m_Participants.size( ); }
+
     virtual void HandleMessage( const std::shared_ptr<GroupParticipant>& Participants, const Message& Msg ) { }
 
 protected:
