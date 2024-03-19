@@ -6,8 +6,11 @@
 
 #include <exception>
 #include <cstdint>
-#include <asio.hpp>
 #include <iomanip>
+
+// FIXME: A temporary workaround for a bug in CLion (Windows)
+#define ASIO_HAS_CO_AWAIT 1
+#include <asio.hpp>
 
 namespace SanguisNet
 {
