@@ -21,7 +21,7 @@ SanguisNet::ServerSectionGroupAuth::HandleMessage( const std::shared_ptr<GroupPa
     {
         if ( Msg.header.id != MessageHeader::ID_LOGIN ) break;
 
-        size_t NameLength = std::clamp( std::strlen( (char*) Msg.data ), 0ULL, (size_t) Msg.header.length );
+        size_t NameLength = std::clamp( std::strlen( (char*) Msg.data ), (size_t) 0, (size_t) Msg.header.length );
         if ( NameLength == 0 || NameLength == Msg.header.length ) break;
 
         std::string UserName { (char*) Msg.data, NameLength };
