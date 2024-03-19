@@ -36,6 +36,7 @@ SanguisNet::GroupParticipantTcp::ReaderJob( )
 {
     try
     {
+        auto                SharedFromThis = shared_from_this( );
         SanguisNet::Message Msg;
         while ( true )
         {
@@ -49,7 +50,7 @@ SanguisNet::GroupParticipantTcp::ReaderJob( )
             co_await asio::async_read( m_Socket, asio::buffer( &Msg.data, Msg.header.length ), asio::use_awaitable );
 
             // Broadcast to all participant
-            m_BelongsTo->Deliver( Msg );
+            m_BelongsTo->HandleMessage( SharedFromThis, Msg );
 
             // Reset header
             Msg.header = { };

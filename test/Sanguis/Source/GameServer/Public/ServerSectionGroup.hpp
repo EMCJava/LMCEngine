@@ -18,9 +18,9 @@ public:
 
     void Leave( const std::shared_ptr<GroupParticipant>& participant );
 
-    void Deliver( const Message& Msg ) const;
+    virtual void HandleMessage( const std::shared_ptr<GroupParticipant>& Participants, const Message& Msg ) { }
 
-private:
+protected:
     std::set<std::shared_ptr<GroupParticipant>> m_Participants;
 };
 }   // namespace SanguisNet

@@ -7,15 +7,17 @@
 #include <string>
 #include <ranges>
 
-#include "ServerSectionGroup.hpp"
+#include "ServerSectionGroupEcho.hpp"
 #include "GroupParticipantTcp.hpp"
 #include "Message.hpp"
 #include "DataBase/DBController.hpp"
 
+std::unique_ptr<DBController> DataBase;
+
 asio::awaitable<void>
-listener( asio::ip::tcp::acceptor acceptor )
+MainServerListener( asio::ip::tcp::acceptor acceptor )
 {
-    auto SectionGroup = std::make_shared<SanguisNet::ServerSectionGroup>( );
+    auto SectionGroup = std::make_shared<SanguisNet::ServerSectionGroupEcho>( );
 
     for ( ;; )
     {
@@ -43,17 +45,18 @@ listener( asio::ip::tcp::acceptor acceptor )
 int
 main( int argc, char* argv[] )
 {
+
     try
     {
+        DataBase = std::make_unique<DBController>( );
+
         {
             using namespace sqlite_orm;
 
-            DBController DataBase;
-
             auto CheckUser = User::MakeUser( "Player1", "1" );
-            auto result    = DataBase.GetStorage( ).select( columns( &User::ID, &User::UserName ),
-                                                            where( c( &User::UserName ) == CheckUser.UserName
-                                                                   and c( &User::PasswordHash ) == CheckUser.PasswordHash ) );
+            auto result    = DataBase->GetStorage( ).select( asterisk<User>( ),
+                                                             where( c( &User::UserName ) == CheckUser.UserName
+                                                                    and c( &User::PasswordHash ) == CheckUser.PasswordHash ) );
             std::cout << result.size( ) << std::endl;
         }
 
@@ -67,7 +70,7 @@ main( int argc, char* argv[] )
         {
             unsigned short port = std::atoi( std::data( word ) );
             co_spawn( io_context,
-                      listener( asio::ip::tcp::acceptor( io_context, { asio::ip::tcp::v4( ), port }, true ) ),
+                      MainServerListener( asio::ip::tcp::acceptor( io_context, { asio::ip::tcp::v4( ), port }, true ) ),
                       asio::detached );
         }
 
