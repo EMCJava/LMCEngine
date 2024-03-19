@@ -32,6 +32,8 @@ listener( asio::ip::tcp::acceptor acceptor )
                   << " connecting to "
                   << LocalEndpoint.address( ).to_string( ) << ":" << LocalEndpoint.port( )
                   << std::endl;
+
+        // Using shared_from_this, it won't be deleted
         std::make_shared<SanguisNet::GroupParticipantTcp>(
             std::move( Socket ),
             SectionGroup )
