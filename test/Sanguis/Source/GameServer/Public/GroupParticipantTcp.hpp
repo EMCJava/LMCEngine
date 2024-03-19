@@ -17,7 +17,7 @@ class GroupParticipantTcp
     , public std::enable_shared_from_this<GroupParticipantTcp>
 {
 public:
-    GroupParticipantTcp( asio::ip::tcp::socket Socket, ServerSectionGroup& BelongsTo );
+    GroupParticipantTcp( asio::ip::tcp::socket Socket, std::shared_ptr<ServerSectionGroup> BelongsTo );
 
     void StartListening( );
 
@@ -29,9 +29,9 @@ private:
 
     void Terminate( );
 
-    asio::ip::tcp::socket           m_Socket;
-    asio::steady_timer              m_MessageSignal;
-    ServerSectionGroup&             m_BelongsTo;
-    std::deque<SanguisNet::Message> m_MessageQueue;
+    asio::ip::tcp::socket               m_Socket;
+    asio::steady_timer                  m_MessageSignal;
+    std::shared_ptr<ServerSectionGroup> m_BelongsTo;
+    std::deque<SanguisNet::Message>     m_MessageQueue;
 };
 }   // namespace SanguisNet

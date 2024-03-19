@@ -4,10 +4,10 @@
 
 #include "GroupParticipantTcp.hpp"
 
-SanguisNet::GroupParticipantTcp::GroupParticipantTcp( asio::ip::tcp::socket Socket, SanguisNet::ServerSectionGroup& BelongsTo )
+SanguisNet::GroupParticipantTcp::GroupParticipantTcp( asio::ip::tcp::socket Socket, std::shared_ptr<SanguisNet::ServerSectionGroup> BelongsTo )
     : m_Socket( std::move( Socket ) )
     , m_MessageSignal( m_Socket.get_executor( ) )
-    , m_BelongsTo( BelongsTo )
+    , m_BelongsTo( std::move( BelongsTo ) )
 {
     // Make sure it will not expire, used as signal
     m_MessageSignal.expires_at( std::chrono::steady_clock::time_point::max( ) );
@@ -16,7 +16,7 @@ SanguisNet::GroupParticipantTcp::GroupParticipantTcp( asio::ip::tcp::socket Sock
 void
 SanguisNet::GroupParticipantTcp::StartListening( )
 {
-    m_BelongsTo.Join( shared_from_this( ) );
+    m_BelongsTo->Join( shared_from_this( ) );
 
     // Spawn reader and write job
     asio::co_spawn( m_Socket.get_executor( ), [ self = shared_from_this( ) ] { return self->ReaderJob( ); }, asio::detached );
@@ -49,7 +49,7 @@ SanguisNet::GroupParticipantTcp::ReaderJob( )
             co_await asio::async_read( m_Socket, asio::buffer( &Msg.data, Msg.header.length ), asio::use_awaitable );
 
             // Broadcast to all participant
-            m_BelongsTo.Deliver( Msg );
+            m_BelongsTo->Deliver( Msg );
 
             // Reset header
             Msg.header = { };
@@ -88,7 +88,7 @@ SanguisNet::GroupParticipantTcp::WriterJob( )
 void
 SanguisNet::GroupParticipantTcp::Terminate( )
 {
-    m_BelongsTo.Leave( shared_from_this( ) );
+    m_BelongsTo->Leave( shared_from_this( ) );
     m_Socket.close( );
     m_MessageSignal.cancel( );
 }

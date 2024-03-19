@@ -18,7 +18,7 @@
 asio::awaitable<void>
 listener( asio::ip::tcp::acceptor acceptor )
 {
-    SanguisNet::ServerSectionGroup SectionGroup;
+    auto SectionGroup = std::make_shared<SanguisNet::ServerSectionGroup>( );
 
     for ( ;; )
     {
