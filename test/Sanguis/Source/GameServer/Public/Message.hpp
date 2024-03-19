@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <exception>
 #include <cstdint>
 #include <asio.hpp>
 #include <iomanip>
