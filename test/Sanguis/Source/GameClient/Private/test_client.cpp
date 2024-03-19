@@ -31,7 +31,7 @@ main( int argc, char* argv[] )
         std::thread t( [ &io_context ]( ) { io_context.run( ); } );
 
         char line[ SanguisNet::MessageDataLength + 1 ];
-        while ( std::cin.getline( line, SanguisNet::MessageDataLength + 1 ) )
+        while ( std::cout << "-" << std::flush && std::cin.getline( line, SanguisNet::MessageDataLength + 1 ) )
         {
             SanguisNet::Message msg;
             msg.header.length = std::strlen( line );
