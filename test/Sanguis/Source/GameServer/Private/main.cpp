@@ -49,10 +49,14 @@ main( int argc, char* argv[] )
             using namespace sqlite_orm;
 
             DBController DataBase;
-            auto         result = DataBase.GetStorage( ).select( columns( &User::ID, &User::UserName ),
-                                                                 where( is_equal( &User::UserName, "Player1" ) ) );
-            auto         a      = 0;
+
+            auto CheckUser = User::MakeUser( "Player1", "1" );
+            auto result    = DataBase.GetStorage( ).select( columns( &User::ID, &User::UserName ),
+                                                            where( c( &User::UserName ) == CheckUser.UserName
+                                                                   and c( &User::PasswordHash ) == CheckUser.PasswordHash ) );
+            std::cout << result.size( ) << std::endl;
         }
+
         std::cout << "Please enter port number(s) to listen on: " << std::flush;
         std::string ports;
         std::getline( std::cin, ports );
