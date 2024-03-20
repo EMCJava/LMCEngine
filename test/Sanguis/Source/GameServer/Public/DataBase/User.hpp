@@ -27,6 +27,12 @@ struct User {
     }
 };
 
+struct UserLogin {
+    std::unique_ptr<int> UserID;
+    size_t               LoginCookie;
+    std::string          Timeout;
+};
+
 struct UserRelationship {
     std::unique_ptr<int> RelatingUserId;
     std::unique_ptr<int> RelatedUserId;

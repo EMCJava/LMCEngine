@@ -22,4 +22,9 @@ DBController::DBController( )
     m_Storage.replace( UserRelationship { std::make_unique<int>( 1 ), std::make_unique<int>( 2 ), UserRelationship::Friend } );
     m_Storage.replace( UserRelationship { std::make_unique<int>( 2 ), std::make_unique<int>( 1 ), UserRelationship::Friend } );
     m_Storage.replace( UserRelationship { std::make_unique<int>( 1 ), std::make_unique<int>( 3 ), UserRelationship::Block } );
+
+    m_Storage.remove_all<UserLogin>( );
+    m_Storage.insert( into<UserLogin>( ),
+                      columns( &UserLogin::UserID, &UserLogin::LoginCookie ),
+                      values( std::make_tuple( std::make_unique<int>( 1 ), 123 ) ) );
 }
