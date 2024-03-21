@@ -18,6 +18,8 @@ public:
         : m_SectionPort( Port )
     { }
 
+    void SetManager( std::weak_ptr<class ServerManager> Manager );
+
     virtual void Join( const std::shared_ptr<GroupParticipant>& Participant );
 
     virtual void Leave( const std::shared_ptr<GroupParticipant>& participant );
@@ -30,6 +32,7 @@ public:
 
 protected:
     std::set<std::shared_ptr<GroupParticipant>> m_Participants;
+    std::weak_ptr<class ServerManager>          m_Manager;
 
     uint16_t m_SectionPort = 0;
 };

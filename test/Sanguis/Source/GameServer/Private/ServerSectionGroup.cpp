@@ -15,3 +15,9 @@ SanguisNet::ServerSectionGroup::Leave( const std::shared_ptr<GroupParticipant>& 
 {
     m_Participants.erase( participant );
 }
+
+void
+SanguisNet::ServerSectionGroup::SetManager( std::weak_ptr<struct ServerManager> Manager )
+{
+    m_Manager = std::move( Manager );
+}
