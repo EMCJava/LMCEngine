@@ -6,6 +6,7 @@
 
 #include <string>
 #include <memory>
+#include <optional>
 
 struct User {
     int         ID;
@@ -28,14 +29,14 @@ struct User {
 };
 
 struct UserLogin {
-    std::unique_ptr<int> UserID;
-    size_t               LoginCookie;
-    std::string          Timeout;
+    std::optional<int> UserID;
+    size_t             LoginCookie;
+    std::string        Timeout;
 };
 
 struct UserRelationship {
-    std::unique_ptr<int> RelatingUserId;
-    std::unique_ptr<int> RelatedUserId;
+    std::optional<int> RelatingUserId;
+    std::optional<int> RelatedUserId;
     enum { None,
            Friend,
            Block };

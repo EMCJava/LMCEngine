@@ -19,9 +19,9 @@ DBController::DBController( )
     m_Storage.insert( User::MakeUser( "Player2", "3" ) );
 
     m_Storage.remove_all<UserRelationship>( );
-    m_Storage.replace( UserRelationship { std::make_unique<int>( 1 ), std::make_unique<int>( 2 ), UserRelationship::Friend } );
-    m_Storage.replace( UserRelationship { std::make_unique<int>( 2 ), std::make_unique<int>( 1 ), UserRelationship::Friend } );
-    m_Storage.replace( UserRelationship { std::make_unique<int>( 1 ), std::make_unique<int>( 3 ), UserRelationship::Block } );
+    m_Storage.replace( UserRelationship { 1, 2, UserRelationship::Friend } );
+    m_Storage.replace( UserRelationship { 2, 1, UserRelationship::Friend } );
+    m_Storage.replace( UserRelationship { 1, 3, UserRelationship::Block } );
 
     m_Storage.remove_all<UserLogin>( );
     m_Storage.insert( into<UserLogin>( ),
