@@ -18,6 +18,7 @@ SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupPa
             int  Page    = std::stoi( PageStr );
 
             constexpr int FriendPrePage = 3;
+            static_assert( FriendPrePage * User::MaxNameLength <= SanguisNet::MessageDataLength );
             using namespace sqlite_orm;
 
             using als_u     = alias_e<User>;
