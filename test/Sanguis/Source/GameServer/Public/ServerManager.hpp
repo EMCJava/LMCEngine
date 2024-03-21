@@ -22,6 +22,8 @@ public:
     auto GetAuthSection( ) { return m_AuthorizationSection; }
     auto GetEchoSection( ) { return m_EchoSection; }
 
+    auto GetDBController( ) { return m_DataBaseController; }
+
 protected:
     std::shared_ptr<ServerSectionGroupAuth> m_AuthorizationSection;
     std::shared_ptr<ServerSectionGroupEcho> m_EchoSection;

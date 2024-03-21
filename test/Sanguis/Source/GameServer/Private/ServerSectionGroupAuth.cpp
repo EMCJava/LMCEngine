@@ -10,11 +10,6 @@
 
 #include <string>
 
-SanguisNet::ServerSectionGroupAuth::ServerSectionGroupAuth( uint16_t Port, std::shared_ptr<DBController> DataBase )
-    : ServerSectionGroup( Port )
-    , m_DataBase( std::move( DataBase ) )
-{ }
-
 void
 SanguisNet::ServerSectionGroupAuth::HandleMessage( const std::shared_ptr<GroupParticipant>& Participant, const SanguisNet::Message& Msg )
 {
@@ -31,9 +26,9 @@ SanguisNet::ServerSectionGroupAuth::HandleMessage( const std::shared_ptr<GroupPa
         using namespace sqlite_orm;
 
         auto CheckUser = User::MakeUser( UserName, Password );
-        auto Result    = m_DataBase->GetStorage( ).select( asterisk<User>( ),
-                                                           where( c( &User::UserName ) == CheckUser.UserName
-                                                                  and c( &User::PasswordHash ) == CheckUser.PasswordHash ) );
+        auto Result    = m_Manager.lock( )->GetDBController( )->GetStorage( ).select( asterisk<User>( ),
+                                                                                      where( c( &User::UserName ) == CheckUser.UserName
+                                                                                             and c( &User::PasswordHash ) == CheckUser.PasswordHash ) );
         if ( Result.empty( ) ) break;
 
         SanguisNet::Message SuccessMsg { MessageHeader::ID_RESULT };

@@ -12,11 +12,8 @@ namespace SanguisNet
 class ServerSectionGroupAuth : public ServerSectionGroup
 {
 public:
-    ServerSectionGroupAuth( uint16_t Port, std::shared_ptr<DBController> DataBase );
+    using ServerSectionGroup::ServerSectionGroup;
 
     void HandleMessage( const std::shared_ptr<class GroupParticipant>& Participant, const Message& Msg ) override;
-
-protected:
-    std::shared_ptr<DBController> m_DataBase;
 };
 }   // namespace SanguisNet

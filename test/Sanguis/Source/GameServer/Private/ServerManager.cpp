@@ -14,7 +14,7 @@ SanguisNet::ServerManager::Lunch( asio::io_context& ControlContext )
     assert( m_DataBaseController );
     m_ServerSections.clear( );
 
-    m_AuthorizationSection = std::make_shared<SanguisNet::ServerSectionGroupAuth>( 8800, m_DataBaseController );
+    m_AuthorizationSection = std::make_shared<SanguisNet::ServerSectionGroupAuth>( 8800 );
     m_EchoSection          = std::make_shared<SanguisNet::ServerSectionGroupEcho>( 8801 );
 
     auto SharedFromThis = shared_from_this( );
