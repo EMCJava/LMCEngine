@@ -4,11 +4,14 @@
 
 #include "GroupParticipantTcp.hpp"
 
+#include "ServerSectionGroup.hpp"
+
 SanguisNet::GroupParticipantTcp::GroupParticipantTcp( asio::ip::tcp::socket Socket, std::shared_ptr<SanguisNet::ServerSectionGroup> BelongsTo )
     : m_Socket( std::move( Socket ) )
     , m_MessageSignal( m_Socket.get_executor( ) )
-    , m_BelongsTo( std::move( BelongsTo ) )
 {
+    m_BelongsTo = std::move( BelongsTo );
+
     // Make sure it will not expire, used as signal
     m_MessageSignal.expires_at( std::chrono::steady_clock::time_point::max( ) );
 }

@@ -31,7 +31,6 @@ private:
 
     asio::ip::tcp::socket               m_Socket;
     asio::steady_timer                  m_MessageSignal;
-    std::shared_ptr<ServerSectionGroup> m_BelongsTo;
     std::deque<SanguisNet::Message>     m_MessageQueue;
 };
 }   // namespace SanguisNet

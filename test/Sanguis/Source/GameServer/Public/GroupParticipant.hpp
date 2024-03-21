@@ -7,6 +7,8 @@
 
 #include "Message.hpp"
 
+#include <memory>
+
 namespace SanguisNet
 {
 class GroupParticipant
@@ -15,5 +17,8 @@ public:
     virtual ~GroupParticipant( )               = default;
     virtual void Deliver( const Message& Msg ) = 0;
     virtual void Terminate( )                  = 0;
+
+protected:
+    std::shared_ptr<class ServerSectionGroup> m_BelongsTo;
 };
 }   // namespace SanguisNet
