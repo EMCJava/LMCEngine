@@ -19,9 +19,14 @@ public:
     virtual void Deliver( const Message& Msg ) = 0;
     virtual void Terminate( )                  = 0;
 
+    auto GetParticipantID( ) { return m_ParticipantID; }
+    void SetParticipantID( int ID ) { m_ParticipantID = ID; }
+
     void TransferSection( std::shared_ptr<class ServerSectionGroup> Group );
 
 protected:
     std::shared_ptr<class ServerSectionGroup> m_BelongsTo;
+
+    int m_ParticipantID = -1;
 };
 }   // namespace SanguisNet

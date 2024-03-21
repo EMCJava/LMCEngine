@@ -9,9 +9,11 @@
 #include <optional>
 
 struct User {
-    int         ID;
-    std::string UserName;
-    size_t      PasswordHash;
+    int ID;
+
+    static constexpr int MaxNameLength = 10;
+    std::string          UserName;
+    size_t               PasswordHash;
 
     size_t GetPasswordHash( const std::string& Password )
     {

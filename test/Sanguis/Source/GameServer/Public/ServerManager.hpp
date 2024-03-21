@@ -6,6 +6,7 @@
 
 #include "ServerSectionGroupAuth.hpp"
 #include "ServerSectionGroupEcho.hpp"
+#include "ServerSectionGroupMain.hpp"
 
 #include <memory>
 
@@ -20,12 +21,14 @@ public:
     void Lunch( asio::io_context& ControlContext );
 
     auto GetAuthSection( ) { return m_AuthorizationSection; }
+    auto GetMainSection( ) { return m_MainSection; }
     auto GetEchoSection( ) { return m_EchoSection; }
 
     auto GetDBController( ) { return m_DataBaseController; }
 
 protected:
     std::shared_ptr<ServerSectionGroupAuth> m_AuthorizationSection;
+    std::shared_ptr<ServerSectionGroupMain> m_MainSection;
     std::shared_ptr<ServerSectionGroupEcho> m_EchoSection;
 
     std::set<std::shared_ptr<SanguisNet::ServerSectionGroup>> m_ServerSections;

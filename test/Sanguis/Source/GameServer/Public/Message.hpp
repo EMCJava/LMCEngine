@@ -17,6 +17,7 @@ namespace SanguisNet
 struct MessageHeader {
     enum { ID_NONE,
            ID_RESULT,
+           ID_GET,
            ID_LOGIN };
     uint32_t id     = 0;
     uint32_t length = 0;

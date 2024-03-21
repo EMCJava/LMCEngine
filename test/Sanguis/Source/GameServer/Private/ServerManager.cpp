@@ -15,11 +15,13 @@ SanguisNet::ServerManager::Lunch( asio::io_context& ControlContext )
     m_ServerSections.clear( );
 
     m_AuthorizationSection = std::make_shared<SanguisNet::ServerSectionGroupAuth>( 8800 );
-    m_EchoSection          = std::make_shared<SanguisNet::ServerSectionGroupEcho>( 8801 );
+    m_MainSection          = std::make_shared<SanguisNet::ServerSectionGroupMain>( 8801 );
+    m_EchoSection          = std::make_shared<SanguisNet::ServerSectionGroupEcho>( 8802 );
 
     auto SharedFromThis = shared_from_this( );
 
     m_AuthorizationSection->SetManager( SharedFromThis );
+    m_MainSection->SetManager( SharedFromThis );
     m_EchoSection->SetManager( SharedFromThis );
 
     m_ServerSections.insert( { m_AuthorizationSection } );

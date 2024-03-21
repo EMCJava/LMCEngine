@@ -30,13 +30,14 @@ SanguisNet::ServerSectionGroupAuth::HandleMessage( const std::shared_ptr<GroupPa
                                                                                       where( c( &User::UserName ) == CheckUser.UserName
                                                                                              and c( &User::PasswordHash ) == CheckUser.PasswordHash ) );
         if ( Result.empty( ) ) break;
+        Participant->SetParticipantID( std::get<0>( Result[ 0 ] ) );
 
         SanguisNet::Message SuccessMsg { MessageHeader::ID_RESULT };
         snprintf( (char*) SuccessMsg.data, SanguisNet::MessageDataLength, "Login Success" );
         SuccessMsg.header.length = strlen( (char*) SuccessMsg.data );
         Participant->Deliver( SuccessMsg );
 
-        Participant->TransferSection( m_Manager.lock( )->GetEchoSection( ) );
+        Participant->TransferSection( m_Manager.lock( )->GetMainSection( ) );
 
         return;
     } while ( false );

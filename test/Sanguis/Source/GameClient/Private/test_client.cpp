@@ -40,6 +40,16 @@ main( int argc, char* argv[] )
             c.Post( LoginMsg );
         }
 
+        {
+            SanguisNet::Message RequestMsg { SanguisNet::MessageHeader::ID_GET };
+
+            char request_str[]       = "friend_list0";
+            RequestMsg.header.length = std::strlen( request_str );
+
+            std::memcpy( RequestMsg.data, request_str, RequestMsg.header.length );
+            c.Post( RequestMsg );
+        }
+
         std::thread t( [ &io_context ]( ) { io_context.run( ); } );
 
         char line[ SanguisNet::MessageDataLength + 1 ];

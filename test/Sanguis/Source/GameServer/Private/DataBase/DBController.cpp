@@ -16,12 +16,14 @@ DBController::DBController( )
     m_Storage.remove_all<User>( );
     m_Storage.insert( User::MakeUser( "Player1", "1" ) );
     m_Storage.insert( User::MakeUser( "Player2", "2" ) );
-    m_Storage.insert( User::MakeUser( "Player2", "3" ) );
+    m_Storage.insert( User::MakeUser( "Player3", "3" ) );
+    m_Storage.insert( User::MakeUser( "Player4", "4" ) );
 
     m_Storage.remove_all<UserRelationship>( );
     m_Storage.replace( UserRelationship { 1, 2, UserRelationship::Friend } );
     m_Storage.replace( UserRelationship { 2, 1, UserRelationship::Friend } );
     m_Storage.replace( UserRelationship { 1, 3, UserRelationship::Block } );
+    m_Storage.replace( UserRelationship { 1, 4, UserRelationship::Friend } );
 
     m_Storage.remove_all<UserLogin>( );
     m_Storage.insert( into<UserLogin>( ),
