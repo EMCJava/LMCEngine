@@ -12,9 +12,7 @@
 
 namespace SanguisNet
 {
-class GroupParticipantTcp
-    : public GroupParticipant
-    , public std::enable_shared_from_this<GroupParticipantTcp>
+class GroupParticipantTcp : public GroupParticipant
 {
 public:
     GroupParticipantTcp( asio::ip::tcp::socket Socket, std::shared_ptr<ServerSectionGroup> BelongsTo );

@@ -4,6 +4,7 @@
 
 #include "ServerSectionGroupAuth.hpp"
 #include "GroupParticipant.hpp"
+#include "ServerManager.hpp"
 
 #include "DataBase/DBController.hpp"
 
@@ -39,6 +40,9 @@ SanguisNet::ServerSectionGroupAuth::HandleMessage( const std::shared_ptr<GroupPa
         snprintf( (char*) SuccessMsg.data, SanguisNet::MessageDataLength, "Login Success" );
         SuccessMsg.header.length = strlen( (char*) SuccessMsg.data );
         Participant->Deliver( SuccessMsg );
+
+        Participant->TransferSection( m_Manager.lock( )->GetEchoSection( ) );
+
         return;
     } while ( false );
 

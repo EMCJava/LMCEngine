@@ -19,6 +19,9 @@ public:
 
     void Lunch( asio::io_context& ControlContext );
 
+    auto GetAuthSection( ) { return m_AuthorizationSection; }
+    auto GetEchoSection( ) { return m_EchoSection; }
+
 protected:
     std::shared_ptr<ServerSectionGroupAuth> m_AuthorizationSection;
     std::shared_ptr<ServerSectionGroupEcho> m_EchoSection;

@@ -19,11 +19,11 @@ SanguisNet::GroupParticipantTcp::GroupParticipantTcp( asio::ip::tcp::socket Sock
 void
 SanguisNet::GroupParticipantTcp::StartListening( )
 {
-    m_BelongsTo->Join( shared_from_this( ) );
+    TransferSection( m_BelongsTo );
 
     // Spawn reader and write job
-    asio::co_spawn( m_Socket.get_executor( ), [ self = shared_from_this( ) ] { return self->ReaderJob( ); }, asio::detached );
-    asio::co_spawn( m_Socket.get_executor( ), [ self = shared_from_this( ) ] { return self->WriterJob( ); }, asio::detached );
+    asio::co_spawn( m_Socket.get_executor( ), [ self = shared_from_this( ) ] { return std::dynamic_pointer_cast<GroupParticipantTcp>( self )->ReaderJob( ); }, asio::detached );
+    asio::co_spawn( m_Socket.get_executor( ), [ self = shared_from_this( ) ] { return std::dynamic_pointer_cast<GroupParticipantTcp>( self )->WriterJob( ); }, asio::detached );
 }
 
 void
