@@ -5,7 +5,6 @@
 #include "ServerSectionGroupMain.hpp"
 #include "ServerManager.hpp"
 #include "DataBase/DBController.hpp"
-
 void
 SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupParticipant>& Participant, const SanguisNet::Message& Msg )
 {
@@ -17,35 +16,41 @@ SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupPa
             auto PageStr = RequestStr.substr( strlen( "friend_list" ) );
             int  Page    = std::stoi( PageStr );
 
-            constexpr int FriendPrePage = 3;
-            static_assert( FriendPrePage * User::MaxNameLength <= SanguisNet::MessageDataLength );
-            using namespace sqlite_orm;
-
-            using als_u     = alias_e<User>;
-            auto FriendList = m_Manager.lock( )->GetDBController( )->GetStorage( ).select(
-                columns( alias_column<als_u>( &User::UserName ) ),
-                natural_join<UserRelationship>( ),
-                where( c( &UserRelationship::RelatingUserId ) == Participant->GetParticipantID( )
-                       and c( &UserRelationship::RelatedUserId ) == alias_column<als_u>( &User::ID )
-                       and c( &UserRelationship::Type ) == (int) UserRelationship::Friend
-                       and exists( select( asterisk<User>( ), natural_join<UserRelationship>( ),
-                                           where( c( &UserRelationship::RelatingUserId ) == alias_column<als_u>( &User::ID )
-                                                  and c( &UserRelationship::RelatedUserId ) == Participant->GetParticipantID( )
-                                                  and c( &UserRelationship::Type ) == (int) UserRelationship::Friend ) ) ) ),
-                order_by( &User::UserName ).asc( ),
-                limit( FriendPrePage, offset( FriendPrePage * Page ) ) );
-
-            std::string Response;
-            for ( int i = 0; i < FriendList.size( ); ++i )
-            {
-                Response += std::get<0>( FriendList[ i ] );
-                Response.resize( ( i + 1 ) * User::MaxNameLength );
-            }
-
-            SanguisNet::Message ResultMsg { MessageHeader::ID_RESULT };
-            snprintf( (char*) ResultMsg.data, SanguisNet::MessageDataLength, "%s", Response.c_str( ) );
-            ResultMsg.header.length = Response.size( );
-            Participant->Deliver( ResultMsg );
+            ResponseFriendList( Participant, Page );
         }
     }
+}
+
+void
+SanguisNet::ServerSectionGroupMain::ResponseFriendList( const std::shared_ptr<GroupParticipant>& Participant, int Page )
+{
+    constexpr int FriendPrePage = 3;
+    static_assert( FriendPrePage * User::MaxNameLength <= SanguisNet::MessageDataLength );
+    using namespace sqlite_orm;
+
+    using als_u     = alias_e<User>;
+    auto FriendList = m_Manager.lock( )->GetDBController( )->GetStorage( ).select(
+        columns( alias_column<als_u>( &User::UserName ) ),
+        natural_join<UserRelationship>( ),
+        where( c( &UserRelationship::RelatingUserId ) == Participant->GetParticipantID( )
+               and c( &UserRelationship::RelatedUserId ) == alias_column<als_u>( &User::ID )
+               and c( &UserRelationship::Type ) == (int) UserRelationship::Friend
+               and exists( select( asterisk<User>( ), natural_join<UserRelationship>( ),
+                                   where( c( &UserRelationship::RelatingUserId ) == alias_column<als_u>( &User::ID )
+                                          and c( &UserRelationship::RelatedUserId ) == Participant->GetParticipantID( )
+                                          and c( &UserRelationship::Type ) == (int) UserRelationship::Friend ) ) ) ),
+        order_by( &User::UserName ).asc( ),
+        limit( FriendPrePage, offset( FriendPrePage * Page ) ) );
+
+    std::string Response;
+    for ( int i = 0; i < FriendList.size( ); ++i )
+    {
+        Response += std::get<0>( FriendList[ i ] );
+        Response.resize( ( i + 1 ) * User::MaxNameLength );
+    }
+
+    SanguisNet::Message ResultMsg { MessageHeader::ID_RESULT };
+    snprintf( (char*) ResultMsg.data, SanguisNet::MessageDataLength, "%s", Response.c_str( ) );
+    ResultMsg.header.length = Response.size( );
+    Participant->Deliver( ResultMsg );
 }
