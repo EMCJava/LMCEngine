@@ -5,6 +5,13 @@
 #include "ServerSectionGroup.hpp"
 
 void
+SanguisNet::ServerSectionGroup::Broadcast( const SanguisNet::Message& Msg )
+{
+    for ( const auto& Participant : m_Participants )
+        Participant->Deliver( Msg );
+}
+
+void
 SanguisNet::ServerSectionGroup::Join( const std::shared_ptr<GroupParticipant>& Participant )
 {
     m_Participants.insert( Participant );
