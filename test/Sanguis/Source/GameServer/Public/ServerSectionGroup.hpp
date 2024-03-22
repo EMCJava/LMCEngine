@@ -20,11 +20,14 @@ public:
 
     void SetManager( std::weak_ptr<class ServerManager> Manager );
 
+    virtual void Broadcast( const Message& Msg );
+
     virtual void Join( const std::shared_ptr<GroupParticipant>& Participant );
 
     virtual void Leave( const std::shared_ptr<GroupParticipant>& participant );
 
-    size_t GetParticipantsCount( ) const noexcept { return m_Participants.size( ); }
+    const auto& GetParticipantsSet( ) const noexcept { return m_Participants; }
+    size_t      GetParticipantsCount( ) const noexcept { return m_Participants.size( ); }
 
     auto GetSectionPort( ) const noexcept { return m_SectionPort; }
 

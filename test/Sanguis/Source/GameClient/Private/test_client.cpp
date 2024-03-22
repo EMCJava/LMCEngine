@@ -16,7 +16,7 @@ main( int argc, char* argv[] )
 {
     try
     {
-        if ( argc != 3 )
+        if ( argc < 3 )
         {
             std::cerr << "Usage: chat_client <host> <port>\n";
             return 1;
@@ -28,10 +28,10 @@ main( int argc, char* argv[] )
         auto                               endpoints = resolver.resolve( argv[ 1 ], argv[ 2 ] );
         SanguisNet::ClientGroupParticipant c( io_context, endpoints );
 
-
         {
-            char login[] = "Player1|1";
-            login[ 7 ]   = 0;
+            std::string login = "Player1|1";
+            if ( argc > 3 ) login = argv[ 3 ];
+            login[ login.find( '|' ) ] = 0;
             c.Post( SanguisNet::Message::FromString( login, SanguisNet::MessageHeader::ID_LOGIN ) );
         }
 
@@ -41,13 +41,10 @@ main( int argc, char* argv[] )
 
         std::thread t( [ &io_context ]( ) { io_context.run( ); } );
 
-        char line[ SanguisNet::MessageDataLength + 1 ];
-        while ( std::cout << "-" << std::flush && std::cin.getline( line, SanguisNet::MessageDataLength + 1 ) )
+        std::string line;
+        while ( std::cout << "-" << std::flush && std::getline( std::cin, line ) )
         {
-            SanguisNet::Message msg;
-            msg.header.length = std::strlen( line );
-            std::memcpy( msg.data, line, msg.header.length );
-            c.Post( msg );
+            c.Post( SanguisNet::Message::FromString( line, SanguisNet::MessageHeader::ID_LOBBY_CONTROL ) );
         }
 
         c.Close( );

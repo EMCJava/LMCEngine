@@ -14,5 +14,8 @@ public:
     using ServerSectionGroup::ServerSectionGroup;
 
     void HandleMessage( const std::shared_ptr<GroupParticipant>& Participants, const Message& Msg ) override;
+
+protected:
+    std::set<std::shared_ptr<GroupParticipant>> m_LobbyParticipants;
 };
 }   // namespace SanguisNet

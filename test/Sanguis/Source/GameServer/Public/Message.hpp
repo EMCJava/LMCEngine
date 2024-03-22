@@ -19,13 +19,14 @@ struct MessageHeader {
            ID_RESULT,
            ID_GET,
            ID_LOGIN,
+           ID_INFO,
            ID_LOBBY_CONTROL };
     uint32_t id     = 0;
     uint32_t length = 0;
 };
 
 static constexpr uint32_t MessageHeaderLength = sizeof( MessageHeader );
-static constexpr uint32_t MessageDataLength   = MessageHeaderLength * 4;
+static constexpr uint32_t MessageDataLength   = MessageHeaderLength * 8;
 
 struct Message {
     MessageHeader header;

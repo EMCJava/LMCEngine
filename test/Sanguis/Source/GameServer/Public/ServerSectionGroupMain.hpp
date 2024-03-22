@@ -21,6 +21,8 @@ public:
 private:
     void ResponseFriendList( const std::shared_ptr<class GroupParticipant>& Participant, int Page );
 
+    std::string GetUserName( const std::shared_ptr<class GroupParticipant>& Participant ) const;
+
 protected:
     std::map<int, std::shared_ptr<class ServerSectionGroupLobby>> m_PlayerLobbies;
 };
