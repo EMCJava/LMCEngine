@@ -33,7 +33,7 @@ SanguisNet::ServerManager::Lunch( asio::io_context& ControlContext )
                                                  true );
 
         co_spawn( ControlContext,
-                  SanguisNet::ServerSectionAcceptor<SanguisNet::GroupParticipantTcp>( std::move( Acceptor ), Section ),
+                  SanguisNet::ServerSectionAcceptor<SanguisNet::GroupParticipantTcp>( std::move( Acceptor ), Section, std::chrono::years( 10 ) ),
                   asio::detached );
     }
 }

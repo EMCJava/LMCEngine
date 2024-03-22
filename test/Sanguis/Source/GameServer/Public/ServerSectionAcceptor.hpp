@@ -14,8 +14,9 @@ namespace SanguisNet
 {
 template <typename ParticipantTy, typename Ty>
 inline asio::awaitable<void>
-ServerSectionAcceptor( asio::ip::tcp::acceptor    acceptor,
-                       const std::shared_ptr<Ty>& Section )
+ServerSectionAcceptor( asio::ip::tcp::acceptor            acceptor,
+                       const std::shared_ptr<Ty>&         Section,
+                       const asio::steady_timer::duration timeout = std::chrono::seconds( 10 ) )
 {
     using namespace std::chrono_literals;
 
@@ -34,14 +35,14 @@ ServerSectionAcceptor( asio::ip::tcp::acceptor    acceptor,
         } else
         {
             std::cout << "[" << LocalEndpoint.address( ).to_string( ) << ":" << LocalEndpoint.port( ) << "] Waiting for a client to connect..." << std::endl;
-            DeadlineTimer.expires_after( 10s );
+            DeadlineTimer.expires_after( timeout );
             DeadlineTimer.async_wait( TimeoutHandler );
         }
     };
 
     while ( true )
     {
-        DeadlineTimer.expires_after( 10s );
+        DeadlineTimer.expires_after( timeout );
         DeadlineTimer.async_wait( TimeoutHandler );
         auto Socket = co_await acceptor.async_accept( asio::use_awaitable );
         DeadlineTimer.cancel( );
