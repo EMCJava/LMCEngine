@@ -28,17 +28,17 @@ SanguisNet::ServerSectionGroupMain::ResponseFriendList( const std::shared_ptr<Gr
     static_assert( FriendPrePage * User::MaxNameLength <= SanguisNet::MessageDataLength );
     using namespace sqlite_orm;
 
-    using als_u     = alias_e<User>;
     auto FriendList = m_Manager.lock( )->GetDBController( )->GetStorage( ).select(
-        columns( alias_column<als_u>( &User::UserName ) ),
-        natural_join<UserRelationship>( ),
-        where( c( &UserRelationship::RelatingUserId ) == Participant->GetParticipantID( )
-               and c( &UserRelationship::RelatedUserId ) == alias_column<als_u>( &User::ID )
-               and c( &UserRelationship::Type ) == (int) UserRelationship::Friend
-               and exists( select( asterisk<User>( ), natural_join<UserRelationship>( ),
-                                   where( c( &UserRelationship::RelatingUserId ) == alias_column<als_u>( &User::ID )
-                                          and c( &UserRelationship::RelatedUserId ) == Participant->GetParticipantID( )
-                                          and c( &UserRelationship::Type ) == (int) UserRelationship::Friend ) ) ) ),
+        columns( &User::UserName ),
+        inner_join<UserRelationship>( on(
+            c( &UserRelationship::RelatingUserId ) == Participant->GetParticipantID( )
+            and c( &UserRelationship::RelatedUserId ) == &User::ID
+            and c( &UserRelationship::Type ) == (int) UserRelationship::Friend ) ),
+        where( exists( select( columns( &UserRelationship::RelatedUserId ),
+                               from<UserRelationship>( ),
+                               where( c( &UserRelationship::RelatingUserId ) == &User::ID
+                                      and c( &UserRelationship::RelatedUserId ) == Participant->GetParticipantID( )
+                                      and c( &UserRelationship::Type ) == (int) UserRelationship::Friend ) ) ) ),
         order_by( &User::UserName ).asc( ),
         limit( FriendPrePage, offset( FriendPrePage * Page ) ) );
 
