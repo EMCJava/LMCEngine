@@ -18,7 +18,8 @@ struct MessageHeader {
     enum { ID_NONE,
            ID_RESULT,
            ID_GET,
-           ID_LOGIN };
+           ID_LOGIN,
+           ID_LOBBY_CONTROL };
     uint32_t id     = 0;
     uint32_t length = 0;
 };
