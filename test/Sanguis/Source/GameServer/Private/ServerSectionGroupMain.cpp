@@ -90,6 +90,9 @@ SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupPa
                 Result += GetUserName( P ) + '\n';
             }
             Participant->Deliver( SanguisNet::Message::FromString( Result, MessageHeader::ID_INFO ) );
+        } else if ( m_PlayerLobbies.contains( Participant->GetParticipantID( ) ) )
+        {
+            m_PlayerLobbies[ Participant->GetParticipantID( ) ]->HandleMessage( Participant, Msg );
         }
         break;
 
