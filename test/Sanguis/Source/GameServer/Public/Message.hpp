@@ -34,6 +34,21 @@ struct Message {
     {
         return asio::buffer( this, MessageHeaderLength + header.length );
     }
+
+    static Message FromString( std::string_view Str, int ID = MessageHeader::ID_NONE )
+    {
+        Message msg;
+        msg.header.id     = ID;
+        msg.header.length = Str.size( );
+        memcpy( msg.data, Str.data( ), Str.size( ) );
+        return msg;
+    }
+
+    template <typename Ty, size_t Size>
+    static Message FromString( const Ty ( &StrArr )[ Size ], int ID = MessageHeader::ID_NONE )
+    {
+        return FromString( std::string_view( StrArr, Size ), ID );
+    }
 };
 
 inline std::ostream&

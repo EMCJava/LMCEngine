@@ -30,24 +30,13 @@ main( int argc, char* argv[] )
 
 
         {
-            SanguisNet::Message LoginMsg { SanguisNet::MessageHeader::ID_LOGIN };
-
-            char login[]           = "Player1|1";
-            LoginMsg.header.length = std::strlen( login );
-            login[ 7 ]             = 0;
-
-            std::memcpy( LoginMsg.data, login, LoginMsg.header.length );
-            c.Post( LoginMsg );
+            char login[] = "Player1|1";
+            login[ 7 ]   = 0;
+            c.Post( SanguisNet::Message::FromString( login, SanguisNet::MessageHeader::ID_LOGIN ) );
         }
 
         {
-            SanguisNet::Message RequestMsg { SanguisNet::MessageHeader::ID_GET };
-
-            char request_str[]       = "friend_list0";
-            RequestMsg.header.length = std::strlen( request_str );
-
-            std::memcpy( RequestMsg.data, request_str, RequestMsg.header.length );
-            c.Post( RequestMsg );
+            c.Post( SanguisNet::Message::FromString( "friend_list0", SanguisNet::MessageHeader::ID_GET ) );
         }
 
         std::thread t( [ &io_context ]( ) { io_context.run( ); } );

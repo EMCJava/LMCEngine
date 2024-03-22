@@ -13,9 +13,9 @@ struct User {
 
     static constexpr int MaxNameLength = 10;
     std::string          UserName;
-    size_t               PasswordHash;
+    int64_t              PasswordHash;
 
-    size_t GetPasswordHash( const std::string& Password )
+    int64_t GetPasswordHash( const std::string& Password )
     {
         return std::hash<std::string> { }(
             UserName + Password + "D;%yL9TS:5PalS/d" );

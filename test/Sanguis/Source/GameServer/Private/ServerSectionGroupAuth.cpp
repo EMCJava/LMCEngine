@@ -21,7 +21,12 @@ SanguisNet::ServerSectionGroupAuth::HandleMessage( const std::shared_ptr<GroupPa
         if ( NameLength == 0 || NameLength == Msg.header.length ) break;
 
         std::string UserName { (char*) Msg.data, NameLength };
-        std::string Password { (char*) Msg.data + NameLength + 1, Msg.header.length - NameLength - 1 };
+
+        std::string Password;
+        if ( Msg.data[ Msg.header.length - 1 ] == 0 /* Can use strlen normally */ )
+            Password.assign( (char*) Msg.data + NameLength + 1 );
+        else
+            Password.assign( (char*) Msg.data + NameLength + 1, Msg.header.length - NameLength - 1 );
 
         using namespace sqlite_orm;
 
