@@ -49,8 +49,5 @@ SanguisNet::ServerSectionGroupMain::ResponseFriendList( const std::shared_ptr<Gr
         Response.resize( ( i + 1 ) * User::MaxNameLength );
     }
 
-    SanguisNet::Message ResultMsg { MessageHeader::ID_RESULT };
-    snprintf( (char*) ResultMsg.data, SanguisNet::MessageDataLength, "%s", Response.c_str( ) );
-    ResultMsg.header.length = Response.size( );
-    Participant->Deliver( ResultMsg );
+    Participant->Deliver( SanguisNet::Message::FromString( Response, MessageHeader::ID_RESULT ) );
 }
