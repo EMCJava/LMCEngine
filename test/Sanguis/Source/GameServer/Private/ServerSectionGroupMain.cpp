@@ -29,54 +29,15 @@ SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupPa
 
     case SanguisNet::MessageHeader::ID_LOBBY_CONTROL:
         if ( RequestStr.starts_with( "create" ) )
-        {
-            // Already in a lobby
-            if ( m_PlayerLobbies.contains( Participant->GetParticipantID( ) ) ) break;
-
-            auto NewLobby = std::make_shared<ServerSectionGroupLobby>( 0 );
-            NewLobby->Join( Participant );
-            m_PlayerLobbies.insert( { Participant->GetParticipantID( ), std::move( NewLobby ) } );
-            Participant->Deliver( SanguisNet::Message::FromString( "Created", MessageHeader::ID_RESULT ) );
-        } else if ( RequestStr.starts_with( "leave" ) )
-        {
-            // Not in a lobby
-            if ( !m_PlayerLobbies.contains( Participant->GetParticipantID( ) ) ) break;
-
-            auto& Lobby = m_PlayerLobbies[ Participant->GetParticipantID( ) ];
-            Lobby->Broadcast( SanguisNet::Message::FromString( GetUserName( Participant ) + " Left", MessageHeader::ID_INFO ) );
-            Lobby->Leave( Participant );
-            m_PlayerLobbies.erase( Participant->GetParticipantID( ) );
-        } else if ( RequestStr.starts_with( "join" ) )
+            CreateLobby( Participant );
+        else if ( RequestStr.starts_with( "leave" ) )
+            LeaveLobby( Participant );
+        else if ( RequestStr.starts_with( "join" ) )
         {
             auto UserIDStr = RequestStr.substr( strlen( "join" ) );
             int  UserID    = std::stoi( UserIDStr.data( ) );
 
-            // Not joining "this" lobby
-            if ( UserID == Participant->GetParticipantID( ) ) break;
-
-            // No such lobby
-            if ( !m_PlayerLobbies.contains( UserID ) ) break;
-
-            auto NewLobby = m_PlayerLobbies[ UserID ];
-
-            // Lobby full
-            if ( NewLobby->GetParticipantsCount( ) >= 2 )
-            {
-                Participant->Deliver( SanguisNet::Message::FromString( "LobbyFull", MessageHeader::ID_RESULT ) );
-                break;
-            }
-
-            auto& OldLobby = m_PlayerLobbies[ Participant->GetParticipantID( ) ];
-            if ( OldLobby != nullptr )
-            {
-                OldLobby->Broadcast( SanguisNet::Message::FromString( GetUserName( Participant ) + " Left", MessageHeader::ID_INFO ) );
-                OldLobby->Leave( Participant );
-            }
-
-            NewLobby->Join( Participant );
-            OldLobby = std::move( NewLobby );
-
-            OldLobby->Broadcast( SanguisNet::Message::FromString( GetUserName( Participant ) + " Entered", MessageHeader::ID_INFO ) );
+            JoinLobby( Participant, UserID );
         } else if ( RequestStr.starts_with( "list" ) )
         {
             // Not in a lobby
@@ -87,7 +48,7 @@ SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupPa
             std::string Result;
             for ( const auto& P : ParticipantsSet )
             {
-                Result += GetUserName( P ) + '\n';
+                Result += GetParticipantName( P ) + '\n';
             }
             Participant->Deliver( SanguisNet::Message::FromString( Result, MessageHeader::ID_INFO ) );
         } else if ( m_PlayerLobbies.contains( Participant->GetParticipantID( ) ) )
@@ -130,15 +91,65 @@ SanguisNet::ServerSectionGroupMain::ResponseFriendList( const std::shared_ptr<Gr
     Participant->Deliver( SanguisNet::Message::FromString( Response, MessageHeader::ID_RESULT ) );
 }
 
-std::string
-SanguisNet::ServerSectionGroupMain::GetUserName( const std::shared_ptr<struct GroupParticipant>& Participant ) const
+void
+SanguisNet::ServerSectionGroupMain::Leave( const std::shared_ptr<GroupParticipant>& Participant )
 {
-    using namespace sqlite_orm;
+    ServerSectionGroup::Leave( Participant );
+    LeaveLobby( Participant );
+}
 
-    const auto Name = m_Manager.lock( )->GetDBController( )->GetStorage( ).select(
-        columns( &User::UserName ),
-        where( c( &User::ID ) == Participant->GetParticipantID( ) ) );
+void
+SanguisNet::ServerSectionGroupMain::CreateLobby( const std::shared_ptr<GroupParticipant>& Participant )
+{
+    // Already in a lobby
+    if ( m_PlayerLobbies.contains( Participant->GetParticipantID( ) ) ) return;
 
-    if ( Name.empty( ) ) return { };
-    return std::get<0>( Name[ 0 ] );
+    auto NewLobby = std::make_shared<ServerSectionGroupLobby>( 0 );
+    NewLobby->Join( Participant );
+    NewLobby->SetManager( m_Manager );
+    m_PlayerLobbies.insert( { Participant->GetParticipantID( ), std::move( NewLobby ) } );
+    Participant->Deliver( SanguisNet::Message::FromString( "Created", MessageHeader::ID_RESULT ) );
+}
+
+void
+SanguisNet::ServerSectionGroupMain::JoinLobby( const std::shared_ptr<GroupParticipant>& Participant, int LobbyUserID )
+{
+    // Not joining "this" lobby
+    if ( LobbyUserID == Participant->GetParticipantID( ) ) return;
+
+    // No such lobby
+    if ( !m_PlayerLobbies.contains( LobbyUserID ) ) return;
+
+    auto NewLobby = m_PlayerLobbies[ LobbyUserID ];
+
+    // Lobby full
+    if ( NewLobby->GetParticipantsCount( ) >= MaxNamesPreMessage )
+    {
+        Participant->Deliver( SanguisNet::Message::FromString( "LobbyFull", MessageHeader::ID_RESULT ) );
+        return;
+    }
+
+    auto& OldLobby = m_PlayerLobbies[ Participant->GetParticipantID( ) ];
+    if ( OldLobby != nullptr )
+    {
+        OldLobby->Broadcast( SanguisNet::Message::FromString( GetParticipantName( Participant ) + " Left", MessageHeader::ID_INFO ) );
+        OldLobby->Leave( Participant );
+    }
+
+    NewLobby->Join( Participant );
+    OldLobby = std::move( NewLobby );
+
+    OldLobby->Broadcast( SanguisNet::Message::FromString( GetParticipantName( Participant ) + " Entered", MessageHeader::ID_INFO ) );
+}
+
+void
+SanguisNet::ServerSectionGroupMain::LeaveLobby( const std::shared_ptr<GroupParticipant>& Participant )
+{
+    // Not in a lobby
+    if ( !m_PlayerLobbies.contains( Participant->GetParticipantID( ) ) ) return;
+
+    auto& Lobby = m_PlayerLobbies[ Participant->GetParticipantID( ) ];
+    Lobby->Broadcast( SanguisNet::Message::FromString( GetParticipantName( Participant ) + " Left", MessageHeader::ID_INFO ) );
+    Lobby->Leave( Participant );
+    m_PlayerLobbies.erase( Participant->GetParticipantID( ) );
 }
