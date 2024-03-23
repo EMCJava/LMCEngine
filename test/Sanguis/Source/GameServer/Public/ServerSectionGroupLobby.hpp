@@ -6,16 +6,27 @@
 
 #include "ServerSectionGroup.hpp"
 
+#include <unordered_map>
+
 namespace SanguisNet
 {
 class ServerSectionGroupLobby : public ServerSectionGroup
 {
+    struct ParticipantStats {
+        bool Ready = false;
+    };
+
 public:
     using ServerSectionGroup::ServerSectionGroup;
 
-    void HandleMessage( const std::shared_ptr<GroupParticipant>& Participants, const Message& Msg ) override;
+    virtual void Join( const std::shared_ptr<GroupParticipant>& Participant ) override;
+
+    virtual void Leave( const std::shared_ptr<GroupParticipant>& Participant ) override;
+
+    void HandleMessage( const std::shared_ptr<GroupParticipant>& Participants, Message& Msg ) override;
 
 protected:
-    std::set<std::shared_ptr<GroupParticipant>> m_LobbyParticipants;
+    int                                       m_ReadyCount = 0;
+    std::unordered_map<int, ParticipantStats> m_LobbyParticipants;
 };
 }   // namespace SanguisNet
