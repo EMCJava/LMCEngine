@@ -34,6 +34,11 @@ struct Message {
     MessageHeader header;
     uint8_t       data[ MessageDataLength ];
 
+    bool StartWith( std::string_view Str )
+    {
+        return std::string_view { (std::string_view::pointer) data, header.length }.starts_with( Str );
+    }
+
     auto GetMinimalAsioBuffer( ) const
     {
         return asio::buffer( this, MessageHeaderLength + header.length );
