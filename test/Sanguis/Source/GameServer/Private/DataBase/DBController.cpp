@@ -30,3 +30,16 @@ DBController::DBController( )
                       columns( &UserLogin::UserID, &UserLogin::LoginCookie ),
                       values( std::make_tuple( std::make_unique<int>( 1 ), 123 ) ) );
 }
+
+std::string
+DBController::GetUserNameByID( int ID ) const
+{
+    using namespace sqlite_orm;
+
+    const auto Name = GetStorage( ).select(
+        columns( &User::UserName ),
+        where( c( &User::ID ) == ID ) );
+
+    if ( Name.empty( ) ) return { };
+    return std::get<0>( Name[ 0 ] );
+}

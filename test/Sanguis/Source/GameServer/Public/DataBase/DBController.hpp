@@ -11,7 +11,9 @@ class DBController
 public:
     DBController( );
 
-    auto GetStorage( ) { return m_Storage; }
+    auto GetStorage( ) const noexcept { return m_Storage; }
+
+    std::string GetUserNameByID( int ID ) const;
 
 private:
     decltype( CreateDatabase( ) ) m_Storage;
