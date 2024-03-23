@@ -3,6 +3,8 @@
 //
 
 #include "ServerSectionGroup.hpp"
+#include "ServerManager.hpp"
+#include "DataBase/DBController.hpp"
 
 void
 SanguisNet::ServerSectionGroup::Broadcast( const SanguisNet::Message& Msg )
@@ -28,3 +30,10 @@ SanguisNet::ServerSectionGroup::SetManager( std::weak_ptr<struct ServerManager> 
 {
     m_Manager = std::move( Manager );
 }
+
+std::string
+SanguisNet::ServerSectionGroup::GetParticipantName( const std::shared_ptr<GroupParticipant>& Participant ) const
+{
+    return m_Manager.lock( )->GetDBController( )->GetUserNameByID( Participant->GetParticipantID( ) );
+}
+
