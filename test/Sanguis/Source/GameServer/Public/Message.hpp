@@ -15,12 +15,14 @@
 namespace SanguisNet
 {
 struct MessageHeader {
-    enum { ID_NONE,
-           ID_RESULT,
-           ID_GET,
-           ID_LOGIN,
-           ID_INFO,
-           ID_LOBBY_CONTROL };
+    enum : uint32_t { ID_NONE,
+                      ID_RESULT,
+                      ID_GET,
+                      ID_PUT,
+                      ID_LOGIN,
+                      ID_INFO,
+                      ID_RECAST,
+                      ID_LOBBY_CONTROL };
     uint32_t id     = 0;
     uint32_t length = 0;
 };
