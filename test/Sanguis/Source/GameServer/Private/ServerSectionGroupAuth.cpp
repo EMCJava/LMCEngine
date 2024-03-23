@@ -11,7 +11,7 @@
 #include <string>
 
 void
-SanguisNet::ServerSectionGroupAuth::HandleMessage( const std::shared_ptr<GroupParticipant>& Participant, const SanguisNet::Message& Msg )
+SanguisNet::ServerSectionGroupAuth::HandleMessage( const std::shared_ptr<GroupParticipant>& Participant, SanguisNet::Message& Msg )
 {
     do
     {

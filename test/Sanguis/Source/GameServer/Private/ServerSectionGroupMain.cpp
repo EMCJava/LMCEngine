@@ -11,7 +11,7 @@
 constexpr int MaxNamesPreMessage = SanguisNet::MessageDataLength / ( User::MaxNameLength + 1 /* name + \n */ );
 
 void
-SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupParticipant>& Participant, const SanguisNet::Message& Msg )
+SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupParticipant>& Participant, SanguisNet::Message& Msg )
 {
     std::string_view RequestStr { (char*) Msg.data, Msg.header.length };
 

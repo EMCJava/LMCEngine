@@ -5,7 +5,7 @@
 #include "ServerSectionGroupEcho.hpp"
 
 void
-SanguisNet::ServerSectionGroupEcho::HandleMessage( const std::shared_ptr<GroupParticipant>&, const SanguisNet::Message& Msg )
+SanguisNet::ServerSectionGroupEcho::HandleMessage( const std::shared_ptr<GroupParticipant>&, SanguisNet::Message& Msg )
 {
     Broadcast( Msg );
 }
