@@ -27,14 +27,19 @@ SanguisNet::ServerSectionGroupLobby::HandleMessage( const std::shared_ptr<GroupP
             if ( m_ReadyCount == m_LobbyParticipants.size( ) )
             {
                 Broadcast( SanguisNet::Message::FromString( "AllReady", MessageHeader::ID_INFO ) );
+                m_AllowNewParticipants = false;
             }
         } else if ( Msg.StartWith( "cancel_ready" ) )
         {
             auto& Stat = m_LobbyParticipants[ Participants->GetParticipantID( ) ];
-            if ( Stat.Ready )
+            if ( Stat.Ready && m_CanCancelReady )
             {
                 --m_ReadyCount;
                 Broadcast( SanguisNet::Message::FromString( GetParticipantName( Participants ) + "CancelReady", MessageHeader::ID_INFO ) );
+                m_AllowNewParticipants = true;
+            } else
+            {
+                Participants->Deliver( SanguisNet::Message::FromString( "InvalidCancelReady", MessageHeader::ID_RESULT ) );
             }
             Stat.Ready = false;
         }
