@@ -6,6 +6,8 @@
 #include "ServerManager.hpp"
 #include "DataBase/DBController.hpp"
 
+#include <spdlog/spdlog.h>
+
 void
 SanguisNet::ServerSectionGroup::Broadcast( const SanguisNet::Message& Msg )
 {
@@ -17,6 +19,10 @@ void
 SanguisNet::ServerSectionGroup::Join( const std::shared_ptr<GroupParticipant>& Participant )
 {
     m_Participants.insert( Participant );
+    if ( m_Participants.size( ) > MaxParticipantPerSection )
+    {
+        spdlog::warn( "Section with port:{} is overcrowded with {} participants", m_SectionPort, m_Participants.size( ) );
+    }
 }
 
 void
@@ -36,4 +42,3 @@ SanguisNet::ServerSectionGroup::GetParticipantName( const std::shared_ptr<GroupP
 {
     return m_Manager.lock( )->GetDBController( )->GetUserNameByID( Participant->GetParticipantID( ) );
 }
-

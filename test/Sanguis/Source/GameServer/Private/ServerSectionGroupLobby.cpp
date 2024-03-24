@@ -3,6 +3,7 @@
 //
 
 #include "ServerSectionGroupLobby.hpp"
+#include "ServerSectionGroupGame.hpp"
 
 void
 SanguisNet::ServerSectionGroupLobby::HandleMessage( const std::shared_ptr<GroupParticipant>& Participants, SanguisNet::Message& Msg )
@@ -11,7 +12,7 @@ SanguisNet::ServerSectionGroupLobby::HandleMessage( const std::shared_ptr<GroupP
     {
     case MessageHeader::ID_RECAST:
         Broadcast( Msg );
-        break;
+        return;
     case MessageHeader::ID_LOBBY_CONTROL:
         if ( Msg.StartWith( "ready" ) )
         {
@@ -28,6 +29,11 @@ SanguisNet::ServerSectionGroupLobby::HandleMessage( const std::shared_ptr<GroupP
             {
                 Broadcast( SanguisNet::Message::FromString( "AllReady", MessageHeader::ID_INFO ) );
                 m_AllowNewParticipants = false;
+
+                m_GameSection = std::make_shared<ServerSectionGroupGame>( );
+                m_GameSection->SetManager( m_Manager );
+                for ( const auto& P : m_Participants )
+                    m_GameSection->Join( P );
             }
         } else if ( Msg.StartWith( "cancel_ready" ) )
         {
@@ -42,8 +48,17 @@ SanguisNet::ServerSectionGroupLobby::HandleMessage( const std::shared_ptr<GroupP
                 Participants->Deliver( SanguisNet::Message::FromString( "InvalidCancelReady", MessageHeader::ID_RESULT ) );
             }
             Stat.Ready = false;
+        } else
+        {
+            // Pass to next layer (game)
+            break;
         }
-        break;
+        return;
+    }
+
+    if ( m_GameSection )
+    {
+        m_GameSection->HandleMessage( Participants, Msg );
     }
 }
 

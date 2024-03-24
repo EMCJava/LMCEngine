@@ -1,4 +1,5 @@
 find_package(asio CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 # Gather all .cpp files in the current directory
 file(GLOB_RECURSE ALL_CPP RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/Private *.cpp)
@@ -20,7 +21,7 @@ endforeach ()
 
 message("Net files: ${FILTERED_CPP}")
 add_library(GameClient.NetLibs.lib ${FILTERED_CPP})
-target_link_libraries(GameClient.NetLibs.lib asio::asio)
+target_link_libraries(GameClient.NetLibs.lib asio::asio spdlog::spdlog)
 
 add_executable(GameTestClient Private/test_client.cpp)
 target_link_libraries(GameTestClient PRIVATE GameClient.NetLibs.lib)

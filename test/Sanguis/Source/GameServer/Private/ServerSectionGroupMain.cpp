@@ -8,8 +8,6 @@
 
 #include "DataBase/DBController.hpp"
 
-constexpr int MaxNamesPreMessage = SanguisNet::MessageDataLength / ( User::MaxNameLength + 1 /* name + \n */ );
-
 void
 SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupParticipant>& Participant, SanguisNet::Message& Msg )
 {
@@ -123,7 +121,7 @@ SanguisNet::ServerSectionGroupMain::JoinLobby( const std::shared_ptr<GroupPartic
     auto NewLobby = m_PlayerLobbies[ LobbyUserID ];
 
     // Lobby full
-    if ( NewLobby->GetParticipantsCount( ) >= MaxNamesPreMessage )
+    if ( NewLobby->GetParticipantsCount( ) >= MaxParticipantPerSection )
     {
         Participant->Deliver( SanguisNet::Message::FromString( "LobbyFull", MessageHeader::ID_RESULT ) );
         return;

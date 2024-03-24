@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <iomanip>
 
+#include "DataBase/User.hpp"
+
 // FIXME: A temporary workaround for a bug in CLion (Windows)
 #define ASIO_HAS_CO_AWAIT 1
 #include <asio.hpp>
@@ -22,13 +24,18 @@ struct MessageHeader {
                       ID_LOGIN,
                       ID_INFO,
                       ID_RECAST,
-                      ID_LOBBY_CONTROL };
+                      ID_LOBBY_CONTROL,
+                      ID_GAME_UPDATE_SELF_COORDINATES,
+                      ID_GAME_UPDATE_PLAYER_COORDINATES,
+    };
     uint32_t id     = 0;
     uint32_t length = 0;
 };
 
-static constexpr uint32_t MessageHeaderLength = sizeof( MessageHeader );
-static constexpr uint32_t MessageDataLength   = MessageHeaderLength * 8;
+static constexpr uint32_t MessageHeaderLength      = sizeof( MessageHeader );
+static constexpr uint32_t MessageDataLength        = MessageHeaderLength * 8;
+static constexpr uint32_t MaxNamesPreMessage       = SanguisNet::MessageDataLength / ( User::MaxNameLength + 1 /* name + \n */ );
+static constexpr uint32_t MaxParticipantPerSection = MaxNamesPreMessage;
 
 struct Message {
     MessageHeader header;
@@ -73,4 +80,37 @@ operator<<( std::ostream& os, const Message& message )
         os << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( c );
     return os << std::dec << std::setw( 0 );
 }
+namespace Game
+{
+    template <uint32_t MessageID>
+    struct Formatter {
+    };
+
+    template <>
+    struct Formatter<MessageHeader::ID_GAME_UPDATE_PLAYER_COORDINATES> {
+        // Encode
+        auto operator( )( Message& Msg, int PlayerID ) const
+        {
+            assert( Msg.header.length + 1 <= MessageDataLength );
+            Msg.data[ Msg.header.length++ ] = static_cast<uint8_t>( PlayerID );
+            return Msg;
+        }
+        // Decode
+        auto operator( )( Message& Msg ) const
+        {
+            return Msg.data[ --Msg.header.length ];
+        }
+    };
+
+    template <uint32_t MessageID>
+    struct Encoder {
+        auto operator( )( auto&&... Args ) const
+        {
+            Formatter<MessageID> { }( std::forward<decltype( Args )>( Args )... );
+        }
+    };
+    template <uint32_t MessageID>
+    using Decoder = Encoder<MessageID>;
+}   // namespace Game
+
 }   // namespace SanguisNet

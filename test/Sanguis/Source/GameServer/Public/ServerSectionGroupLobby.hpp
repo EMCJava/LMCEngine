@@ -33,5 +33,7 @@ protected:
 
     bool m_AllowNewParticipants = true;
     bool m_CanCancelReady       = true;
+
+    std::shared_ptr<class ServerSectionGroupGame> m_GameSection;
 };
 }   // namespace SanguisNet
