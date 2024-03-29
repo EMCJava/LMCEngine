@@ -41,10 +41,22 @@ main( int argc, char* argv[] )
 
         std::thread t( [ &io_context ]( ) { io_context.run( ); } );
 
+        auto Mode = SanguisNet::MessageHeader::ID_LOBBY_CONTROL;
+
         std::string line;
         while ( std::cout << "-" << std::flush && std::getline( std::cin, line ) )
         {
-            c.Post( SanguisNet::Message::FromString( line, SanguisNet::MessageHeader::ID_LOBBY_CONTROL ) );
+            if ( line == "lc" )
+            {
+                Mode = SanguisNet::MessageHeader::ID_LOBBY_CONTROL;
+                continue;
+            } else if ( line == "uc" )
+            {
+                Mode = SanguisNet::MessageHeader::ID_GAME_UPDATE_SELF_COORDINATES;
+                continue;
+            }
+
+            c.Post( SanguisNet::Message::FromString( line, Mode ) );
         }
 
         c.Close( );
