@@ -22,6 +22,7 @@ SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupPa
             int  Page    = std::stoi( PageStr.data( ) );
 
             ResponseFriendList( Participant, Page );
+            return;
         }
         break;
 
@@ -49,14 +50,15 @@ SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupPa
                 Result += GetParticipantName( P ) + '\n';
             }
             Participant->Deliver( SanguisNet::Message::FromString( Result, MessageHeader::ID_INFO ) );
-        } else if ( m_PlayerLobbies.contains( Participant->GetParticipantID( ) ) )
-        {
-            m_PlayerLobbies[ Participant->GetParticipantID( ) ]->HandleMessage( Participant, Msg );
-        }
-        break;
+        } else
+            goto ServerSectionGroupMain_HandleMessage_fallback;
+        return;
+    }
 
-    default:
-        Participant->Terminate( );
+ServerSectionGroupMain_HandleMessage_fallback:
+    if ( m_PlayerLobbies.contains( Participant->GetParticipantID( ) ) )
+    {
+        m_PlayerLobbies[ Participant->GetParticipantID( ) ]->HandleMessage( Participant, Msg );
     }
 }
 
@@ -128,7 +130,7 @@ SanguisNet::ServerSectionGroupMain::JoinLobby( const std::shared_ptr<GroupPartic
     }
 
     // Lobby disable joining
-    if ( !NewLobby->CanJoin() )
+    if ( !NewLobby->CanJoin( ) )
     {
         Participant->Deliver( SanguisNet::Message::FromString( "CannotJoin", MessageHeader::ID_RESULT ) );
         return;
