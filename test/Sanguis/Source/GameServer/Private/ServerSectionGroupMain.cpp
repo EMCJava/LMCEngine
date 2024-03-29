@@ -128,7 +128,7 @@ SanguisNet::ServerSectionGroupMain::JoinLobby( const std::shared_ptr<GroupPartic
     }
 
     // Lobby disable joining
-    if ( NewLobby->CanJoin() )
+    if ( !NewLobby->CanJoin() )
     {
         Participant->Deliver( SanguisNet::Message::FromString( "CannotJoin", MessageHeader::ID_RESULT ) );
         return;
