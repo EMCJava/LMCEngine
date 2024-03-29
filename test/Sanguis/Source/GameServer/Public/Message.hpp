@@ -7,6 +7,7 @@
 #include <exception>
 #include <cstdint>
 #include <iomanip>
+#include <span>
 
 #include "DataBase/User.hpp"
 
@@ -88,25 +89,35 @@ namespace Game
 
     template <>
     struct Formatter<MessageHeader::ID_GAME_UPDATE_PLAYER_COORDINATES> {
+        struct PlayerCoordinates {
+            uint8_t            PlayerID { };
+            std::span<uint8_t> Coordinates { };
+        };
+
         // Encode
-        auto operator( )( Message& Msg, int PlayerID ) const
+        auto&
+        operator( )( Message& Msg, int PlayerID ) const
         {
             assert( Msg.header.length + 1 <= MessageDataLength );
             Msg.data[ Msg.header.length++ ] = static_cast<uint8_t>( PlayerID );
             return Msg;
         }
+
         // Decode
-        auto operator( )( Message& Msg ) const
+        PlayerCoordinates operator( )( Message& Msg ) const
         {
-            return Msg.data[ --Msg.header.length ];
+            --Msg.header.length;
+            return PlayerCoordinates {
+                .PlayerID    = Msg.data[ Msg.header.length ],
+                .Coordinates = std::span<uint8_t>( Msg.data, Msg.header.length ) };
         }
     };
 
     template <uint32_t MessageID>
     struct Encoder {
-        auto operator( )( auto&&... Args ) const
+        decltype( auto ) operator( )( auto&&... Args ) const
         {
-            Formatter<MessageID> { }( std::forward<decltype( Args )>( Args )... );
+            return Formatter<MessageID> { }( std::forward<decltype( Args )>( Args )... );
         }
     };
     template <uint32_t MessageID>
