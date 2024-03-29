@@ -26,6 +26,7 @@ struct MessageHeader {
                       ID_INFO,
                       ID_RECAST,
                       ID_LOBBY_CONTROL,
+                      ID_GAME_GUN_FIRE,
                       ID_GAME_UPDATE_SELF_COORDINATES,
                       ID_GAME_UPDATE_PLAYER_COORDINATES,
     };
@@ -110,6 +111,32 @@ namespace Game
             return PlayerCoordinates {
                 .PlayerID    = Msg.data[ Msg.header.length ],
                 .Coordinates = std::span<uint8_t>( Msg.data, Msg.header.length ) };
+        }
+    };
+
+    template <>
+    struct Formatter<MessageHeader::ID_GAME_GUN_FIRE> {
+        struct GunFireStats {
+            uint8_t            PlayerID { };
+            std::span<uint8_t> FireStats { };
+        };
+
+        // Encode
+        auto&
+        operator( )( Message& Msg, int PlayerID ) const
+        {
+            assert( Msg.header.length + 1 <= MessageDataLength );
+            Msg.data[ Msg.header.length++ ] = static_cast<uint8_t>( PlayerID );
+            return Msg;
+        }
+
+        // Decode
+        GunFireStats operator( )( Message& Msg ) const
+        {
+            --Msg.header.length;
+            return GunFireStats {
+                .PlayerID  = Msg.data[ Msg.header.length ],
+                .FireStats = std::span<uint8_t>( Msg.data, Msg.header.length ) };
         }
     };
 
