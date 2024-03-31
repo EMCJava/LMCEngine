@@ -44,6 +44,7 @@ RectButton::SetActiveCamera( class PureConceptCamera* ActiveCamera )
 void
 RectButton::Apply( )
 {
+    m_ActivatedThisFrame = false;
     if ( !m_Enabled ) return;
 
     if ( m_PressReactTimeLeft > 0 )
@@ -67,6 +68,7 @@ RectButton::Apply( )
 
         if ( m_HitBox->HitTest( HitPoint ) )
         {
+            m_ActivatedThisFrame = true;
             m_PressReactTimeLeft = 0.2;
 
             if ( m_Callback )
