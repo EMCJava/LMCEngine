@@ -8,7 +8,8 @@
 #include "ServerSectionGroup.hpp"
 
 #include <memory>
-#include <iostream>
+
+#include <spdlog/spdlog.h>
 
 namespace SanguisNet
 {
@@ -28,13 +29,13 @@ ServerSectionAcceptor( asio::ip::tcp::acceptor            acceptor,
         if ( ec ) return;
         if ( Section->GetParticipantsCount( ) == 0 )
         {
-            std::cout << "[" << LocalEndpoint.address( ).to_string( ) << ":" << LocalEndpoint.port( ) << "] Party releasing..." << std::endl;
+            spdlog::info( "{}:{} party releasing due to inactivity ...", LocalEndpoint.address( ).to_string( ), LocalEndpoint.port( ) );
 
             // Release section
             acceptor.close( );
         } else
         {
-            std::cout << "[" << LocalEndpoint.address( ).to_string( ) << ":" << LocalEndpoint.port( ) << "] Waiting for a client to connect..." << std::endl;
+            spdlog::info( "{}:{} waiting for a client to connect...", LocalEndpoint.address( ).to_string( ), LocalEndpoint.port( ) );
             DeadlineTimer.expires_after( timeout );
             DeadlineTimer.async_wait( TimeoutHandler );
         }
@@ -47,14 +48,10 @@ ServerSectionAcceptor( asio::ip::tcp::acceptor            acceptor,
         auto Socket = co_await acceptor.async_accept( asio::use_awaitable );
         DeadlineTimer.cancel( );
 
-        const asio::ip::tcp::endpoint remoteEndpoint = Socket.remote_endpoint( );
+        const asio::ip::tcp::endpoint RemoteEndpoint = Socket.remote_endpoint( );
 
-        const auto LocalEndpoint = acceptor.local_endpoint( );
-        std::cout << "Client IP: "
-                  << remoteEndpoint.address( ).to_string( ) << ":" << remoteEndpoint.port( )
-                  << " connecting to "
-                  << LocalEndpoint.address( ).to_string( ) << ":" << LocalEndpoint.port( )
-                  << std::endl;
+        const auto LocalEndpoint = Socket.local_endpoint( );
+        spdlog::info( "Client IP: {}:{} connected to {}:{}", RemoteEndpoint.address( ).to_string( ), RemoteEndpoint.port( ), LocalEndpoint.address( ).to_string( ), LocalEndpoint.port( ) );
 
         // Using shared_from_this, it won't be deleted
         std::make_shared<ParticipantTy>(

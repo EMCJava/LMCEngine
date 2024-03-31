@@ -6,6 +6,8 @@
 
 #include "ServerSectionGroup.hpp"
 
+#include <spdlog/spdlog.h>
+
 SanguisNet::GroupParticipantTcp::GroupParticipantTcp( asio::ip::tcp::socket Socket, std::shared_ptr<SanguisNet::ServerSectionGroup> BelongsTo )
     : m_Socket( std::move( Socket ) )
     , m_MessageSignal( m_Socket.get_executor( ) )
@@ -61,6 +63,9 @@ SanguisNet::GroupParticipantTcp::ReaderJob( )
     }
     catch ( std::exception& )
     {
+        const auto RemoteEndpoint = m_Socket.remote_endpoint( );
+        const auto LocalEndpoint  = m_Socket.local_endpoint( );
+        spdlog::info( "Client IP: {}:{} disconnected from {}:{}", RemoteEndpoint.address( ).to_string( ), RemoteEndpoint.port( ), LocalEndpoint.address( ).to_string( ), LocalEndpoint.port( ) );
         Terminate( );
     }
 }
