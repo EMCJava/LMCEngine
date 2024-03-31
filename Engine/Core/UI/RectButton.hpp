@@ -47,8 +47,8 @@ public:
     virtual void
     Apply( ) override;
 
-    void
-    SetCallback( auto&& Callback ) { m_Callback = Callback; }
+    virtual void
+    SetCallback( std::function<CallbackSignature>&& Callback ) { m_Callback = Callback; }
 
     void
     SetText( const std::string& Text );
