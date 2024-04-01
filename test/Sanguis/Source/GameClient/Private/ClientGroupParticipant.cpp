@@ -4,7 +4,7 @@
 
 #include "ClientGroupParticipant.hpp"
 
-#include <iostream>
+#include <spdlog/spdlog.h>
 
 SanguisNet::ClientGroupParticipant::ClientGroupParticipant( asio::io_context& io_context, const asio::ip::basic_resolver<asio::ip::tcp, asio::any_io_executor>::results_type& EndPoint )
     : m_ControlContext( io_context )
@@ -76,7 +76,8 @@ SanguisNet::ClientGroupParticipant::ReadMessageBody( )
                           if ( !ec )
                           {
                               // TODO: Handle message
-                              std::cout << std::string_view( (char*) m_ReadMsg.data, m_ReadMsg.header.length ) << std::endl;
+                              const auto RemoteEndpoint = m_Socket.remote_endpoint( );
+                              spdlog::info( "Received messages from {}:{} [{}]", RemoteEndpoint.address( ).to_string( ), RemoteEndpoint.port( ), std::string_view( (char*) m_ReadMsg.data, m_ReadMsg.header.length ) );
 
                               // Start waiting/reading next message
                               ReadMessageHeader( );
@@ -112,5 +113,6 @@ SanguisNet::ClientGroupParticipant::Terminate( )
     m_Socket.close( );
     m_ConnectionReady = false;
 
-    std::cout << "Connection Terminated" << std::endl;
+    const auto RemoteEndpoint = m_Socket.remote_endpoint( );
+    spdlog::warn( "Connection Terminated to {}:{}", RemoteEndpoint.address( ).to_string( ), RemoteEndpoint.port( ) );
 }
