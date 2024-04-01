@@ -53,6 +53,9 @@ public:
     void
     SetText( const std::string& Text );
 
+    auto&
+    GetText( ) const noexcept { return m_ButtonTextStr; }
+
     // Valid value: [0, 1]
     void
     SetPivot( FloatTy X = 0, FloatTy Y = 0 );
