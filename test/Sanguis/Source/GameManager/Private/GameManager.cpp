@@ -153,15 +153,15 @@ public:
         UICanvas->SetCanvasCamera( FixedCamera );
 
         auto ConnectButton = UICanvas->AddConcept<RectInput>( -25, -12 ).Get( );
-        ConnectButton->SetPressReactColor( glm::vec4 { 0.9, 0.9, 0.9, 1 } );
+        ConnectButton->SetPressReactColor( glm::vec4 { 0.5, 0.5, 0.5, 1 } );
         ConnectButton->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
         ConnectButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
         ConnectButton->SetText( "Connect" );
         ConnectButton->SetPivot( 0.5F, 0.5F );
         ConnectButton->SetCoordinate( 0, 70 );
-        ConnectButton->SetCallback( [ this ]( ) {
-            Destroy( );
-        } );
+//        ConnectButton->SetCallback( [ this ]( ) {
+//            Destroy( );
+//        } );
     }
 };
 
