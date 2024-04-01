@@ -26,8 +26,11 @@ RectInput::Apply( )
 
     if ( m_MousePressThisFrame ) m_Selected = m_ActivatedThisFrame;
 
+    m_PressReactTimeLeft = 0;
     if ( m_Selected )
     {
+        m_PressReactTimeLeft = 1;
+
         const auto& NewCharPresses = Engine::GetEngine( )->GetUserInputHandle( )->GetNewCharPresses( );
 
         if ( !NewCharPresses.empty( ) )
