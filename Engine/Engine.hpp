@@ -117,7 +117,11 @@ public:
     static void
     OnKeyboardInput( struct GLFWwindow* window, int key, int scancode, int action, int mods );
     static void
+    OnCharInput( struct GLFWwindow* window, uint32_t codepoint );
+    static void
     OnMouseButtonInput( struct GLFWwindow* window, int button, int action, int mods );
+    static void
+    OnGLFWError( int ErrorCode, const char* ErrorMsg );
     static void
     OnWindowResize( struct GLFWwindow* window, int Width, int Height );
 

@@ -22,9 +22,9 @@ RectInput::Apply( )
 {
     RectButton::Apply( );
 
-    const auto& NewKeyPresses = Engine::GetEngine( )->GetUserInputHandle( )->GetNewKeyPresses( );
-    for ( const auto& KeyPress : NewKeyPresses )
+    const auto& NewCharPresses = Engine::GetEngine( )->GetUserInputHandle( )->GetNewCharPresses( );
+    for ( const auto& CharPress : NewCharPresses )
     {
-        spdlog::info( "New Key Press: {}", glfwGetKeyName( KeyPress, 0 ) );
+        spdlog::info( "New Key Press: {}:{}", CharPress, char( CharPress ) );
     }
 }

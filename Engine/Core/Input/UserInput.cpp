@@ -22,6 +22,9 @@ UserInput::Update( )
     std::swap( m_NewKeyPresses.first, m_NewKeyPresses.second );
     m_NewKeyPresses.second.clear( );
 
+    std::swap( m_NewCharPresses.first, m_NewCharPresses.second );
+    m_NewCharPresses.second.clear( );
+
     UpdateMouse( );
 }
 
@@ -108,6 +111,12 @@ void
 UserInput::StoreGLFWContext( )
 {
     glfwSetInputModePtr = reinterpret_cast<void ( * )( )>( glfwSetInputMode );
+}
+
+void
+UserInput::PushCharInput( uint32_t CodePoint )
+{
+    m_NewCharPresses.second.push_back( CodePoint );
 }
 
 void

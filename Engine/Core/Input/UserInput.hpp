@@ -65,6 +65,7 @@ public:
      *
      * */
     void      RegisterKeyUpdate( bool pressed, KeyIDTY id );
+    void      PushCharInput( uint32_t CodePoint );
     KeyState& GetKeyState( KeyIDTY id );
 
     void Update( );
@@ -101,6 +102,7 @@ public:
     [[nodiscard]] inline uint32_t GetFrameCount( ) const { return m_FrameCount; }
     [[nodiscard]] inline int32_t  GetKeyPressCount( ) const { return m_KeyPressingCount; }
     [[nodiscard]] inline auto&    GetNewKeyPresses( ) const { return m_NewKeyPresses.first; }
+    [[nodiscard]] inline auto&    GetNewCharPresses( ) const { return m_NewCharPresses.first; }
 
     /*
      *
@@ -134,8 +136,9 @@ private:
     FloatTy m_CursorSensitivity { 0.5f };
 
     // All key presses this frame
-    std::pair<std::vector<KeyIDTY>, std::vector<KeyIDTY>> m_NewKeyPresses;
-    int32_t                                               m_KeyPressingCount { };
+    std::pair<std::vector<uint32_t>, std::vector<uint32_t>> m_NewCharPresses;
+    std::pair<std::vector<KeyIDTY>, std::vector<KeyIDTY>>   m_NewKeyPresses;
+    int32_t                                                 m_KeyPressingCount { };
 
     void UpdateMouse( );
 

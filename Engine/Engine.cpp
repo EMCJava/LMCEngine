@@ -132,7 +132,7 @@ Engine::Engine( )
 
     m_ImGuiGroupPanelLabelStack = new ImVector<ImRect>;
 
-    m_MainWindow = new PrimaryWindow( 1920, 1080, "" );
+    m_MainWindow = new PrimaryWindow( 1280, 720, "" );
     m_GLContext  = m_MainWindow->GetGLContext( );
 
     m_ActiveProject = new Project;
@@ -148,6 +148,8 @@ Engine::Engine( )
 
     glfwSetKeyCallback( m_MainWindow->GetWindowHandle( ), OnKeyboardInput );
     glfwSetMouseButtonCallback( m_MainWindow->GetWindowHandle( ), OnMouseButtonInput );
+    glfwSetCharCallback( m_MainWindow->GetWindowHandle( ), OnCharInput );
+    glfwSetErrorCallback( OnGLFWError );
 
     // Setup Dear ImGui context
     CreateImGuiContext( );
@@ -311,7 +313,7 @@ Engine::Update( )
                     static_assert( sizeof( physx::PxQuat ) == sizeof( glm::quat ) );
                     OldOrientation.SetQuat( *( (glm::quat*) &GP.q ) );
                     OldOrientation.Coordinate = { GP.p.x, GP.p.y, GP.p.z };
-                    
+
                     RigidBodyPtr->UpdateOrientation( OldOrientation );
                 }
             }
@@ -825,6 +827,18 @@ Engine::PhysicsThread( )
             CallbackBackBuffer.clear( );
         }
     }
+}
+
+void
+Engine::OnGLFWError( int ErrorCode, const char* ErrorMsg )
+{
+    spdlog::error( "GLFW error {}:{}", ErrorCode, ErrorMsg );
+}
+
+void
+Engine::OnCharInput( struct GLFWwindow* window, uint32_t codepoint )
+{
+    GetEngine( )->m_UserInput->PushCharInput( codepoint );
 }
 
 void ( *Engine::GetConceptToImGuiFuncPtr( uint64_t ConceptTypeID ) )( const char*, void* )
