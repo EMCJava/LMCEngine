@@ -19,7 +19,7 @@ DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( Text, Sprite, m_Text, m_Scale, m_Color, m_Text
 
 Text::Text( const std::string& Text )
 {
-    m_Text = std::move( Text );
+    m_Text = Text;
 
     m_Shader = Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultFontShader" );
 }
@@ -48,7 +48,7 @@ Text::Render( )
     {
         const auto ch = m_Font->GetCharacter( Char );
 
-        REQUIRED_IF( ch != nullptr )
+        REQUIRED_IF( ch != nullptr, spdlog::warn( "Error loading font for {}", Char ) )
         {
             float xpos = TextXCoordinate + ch->Bearing.first * m_Scale;
             float ypos = m_TextCoordinate.y - ( ch->Size.second - ch->Bearing.second ) * m_Scale;
