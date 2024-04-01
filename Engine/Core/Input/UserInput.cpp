@@ -19,6 +19,9 @@ UserInput::Update( )
     if ( !m_EventWindow ) return;
     ++m_FrameCount;
 
+    std::swap( m_NewKeyPresses.first, m_NewKeyPresses.second );
+    m_NewKeyPresses.second.clear( );
+
     UpdateMouse( );
 }
 
@@ -42,6 +45,7 @@ UserInput::RegisterKeyUpdate( bool pressed, KeyIDTY id )
 
     if ( pressed )
     {
+        m_NewKeyPresses.second.push_back( id );
         m_KeyPressingCount += 1;
         key.SetPress( m_FrameCount );
     } else

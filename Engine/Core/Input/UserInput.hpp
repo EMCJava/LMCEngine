@@ -98,6 +98,7 @@ public:
      * */
     [[nodiscard]] inline uint32_t GetFrameCount( ) const { return m_FrameCount; }
     [[nodiscard]] inline int32_t  GetKeyPressCount( ) const { return m_KeyPressingCount; }
+    [[nodiscard]] inline auto&    GetNewKeyPresses( ) const { return m_NewKeyPresses.first; }
 
     /*
      *
@@ -130,7 +131,9 @@ private:
     bool    m_EnableRowCursorMotion { false };
     FloatTy m_CursorSensitivity { 0.5f };
 
-    int32_t m_KeyPressingCount { };
+    // All key presses this frame
+    std::pair<std::vector<KeyIDTY>, std::vector<KeyIDTY>> m_NewKeyPresses;
+    int32_t                                               m_KeyPressingCount { };
 
     void UpdateMouse( );
 
