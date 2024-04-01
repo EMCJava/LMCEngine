@@ -85,7 +85,7 @@ ConceptList::ResetSubConceptCache( )
     m_ConceptsStateHash.NextUint64( );
     if ( m_SearchThrough && m_BelongsTo != nullptr )
     {
-        m_BelongsTo->m_ConceptsStateHash.NextUint64( );
+        m_BelongsTo->ResetSubConceptCache( );
     }
 }
 
