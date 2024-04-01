@@ -56,7 +56,14 @@
 #include <ranges>
 #include <utility>
 
-DEFINE_CONCEPT_DS_MA_SE( GameManager )
+GameManager::~GameManager( )
+{
+    spdlog::trace( "{}::~{} -> {}", "GameManager", "GameManager", fmt::ptr( this ) );
+    if ( m_IOThread && m_IOThread->joinable( ) )
+        m_IOThread->join( );
+}
+
+DEFINE_CONCEPT_MA_SE( GameManager )
 DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( GameManager, ConceptApplicable, TestInvokable )
 
 class Reticle : public ConceptList
