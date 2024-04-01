@@ -166,6 +166,10 @@ declare_library(
         PureConceptImage.lib
         SpriteSquareTexture.lib
         PureConceptOrthoCamera.lib
+        RectButton.lib
+        RectInput.lib
+
+        GameClient.NetLibs.lib
 
         DEPS
         spdlog.lib
