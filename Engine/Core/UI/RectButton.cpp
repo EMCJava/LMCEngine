@@ -28,6 +28,8 @@ RectButton::RectButton( int Width, int Height )
 const glm::vec3&
 RectButton::SetCoordinate( FloatTy X, FloatTy Y, FloatTy Z )
 {
+    m_DesiredCoordinate = { X, Y, Z };
+
     const std::pair<FloatTy, FloatTy> PivotOffset = { m_Pivot.first * m_Width, m_Pivot.second * m_Height };
     m_HitBox->SetCoordinate( X - PivotOffset.first, Y - PivotOffset.second );
     m_ButtonText->SetCoordinate( glm::vec3 { X + m_TextAlignmentOffset.first - PivotOffset.first, Y + m_TextAlignmentOffset.second - PivotOffset.second, 0 } );
@@ -129,7 +131,7 @@ RectButton::SetupButton( )
     m_SpriteSquare->MoveToFirstAsSubConcept( );
 
     // Set alignment by default
-    SetCoordinate( );
+    SetCoordinate( m_DesiredCoordinate.x, m_DesiredCoordinate.y, m_DesiredCoordinate.z );
 
     // To render sub-concepts
     SetSearchThrough( );

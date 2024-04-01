@@ -61,6 +61,7 @@ protected:
     int                         m_UserDefinedWidth { }, m_UserDefinedHeight { };
     int                         m_Width { }, m_Height { };
     std::pair<FloatTy, FloatTy> m_Pivot { };
+    glm::vec3                   m_DesiredCoordinate;
     std::string                 m_ButtonTextStr = "Button";
 
     std::shared_ptr<class SpriteSquare>          m_SpriteSquare;
@@ -76,8 +77,8 @@ protected:
 
     std::function<CallbackSignature> m_Callback { };
 
-    FloatTy m_PressReactTimeLeft = 0;
-    bool    m_ActivatedThisFrame = false;
+    FloatTy m_PressReactTimeLeft  = 0;
+    bool    m_ActivatedThisFrame  = false;
     bool    m_MousePressThisFrame = false;
 
     ENABLE_IMGUI( RectButton )
