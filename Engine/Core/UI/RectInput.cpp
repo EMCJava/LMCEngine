@@ -36,13 +36,11 @@ RectInput::Apply( )
         if ( !NewCharPresses.empty( ) )
         {
             for ( const auto& CharPress : NewCharPresses )
-            {
-                spdlog::info( "New Key Press: {}:{}", CharPress, char( CharPress ) );
                 m_ButtonTextStr += (char) CharPress;
-            }
-
-            spdlog::info( "New input str: {}", m_ButtonTextStr );
             SetText( m_ButtonTextStr );
         }
+
+        const auto DeleteCount = std::ranges::count( Engine::GetEngine( )->GetUserInputHandle( )->GetNewKeyPresses( ), GLFW_KEY_BACKSPACE );
+        if ( DeleteCount ) SetText( m_ButtonTextStr.substr( 0, m_ButtonTextStr.size( ) - DeleteCount ) );
     }
 }
