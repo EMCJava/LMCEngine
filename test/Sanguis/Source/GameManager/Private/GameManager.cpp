@@ -6,12 +6,16 @@
 
 #include "WandEditorScene.hpp"
 
+#include "ClientGroupParticipant.hpp"
+
 #include <Engine/Core/Input/UserInput.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptCamera.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptPerspectiveCamera.hpp>
 #include <Engine/Core/Graphic/Camera/FirstPersonCameraController.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Input/Serializer/SerializerModel.hpp>
+#include <Engine/Core/UI/RectButton.hpp>
+#include <Engine/Core/UI/RectInput.hpp>
 #include <Engine/Core/Graphic/Mesh/ConceptMesh.hpp>
 #include <Engine/Core/Graphic/Mesh/RenderableMesh.hpp>
 #include <Engine/Core/Graphic/Mesh/RenderableMeshCluster.hpp>
@@ -129,9 +133,62 @@ protected:
 };
 DEFINE_CONCEPT_DS( LightRotate )
 
+class LoginScreen : public ConceptList
+{
+    DECLARE_CONCEPT( LoginScreen, ConceptList )
+
+public:
+    LoginScreen( )
+    {
+        SetSearchThrough( true );
+        SetRuntimeName( "Login Screen" );
+
+        auto FixedCamera = AddConcept<PureConceptOrthoCamera>( ).Get( );
+
+        FixedCamera->SetScale( 1 / 1.5F );
+        FixedCamera->UpdateCameraMatrix( );
+
+        auto UICanvas = AddConcept<Canvas>( ).Get( );
+        UICanvas->SetRuntimeName( "Login Canvas" );
+        UICanvas->SetCanvasCamera( FixedCamera );
+
+        auto ConnectButton = UICanvas->AddConcept<RectInput>( -25, -12 ).Get( );
+        ConnectButton->SetPressReactColor( glm::vec4 { 0.9, 0.9, 0.9, 1 } );
+        ConnectButton->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
+        ConnectButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
+        ConnectButton->SetText( "Connect" );
+        ConnectButton->SetPivot( 0.5F, 0.5F );
+        ConnectButton->SetCoordinate( 0, 70 );
+        ConnectButton->SetCallback( [ this ]( ) {
+            Destroy( );
+        } );
+    }
+};
+
+DEFINE_CONCEPT_DS( LoginScreen )
+
 GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
+
+    if ( false )
+    {
+        m_IOContext = std::make_shared<asio::io_context>( );
+
+        asio::ip::tcp::resolver resolver( *m_IOContext );
+        auto                    endpoints = resolver.resolve( "localhost", "8800" );
+        m_ServerConnection                = std::make_shared<SanguisNet::ClientGroupParticipant>( *m_IOContext, endpoints );
+
+        {
+            std::string login          = "Player1|1";
+            login[ login.find( '|' ) ] = 0;
+            m_ServerConnection->Post( SanguisNet::Message::FromString( login, SanguisNet::MessageHeader::ID_LOGIN ) );
+        }
+
+        m_IOThread = std::make_unique<std::thread>( [ this ]( ) {
+            m_IOContext->run( );
+        } );
+    }
 
     constexpr std::pair<int, int> WindowSize = { 1920, 1080 };
     Engine::GetEngine( )->SetLogicalMainWindowViewPortDimensions( WindowSize );
@@ -247,6 +304,8 @@ GameManager::GameManager( )
     m_CameraZoomLerp.End   = /* Default FOV */ 45;
     m_CameraZoomLerp.SetOneRoundTime( 0.06 );
     m_CameraZoomLerp.Update( 0.06 - 0.0001 );   // Activate once
+
+    AddConcept<LoginScreen>( );
 
     spdlog::info( "GameManager concept constructor returned" );
 }

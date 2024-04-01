@@ -9,6 +9,17 @@
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 
+#include <thread>
+
+namespace asio
+{
+class io_context;
+}
+namespace SanguisNet
+{
+class ClientGroupParticipant;
+}
+
 struct LinearLerp {
     FloatTy Start = 0, End = 1;
 
@@ -98,6 +109,10 @@ private:
      * */
     bool       m_IsViewZooming = false;
     LinearLerp m_CameraZoomLerp;
+
+    std::shared_ptr<asio::io_context>                   m_IOContext;
+    std::shared_ptr<SanguisNet::ClientGroupParticipant> m_ServerConnection;
+    std::unique_ptr<std::thread>                        m_IOThread;
 
     ENABLE_IMGUI( GameManager )
 };
