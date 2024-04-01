@@ -16,7 +16,10 @@ public:
     SetCallback( std::function<CallbackSignature>&& Callback ) override { m_Callback = Callback; }
 
     virtual void
-    Apply() override;
+    Apply( ) override;
+
+protected:
+    bool m_Selected = false;
 
     ENABLE_IMGUI( RectInput )
 };

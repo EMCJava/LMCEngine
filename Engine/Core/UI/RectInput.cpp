@@ -6,10 +6,12 @@
 
 #include <Engine/Core/Input/UserInput.hpp>
 
+#include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
+
 #include <GLFW/glfw3.h>
 
 DEFINE_CONCEPT_DS( RectInput )
-DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RectInput, RectButton )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RectInput, RectButton, m_Selected )
 
 RectInput::RectInput( int Width, int Height )
     : RectButton( Width, Height )
@@ -22,9 +24,22 @@ RectInput::Apply( )
 {
     RectButton::Apply( );
 
-    const auto& NewCharPresses = Engine::GetEngine( )->GetUserInputHandle( )->GetNewCharPresses( );
-    for ( const auto& CharPress : NewCharPresses )
+    if ( m_MousePressThisFrame ) m_Selected = m_ActivatedThisFrame;
+
+    if ( m_Selected )
     {
-        spdlog::info( "New Key Press: {}:{}", CharPress, char( CharPress ) );
+        const auto& NewCharPresses = Engine::GetEngine( )->GetUserInputHandle( )->GetNewCharPresses( );
+
+        if ( !NewCharPresses.empty( ) )
+        {
+            for ( const auto& CharPress : NewCharPresses )
+            {
+                spdlog::info( "New Key Press: {}:{}", CharPress, char( CharPress ) );
+                m_ButtonTextStr += (char) CharPress;
+            }
+
+            spdlog::info( "New input str: {}", m_ButtonTextStr );
+            SetText( m_ButtonTextStr );
+        }
     }
 }
