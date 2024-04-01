@@ -78,6 +78,7 @@ protected:
 
     FloatTy m_PressReactTimeLeft = 0;
     bool    m_ActivatedThisFrame = false;
+    bool    m_MousePressThisFrame = false;
 
     ENABLE_IMGUI( RectButton )
 };

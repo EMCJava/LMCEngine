@@ -15,7 +15,7 @@
 #include <Engine/Core/Concept/ConceptCoreToImGuiImpl.hpp>
 
 DEFINE_CONCEPT_DS( RectButton )
-DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RectButton, PureConcept, m_DefaultColor, m_PressColor, m_TextAlignmentOffset, m_PressReactTimeLeft )
+DEFINE_SIMPLE_IMGUI_TYPE_CHAINED( RectButton, PureConcept, m_DefaultColor, m_PressColor, m_TextAlignmentOffset, m_PressReactTimeLeft, m_ActivatedThisFrame, m_MousePressThisFrame )
 
 RectButton::RectButton( int Width, int Height )
     : m_UserDefinedWidth( Width )
@@ -44,7 +44,7 @@ RectButton::SetActiveCamera( class PureConceptCamera* ActiveCamera )
 void
 RectButton::Apply( )
 {
-    m_ActivatedThisFrame = false;
+    m_MousePressThisFrame = m_ActivatedThisFrame = false;
     if ( !m_Enabled ) return;
 
     if ( m_PressReactTimeLeft > 0 )
@@ -58,6 +58,7 @@ RectButton::Apply( )
 
     if ( Engine::GetEngine( )->GetUserInputHandle( )->GetPrimaryKey( ).isPressed )
     {
+        m_MousePressThisFrame                = true;
         std::pair<FloatTy, FloatTy> HitPoint = Engine::GetEngine( )->GetUserInputHandle( )->GetCursorPosition( );
 
         const auto* ActiveCamera = m_SpriteSquare->GetActiveCamera( );
@@ -68,6 +69,8 @@ RectButton::Apply( )
 
         if ( m_HitBox->HitTest( HitPoint ) )
         {
+            spdlog::info( "Button:{} pressed", m_ButtonTextStr );
+
             m_ActivatedThisFrame = true;
             m_PressReactTimeLeft = 0.2;
 
