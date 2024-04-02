@@ -225,34 +225,24 @@ GameManager::GameManager( )
                     RM->GetConcept<EntityRenderable>( )->MoveToLastAsSubConcept( );
                 }
 
-                //                {
-                //                    std::shared_ptr<RigidMesh> RM = PerspectiveCanvas->AddConcept<RigidMesh>( "Assets/Model/low_poly_room.glb", PhyMaterial, true, []( auto& SubMeshSpan ) {
-                //                        if ( SubMeshSpan.SubMeshName.find( "Wall" ) != std::string::npos )
-                //                            return ColliderSerializerGroupMesh::ColliderType::eTriangle;
-                //                        else
-                //                            return ColliderSerializerGroupMesh::ColliderType::eConvex;
-                //                    } );
-                //                    RenderableShaderSetup( RM->GetRenderable( ), "DefaultPhongShader" );
-                //                }
+                {
+                    auto Mesh             = CreateConcept<ConceptMesh>( "Assets/Model/red_cube.glb" );
+                    auto MeshColliderData = std::make_shared<ColliderSerializerGroupMesh>( Mesh );
 
-                /*                {
-                                    auto Mesh             = CreateConcept<ConceptMesh>( "Assets/Model/red_cube.glb" );
-                                    auto MeshColliderData = std::make_shared<ColliderSerializerGroupMesh>( Mesh );
+                    for ( int i = 0; i < 10; ++i )
+                    {
+                        auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, PhyMaterial ) ).Get( );
+                        auto& RenderableMesh = RM->GetRenderable( );
+                        RenderableShaderSetup( RenderableMesh, "DefaultPhongShader" );
 
-                                    for ( int i = 0; i < 10; ++i )
-                                    {
-                                        auto  RM             = PerspectiveCanvas->AddConcept<RigidMesh>( Mesh, CreateConcept<ColliderMesh>( MeshColliderData, PhyMaterial ) ).Get( );
-                                        auto& RenderableMesh = RM->GetRenderable( );
-                                        RenderableShaderSetup( RenderableMesh, "DefaultPhongShader" );
-
-                                        auto* RBH = RM->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
-                                        REQUIRED_IF( RBH != nullptr )
-                                        {
-                                            RBH->setGlobalPose( physx::PxTransform { physx::PxVec3( 0, 15 + i * 3, 0 ) } );
-                                            RBH->setAngularVelocity( { (float) i, (float) 20, (float) -10 }, true );
-                                        }
-                                    }
-                                }*/
+                        auto* RBH = RM->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
+                        REQUIRED_IF( RBH != nullptr )
+                        {
+                            RBH->setGlobalPose( physx::PxTransform { physx::PxVec3( 0, 15 + i * 3, 0 ) } );
+                            RBH->setAngularVelocity( { (float) i, (float) 20, (float) -10 }, true );
+                        }
+                    }
+                }
 
                 // Controller
                 {
