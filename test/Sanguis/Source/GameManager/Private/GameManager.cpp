@@ -5,6 +5,7 @@
 #include "GameManager.hpp"
 
 #include "WandEditorScene.hpp"
+#include "LoginScene.hpp"
 
 #include "ClientGroupParticipant.hpp"
 
@@ -14,7 +15,6 @@
 #include <Engine/Core/Graphic/Camera/FirstPersonCameraController.hpp>
 #include <Engine/Core/Environment/GlobalResourcePool.hpp>
 #include <Engine/Core/Input/Serializer/SerializerModel.hpp>
-#include <Engine/Core/UI/RectButton.hpp>
 #include <Engine/Core/UI/RectInput.hpp>
 #include <Engine/Core/Graphic/Mesh/ConceptMesh.hpp>
 #include <Engine/Core/Graphic/Mesh/RenderableMesh.hpp>
@@ -139,64 +139,6 @@ protected:
     OrientationMatrix m_LightOrientation;
 };
 DEFINE_CONCEPT_DS( LightRotate )
-
-class LoginScreen : public ConceptList
-{
-    DECLARE_CONCEPT( LoginScreen, ConceptList )
-
-public:
-    LoginScreen( auto&& LoginFnc )
-        : m_LoginFnc( LoginFnc )
-    {
-        SetSearchThrough( true );
-        SetRuntimeName( "Login Screen" );
-
-        auto FixedCamera = AddConcept<PureConceptOrthoCamera>( ).Get( );
-
-        FixedCamera->SetScale( 1 / 1.5F );
-        FixedCamera->UpdateCameraMatrix( );
-
-        auto UICanvas = AddConcept<Canvas>( ).Get( );
-        UICanvas->SetRuntimeName( "Login Canvas" );
-        UICanvas->SetCanvasCamera( FixedCamera );
-
-        m_NameInput = UICanvas->AddConcept<RectInput>( -25, 60 );
-        m_NameInput->SetPressReactColor( glm::vec4 { 0.5, 0.5, 0.5, 1 } );
-        m_NameInput->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
-        m_NameInput->SetTextColor( glm::vec3 { 1, 1, 1 } );
-        m_NameInput->SetText( "Player1" );
-        m_NameInput->SetPivot( 0.5F, 0.5F );
-        m_NameInput->SetCoordinate( 0, 70 );
-
-        m_PasswordInput = UICanvas->AddConcept<RectInput>( -25, 60 );
-        m_PasswordInput->SetPressReactColor( glm::vec4 { 0.5, 0.5, 0.5, 1 } );
-        m_PasswordInput->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
-        m_PasswordInput->SetTextColor( glm::vec3 { 1, 1, 1 } );
-        m_PasswordInput->SetText( "1" );
-        m_PasswordInput->SetPivot( 0.5F, 0.5F );
-        m_PasswordInput->SetCoordinate( 0, 0 );
-
-        auto LoginButton = UICanvas->AddConcept<RectButton>( -25, 60 ).Get( );
-        LoginButton->SetPressReactColor( glm::vec4 { 0.5, 0.5, 0.5, 1 } );
-        LoginButton->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
-        LoginButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
-        LoginButton->SetText( "Login" );
-        LoginButton->SetPivot( 0.5F, 0.5F );
-        LoginButton->SetCoordinate( 0, -70 );
-        LoginButton->SetCallback( [ this ]( ) {
-            m_LoginFnc( m_NameInput->GetText( ), m_PasswordInput->GetText( ) );
-            Destroy( );
-        } );
-    }
-
-protected:
-    std::shared_ptr<RectInput> m_NameInput;
-    std::shared_ptr<RectInput> m_PasswordInput;
-
-    std::function<void( const std::string&, const std::string& )> m_LoginFnc;
-};
-
-DEFINE_CONCEPT_DS( LoginScreen )
 
 GameManager::GameManager( )
 {
@@ -329,7 +271,7 @@ GameManager::GameManager( )
     m_CameraZoomLerp.SetOneRoundTime( 0.06 );
     m_CameraZoomLerp.Update( 0.06 - 0.0001 );   // Activate once
 
-    AddConcept<LoginScreen>( [ this ]( const std::string& Name, const std::string& Password ) {
+    AddConcept<LoginScene>( [ this ]( const std::string& Name, const std::string& Password ) {
         std::string login = Name + '\0' + Password;
         m_ServerConnection->Post( SanguisNet::Message::FromString( login, SanguisNet::MessageHeader::ID_LOGIN ) );
     } );

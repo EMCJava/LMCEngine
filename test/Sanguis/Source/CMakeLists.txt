@@ -135,12 +135,29 @@ declare_library(
 
 declare_library(
         NAME
+        Scenes.LoginScene
+
+        SRCS
+        Scenes/Private/LoginScene.cpp
+
+        P_DEPS
+        RectInput.lib
+        RectButton.lib
+        PureConceptOrthoCamera.lib
+        Canvas.lib
+
+        STATIC
+)
+
+declare_library(
+        NAME
         GameManager.GameManager
 
         SRCS
         GameManager/Private/GameManager.cpp
 
         P_DEPS
+        Scenes.LoginScene.lib
         Scenes.WandEditorScene.lib
         Engine.lib
         ConceptList.lib
@@ -167,7 +184,6 @@ declare_library(
         SpriteSquareTexture.lib
         PureConceptOrthoCamera.lib
         RectButton.lib
-        RectInput.lib
 
         GameClient.NetLibs.lib
 
