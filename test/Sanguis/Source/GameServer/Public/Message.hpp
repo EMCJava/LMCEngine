@@ -27,6 +27,7 @@ struct MessageHeader {
                       ID_RECAST,
                       ID_LOBBY_CONTROL,
                       ID_LOBBY_LIST,
+                      ID_GAME_PLAYER_LIST,
                       ID_GAME_GUN_FIRE,
                       ID_GAME_UPDATE_SELF_COORDINATES,
                       ID_GAME_UPDATE_PLAYER_COORDINATES,
