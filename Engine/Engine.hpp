@@ -83,6 +83,18 @@ public:
     void
     UpdateRootConcept( );
 
+    auto GetRootConceptLock( )
+    {
+        std::unique_lock Lock( m_RootConceptMutex );
+        return std::move( Lock );
+    }
+
+    auto PushPostConceptUpdateCall( auto&& CallBack )
+    {
+        std::lock_guard Lock( m_PostConceptUpdateCallsMutex );
+        m_PostConceptUpdateCalls.push_back( CallBack );
+    }
+
     /*
      *
      * Return whether the engine should be in a update loop
@@ -212,7 +224,11 @@ public:
      *
      * */
     void
-    AddPhysicsCallback( auto&& Callback ) { m_PhysicsThreadCallbacks.push_back( Callback ); }
+    AddPhysicsCallback( auto&& Callback )
+    {
+        std::lock_guard Lock( m_PhysicsThreadCallbackMutex );
+        m_PhysicsThreadCallbacks.push_back( Callback );
+    }
 
     /*
      *
@@ -353,6 +369,10 @@ private:
      * */
     class RootConceptTy*                            m_RootConcept         = nullptr;
     ConceptSetCacheShared<class ConceptApplicable>* m_RootApplicableCache = nullptr;
+    std::mutex                                      m_RootConceptMutex;
+
+    std::mutex                          m_PostConceptUpdateCallsMutex;
+    std::vector<std::function<void( )>> m_PostConceptUpdateCalls;
 
     /*
      *

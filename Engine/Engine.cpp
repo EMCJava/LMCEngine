@@ -285,9 +285,19 @@ Engine::Update( )
     RefreshRootConcept( );
 
     m_UserInput->Update( );
-    UpdateRootConcept( );
 
-    Render( );
+    {
+        std::lock_guard Lock( m_RootConceptMutex );
+        UpdateRootConcept( );
+        Render( );
+
+        {
+            std::lock_guard PostCallLock( m_PostConceptUpdateCallsMutex );
+            for ( const auto& Call : m_PostConceptUpdateCalls )
+                Call( );
+            m_PostConceptUpdateCalls.clear( );
+        }
+    }
 
     {
         std::lock_guard Lock( m_PhysicsThreadMutex );
