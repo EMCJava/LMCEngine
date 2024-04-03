@@ -164,6 +164,37 @@ declare_library(
         STATIC
 )
 
+declare_library(
+        NAME
+        Scenes.GameScene
+
+        SRCS
+        Scenes/Private/GameScene.cpp
+
+        P_DEPS
+        PureConceptPerspectiveCamera.lib
+        FirstPersonCameraController.lib
+        PureConceptOrthoCamera.lib
+        RenderableMeshCluster.lib
+        SpriteSquareTexture.lib
+        PureConceptImage.lib
+        ConceptList.lib
+        Canvas.lib
+
+        EntityRenderable.lib
+
+        UserInput.lib
+        SerializerModel.lib
+
+        PhyControllerEntityPlayer.lib
+        PhysicsEngine.lib
+        PhysicsScene.lib
+        RigidMesh.lib
+
+        GameClient.NetLibs.lib
+
+        STATIC
+)
 
 declare_library(
         NAME
@@ -173,6 +204,7 @@ declare_library(
         GameManager/Private/GameManager.cpp
 
         P_DEPS
+        Scenes.GameScene.lib
         Scenes.LoginScene.lib
         Scenes.LobbyScene.lib
         Scenes.WandEditorScene.lib

@@ -3,6 +3,7 @@
 //
 
 #include "LobbyScene.hpp"
+#include "GameScene.hpp"
 
 #include "ClientGroupParticipant.hpp"
 
@@ -150,6 +151,12 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
                     m_ReadyButton->SetText( "Ready" );
                     m_IsReady = false;
                 }
+            } );
+        } else if ( Msg == "AllReady" )
+        {
+            Engine::GetEngine( )->PushPostConceptUpdateCall( [ this ]( ) {
+                GetOwner( )->AddConcept<GameScene>( std::move( m_ServerConnection ) );
+                Destroy( );
             } );
         }
         break;
