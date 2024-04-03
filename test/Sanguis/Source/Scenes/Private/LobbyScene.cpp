@@ -15,6 +15,7 @@
 #include <utility>
 #include <ranges>
 
+constexpr int NameSpace = 70;
 
 DEFINE_CONCEPT_DS( LobbyScene )
 
@@ -38,7 +39,13 @@ LobbyScene::LobbyScene( const std::shared_ptr<SanguisNet::ClientGroupParticipant
     LobbyText->SetupSprite( );
     LobbyText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
     LobbyText->SetColor( glm::vec3 { 1 } );
-    LobbyText->SetCenterAt( glm::vec3 { 0, 0, 0 } );
+    LobbyText->SetCenterAt( glm::vec3 { -500, 0, 0 } );
+
+    auto FriendText = m_UICanvas->AddConcept<Text>( "Friend List" ).Get( );
+    FriendText->SetupSprite( );
+    FriendText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
+    FriendText->SetColor( glm::vec3 { 1 } );
+    FriendText->SetCenterAt( glm::vec3 { 500, 0, 0 } );
 
     m_ReadyButton = m_UICanvas->AddConcept<RectButton>( -25, 60 ).Get( );
     m_ReadyButton->SetPressReactColor( glm::vec4 { 0.9, 0.9, 0.9, 1 } );
@@ -46,7 +53,7 @@ LobbyScene::LobbyScene( const std::shared_ptr<SanguisNet::ClientGroupParticipant
     m_ReadyButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
     m_ReadyButton->SetText( "Ready" );
     m_ReadyButton->SetPivot( 0.5F, 0.5F );
-    m_ReadyButton->SetCoordinate( 0, 100 );
+    m_ReadyButton->SetCoordinate( -500, 100 );
     m_ReadyButton->SetActiveCamera( FixedCamera.get( ) );
     m_ReadyButton->SetCallback( [ this ]( ) {
         if ( m_IsReady )
@@ -60,6 +67,7 @@ LobbyScene::LobbyScene( const std::shared_ptr<SanguisNet::ClientGroupParticipant
 
     m_ServerConnection->SetPacketCallback( [ this ]( auto&& Msg ) { ServerMessageCallback( Msg ); } );
     m_ServerConnection->Post( SanguisNet::Message::FromString( "create", SanguisNet::MessageHeader::ID_LOBBY_CONTROL ) );
+    m_ServerConnection->Post( SanguisNet::Message::FromString( "0", SanguisNet::MessageHeader::ID_FRIEND_LIST ) );
 }
 
 void
@@ -69,11 +77,40 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
     switch ( Msg.header.id )
     {
     case SanguisNet::MessageHeader::ID_RESULT:
-        if ( Msg == "Created" )
-        {
-            m_InLobby = true;
-            m_ServerConnection->Post( SanguisNet::Message::FromString( "", SanguisNet::MessageHeader::ID_LOBBY_LIST ) );
-        }
+        if ( Msg == "Created" ) m_InLobby = true;
+        break;
+    case SanguisNet::MessageHeader::ID_FRIEND_LIST:
+        Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, Names = std::string( MshStrView.begin( ), MshStrView.end( ) ) ]( ) {
+            std::ranges::for_each( m_FriendListText, []( auto& Text ) { Text->Destroy( ); } );
+            m_FriendListText.clear( );
+            std::ranges::for_each( m_FriendListJoinButton, []( auto& Text ) { Text->Destroy( ); } );
+            m_FriendListJoinButton.clear( );
+
+            int Index = 0;
+            for ( const auto& Line :
+                  Names | std::ranges::views::split( '\n' ) )
+            {
+                auto NewText = m_UICanvas->AddConcept<Text>( std::string( Line.begin( ), Line.end( ) ) ).Get( );
+                NewText->SetupSprite( );
+                NewText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
+                NewText->SetColor( glm::vec3 { 1 } );
+                NewText->SetCenterAt( glm::vec3 { 500, -NameSpace * ++Index, 0 } );
+                m_FriendListText.push_back( std::move( NewText ) );
+
+                auto JoinButton = m_UICanvas->AddConcept<RectButton>( -25, 60 ).Get( );
+                JoinButton->SetPressReactColor( glm::vec4 { 0.9, 0.9, 0.9, 1 } );
+                JoinButton->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
+                JoinButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
+                JoinButton->SetText( "Join" );
+                JoinButton->SetPivot( 0.5F, 0.5F );
+                JoinButton->SetCoordinate( 800, -NameSpace * Index );
+                JoinButton->SetActiveCamera( GetConcept<PureConceptOrthoCamera>( ).get( ) );
+                JoinButton->SetCallback( [ this, Name = std::string { Line.begin( ), Line.end( ) } ]( ) {
+                    m_ServerConnection->Post( SanguisNet::Message::FromString( "join" + Name, SanguisNet::MessageHeader::ID_LOBBY_CONTROL ) );
+                } );
+                m_FriendListJoinButton.push_back( std::move( JoinButton ) );
+            }
+        } );
         break;
     case SanguisNet::MessageHeader::ID_LOBBY_LIST:
         Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, Names = std::string( MshStrView.begin( ), MshStrView.end( ) ) ]( ) {
@@ -84,11 +121,14 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
             for ( const auto& Line :
                   Names | std::ranges::views::split( '\n' ) )
             {
-                auto NewText = m_UICanvas->AddConcept<Text>( std::string( Line.begin( ), Line.end( ) ) ).Get( );
+                auto NewText = m_UICanvas->AddConcept<Text>( std::string( Line.begin( ), Line.end( ) - 1 ) ).Get( );
                 NewText->SetupSprite( );
                 NewText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
-                NewText->SetColor( glm::vec3 { 1, 0, 0 } );
-                NewText->SetCenterAt( glm::vec3 { 0, -50 * ++Index, 0 } );
+                if ( Line.back( ) == 't' )
+                    NewText->SetColor( glm::vec3 { 0, 1, 0 } );
+                else
+                    NewText->SetColor( glm::vec3 { 1, 0, 0 } );
+                NewText->SetCenterAt( glm::vec3 { -500, -NameSpace * ++Index, 0 } );
                 m_LobbyMemberText.push_back( std::move( NewText ) );
             }
         } );
@@ -100,8 +140,8 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
                 auto NewText = m_UICanvas->AddConcept<Text>( std::string( Name.begin( ), Name.end( ) ) ).Get( );
                 NewText->SetupSprite( );
                 NewText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
-                NewText->SetColor( glm::vec3 { 1 } );
-                NewText->SetCenterAt( glm::vec3 { 0, -50 * ( (int) m_LobbyMemberText.size( ) + 1 ), 0 } );
+                NewText->SetColor( glm::vec3 { 1, 0, 0 } );
+                NewText->SetCenterAt( glm::vec3 { -500, -NameSpace * ( (int) m_LobbyMemberText.size( ) + 1 ), 0 } );
                 m_LobbyMemberText.push_back( std::move( NewText ) );
             } );
         } else if ( Msg.EndWith( " Left" ) )
@@ -115,7 +155,7 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
                         m_LobbyMemberText.erase( m_LobbyMemberText.begin( ) + i-- );
                         continue;
                     }
-                    m_LobbyMemberText[ i ]->SetCenterAt( glm::vec3 { 0, -50 * ( i + 1 ), 0 } );
+                    m_LobbyMemberText[ i ]->SetCenterAt( glm::vec3 { -500, -NameSpace * ( i + 1 ), 0 } );
                 }
             } );
         } else if ( Msg.EndWith( " Ready" ) )

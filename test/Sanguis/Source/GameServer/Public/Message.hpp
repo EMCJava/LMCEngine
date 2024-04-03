@@ -25,6 +25,7 @@ struct MessageHeader {
                       ID_LOGIN,
                       ID_INFO,
                       ID_RECAST,
+                      ID_FRIEND_LIST,
                       ID_LOBBY_CONTROL,
                       ID_LOBBY_LIST,
                       ID_GAME_PLAYER_LIST,
@@ -38,7 +39,7 @@ struct MessageHeader {
 
 static constexpr uint32_t MessageHeaderLength      = sizeof( MessageHeader );
 static constexpr uint32_t MessageDataLength        = MessageHeaderLength * 8;
-static constexpr uint32_t MaxNamesPreMessage       = SanguisNet::MessageDataLength / ( User::MaxNameLength + 1 /* name + \n */ );
+static constexpr uint32_t MaxNamesPreMessage       = SanguisNet::MessageDataLength / ( User::MaxNameLength + 1 + 1 /* name + \n + buffer */ );
 static constexpr uint32_t MaxParticipantPerSection = MaxNamesPreMessage;
 
 struct Message {

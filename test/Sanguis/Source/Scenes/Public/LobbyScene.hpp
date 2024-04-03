@@ -22,7 +22,9 @@ protected:
 
     std::shared_ptr<SanguisNet::ClientGroupParticipant> m_ServerConnection;
 
-    std::vector<std::shared_ptr<class Text>> m_LobbyMemberText;
+    std::vector<std::shared_ptr<class Text>>       m_LobbyMemberText;
+    std::vector<std::shared_ptr<class Text>>       m_FriendListText;
+    std::vector<std::shared_ptr<class RectButton>> m_FriendListJoinButton;
 
     std::shared_ptr<class RectButton> m_ReadyButton;
     std::shared_ptr<class Canvas>     m_UICanvas;
