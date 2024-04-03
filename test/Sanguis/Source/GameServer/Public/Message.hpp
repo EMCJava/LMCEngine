@@ -76,6 +76,24 @@ struct Message {
         return asio::buffer( this, MessageHeaderLength + header.length );
     }
 
+    template <typename Ty>
+    Ty ToStruct( )
+    {
+        assert( header.length == sizeof( Ty ) );
+        return std::bit_cast<Ty>( *reinterpret_cast<std::array<unsigned char, sizeof( Ty )>*>( data ) );
+    }
+
+    template <typename Ty>
+    static Message FromStruct( Ty&& Data, int ID = MessageHeader::ID_NONE )
+    {
+        static_assert( sizeof( Data ) <= MessageDataLength, "Data too big" );
+
+        Message msg;
+        msg.header.id = ID;
+        memcpy( msg.data, reinterpret_cast<const void*>( &Data ), msg.header.length = sizeof( Data ) );
+        return msg;
+    }
+
     static Message FromString( std::string_view Str, int ID = MessageHeader::ID_NONE )
     {
         Message msg;
