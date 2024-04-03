@@ -222,6 +222,7 @@ GameScene::ServerMessageCallback( SanguisNet::Message& Msg )
         const auto FireData = SanguisNet::Game::Decoder<SanguisNet::MessageHeader::ID_GAME_GUN_FIRE> { }( Msg );
         auto       Ray      = Msg.ToStruct<RayCast>( );
         spdlog::info( "Player {} fired at {} dir {} with distance {}", m_PlayerStats[ FireData.PlayerID ].Name, Ray.RayToCast.RayOrigin, Ray.RayToCast.UnitDirection, Ray.RayToCast.MaxDistance );
+        break;
     }
     case SanguisNet::MessageHeader::ID_GAME_PLAYER_LIST: {
         m_PlayerStats = Msg.ToString( )
