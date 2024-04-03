@@ -57,3 +57,9 @@ SanguisNet::ServerSectionGroupGame::HandleMessage( const std::shared_ptr<GroupPa
         SanguisNet::Game::Decoder<SanguisNet::MessageHeader::ID_GAME_GUN_FIRE> { }( Msg );
     }
 }
+
+std::span<std::shared_ptr<SanguisNet::GroupParticipant>>
+SanguisNet::ServerSectionGroupGame::GetParticipants( )
+{
+    return { m_FixedParticipants.data( ), m_FixedParticipantsCount };
+}

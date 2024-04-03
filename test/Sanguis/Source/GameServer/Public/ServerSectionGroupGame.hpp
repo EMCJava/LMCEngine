@@ -21,8 +21,10 @@ public:
 
     void HandleMessage( const std::shared_ptr<GroupParticipant>& Participants, Message& Msg ) override;
 
+    std::span<std::shared_ptr<GroupParticipant>> GetParticipants( );
+
 protected:
-    int m_FixedParticipantsCount = 0;
+    size_t m_FixedParticipantsCount = 0;
 
     std::array<std::shared_ptr<GroupParticipant>, MaxParticipantPerSection> m_FixedParticipants;
 };
