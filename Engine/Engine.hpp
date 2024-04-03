@@ -7,6 +7,7 @@
 #include <Engine/Core/Core.hpp>
 #include <Engine/Core/Concept/ConceptSetCache.hpp>
 
+#include <vector>
 #include <string>
 #include <memory>
 #include <mutex>
