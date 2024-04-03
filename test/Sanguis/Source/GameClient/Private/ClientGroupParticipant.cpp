@@ -115,7 +115,13 @@ SanguisNet::ClientGroupParticipant::SendTopMessage( )
 void
 SanguisNet::ClientGroupParticipant::Terminate( )
 {
-    m_Socket.close( );
+    try
+    {
+        m_Socket.shutdown( asio::ip::tcp::socket::shutdown_both );
+        m_Socket.close( );
+    }
+    catch ( ... )
+    { }
     m_ConnectionReady = false;
 
     spdlog::warn( "Connection Terminated to {}:{}", m_RemoteEndpoint.address( ).to_string( ), m_RemoteEndpoint.port( ) );

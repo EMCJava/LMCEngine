@@ -98,6 +98,12 @@ void
 SanguisNet::GroupParticipantTcp::Terminate( )
 {
     m_BelongsTo->Leave( shared_from_this( ) );
-    m_Socket.close( );
+    try
+    {
+        m_Socket.shutdown( asio::ip::tcp::socket::shutdown_both );
+        m_Socket.close( );
+    }
+    catch ( ... )
+    { }
     m_MessageSignal.cancel( );
 }
