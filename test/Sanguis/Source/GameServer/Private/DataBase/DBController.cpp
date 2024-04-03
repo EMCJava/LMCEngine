@@ -43,3 +43,16 @@ DBController::GetUserNameByID( int ID ) const
     if ( Name.empty( ) ) return { };
     return std::get<0>( Name[ 0 ] );
 }
+
+std::optional<int>
+DBController::GetUserIDByName( std::string_view Name ) const
+{
+    using namespace sqlite_orm;
+
+    const auto ID = GetStorage( ).select(
+        columns( &User::ID ),
+        where( c( &User::UserName ) == Name ) );
+
+    if ( ID.empty( ) ) return std::nullopt;
+    return std::get<0>( ID[ 0 ] );
+}
