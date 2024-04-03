@@ -15,16 +15,9 @@ SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupPa
 
     switch ( Msg.header.id )
     {
-    case SanguisNet::MessageHeader::ID_GET:
-        if ( RequestStr.starts_with( "friend_list" ) )
-        {
-            auto PageStr = RequestStr.substr( strlen( "friend_list" ) );
-            int  Page    = std::stoi( PageStr.data( ) );
-
-            ResponseFriendList( Participant, Page );
-            return;
-        }
-        break;
+    case SanguisNet::MessageHeader::ID_FRIEND_LIST:
+        ResponseFriendList( Participant, std::stoi( RequestStr.data( ) ) );
+        return;
 
     case SanguisNet::MessageHeader::ID_LOBBY_CONTROL:
         if ( RequestStr.starts_with( "create" ) )
