@@ -76,16 +76,16 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
         Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, Names = std::string( MshStrView.begin( ), MshStrView.end( ) ) ]( ) {
             std::ranges::for_each( m_LobbyMemberText, []( auto& Text ) { Text->Destroy( ); } );
             m_LobbyMemberText.clear( );
-            for ( const auto& [ Index, Line ] :
-                  Names
-                      | std::ranges::views::split( '\n' )
-                      | std::views::enumerate )
+
+            size_t Index = 0;
+            for ( const auto& Line :
+                  Names | std::ranges::views::split( '\n' ) )
             {
                 auto NewText = m_UICanvas->AddConcept<Text>( std::string( Line.begin( ), Line.end( ) ) ).Get( );
                 NewText->SetupSprite( );
                 NewText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
                 NewText->SetColor( glm::vec3 { 1, 0, 0 } );
-                NewText->SetCenterAt( glm::vec3 { 0, -50 * ( Index + 1 ), 0 } );
+                NewText->SetCenterAt( glm::vec3 { 0, -50 * ++Index, 0 } );
                 m_LobbyMemberText.push_back( std::move( NewText ) );
             }
         } );
