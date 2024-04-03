@@ -27,6 +27,8 @@ public:
 
     void HandleMessage( const std::shared_ptr<GroupParticipant>& Participants, Message& Msg ) override;
 
+    void SendLobbyList( const std::shared_ptr<GroupParticipant>& Participant );
+
 protected:
     int                                       m_ReadyCount = 0;
     std::unordered_map<int, ParticipantStats> m_LobbyParticipants;

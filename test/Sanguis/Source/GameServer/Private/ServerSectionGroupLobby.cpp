@@ -13,14 +13,9 @@ SanguisNet::ServerSectionGroupLobby::HandleMessage( const std::shared_ptr<GroupP
     case MessageHeader::ID_RECAST:
         Broadcast( Msg );
         return;
-    case MessageHeader::ID_LOBBY_LIST: {   // Assume m_AllowNewParticipants == false after m_GameSection is created
-        std::string Response;
-        for ( const auto& P : m_Participants )
-            Response += GetParticipantName( P ) + '\n';
-        if ( !m_Participants.empty( ) ) Response.pop_back( );
-        Participants->Deliver( SanguisNet::Message::FromString( Response, MessageHeader::ID_LOBBY_LIST ) );
+    case MessageHeader::ID_LOBBY_LIST:
+        SendLobbyList( Participants );
         return;
-    }
     case MessageHeader::ID_LOBBY_CONTROL:
         if ( Msg.StartWith( "ready" ) )
         {
@@ -37,7 +32,7 @@ SanguisNet::ServerSectionGroupLobby::HandleMessage( const std::shared_ptr<GroupP
             {
                 Broadcast( SanguisNet::Message::FromString( "AllReady", MessageHeader::ID_INFO ) );
                 m_AllowNewParticipants = false;
-                m_CanCancelReady = false;
+                m_CanCancelReady       = false;
 
                 m_GameSection = std::make_shared<ServerSectionGroupGame>( );
                 m_GameSection->SetManager( m_Manager );
@@ -87,4 +82,15 @@ SanguisNet::ServerSectionGroupLobby::Leave( const std::shared_ptr<GroupParticipa
     auto ParticipantIt = m_LobbyParticipants.find( Participant->GetParticipantID( ) );
     if ( ParticipantIt->second.Ready ) --m_ReadyCount;
     m_LobbyParticipants.erase( ParticipantIt );
+}
+
+void
+SanguisNet::ServerSectionGroupLobby::SendLobbyList( const std::shared_ptr<GroupParticipant>& Participant )
+{
+    // Assume m_AllowNewParticipants == false after m_GameSection is created
+    std::string Response;
+    for ( const auto& P : m_Participants )
+        Response += GetParticipantName( P ) + ( m_LobbyParticipants[ P->GetParticipantID( ) ].Ready ? 't' : 'f' ) + '\n';
+    if ( !m_Participants.empty( ) ) Response.pop_back( );
+    Participant->Deliver( SanguisNet::Message::FromString( Response, MessageHeader::ID_LOBBY_LIST ) );
 }
