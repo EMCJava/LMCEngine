@@ -69,5 +69,34 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
             }
         } );
         break;
+    case SanguisNet::MessageHeader::ID_INFO:
+        if ( Msg.EndWith( " Entered" ) )
+        {
+            const auto MshStrView = Msg.ToString( );
+            Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, Name = MshStrView.substr( 0, MshStrView.find( " Entered" ) ) ]( ) {
+                auto NewText = m_UICanvas->AddConcept<Text>( std::string( Name.begin( ), Name.end( ) ) ).Get( );
+                NewText->SetupSprite( );
+                NewText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
+                NewText->SetColor( glm::vec3 { 1 } );
+                NewText->SetCenterAt( glm::vec3 { 0, -50 * ( (int) m_LobbyMemberText.size( ) + 1 ), 0 } );
+                m_LobbyMemberText.push_back( std::move( NewText ) );
+            } );
+        } else if ( Msg.EndWith( " Left" ) )
+        {
+            const auto MshStrView = Msg.ToString( );
+            Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, Name = MshStrView.substr( 0, MshStrView.find( " Left" ) ) ]( ) {
+                for ( int i = 0; i < m_LobbyMemberText.size( ); ++i )
+                {
+                    if ( m_LobbyMemberText[ i ]->GetText( ) == Name )
+                    {
+                        m_LobbyMemberText[ i ]->Destroy( );
+                        m_LobbyMemberText.erase( m_LobbyMemberText.begin( ) + i-- );
+                        continue;
+                    }
+                    m_LobbyMemberText[ i ]->SetCenterAt( glm::vec3 { 0, -50 * (i + 1), 0 } );
+                }
+            } );
+        }
+        break;
     }
 }
