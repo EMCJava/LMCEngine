@@ -26,6 +26,9 @@ public:
     SetCoordinate( const auto& Coordinate ) { m_TextCoordinate = Coordinate; }
 
     void
+    SetCenterAt( const glm::vec3& Coordinate );
+
+    void
     SetFont( std::shared_ptr<class Font> Font ) { m_Font = Font; }
 
     void

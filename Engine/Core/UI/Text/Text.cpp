@@ -135,3 +135,11 @@ Text::GetTextPixelHeight( )
 
     return MaxHeight;
 }
+
+void
+Text::SetCenterAt( const glm::vec3& Coordinate )
+{
+    SetCoordinate( glm::vec3 { Coordinate.x - GetTextPixelWidth( ) / 2.0f,
+                               Coordinate.y - GetTextPixelHeight( ) / 2.0f,
+                               Coordinate.z } );
+}
