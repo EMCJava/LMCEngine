@@ -36,17 +36,22 @@ SanguisNet::ClientGroupParticipant::Close( )
 void
 SanguisNet::ClientGroupParticipant::DoConnect( const asio::ip::basic_resolver<asio::ip::tcp, asio::any_io_executor>::results_type& EndPoint )
 {
-    asio::async_connect( m_Socket, EndPoint,
-                         [ this ]( std::error_code ec, auto&& ) {
-                             if ( !ec )
-                             {
-                                 m_ConnectionReady = true;
-                                 if ( !m_MessageQueue.empty( ) ) SendTopMessage( );
+    if ( !m_ConnectionReady )
+    {
+        asio::async_connect( m_Socket, m_DesiredEndPoint,
+                             [ this ]( std::error_code ec, auto&& ) {
+                                 if ( !ec )
+                                 {
+                                     m_ConnectionReady = true;
+                                     m_RemoteEndpoint  = m_Socket.remote_endpoint( );
+                                     if ( m_ConnectCallback ) m_ConnectCallback( );
+                                     if ( !m_MessageQueue.empty( ) ) SendTopMessage( );
 
-                                 // Start waiting/reading for incoming messages
-                                 ReadMessageHeader( );
-                             }
-                         } );
+                                     // Start waiting/reading for incoming messages
+                                     ReadMessageHeader( );
+                                 }
+                             } );
+    }
 }
 
 void
@@ -113,6 +118,5 @@ SanguisNet::ClientGroupParticipant::Terminate( )
     m_Socket.close( );
     m_ConnectionReady = false;
 
-    const auto RemoteEndpoint = m_Socket.remote_endpoint( );
-    spdlog::warn( "Connection Terminated to {}:{}", RemoteEndpoint.address( ).to_string( ), RemoteEndpoint.port( ) );
+    spdlog::warn( "Connection Terminated to {}:{}", m_RemoteEndpoint.address( ).to_string( ), m_RemoteEndpoint.port( ) );
 }

@@ -13,7 +13,8 @@ namespace SanguisNet
 class ClientGroupParticipant
 {
 public:
-    using PacketCallbackSig = std::function<void( SanguisNet::Message& )>;
+    using PacketCallbackSig  = std::function<void( SanguisNet::Message& )>;
+    using ConncetCallbackSig = std::function<void( )>;
 
     ClientGroupParticipant( asio::io_context&                            io_context,
                             const asio::ip::tcp::resolver::results_type& EndPoint );
@@ -21,6 +22,9 @@ public:
     void Post( const SanguisNet::Message& msg );
 
     void Close( );
+
+    void SetPacketCallback( const PacketCallbackSig& Callback ) { m_PackageCallback = Callback; }
+    void SetConnectCallback( const ConncetCallbackSig& Callback ) { m_ConnectCallback = Callback; }
 
 private:
     void DoConnect( const asio::ip::tcp::resolver::results_type& EndPoint );
@@ -33,15 +37,16 @@ private:
 
     void Terminate( );
 
-    void SetPacketCallback( const PacketCallbackSig& Callback ) { m_PackageCallback = Callback; }
-
 private:
-    asio::io_context&               m_ControlContext;
-    asio::ip::tcp::socket           m_Socket;
-    SanguisNet::Message             m_ReadMsg;
-    std::deque<SanguisNet::Message> m_MessageQueue;
+    asio::io_context&                     m_ControlContext;
+    asio::ip::tcp::socket                 m_Socket;
+    asio::ip::tcp::resolver::results_type m_DesiredEndPoint;
+    asio::ip::tcp::endpoint               m_RemoteEndpoint;
+    SanguisNet::Message                   m_ReadMsg;
+    std::deque<SanguisNet::Message>       m_MessageQueue;
 
-    PacketCallbackSig m_PackageCallback;
+    PacketCallbackSig  m_PackageCallback;
+    ConncetCallbackSig m_ConnectCallback;
 
     bool m_ConnectionReady = false;
 };
