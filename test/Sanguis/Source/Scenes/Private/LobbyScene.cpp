@@ -79,7 +79,7 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
             std::ranges::for_each( m_LobbyMemberText, []( auto& Text ) { Text->Destroy( ); } );
             m_LobbyMemberText.clear( );
 
-            size_t Index = 0;
+            int Index = 0;
             for ( const auto& Line :
                   Names | std::ranges::views::split( '\n' ) )
             {
