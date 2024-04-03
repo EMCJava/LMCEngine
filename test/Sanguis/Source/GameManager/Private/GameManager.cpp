@@ -6,6 +6,7 @@
 
 #include "WandEditorScene.hpp"
 #include "LoginScene.hpp"
+#include "LobbyScene.hpp"
 
 #include "ClientGroupParticipant.hpp"
 
@@ -144,18 +145,6 @@ GameManager::GameManager( )
 {
     spdlog::info( "GameManager concept constructor called" );
 
-    m_IOContext = std::make_shared<asio::io_context>( );
-
-    asio::ip::tcp::resolver resolver( *m_IOContext );
-    auto                    endpoints = resolver.resolve( "localhost", "8800" );
-    m_ServerConnection                = std::make_shared<SanguisNet::ClientGroupParticipant>( *m_IOContext, endpoints );
-
-    m_IOThread = std::make_unique<std::thread>( [ this ]( ) {
-        m_IOContext->run( );
-        spdlog::info( "Net IO thread stopped" );
-    } );
-
-
     constexpr std::pair<int, int> WindowSize = { 1920, 1080 };
     Engine::GetEngine( )->SetLogicalMainWindowViewPortDimensions( WindowSize );
 
@@ -261,9 +250,24 @@ GameManager::GameManager( )
     m_CameraZoomLerp.SetOneRoundTime( 0.06 );
     m_CameraZoomLerp.Update( 0.06 - 0.0001 );   // Activate once
 
-    AddConcept<LoginScene>( [ this ]( const std::string& Name, const std::string& Password ) {
-        std::string login = Name + '\0' + Password;
-        m_ServerConnection->Post( SanguisNet::Message::FromString( login, SanguisNet::MessageHeader::ID_LOGIN ) );
+    m_IOContext = std::make_shared<asio::io_context>( );
+
+    asio::ip::tcp::resolver resolver( *m_IOContext );
+    auto                    endpoints = resolver.resolve( "localhost", "8800" );
+    m_ServerConnection                = std::make_shared<SanguisNet::ClientGroupParticipant>( *m_IOContext, endpoints );
+    m_ServerConnection->SetConnectCallback( [ this ]( ) {
+        Engine::GetEngine( )->PushPostConceptUpdateCall( [ this ]( ) {
+            AddConcept<LoginScene>( [ this ]( const std::string& Name, const std::string& Password ) {
+                std::string login = Name + '\0' + Password;
+                m_ServerConnection->Post( SanguisNet::Message::FromString( login, SanguisNet::MessageHeader::ID_LOGIN ) );
+                AddConcept<LobbyScene>( m_ServerConnection );
+            } );
+        } );
+    } );
+
+    m_IOThread = std::make_unique<std::thread>( [ this ]( ) {
+        m_IOContext->run( );
+        spdlog::info( "Net IO thread stopped" );
     } );
 
     spdlog::info( "GameManager concept constructor returned" );
