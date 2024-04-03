@@ -43,14 +43,25 @@ struct Message {
     MessageHeader header;
     uint8_t       data[ MessageDataLength ];
 
+    [[nodiscard]] std::string_view ToString( ) const noexcept
+    {
+        return std::string_view { (std::string_view::pointer) data, header.length };
+    }
+
     [[nodiscard]] bool StartWith( std::string_view Str ) const noexcept
     {
-        return std::string_view { (std::string_view::pointer) data, header.length }.starts_with( Str );
+        return ToString( ).starts_with( Str );
     }
 
     [[nodiscard]] bool operator==( std::string_view Str ) const noexcept
     {
-        return std::string_view { (std::string_view::pointer) data, header.length } == Str;
+        return ToString( ) == Str;
+    }
+
+    template <typename Ty, size_t Size>
+    [[nodiscard]] bool operator==( const Ty ( &StrArr )[ Size ] ) const noexcept
+    {
+        return Size == header.length && std::equal( StrArr, StrArr + Size, data );
     }
 
     auto GetMinimalAsioBuffer( ) const
