@@ -43,3 +43,9 @@ SanguisNet::ServerSectionGroup::GetParticipantName( const std::shared_ptr<GroupP
     if ( Participant == nullptr ) return "";
     return m_Manager.lock( )->GetDBController( )->GetUserNameByID( Participant->GetParticipantID( ) );
 }
+
+std::optional<int>
+SanguisNet::ServerSectionGroup::GetParticipantID( std::string_view Name ) const
+{
+    return m_Manager.lock( )->GetDBController( )->GetUserIDByName( Name );
+}

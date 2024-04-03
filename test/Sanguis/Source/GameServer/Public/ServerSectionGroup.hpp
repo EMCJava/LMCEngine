@@ -31,7 +31,8 @@ public:
 
     auto GetSectionPort( ) const noexcept { return m_SectionPort; }
 
-    std::string GetParticipantName( const std::shared_ptr<GroupParticipant>& Participant ) const;
+    std::string        GetParticipantName( const std::shared_ptr<GroupParticipant>& Participant ) const;
+    std::optional<int> GetParticipantID( std::string_view Name ) const;
 
     virtual void HandleMessage( const std::shared_ptr<GroupParticipant>& Participants, Message& Msg ) { }
 
