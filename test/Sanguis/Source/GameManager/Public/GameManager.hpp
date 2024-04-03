@@ -14,7 +14,7 @@
 namespace asio
 {
 class io_context;
-}
+}   // namespace asio
 namespace SanguisNet
 {
 class ClientGroupParticipant;
@@ -111,6 +111,7 @@ private:
     LinearLerp m_CameraZoomLerp;
 
     std::shared_ptr<asio::io_context>                   m_IOContext;
+    std::shared_ptr<void>                               m_IOContextHolder;
     std::shared_ptr<SanguisNet::ClientGroupParticipant> m_ServerConnection;
     std::unique_ptr<std::thread>                        m_IOThread;
 

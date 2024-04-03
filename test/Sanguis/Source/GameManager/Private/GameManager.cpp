@@ -60,6 +60,9 @@
 GameManager::~GameManager( )
 {
     spdlog::trace( "{}::~{} -> {}", "GameManager", "GameManager", fmt::ptr( this ) );
+    m_ServerConnection.reset( );
+    m_IOContextHolder.reset( );
+    m_IOContext->stop( );
     if ( m_IOThread && m_IOThread->joinable( ) )
         m_IOThread->join( );
 }
@@ -259,13 +262,18 @@ GameManager::GameManager( )
         Engine::GetEngine( )->PushPostConceptUpdateCall( [ this ]( ) {
             AddConcept<LoginScene>( [ this ]( const std::string& Name, const std::string& Password ) {
                 std::string login = Name + '\0' + Password;
+                m_ServerConnection->SetPacketCallback( [ this ]( SanguisNet::Message& Msg ) {
+                    if ( Msg.header.id == SanguisNet::MessageHeader::ID_RESULT && Msg == "Login Success" )
+                        Engine::GetEngine( )->PushPostConceptUpdateCall( [ this ]( ) { AddConcept<LobbyScene>( m_ServerConnection ); } );
+                } );
                 m_ServerConnection->Post( SanguisNet::Message::FromString( login, SanguisNet::MessageHeader::ID_LOGIN ) );
-                AddConcept<LobbyScene>( m_ServerConnection );
             } );
         } );
     } );
 
-    m_IOThread = std::make_unique<std::thread>( [ this ]( ) {
+    m_IOContextHolder = std::make_shared<asio::io_context::work>( *m_IOContext );
+    m_IOThread        = std::make_unique<std::thread>( [ this ]( ) {
+        spdlog::info( "Net IO thread started" );
         m_IOContext->run( );
         spdlog::info( "Net IO thread stopped" );
     } );
