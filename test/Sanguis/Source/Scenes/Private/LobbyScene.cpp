@@ -10,7 +10,9 @@
 #include <Engine/Core/UI/RectButton.hpp>
 #include <Engine/Core/Graphic/Canvas/Canvas.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptOrthoCamera.hpp>
+
 #include <utility>
+#include <ranges>
 
 
 DEFINE_CONCEPT_DS( LobbyScene )
