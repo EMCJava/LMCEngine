@@ -71,8 +71,6 @@ RectButton::Apply( )
 
         if ( m_HitBox->HitTest( HitPoint ) )
         {
-            spdlog::info( "Button:{} pressed", m_ButtonTextStr );
-
             m_ActivatedThisFrame = true;
             m_PressReactTimeLeft = 0.2;
 
