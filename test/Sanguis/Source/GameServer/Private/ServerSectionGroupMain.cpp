@@ -37,19 +37,6 @@ SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupPa
             int  UserID    = std::stoi( UserIDStr.data( ) );
 
             JoinLobby( Participant, UserID );
-        } else if ( RequestStr.starts_with( "list" ) )
-        {
-            // Not in a lobby
-            if ( !m_PlayerLobbies.contains( Participant->GetParticipantID( ) ) ) break;
-
-            const auto& Lobby           = m_PlayerLobbies[ Participant->GetParticipantID( ) ];
-            const auto& ParticipantsSet = Lobby->GetParticipantsSet( );
-            std::string Result;
-            for ( const auto& P : ParticipantsSet )
-            {
-                Result += GetParticipantName( P ) + '\n';
-            }
-            Participant->Deliver( SanguisNet::Message::FromString( Result, MessageHeader::ID_INFO ) );
         } else
             goto ServerSectionGroupMain_HandleMessage_fallback;
         return;
