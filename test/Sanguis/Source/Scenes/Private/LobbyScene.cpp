@@ -10,6 +10,7 @@
 #include <Engine/Core/UI/RectButton.hpp>
 #include <Engine/Core/Graphic/Canvas/Canvas.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptOrthoCamera.hpp>
+#include <utility>
 
 
 DEFINE_CONCEPT_DS( LobbyScene )
@@ -36,6 +37,24 @@ LobbyScene::LobbyScene( const std::shared_ptr<SanguisNet::ClientGroupParticipant
     LobbyText->SetColor( glm::vec3 { 1 } );
     LobbyText->SetCenterAt( glm::vec3 { 0, 0, 0 } );
 
+    m_ReadyButton = m_UICanvas->AddConcept<RectButton>( -25, 60 ).Get( );
+    m_ReadyButton->SetPressReactColor( glm::vec4 { 0.9, 0.9, 0.9, 1 } );
+    m_ReadyButton->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
+    m_ReadyButton->SetTextColor( glm::vec3 { 1, 1, 1 } );
+    m_ReadyButton->SetText( "Ready" );
+    m_ReadyButton->SetPivot( 0.5F, 0.5F );
+    m_ReadyButton->SetCoordinate( 0, 100 );
+    m_ReadyButton->SetActiveCamera( FixedCamera.get( ) );
+    m_ReadyButton->SetCallback( [ this ]( ) {
+        if ( m_IsReady )
+        {
+            m_ServerConnection->Post( SanguisNet::Message::FromString( "cancel_ready", SanguisNet::MessageHeader::ID_LOBBY_CONTROL ) );
+        } else
+        {
+            m_ServerConnection->Post( SanguisNet::Message::FromString( "ready", SanguisNet::MessageHeader::ID_LOBBY_CONTROL ) );
+        }
+    } );
+
     m_ServerConnection->SetPacketCallback( [ this ]( auto&& Msg ) { ServerMessageCallback( Msg ); } );
     m_ServerConnection->Post( SanguisNet::Message::FromString( "create", SanguisNet::MessageHeader::ID_LOBBY_CONTROL ) );
 }
@@ -43,6 +62,7 @@ LobbyScene::LobbyScene( const std::shared_ptr<SanguisNet::ClientGroupParticipant
 void
 LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
 {
+    const auto MshStrView = Msg.ToString( );
     switch ( Msg.header.id )
     {
     case SanguisNet::MessageHeader::ID_RESULT:
@@ -53,7 +73,7 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
         }
         break;
     case SanguisNet::MessageHeader::ID_LOBBY_LIST:
-        Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, Names = Msg.ToString( ) ]( ) {
+        Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, Names = std::string( MshStrView.begin( ), MshStrView.end( ) ) ]( ) {
             std::ranges::for_each( m_LobbyMemberText, []( auto& Text ) { Text->Destroy( ); } );
             m_LobbyMemberText.clear( );
             for ( const auto& [ Index, Line ] :
@@ -64,7 +84,7 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
                 auto NewText = m_UICanvas->AddConcept<Text>( std::string( Line.begin( ), Line.end( ) ) ).Get( );
                 NewText->SetupSprite( );
                 NewText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
-                NewText->SetColor( glm::vec3 { 1 } );
+                NewText->SetColor( glm::vec3 { 1, 0, 0 } );
                 NewText->SetCenterAt( glm::vec3 { 0, -50 * ( Index + 1 ), 0 } );
                 m_LobbyMemberText.push_back( std::move( NewText ) );
             }
@@ -73,8 +93,7 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
     case SanguisNet::MessageHeader::ID_INFO:
         if ( Msg.EndWith( " Entered" ) )
         {
-            const auto MshStrView = Msg.ToString( );
-            Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, Name = MshStrView.substr( 0, MshStrView.find( " Entered" ) ) ]( ) {
+            Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, Name = std::string( MshStrView.data( ), MshStrView.find( " Entered" ) ) ]( ) {
                 auto NewText = m_UICanvas->AddConcept<Text>( std::string( Name.begin( ), Name.end( ) ) ).Get( );
                 NewText->SetupSprite( );
                 NewText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
@@ -84,8 +103,7 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
             } );
         } else if ( Msg.EndWith( " Left" ) )
         {
-            const auto MshStrView = Msg.ToString( );
-            Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, Name = MshStrView.substr( 0, MshStrView.find( " Left" ) ) ]( ) {
+            Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, Name = std::string( MshStrView.data( ), MshStrView.find( " Left" ) ) ]( ) {
                 for ( int i = 0; i < m_LobbyMemberText.size( ); ++i )
                 {
                     if ( m_LobbyMemberText[ i ]->GetText( ) == Name )
@@ -94,7 +112,41 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
                         m_LobbyMemberText.erase( m_LobbyMemberText.begin( ) + i-- );
                         continue;
                     }
-                    m_LobbyMemberText[ i ]->SetCenterAt( glm::vec3 { 0, -50 * (i + 1), 0 } );
+                    m_LobbyMemberText[ i ]->SetCenterAt( glm::vec3 { 0, -50 * ( i + 1 ), 0 } );
+                }
+            } );
+        } else if ( Msg.EndWith( " Ready" ) )
+        {
+            Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, Name = std::string( MshStrView.data( ), MshStrView.find( " Ready" ) ) ]( ) {
+                auto PlayerIt = std::ranges::find_if( m_LobbyMemberText, [ &Name ]( std::shared_ptr<Text>& Text ) {
+                    return Text->GetText( ) == Name;
+                } );
+                if ( PlayerIt != m_LobbyMemberText.end( ) )
+                {
+                    ( *PlayerIt )->SetColor( glm::vec3 { 0, 1, 0 } );
+                }
+                if ( m_UserName == Name )
+                {
+                    m_ReadyButton->SetDefaultColor( glm::vec4 { 255 / 255.0, 78 / 255.0, 30 / 255.0, 1 } );
+                    m_ReadyButton->SetText( "Cancel" );
+                    m_IsReady = true;
+                }
+            } );
+        } else if ( Msg.EndWith( " CancelReady" ) )
+        {
+            Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, Name = std::string( MshStrView.data( ), MshStrView.find( " CancelReady" ) ) ]( ) {
+                auto PlayerIt = std::ranges::find_if( m_LobbyMemberText, [ &Name ]( std::shared_ptr<Text>& Text ) {
+                    return Text->GetText( ) == Name;
+                } );
+                if ( PlayerIt != m_LobbyMemberText.end( ) )
+                {
+                    ( *PlayerIt )->SetColor( glm::vec3 { 1, 0, 0 } );
+                }
+                if ( m_UserName == Name )
+                {
+                    m_ReadyButton->SetDefaultColor( glm::vec4 { 0.3, 0.3, 0.3, 1 } );
+                    m_ReadyButton->SetText( "Ready" );
+                    m_IsReady = false;
                 }
             } );
         }

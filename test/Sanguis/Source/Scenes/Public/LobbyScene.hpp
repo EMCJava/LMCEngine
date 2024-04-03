@@ -24,9 +24,11 @@ protected:
 
     std::vector<std::shared_ptr<class Text>> m_LobbyMemberText;
 
-    std::shared_ptr<class Canvas> m_UICanvas;
+    std::shared_ptr<class RectButton> m_ReadyButton;
+    std::shared_ptr<class Canvas>     m_UICanvas;
 
     std::string m_UserName;
 
     bool m_InLobby = false;
+    bool m_IsReady = false;
 };

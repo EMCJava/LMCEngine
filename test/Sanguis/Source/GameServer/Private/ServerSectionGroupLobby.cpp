@@ -28,7 +28,7 @@ SanguisNet::ServerSectionGroupLobby::HandleMessage( const std::shared_ptr<GroupP
             if ( !Stat.Ready )
             {
                 ++m_ReadyCount;
-                Broadcast( SanguisNet::Message::FromString( GetParticipantName( Participants ) + "Ready", MessageHeader::ID_INFO ) );
+                Broadcast( SanguisNet::Message::FromString( GetParticipantName( Participants ) + " Ready", MessageHeader::ID_INFO ) );
             }
             Stat.Ready = true;
 
@@ -37,6 +37,7 @@ SanguisNet::ServerSectionGroupLobby::HandleMessage( const std::shared_ptr<GroupP
             {
                 Broadcast( SanguisNet::Message::FromString( "AllReady", MessageHeader::ID_INFO ) );
                 m_AllowNewParticipants = false;
+                m_CanCancelReady = false;
 
                 m_GameSection = std::make_shared<ServerSectionGroupGame>( );
                 m_GameSection->SetManager( m_Manager );
@@ -49,7 +50,7 @@ SanguisNet::ServerSectionGroupLobby::HandleMessage( const std::shared_ptr<GroupP
             if ( Stat.Ready && m_CanCancelReady )
             {
                 --m_ReadyCount;
-                Broadcast( SanguisNet::Message::FromString( GetParticipantName( Participants ) + "CancelReady", MessageHeader::ID_INFO ) );
+                Broadcast( SanguisNet::Message::FromString( GetParticipantName( Participants ) + " CancelReady", MessageHeader::ID_INFO ) );
                 m_AllowNewParticipants = true;
             } else
             {
