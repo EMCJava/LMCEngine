@@ -40,6 +40,9 @@ public:
     uint32_t
     GetTextPixelHeight( );
 
+    auto&       GetText( ) { return m_Text; }
+    const auto& GetText( ) const noexcept { return m_Text; }
+
 protected:
     std::string m_Text;
     FloatTy     m_Scale { 1 };
