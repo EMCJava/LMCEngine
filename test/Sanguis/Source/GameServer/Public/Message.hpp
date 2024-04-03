@@ -54,6 +54,11 @@ struct Message {
         return ToString( ).starts_with( Str );
     }
 
+    [[nodiscard]] bool EndWith( std::string_view Str ) const noexcept
+    {
+        return ToString( ).ends_with( Str );
+    }
+
     [[nodiscard]] bool operator==( std::string_view Str ) const noexcept
     {
         return ToString( ) == Str;
