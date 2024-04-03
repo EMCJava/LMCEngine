@@ -26,6 +26,8 @@
 
 #include <PxPhysicsAPI.h>
 
+#include <ranges>
+
 DEFINE_CONCEPT_DS( GameScene )
 
 class Reticle : public ConceptList
