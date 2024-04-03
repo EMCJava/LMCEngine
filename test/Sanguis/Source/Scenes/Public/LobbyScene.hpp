@@ -22,5 +22,9 @@ protected:
 
     std::shared_ptr<SanguisNet::ClientGroupParticipant> m_ServerConnection;
 
+    std::vector<std::shared_ptr<class Text>> m_LobbyMemberText;
+
+    std::shared_ptr<class Canvas> m_UICanvas;
+
     bool m_InLobby = false;
 };

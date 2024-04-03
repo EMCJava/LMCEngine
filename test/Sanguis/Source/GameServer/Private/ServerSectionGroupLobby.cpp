@@ -13,6 +13,14 @@ SanguisNet::ServerSectionGroupLobby::HandleMessage( const std::shared_ptr<GroupP
     case MessageHeader::ID_RECAST:
         Broadcast( Msg );
         return;
+    case MessageHeader::ID_LOBBY_LIST: {   // Assume m_AllowNewParticipants == false after m_GameSection is created
+        std::string Response;
+        for ( const auto& P : m_Participants )
+            Response += GetParticipantName( P ) + '\n';
+        if ( !m_Participants.empty( ) ) Response.pop_back( );
+        Participants->Deliver( SanguisNet::Message::FromString( Response, MessageHeader::ID_LOBBY_LIST ) );
+        return;
+    }
     case MessageHeader::ID_LOBBY_CONTROL:
         if ( Msg.StartWith( "ready" ) )
         {
@@ -73,6 +81,7 @@ void
 SanguisNet::ServerSectionGroupLobby::Leave( const std::shared_ptr<GroupParticipant>& Participant )
 {
     ServerSectionGroup::Leave( Participant );
+    if ( m_GameSection ) m_GameSection->Leave( Participant );
     auto ParticipantIt = m_LobbyParticipants.find( Participant->GetParticipantID( ) );
     if ( ParticipantIt->second.Ready ) --m_ReadyCount;
     m_LobbyParticipants.erase( ParticipantIt );
