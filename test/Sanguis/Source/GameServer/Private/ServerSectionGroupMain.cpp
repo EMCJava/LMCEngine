@@ -74,6 +74,7 @@ SanguisNet::ServerSectionGroupMain::ResponseFriendList( const std::shared_ptr<Gr
     {
         Response += std::get<0>( FriendList[ i ] ) + '\n';
     }
+    if ( !FriendList.empty( ) ) Response.pop_back( );
 
     Participant->Deliver( SanguisNet::Message::FromString( Response, MessageHeader::ID_RESULT ) );
 }
