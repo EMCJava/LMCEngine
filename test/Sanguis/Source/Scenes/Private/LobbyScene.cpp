@@ -14,8 +14,9 @@
 
 DEFINE_CONCEPT_DS( LobbyScene )
 
-LobbyScene::LobbyScene( const std::shared_ptr<SanguisNet::ClientGroupParticipant>& Connection )
-    : m_ServerConnection( Connection )
+LobbyScene::LobbyScene( const std::shared_ptr<SanguisNet::ClientGroupParticipant>& Connection, std::string UserName )
+    : m_UserName( std::move( UserName ) )
+    , m_ServerConnection( Connection )
 {
     SetSearchThrough( true );
     SetRuntimeName( "Lobby Screen" );

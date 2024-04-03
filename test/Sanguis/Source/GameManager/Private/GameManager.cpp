@@ -262,9 +262,9 @@ GameManager::GameManager( )
         Engine::GetEngine( )->PushPostConceptUpdateCall( [ this ]( ) {
             AddConcept<LoginScene>( [ this ]( const std::string& Name, const std::string& Password ) {
                 std::string login = Name + '\0' + Password;
-                m_ServerConnection->SetPacketCallback( [ this ]( SanguisNet::Message& Msg ) {
+                m_ServerConnection->SetPacketCallback( [ this, &Name ]( SanguisNet::Message& Msg ) {
                     if ( Msg.header.id == SanguisNet::MessageHeader::ID_RESULT && Msg == "Login Success" )
-                        Engine::GetEngine( )->PushPostConceptUpdateCall( [ this ]( ) { AddConcept<LobbyScene>( m_ServerConnection ); } );
+                        Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, &Name ]( ) { AddConcept<LobbyScene>( m_ServerConnection, Name ); } );
                 } );
                 m_ServerConnection->Post( SanguisNet::Message::FromString( login, SanguisNet::MessageHeader::ID_LOGIN ) );
             } );

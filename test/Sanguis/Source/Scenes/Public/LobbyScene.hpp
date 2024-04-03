@@ -15,7 +15,7 @@ class LobbyScene : public ConceptList
 {
     DECLARE_CONCEPT( LobbyScene, ConceptList )
 public:
-    LobbyScene( const std::shared_ptr<SanguisNet::ClientGroupParticipant>& Connection );
+    LobbyScene( const std::shared_ptr<SanguisNet::ClientGroupParticipant>& Connection, std::string UserName );
 
 protected:
     void ServerMessageCallback( const SanguisNet::Message& Msg );
@@ -25,6 +25,8 @@ protected:
     std::vector<std::shared_ptr<class Text>> m_LobbyMemberText;
 
     std::shared_ptr<class Canvas> m_UICanvas;
+
+    std::string m_UserName;
 
     bool m_InLobby = false;
 };
