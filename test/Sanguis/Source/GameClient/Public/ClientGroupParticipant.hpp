@@ -40,7 +40,6 @@ private:
 private:
     asio::io_context&                     m_ControlContext;
     asio::ip::tcp::socket                 m_Socket;
-    asio::ip::tcp::resolver::results_type m_DesiredEndPoint;
     asio::ip::tcp::endpoint               m_RemoteEndpoint;
     SanguisNet::Message                   m_ReadMsg;
     std::deque<SanguisNet::Message>       m_MessageQueue;

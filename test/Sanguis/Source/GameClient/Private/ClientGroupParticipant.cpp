@@ -38,7 +38,7 @@ SanguisNet::ClientGroupParticipant::DoConnect( const asio::ip::basic_resolver<as
 {
     if ( !m_ConnectionReady )
     {
-        asio::async_connect( m_Socket, m_DesiredEndPoint,
+        asio::async_connect( m_Socket, EndPoint,
                              [ this ]( std::error_code ec, auto&& ) {
                                  if ( !ec )
                                  {
