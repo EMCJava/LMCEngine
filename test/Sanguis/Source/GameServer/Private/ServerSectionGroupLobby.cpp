@@ -73,6 +73,7 @@ SanguisNet::ServerSectionGroupLobby::HandleMessage( const std::shared_ptr<GroupP
 void
 SanguisNet::ServerSectionGroupLobby::Join( const std::shared_ptr<GroupParticipant>& Participant )
 {
+    assert( m_AllowNewParticipants );
     ServerSectionGroup::Join( Participant );
     m_LobbyParticipants.insert( { Participant->GetParticipantID( ), {} } );
 }
