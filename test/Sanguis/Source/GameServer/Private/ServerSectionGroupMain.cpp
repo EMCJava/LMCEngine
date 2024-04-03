@@ -26,10 +26,13 @@ SanguisNet::ServerSectionGroupMain::HandleMessage( const std::shared_ptr<GroupPa
             LeaveLobby( Participant );
         else if ( RequestStr.starts_with( "join" ) )
         {
-            auto UserIDStr = RequestStr.substr( strlen( "join" ) );
-            int  UserID    = std::stoi( UserIDStr.data( ) );
-
-            JoinLobby( Participant, UserID );
+            auto UserNameStr = RequestStr.substr( strlen( "join" ) );
+            auto UserID      = GetParticipantID( UserNameStr );
+            if ( UserID.has_value( ) )
+            {
+                JoinLobby( Participant, UserID.value( ) );
+                m_PlayerLobbies[ Participant->GetParticipantID( ) ]->SendLobbyList( Participant );
+            }
         } else
             goto ServerSectionGroupMain_HandleMessage_fallback;
         return;
@@ -69,7 +72,7 @@ SanguisNet::ServerSectionGroupMain::ResponseFriendList( const std::shared_ptr<Gr
     }
     if ( !FriendList.empty( ) ) Response.pop_back( );
 
-    Participant->Deliver( SanguisNet::Message::FromString( Response, MessageHeader::ID_RESULT ) );
+    Participant->Deliver( SanguisNet::Message::FromString( Response, MessageHeader::ID_FRIEND_LIST ) );
 }
 
 void
@@ -90,6 +93,7 @@ SanguisNet::ServerSectionGroupMain::CreateLobby( const std::shared_ptr<GroupPart
     NewLobby->SetManager( m_Manager );
     m_PlayerLobbies.insert( { Participant->GetParticipantID( ), std::move( NewLobby ) } );
     Participant->Deliver( SanguisNet::Message::FromString( "Created", MessageHeader::ID_RESULT ) );
+    m_PlayerLobbies[ Participant->GetParticipantID( ) ]->SendLobbyList( Participant );
 }
 
 void
