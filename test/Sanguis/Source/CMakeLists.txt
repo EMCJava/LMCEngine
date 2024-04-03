@@ -151,6 +151,22 @@ declare_library(
 
 declare_library(
         NAME
+        Scenes.LobbyScene
+
+        SRCS
+        Scenes/Private/LobbyScene.cpp
+
+        P_DEPS
+        RectButton.lib
+        PureConceptOrthoCamera.lib
+        Canvas.lib
+
+        STATIC
+)
+
+
+declare_library(
+        NAME
         GameManager.GameManager
 
         SRCS
@@ -158,6 +174,7 @@ declare_library(
 
         P_DEPS
         Scenes.LoginScene.lib
+        Scenes.LobbyScene.lib
         Scenes.WandEditorScene.lib
         Engine.lib
         ConceptList.lib
