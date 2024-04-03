@@ -40,5 +40,6 @@ SanguisNet::ServerSectionGroup::SetManager( std::weak_ptr<struct ServerManager> 
 std::string
 SanguisNet::ServerSectionGroup::GetParticipantName( const std::shared_ptr<GroupParticipant>& Participant ) const
 {
+    if ( Participant == nullptr ) return "";
     return m_Manager.lock( )->GetDBController( )->GetUserNameByID( Participant->GetParticipantID( ) );
 }
