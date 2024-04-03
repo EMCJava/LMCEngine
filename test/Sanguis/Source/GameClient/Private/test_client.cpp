@@ -36,7 +36,7 @@ main( int argc, char* argv[] )
         }
 
         {
-            c.Post( SanguisNet::Message::FromString( "friend_list0", SanguisNet::MessageHeader::ID_GET ) );
+            c.Post( SanguisNet::Message::FromString( "0", SanguisNet::MessageHeader::ID_FRIEND_LIST ) );
         }
 
         std::thread t( [ &io_context ]( ) { io_context.run( ); } );
