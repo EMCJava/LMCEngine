@@ -6,6 +6,8 @@
 
 #include "ClientGroupParticipant.hpp"
 
+#include <Engine/Core/Audio/AudioEngine.hpp>
+
 #include <Engine/Core/Graphic/Camera/PureConceptPerspectiveCamera.hpp>
 #include <Engine/Core/Graphic/Camera/FirstPersonCameraController.hpp>
 #include <Engine/Core/Graphic/Camera/PureConceptOrthoCamera.hpp>
@@ -217,6 +219,8 @@ GameScene::GameScene( std::shared_ptr<SanguisNet::ClientGroupParticipant> Connec
         m_HealthText->SetCoordinate( glm::vec3 { -1400, 760, 0 } );
     }
 
+    m_GunFireAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/GunFire.ogg" );
+
     // 373
     m_Reticle = AddConcept<Reticle>( );
 
@@ -266,16 +270,22 @@ GameScene::Apply( )
         }
     }
 
+    auto*      AudioEngine   = Engine::GetEngine( )->GetAudioEngine( );
+    auto*      CameraPtr     = (PureConceptPerspectiveCamera*) *m_CharController;
+    const auto CameraLookRay = RayCast::CalculateRay( CameraPtr, 100 );
+
+    AudioEngine->SetListenerPosition( CameraLookRay.RayOrigin, -CameraLookRay.UnitDirection );
+
     // Fire
     if ( UserInput->GetPrimaryKey( ).isPressed )
     {
         if ( UserInput->IsCursorLocked( ) )
         {
-            auto*      CameraPtr = (PureConceptPerspectiveCamera*) *m_CharController;
-            const auto Ray       = RayCast::CalculateRay( CameraPtr, 100 );
-            m_ServerConnection->Post( SanguisNet::Message::FromStruct( Ray, SanguisNet::MessageHeader::ID_GAME_GUN_FIRE ) );
+            // Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( m_GunFireAudioHandle );
 
-            auto CastResult = RayCast::Cast( Ray );
+            m_ServerConnection->Post( SanguisNet::Message::FromStruct( CameraLookRay, SanguisNet::MessageHeader::ID_GAME_GUN_FIRE ) );
+
+            auto CastResult = RayCast::Cast( CameraLookRay );
             spdlog::info( "CastResult: {}-{}:{}",
                           CastResult.HitDistance,
                           CastResult.HitPosition,
@@ -350,6 +360,7 @@ GameScene::ServerMessageCallback( SanguisNet::Message& Msg )
         const auto FireData = SanguisNet::Game::Decoder<SanguisNet::MessageHeader::ID_GAME_GUN_FIRE> { }( Msg );
         auto       Ray      = Msg.ToStruct<RayCast>( );
         spdlog::info( "Player {} fired at {} dir {} with distance {}", m_PlayerStats[ FireData.PlayerIndex ].Name, Ray.RayToCast.RayOrigin, Ray.RayToCast.UnitDirection, Ray.RayToCast.MaxDistance );
+        Engine::GetEngine( )->GetAudioEngine( )->PlayAudio3D( m_GunFireAudioHandle, Ray.RayToCast.RayOrigin );
         break;
     }
     case SanguisNet::MessageHeader::ID_GAME_PLAYER_LIST:

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <Engine/Core/Audio/Audio.hpp>
+
 #include <Engine/Core/Concept/ConceptList.hpp>
 
 namespace SanguisNet
@@ -127,4 +129,7 @@ protected:
 
     // Physics
     physx::PxMaterial* m_DefaultPhyMaterial = nullptr;
+
+    // Sound
+    NativeAudioSourceHandle m_GunFireAudioHandle;
 };
