@@ -33,23 +33,7 @@ PhyController::CreateController( const glm::vec3& position, FloatTy Height, Floa
     auto* ControllerManager = Engine::GetEngine( )->GetPhysicsEngine( )->GetControllerManager( );
     auto* Controller        = ControllerManager->createController( *m_CapsuleDesc );
     // FIXME: type info for dynamic_cast on UNIX platform
-    m_Controller            = static_cast<physx::PxCapsuleController*>( Controller );
-
-    // remove controller shape from scene query avoid any raycast hit
-    physx::PxRigidDynamic* actor = m_Controller->getActor( );
-    if ( actor )
-    {
-        if ( actor->getNbShapes( ) )
-        {
-            physx::PxShape* ctrlShape;
-            actor->getShapes( &ctrlShape, 1 );
-            ctrlShape->setFlag( physx::PxShapeFlag::eSCENE_QUERY_SHAPE, false );
-        } else
-            spdlog::error( "character actor has no shape" );
-    } else
-    {
-        spdlog::error( "character could not create actor" );
-    }
+    m_Controller = static_cast<physx::PxCapsuleController*>( Controller );
 }
 
 physx::PxControllerCollisionFlags
@@ -67,7 +51,7 @@ PhyController::GetFootPosition( )
 {
     REQUIRED_IF( m_Controller != nullptr )
     {
-        static_assert( sizeof( decltype( m_Controller->getFootPosition( ) ) ) == sizeof( glm::dvec3 ) );
+        static_assert( sizeof( physx::PxExtendedVec3 ) == sizeof( glm::dvec3 ) );
         physx::PxExtendedVec3 pxVec3 = m_Controller->getFootPosition( );
         return reinterpret_cast<glm::dvec3&>( pxVec3 );
     }
@@ -82,4 +66,41 @@ PhyController::~PhyController( )
         m_Controller->release( );
         m_Controller = nullptr;
     }
+}
+
+void
+PhyController::SetFootPosition( const glm::dvec3& Position )
+{
+    REQUIRED_IF( m_Controller != nullptr )
+    {
+        static_assert( sizeof( physx::PxExtendedVec3 ) == sizeof( glm::dvec3 ) );
+        m_Controller->setFootPosition( reinterpret_cast<const physx::PxExtendedVec3&>( Position ) );
+    }
+}
+
+void
+PhyController::SetSceneQuery( bool Enable )
+{
+    physx::PxRigidDynamic* actor = m_Controller->getActor( );
+    if ( actor )
+    {
+        if ( actor->getNbShapes( ) )
+        {
+            physx::PxShape* ctrlShape;
+            actor->getShapes( &ctrlShape, 1 );
+            ctrlShape->setFlag( physx::PxShapeFlag::eSCENE_QUERY_SHAPE, Enable );
+        } else
+            spdlog::error( "character actor has no shape" );
+    } else
+    {
+        spdlog::error( "character could not create actor" );
+    }
+}
+
+void
+PhyController::SetUserData( void* UserData )
+{
+    physx::PxRigidDynamic* Actor = m_Controller->getActor( );
+    REQUIRED_IF( Actor != nullptr )
+    Actor->userData = UserData;
 }

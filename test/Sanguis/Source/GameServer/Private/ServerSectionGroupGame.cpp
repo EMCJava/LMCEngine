@@ -59,7 +59,10 @@ SanguisNet::ServerSectionGroupGame::HandleMessage( const std::shared_ptr<GroupPa
         SanguisNet::Game::Decoder<SanguisNet::MessageHeader::ID_GAME_UPDATE_PLAYER_COORDINATES> { }( Msg );
         break;
     case SanguisNet::MessageHeader::ID_GAME_PLAYER_RECEIVE_DAMAGE:
-        [[fallthrough]];
+        SanguisNet::Game::Encoder<SanguisNet::MessageHeader::ID_GAME_GUN_FIRE> { }( Msg, ParticipantIndex );
+        Broadcast( Msg );
+        SanguisNet::Game::Decoder<SanguisNet::MessageHeader::ID_GAME_GUN_FIRE> { }( Msg );
+        break;
     case SanguisNet::MessageHeader::ID_GAME_GUN_FIRE:
         [[fallthrough]];
     case SanguisNet::MessageHeader::ID_GAME_PLAYER_STAT:

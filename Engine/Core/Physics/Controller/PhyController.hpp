@@ -40,6 +40,12 @@ public:
 
     glm::dvec3
     GetFootPosition( );
+    void
+    SetFootPosition( const glm::dvec3& Position );
+
+    void SetSceneQuery( bool Enable = true );
+
+    void SetUserData( void* UserData );
 
 protected:
     std::unique_ptr<physx::PxCapsuleControllerDesc> m_CapsuleDesc;

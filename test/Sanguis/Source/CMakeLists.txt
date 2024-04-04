@@ -187,6 +187,7 @@ declare_library(
         SerializerModel.lib
 
         PhyControllerEntityPlayer.lib
+        PhyControllerEntity.lib
         PhysicsEngine.lib
         PhysicsScene.lib
         RigidMesh.lib

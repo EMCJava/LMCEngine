@@ -13,8 +13,8 @@
  * A PhyController with common utilities (gravity, friction, etc.)
  *
  * */
-class PhyControllerEntity : public PhyController
-    , public Entity
+class PhyControllerEntity : public Entity
+    , public PhyController
 {
     DECLARE_CONCEPT( PhyControllerEntity, Entity )
 public:
@@ -34,10 +34,14 @@ public:
     void
     AddFrameVelocity( const glm::vec3& FrameVelocity );
 
+    const auto& GetVelocity( ) const noexcept { return m_AccumulatedVelocity; }
+    void        SetVelocity( const glm::vec3& Velocity ) noexcept { m_AccumulatedVelocity = Velocity; }
+
     void
     AddFrameForce( const glm::vec3& FrameForce );
 
     bool IsOnGround( ) const noexcept { return m_OnGround; }
+    bool HasMoved( ) const noexcept { return m_HasMoved; }
 
     void
     Apply( ) override;
@@ -56,6 +60,7 @@ protected:
     glm::vec3 m_FrameVelocity { };
 
     bool m_OnGround = false;
+    bool m_HasMoved = false;
 
     uint8_t m_LastFrameCollisionFlag = 0;
 

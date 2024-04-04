@@ -30,7 +30,7 @@ RayCast::Cast( )
         static_assert( sizeof( decltype( Result.HitNormal ) ) == sizeof( PhysxCastResult.block.normal ) );
         Result.HitPosition = *(glm::vec3*) &PhysxCastResult.block.position;
         Result.HitNormal   = *(glm::vec3*) &PhysxCastResult.block.normal;
-        Result.HitUserData = (class RigidBody*) PhysxCastResult.block.actor->userData;
+        Result.HitUserData = (class PureConcept*) PhysxCastResult.block.actor->userData;
         Result.HitDistance = PhysxCastResult.block.distance;
     }
 

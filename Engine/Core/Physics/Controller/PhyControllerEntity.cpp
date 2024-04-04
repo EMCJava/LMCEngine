@@ -17,8 +17,12 @@ PhyControllerEntity::Move( FloatTy DeltaTime )
     m_AccumulatedVelocity.y += m_Gravity * DeltaTime;
     m_AccumulatedVelocity += m_FrameVelocity;
 
-    const auto Displacement = ( m_AccumulatedVelocity + m_FrameForce ) * DeltaTime;
-    auto       Flag         = MoveRel( Displacement, DeltaTime );
+    const auto Displacement     = ( m_AccumulatedVelocity + m_FrameForce ) * DeltaTime;
+    const auto PreviousPosition = GetFootPosition( );
+    auto       Flag             = MoveRel( Displacement, DeltaTime );
+    const auto CurrentPosition  = GetFootPosition( );
+    m_HasMoved                  = glm::length( CurrentPosition - PreviousPosition ) > 0.0001f;
+
     m_FrameForce = m_FrameVelocity = { };
     m_OnGround                     = Flag.isSet( physx::PxControllerCollisionFlag::Enum::eCOLLISION_DOWN );
     if ( m_OnGround )

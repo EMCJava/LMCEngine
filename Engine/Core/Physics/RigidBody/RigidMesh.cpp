@@ -53,7 +53,7 @@ RigidMesh::SetCollider( std::shared_ptr<Collider> C )
     m_RigidActor = m_Collider->GenerateActor( &HitBoxFrame );
     if ( HitBoxFrame != nullptr ) AddConcept<EntityRenderable>( HitBoxFrame );
 
-    auto* UserData = dynamic_cast<RigidBody*>( this );
+    auto* UserData = dynamic_cast<PureConcept*>( this );
     REQUIRED( m_RigidActor && this == UserData )
     {
         m_RigidActor->userData = UserData;

@@ -112,6 +112,15 @@ struct fmt::formatter<glm::vec3> : fmt::formatter<std::string> {
 };
 
 template <>
+struct fmt::formatter<glm::dvec3> : fmt::formatter<std::string> {
+    static auto
+    format( const glm::dvec3& C, format_context& ctx ) -> decltype( ctx.out( ) )
+    {
+        return fmt::format_to( ctx.out( ), "[{},{},{}]", C.x, C.y, C.z );
+    }
+};
+
+template <>
 struct fmt::formatter<glm::vec4> : fmt::formatter<std::string> {
     static auto
     format( const glm::vec4& C, format_context& ctx ) -> decltype( ctx.out( ) )

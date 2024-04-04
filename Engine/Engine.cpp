@@ -314,17 +314,19 @@ Engine::Update( )
                 auto* Data = activeActors[ i ]->userData;
                 if ( Data != nullptr )
                 {
-                    TEST( ( (PureConcept*) Data )->CanCastVT<RigidBody>( ) )
-                    auto*       RigidBodyPtr = static_cast<RigidBody*>( Data );
-                    const auto& GP           = ( (physx::PxRigidActor*) activeActors[ i ] )->getGlobalPose( );
+                    if ( ( (PureConcept*) Data )->CanCastVT<RigidBody>( ) )
+                    {
+                        auto*       RigidBodyPtr = static_cast<RigidBody*>( Data );
+                        const auto& GP           = ( (physx::PxRigidActor*) activeActors[ i ] )->getGlobalPose( );
 
-                    Orientation OldOrientation = (const Orientation&) RigidBodyPtr->GetOrientation( );
+                        Orientation OldOrientation = (const Orientation&) RigidBodyPtr->GetOrientation( );
 
-                    static_assert( sizeof( physx::PxQuat ) == sizeof( glm::quat ) );
-                    OldOrientation.SetQuat( *( (glm::quat*) &GP.q ) );
-                    OldOrientation.Coordinate = { GP.p.x, GP.p.y, GP.p.z };
+                        static_assert( sizeof( physx::PxQuat ) == sizeof( glm::quat ) );
+                        OldOrientation.SetQuat( *( (glm::quat*) &GP.q ) );
+                        OldOrientation.Coordinate = { GP.p.x, GP.p.y, GP.p.z };
 
-                    RigidBodyPtr->UpdateOrientation( OldOrientation );
+                        RigidBodyPtr->UpdateOrientation( OldOrientation );
+                    }
                 }
             }
         }

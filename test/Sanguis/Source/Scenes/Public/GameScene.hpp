@@ -11,6 +11,10 @@ namespace SanguisNet
 class ClientGroupParticipant;
 class Message;
 }   // namespace SanguisNet
+namespace physx
+{
+class PxMaterial;
+}   // namespace physx
 
 struct LinearLerp {
     FloatTy Start = 0, End = 1;
@@ -91,7 +95,7 @@ class GameScene : public ConceptList
     DECLARE_CONCEPT( GameScene, ConceptList )
 
 public:
-    GameScene( std::shared_ptr<SanguisNet::ClientGroupParticipant> Connection );
+    GameScene( std::shared_ptr<SanguisNet::ClientGroupParticipant> Connection, std::string Name );
 
     void
     Apply( ) override;
@@ -102,11 +106,13 @@ protected:
     void DoDamage( int PlayerIndex, int Damage );
 
     std::shared_ptr<SanguisNet::ClientGroupParticipant> m_ServerConnection;
+    std::string                                         m_UserName;
 
     std::shared_ptr<class PureConceptPerspectiveCamera> m_MainCamera;
     std::shared_ptr<class PhyControllerEntityPlayer>    m_CharController;
 
-    std::vector<PlayerStats> m_PlayerStats;
+    std::vector<PlayerStats>                                    m_PlayerStats;
+    std::vector<std::shared_ptr<class PostEntityUpdateWrapper>> m_PlayerControllers;
 
     /*
      *
@@ -116,4 +122,7 @@ protected:
     bool                           m_IsViewZooming = false;
     LinearLerp                     m_CameraZoomLerp;
     std::shared_ptr<class Reticle> m_Reticle;
+
+    // Physics
+    physx::PxMaterial* m_DefaultPhyMaterial = nullptr;
 };

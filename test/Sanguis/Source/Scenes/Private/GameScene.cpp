@@ -20,6 +20,7 @@
 #include <Engine/Core/Input/UserInput.hpp>
 
 #include <Engine/Core/Physics/Controller/PhyControllerEntityPlayer.hpp>
+#include <Engine/Core/Physics/Controller/PhyControllerEntity.hpp>
 #include <Engine/Core/Physics/RigidBody/RigidMesh.hpp>
 #include <Engine/Core/Physics/PhysicsEngine.hpp>
 #include <Engine/Core/Physics/PhysicsScene.hpp>
@@ -27,6 +28,7 @@
 #include <PxPhysicsAPI.h>
 
 #include <ranges>
+#include <utility>
 
 DEFINE_CONCEPT_DS( GameScene )
 
@@ -62,8 +64,68 @@ protected:
 };
 DEFINE_CONCEPT_DS( Reticle )
 
-GameScene::GameScene( std::shared_ptr<SanguisNet::ClientGroupParticipant> Connection )
+class PostEntityUpdateWrapper : public ConceptList
+{
+    DECLARE_CONCEPT( PostEntityUpdateWrapper, ConceptList )
+public:
+    struct EntityNetOrientation {
+        glm::dvec3 FootPosition;
+        glm::vec3  Velocity;
+    };
+
+    PostEntityUpdateWrapper( std::shared_ptr<PhyControllerEntity> Entity, std::shared_ptr<SanguisNet::ClientGroupParticipant>& Connection, bool ReportPosition )
+        : m_Entity( std::move( Entity ) )
+        , m_Connection( Connection )
+        , m_DoReport( ReportPosition )
+    {
+        SetSearchThrough( true );
+        if ( !m_DoReport )
+        {
+            GetOwnership( m_Entity );
+
+            auto RMC = SerializerModel::ToMeshCluster( "Assets/Model/PlayerCapsule.glb", eFeatureDefault | eFeatureUV0 );
+            RMC->SetShader( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Shader>( "DefaultPhongShader" ) );
+            RMC->SetShaderUniform( "lightPos", glm::vec3( 1.2f, 1.0f, 2.0f ) );
+            RMC->SetShaderUniform( "viewPos", glm::vec3( 1 ) );
+            RMC->SetShaderUniform( "lightColor", glm::vec3( 1.0f, 1.0f, 1.0f ) );
+
+            m_Entity->SetSearchThrough( true );
+            auto ER = m_Entity->AddConcept<EntityRenderable>( RMC ).Get( );
+            ER->SetRuntimeName( "Map" );
+
+            ER->UpdateOrientation( { } );
+        }
+    }
+
+    void Apply( ) override
+    {
+        if ( m_DoReport )
+        {
+            if ( !m_Entity->HasMoved( ) ) return;
+            m_Connection->Post( SanguisNet::Message::FromStruct(
+                EntityNetOrientation {
+                    .FootPosition = m_Entity->GetFootPosition( ),
+                    .Velocity     = m_Entity->GetVelocity( ) },
+                SanguisNet::MessageHeader::ID_GAME_UPDATE_SELF_COORDINATES ) );
+        }
+    }
+
+    void SetNetOrientation( const EntityNetOrientation& NO )
+    {
+        m_Entity->SetFootPosition( NO.FootPosition );
+        m_Entity->SetVelocity( NO.Velocity );
+    }
+
+protected:
+    std::shared_ptr<SanguisNet::ClientGroupParticipant>& m_Connection;
+    std::shared_ptr<PhyControllerEntity>                 m_Entity;
+    bool                                                 m_DoReport = false;
+};
+DEFINE_CONCEPT_DS( PostEntityUpdateWrapper )
+
+GameScene::GameScene( std::shared_ptr<SanguisNet::ClientGroupParticipant> Connection, std::string Name )
     : m_ServerConnection( std::move( Connection ) )
+    , m_UserName( std::move( Name ) )
 {
     SetSearchThrough( );
 
@@ -90,8 +152,8 @@ GameScene::GameScene( std::shared_ptr<SanguisNet::ClientGroupParticipant> Connec
             {
                 auto* PhyEngine = Engine::GetEngine( )->GetPhysicsEngine( );
 
-                physx::PxMaterial*    PhyMaterial = ( *PhyEngine )->createMaterial( 0.5f, 0.5f, 0.6f );
-                physx::PxRigidStatic* groundPlane = PxCreatePlane( *PhyEngine, physx::PxPlane( 0, 1, 0, 0 ), *PhyMaterial );
+                m_DefaultPhyMaterial              = ( *PhyEngine )->createMaterial( 0.5f, 0.5f, 0.6f );
+                physx::PxRigidStatic* groundPlane = PxCreatePlane( *PhyEngine, physx::PxPlane( 0, 1, 0, 0 ), *m_DefaultPhyMaterial );
                 Engine::GetEngine( )->AddPhysicsCallback( [ Actor = groundPlane ]( auto* PhyEngine ) {
                     PhyEngine->GetScene( )->addActor( *Actor );
                 } );
@@ -105,7 +167,7 @@ GameScene::GameScene( std::shared_ptr<SanguisNet::ClientGroupParticipant> Connec
 
                 {
                     auto                       CM = SerializerModel::ToMesh( "Assets/Model/low-poly_fps_map/scene.gltf", glm::scale( glm::mat4 { 1 }, glm::vec3 { 0.35 } ) );
-                    std::shared_ptr<RigidMesh> RM = PerspectiveCanvas->AddConcept<RigidMesh>( CM, CreateConcept<ColliderMesh>( CM, PhyMaterial, true, []( auto& SubMeshSpan ) {
+                    std::shared_ptr<RigidMesh> RM = PerspectiveCanvas->AddConcept<RigidMesh>( CM, CreateConcept<ColliderMesh>( CM, m_DefaultPhyMaterial, true, []( auto& SubMeshSpan ) {
                                                                                                   return ColliderSerializerGroupMesh::ColliderType::eTriangle;
                                                                                               } ) );
 
@@ -129,7 +191,8 @@ GameScene::GameScene( std::shared_ptr<SanguisNet::ClientGroupParticipant> Connec
                 {
                     m_CharController = AddConcept<PhyControllerEntityPlayer>( m_MainCamera );
                     auto Lock        = Engine::GetEngine( )->GetPhysicsThreadLock( );
-                    m_CharController->CreateController( { 0, 100, 0 }, 1.f, 0.3f, PhyMaterial );
+                    m_CharController->CreateController( { 0, 100, 0 }, 1.f, 0.3f, m_DefaultPhyMaterial );
+                    m_CharController->SetSceneQuery( false );
                 }
             }
         }
@@ -204,11 +267,23 @@ GameScene::Apply( )
 
             if ( CastResult.HitUserData != nullptr )
             {
-                auto RB = CastResult.HitUserData->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
-                if ( RB != nullptr )
+                if ( auto* RB = CastResult.HitUserData->TryCast<RigidBody>( ); RB != nullptr )
                 {
-                    auto Ray = RayCast::CalculateRay( *m_CharController );
-                    physx::PxRigidBodyExt::addForceAtPos( *RB, ( *(physx::PxVec3*) &Ray.UnitDirection ) * 1000, *(physx::PxVec3*) &CastResult.HitPosition );
+                    auto PRB = RB->GetRigidBodyHandle( )->is<physx::PxRigidBody>( );
+                    if ( PRB != nullptr )
+                    {
+                        physx::PxRigidBodyExt::addForceAtPos( *PRB, reinterpret_cast<physx::PxVec3&>( RayCast::CalculateRay( *m_CharController ).UnitDirection ) * 1000, *(physx::PxVec3*) &CastResult.HitPosition );
+                    }
+                } else if ( auto* PEUW = CastResult.HitUserData->TryCast<PostEntityUpdateWrapper>( ); PEUW != nullptr )
+                {
+                    const auto& RTName = PEUW->GetRuntimeName( );
+                    if ( RTName.ends_with( "_RemoteController" ) )
+                    {
+                        const auto Name  = RTName.substr( 0, RTName.find( "_RemoteController" ) );
+                        const auto Index = std::distance( m_PlayerStats.begin( ), std::find_if( m_PlayerStats.begin( ), m_PlayerStats.end( ), [ &Name ]( const auto& PlayerStat ) { return PlayerStat.Name == Name; } ) );
+
+                        DoDamage( Index, 20 );
+                    }
                 }
             }
         }
@@ -220,6 +295,18 @@ GameScene::ServerMessageCallback( SanguisNet::Message& Msg )
 {
     switch ( Msg.header.id )
     {
+    case SanguisNet::MessageHeader::ID_GAME_UPDATE_PLAYER_COORDINATES: {
+        const auto PlayerData = SanguisNet::Game::Decoder<SanguisNet::MessageHeader::ID_GAME_PLAYER_STAT> { }( Msg );
+        if ( m_PlayerControllers.size( ) <= PlayerData.PlayerIndex )
+        {
+            spdlog::info( "Skipping ID_GAME_UPDATE_PLAYER_COORDINATES, data corrupted" );
+            break;
+        }
+        auto ENO = Msg.ToStruct<PostEntityUpdateWrapper::EntityNetOrientation>( );
+        // spdlog::info( "Player: {} move to {} with velocity: {}", PlayerData.PlayerIndex, ENO.FootPosition, ENO.Velocity );
+        m_PlayerControllers[ PlayerData.PlayerIndex ]->SetNetOrientation( ENO );
+        break;
+    }
     case SanguisNet::MessageHeader::ID_GAME_PLAYER_STAT: {
         const auto PlayerData                   = SanguisNet::Game::Decoder<SanguisNet::MessageHeader::ID_GAME_PLAYER_STAT> { }( Msg );
         m_PlayerStats[ PlayerData.PlayerIndex ] = PlayerStats::FromString( Msg.ToString( ) );
@@ -243,18 +330,45 @@ GameScene::ServerMessageCallback( SanguisNet::Message& Msg )
         spdlog::info( "Player {} fired at {} dir {} with distance {}", m_PlayerStats[ FireData.PlayerIndex ].Name, Ray.RayToCast.RayOrigin, Ray.RayToCast.UnitDirection, Ray.RayToCast.MaxDistance );
         break;
     }
-    case SanguisNet::MessageHeader::ID_GAME_PLAYER_LIST: {
+    case SanguisNet::MessageHeader::ID_GAME_PLAYER_LIST:
         m_PlayerStats = Msg.ToString( )
             | std::views::split( '\n' )
             | std::views::transform( []( const auto& SV ) { return PlayerStats { .Name = std::string( SV.begin( ), SV.end( ) ) }; } )
             | std::ranges::to<std::vector<PlayerStats>>( );
-    }
+        Engine::GetEngine( )->PushPostConceptUpdateCall( [ this ]( ) {
+            auto Lock = Engine::GetEngine( )->GetPhysicsThreadLock( );
+            for ( auto& PC : m_PlayerControllers )
+                PC->Destroy( );
+            m_PlayerControllers = m_PlayerStats
+                | std::views::transform( [ this ]( const PlayerStats& PS ) -> std::shared_ptr<PostEntityUpdateWrapper> {
+                                      if ( PS.Name.empty( ) ) return nullptr;
+                                      bool IsMainPlayer = PS.Name == m_UserName;
+
+                                      std::shared_ptr<PhyControllerEntity> PCE;
+
+                                      if ( IsMainPlayer )
+                                      {
+                                          PCE = m_CharController;
+                                      } else
+                                      {
+                                          PCE = PureConcept::CreateConcept<PhyControllerEntity>( );
+                                          PCE->CreateController( { 0, 100, 0 }, 1.f, 0.3f, m_DefaultPhyMaterial );
+                                      }
+
+                                      auto PEUW = AddConcept<PostEntityUpdateWrapper>( PCE, m_ServerConnection, IsMainPlayer ).Get( );
+                                      PEUW->SetRuntimeName( PS.Name + "_RemoteController" );
+                                      PCE->SetUserData( dynamic_cast<PureConcept*>( PEUW.get( ) ) );
+                                      return std::move( PEUW );
+                                  } )
+                | std::ranges::to<std::vector<std::shared_ptr<PostEntityUpdateWrapper>>>( );
+            m_Reticle->MoveToLastAsSubConcept( );
+        } );
     }
 }
 
 void
 GameScene::DoDamage( int PlayerIndex, int Damage )
 {
-    m_PlayerStats[PlayerIndex].Health -= Damage;
+    if ( PlayerIndex >= m_PlayerStats.size( ) ) return;
     m_ServerConnection->Post( SanguisNet::Message::FromString( std::to_string( PlayerIndex ) + '\0' + std::to_string( Damage ), SanguisNet::MessageHeader::ID_GAME_PLAYER_RECEIVE_DAMAGE ) );
 }

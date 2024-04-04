@@ -81,7 +81,7 @@ SanguisNet::ClientGroupParticipant::ReadMessageBody( )
                           if ( !ec )
                           {
                               const auto RemoteEndpoint = m_Socket.remote_endpoint( );
-                              spdlog::info( "Received messages from {}:{} [{}]", RemoteEndpoint.address( ).to_string( ), RemoteEndpoint.port( ), std::string_view( (char*) m_ReadMsg.data, m_ReadMsg.header.length ) );
+                              // spdlog::info( "Received messages from {}:{} [{}]", RemoteEndpoint.address( ).to_string( ), RemoteEndpoint.port( ), std::string_view( (char*) m_ReadMsg.data, m_ReadMsg.header.length ) );
                               if ( m_PackageCallback ) m_PackageCallback( m_ReadMsg );
 
                               // Start waiting/reading next message

@@ -195,7 +195,7 @@ LobbyScene::ServerMessageCallback( const SanguisNet::Message& Msg )
         } else if ( Msg == "AllReady" )
         {
             Engine::GetEngine( )->PushPostConceptUpdateCall( [ this ]( ) {
-                GetOwner( )->AddConcept<GameScene>( std::move( m_ServerConnection ) );
+                GetOwner( )->AddConcept<GameScene>( std::move( m_ServerConnection ), m_UserName );
                 Destroy( );
             } );
         }
