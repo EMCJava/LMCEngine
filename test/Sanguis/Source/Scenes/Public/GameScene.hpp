@@ -111,6 +111,8 @@ protected:
     std::shared_ptr<class PureConceptPerspectiveCamera> m_MainCamera;
     std::shared_ptr<class PhyControllerEntityPlayer>    m_CharController;
 
+    std::shared_ptr<class Text> m_HealthText;
+
     std::vector<PlayerStats>                                    m_PlayerStats;
     std::vector<std::shared_ptr<class PostEntityUpdateWrapper>> m_PlayerControllers;
 

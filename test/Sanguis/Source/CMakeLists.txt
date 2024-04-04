@@ -181,6 +181,8 @@ declare_library(
         ConceptList.lib
         Canvas.lib
 
+        Text.lib
+
         EntityRenderable.lib
 
         UserInput.lib

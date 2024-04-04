@@ -14,6 +14,8 @@
 #include <Engine/Core/Graphic/Image/PureConceptImage.hpp>
 #include <Engine/Core/Graphic/Canvas/Canvas.hpp>
 
+#include <Engine/Core/UI/Text/Text.hpp>
+
 #include <Engine/Core/Scene/Entity/EntityRenderable.hpp>
 
 #include <Engine/Core/Input/Serializer/SerializerModel.hpp>
@@ -197,6 +199,24 @@ GameScene::GameScene( std::shared_ptr<SanguisNet::ClientGroupParticipant> Connec
             }
         }
     }
+
+    {
+        auto FixedCamera = AddConcept<PureConceptOrthoCamera>( ).Get( );
+
+        FixedCamera->SetScale( 1 / 1.5F );
+        FixedCamera->UpdateCameraMatrix( );
+
+        auto UICanvas = AddConcept<Canvas>( ).Get( );
+        UICanvas->SetRuntimeName( "UI Canvas" );
+        UICanvas->SetCanvasCamera( FixedCamera );
+
+        m_HealthText = UICanvas->AddConcept<Text>( "100" ).Get( );
+        m_HealthText->SetupSprite( );
+        m_HealthText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
+        m_HealthText->SetColor( glm::vec3 { 1 } );
+        m_HealthText->SetCoordinate( glm::vec3 { -1400, 760, 0 } );
+    }
+
     // 373
     m_Reticle = AddConcept<Reticle>( );
 
@@ -322,6 +342,8 @@ GameScene::ServerMessageCallback( SanguisNet::Message& Msg )
         std::from_chars( Data.data( ) + Data.find( '\0' ) + 1, Data.data( ) + Data.size( ), Damage );
         spdlog::info( "Player: {}, Damage received: {}", PlayerIndex, Damage );
         m_PlayerStats[ PlayerIndex ].Health -= Damage;
+        if ( m_PlayerStats[ PlayerIndex ].Name == m_UserName )
+            m_HealthText->GetText( ) = std::to_string( m_PlayerStats[ PlayerIndex ].Health );
         break;
     }
     case SanguisNet::MessageHeader::ID_GAME_GUN_FIRE: {
