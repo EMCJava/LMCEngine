@@ -72,7 +72,7 @@ PhyController::GetFootPosition( )
         return reinterpret_cast<glm::dvec3&>( pxVec3 );
     }
 
-    return glm::vec3 { };
+    return glm::dvec3 { };
 }
 
 PhyController::~PhyController( )
