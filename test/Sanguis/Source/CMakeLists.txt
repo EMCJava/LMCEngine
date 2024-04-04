@@ -172,6 +172,8 @@ declare_library(
         Scenes/Private/GameScene.cpp
 
         P_DEPS
+        AudioEngine.lib
+
         PureConceptPerspectiveCamera.lib
         FirstPersonCameraController.lib
         PureConceptOrthoCamera.lib
