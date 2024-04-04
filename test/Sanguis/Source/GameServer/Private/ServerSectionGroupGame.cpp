@@ -58,7 +58,11 @@ SanguisNet::ServerSectionGroupGame::HandleMessage( const std::shared_ptr<GroupPa
         Msg.header.id = SanguisNet::MessageHeader::ID_GAME_UPDATE_SELF_COORDINATES;
         SanguisNet::Game::Decoder<SanguisNet::MessageHeader::ID_GAME_UPDATE_PLAYER_COORDINATES> { }( Msg );
         break;
+    case SanguisNet::MessageHeader::ID_GAME_PLAYER_RECEIVE_DAMAGE:
+        [[fallthrough]];
     case SanguisNet::MessageHeader::ID_GAME_GUN_FIRE:
+        [[fallthrough]];
+    case SanguisNet::MessageHeader::ID_GAME_PLAYER_STAT:
         SanguisNet::Game::Encoder<SanguisNet::MessageHeader::ID_GAME_GUN_FIRE> { }( Msg, ParticipantIndex );
         for ( const auto& P : m_Participants )
             if ( P != Participants ) P->Deliver( Msg );

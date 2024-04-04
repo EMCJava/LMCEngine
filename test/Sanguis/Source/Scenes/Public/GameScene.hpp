@@ -72,6 +72,18 @@ protected:
 struct PlayerStats {
     std::string Name { };
     int         Health = 100;
+
+    [[nodiscard]] std::string ToString( ) const& noexcept
+    {
+        return Name + '\0' + std::to_string( Health );
+    }
+
+    static PlayerStats FromString( std::string_view Str )
+    {
+        return {
+            .Name   = std::string( Str.data( ), Str.find( '\0' ) ),
+            .Health = std::stoi( std::string { Str.begin( ) + Str.find( '\0' ) + 1, Str.end( ) } ) };
+    }
 };
 
 class GameScene : public ConceptList
@@ -86,6 +98,8 @@ public:
 
 protected:
     void ServerMessageCallback( SanguisNet::Message& Msg );
+
+    void DoDamage( int PlayerIndex, int Damage );
 
     std::shared_ptr<SanguisNet::ClientGroupParticipant> m_ServerConnection;
 

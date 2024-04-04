@@ -30,6 +30,8 @@ struct MessageHeader {
                       ID_LOBBY_LIST,
                       ID_GAME_PLAYER_LIST,
                       ID_GAME_GUN_FIRE,
+                      ID_GAME_PLAYER_STAT,
+                      ID_GAME_PLAYER_RECEIVE_DAMAGE,
                       ID_GAME_UPDATE_SELF_COORDINATES,
                       ID_GAME_UPDATE_PLAYER_COORDINATES,
     };
@@ -132,14 +134,14 @@ namespace Game
 
     template <>
     struct Formatter<MessageHeader::ID_GAME_UPDATE_PLAYER_COORDINATES> {
-        struct PlayerData {
-            uint8_t            PlayerID { };
+        struct PlayerIndexData {
+            uint8_t            PlayerIndex { };
             std::span<uint8_t> Data { };
         };
 
         // Encode
         auto&
-        operator( )( Message& Msg, int PlayerID ) const
+        operator( )( Message& Msg, int PlayerID ) const&
         {
             assert( Msg.header.length + 1 <= MessageDataLength );
             Msg.data[ Msg.header.length++ ] = static_cast<uint8_t>( PlayerID );
@@ -147,21 +149,23 @@ namespace Game
         }
 
         // Decode
-        PlayerData operator( )( Message& Msg ) const
+        PlayerIndexData operator( )( Message& Msg ) const&
         {
             --Msg.header.length;
-            return PlayerData {
-                .PlayerID = Msg.data[ Msg.header.length ],
-                .Data     = std::span<uint8_t>( Msg.data, Msg.header.length ) };
+            return PlayerIndexData {
+                .PlayerIndex = Msg.data[ Msg.header.length ],
+                .Data        = std::span<uint8_t>( Msg.data, Msg.header.length ) };
         }
     };
 
     template <>
     struct Formatter<MessageHeader::ID_GAME_GUN_FIRE> : Formatter<MessageHeader::ID_GAME_UPDATE_PLAYER_COORDINATES> {
     };
-
     template <>
     struct Formatter<MessageHeader::ID_GAME_PLAYER_STAT> : Formatter<MessageHeader::ID_GAME_UPDATE_PLAYER_COORDINATES> {
+    };
+    template <>
+    struct Formatter<MessageHeader::ID_GAME_PLAYER_RECEIVE_DAMAGE> : Formatter<MessageHeader::ID_GAME_UPDATE_PLAYER_COORDINATES> {
     };
 
     template <uint32_t MessageID>

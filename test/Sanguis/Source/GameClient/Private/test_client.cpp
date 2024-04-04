@@ -54,6 +54,10 @@ main( int argc, char* argv[] )
             {
                 Mode = SanguisNet::MessageHeader::ID_GAME_UPDATE_SELF_COORDINATES;
                 continue;
+            } else if ( line == "dd" )
+            {
+                c.Post( SanguisNet::Message::FromString( std::to_string( 0 ) + '\0' + std::to_string( 54 ), SanguisNet::MessageHeader::ID_GAME_PLAYER_RECEIVE_DAMAGE ) );
+                continue;
             }
 
             c.Post( SanguisNet::Message::FromString( line, Mode ) );

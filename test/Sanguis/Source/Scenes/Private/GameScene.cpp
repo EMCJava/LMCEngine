@@ -218,10 +218,27 @@ GameScene::ServerMessageCallback( SanguisNet::Message& Msg )
 {
     switch ( Msg.header.id )
     {
+    case SanguisNet::MessageHeader::ID_GAME_PLAYER_STAT: {
+        const auto PlayerData                   = SanguisNet::Game::Decoder<SanguisNet::MessageHeader::ID_GAME_PLAYER_STAT> { }( Msg );
+        m_PlayerStats[ PlayerData.PlayerIndex ] = PlayerStats::FromString( Msg.ToString( ) );
+        break;
+    }
+    case SanguisNet::MessageHeader::ID_GAME_PLAYER_RECEIVE_DAMAGE: {
+        const auto DealerData = SanguisNet::Game::Decoder<SanguisNet::MessageHeader::ID_GAME_PLAYER_RECEIVE_DAMAGE> { }( Msg );
+
+        std::string_view Data        = { (char*) DealerData.Data.data( ), DealerData.Data.size( ) };
+        int              PlayerIndex = 0;
+        int              Damage      = 0;
+        std::from_chars( Data.data( ), Data.data( ) + Data.find( '\0' ), PlayerIndex );
+        std::from_chars( Data.data( ) + Data.find( '\0' ) + 1, Data.data( ) + Data.size( ), Damage );
+        spdlog::info( "Player: {}, Damage received: {}", PlayerIndex, Damage );
+        m_PlayerStats[ PlayerIndex ].Health -= Damage;
+        break;
+    }
     case SanguisNet::MessageHeader::ID_GAME_GUN_FIRE: {
         const auto FireData = SanguisNet::Game::Decoder<SanguisNet::MessageHeader::ID_GAME_GUN_FIRE> { }( Msg );
         auto       Ray      = Msg.ToStruct<RayCast>( );
-        spdlog::info( "Player {} fired at {} dir {} with distance {}", m_PlayerStats[ FireData.PlayerID ].Name, Ray.RayToCast.RayOrigin, Ray.RayToCast.UnitDirection, Ray.RayToCast.MaxDistance );
+        spdlog::info( "Player {} fired at {} dir {} with distance {}", m_PlayerStats[ FireData.PlayerIndex ].Name, Ray.RayToCast.RayOrigin, Ray.RayToCast.UnitDirection, Ray.RayToCast.MaxDistance );
         break;
     }
     case SanguisNet::MessageHeader::ID_GAME_PLAYER_LIST: {
@@ -231,4 +248,11 @@ GameScene::ServerMessageCallback( SanguisNet::Message& Msg )
             | std::ranges::to<std::vector<PlayerStats>>( );
     }
     }
+}
+
+void
+GameScene::DoDamage( int PlayerIndex, int Damage )
+{
+    m_PlayerStats[PlayerIndex].Health -= Damage;
+    m_ServerConnection->Post( SanguisNet::Message::FromString( std::to_string( PlayerIndex ) + '\0' + std::to_string( Damage ), SanguisNet::MessageHeader::ID_GAME_PLAYER_RECEIVE_DAMAGE ) );
 }
