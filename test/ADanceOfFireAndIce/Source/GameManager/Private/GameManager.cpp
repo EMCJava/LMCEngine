@@ -27,7 +27,7 @@
 #include <GLFW/glfw3.h>
 
 DEFINE_CONCEPT_DS_MA_SE( GameManager )
-DEFINE_SIMPLE_IMGUI_TYPE( GameManager, m_BPM, m_CameraLerp, m_TileSpriteSetRef, m_ToleranceBar )
+DEFINE_SIMPLE_IMGUI_TYPE( GameManager, m_BPM, m_CameraLerp, m_TileSpriteSetRef, m_ToleranceBar, m_IsAutoPlay )
 
 namespace
 {
