@@ -113,7 +113,8 @@ protected:
     std::shared_ptr<class PureConceptPerspectiveCamera> m_MainCamera;
     std::shared_ptr<class PhyControllerEntityPlayer>    m_CharController;
 
-    std::shared_ptr<class Text> m_HealthText;
+    std::shared_ptr<class Canvas> m_UICanvas;
+    std::shared_ptr<class Text>   m_HealthText;
 
     std::vector<PlayerStats>                                    m_PlayerStats;
     std::vector<std::shared_ptr<class PostEntityUpdateWrapper>> m_PlayerControllers;
@@ -123,6 +124,7 @@ protected:
      * Player status
      *
      * */
+    bool                           m_IsDead        = false;
     bool                           m_IsViewZooming = false;
     LinearLerp                     m_CameraZoomLerp;
     std::shared_ptr<class Reticle> m_Reticle;
@@ -132,4 +134,6 @@ protected:
 
     // Sound
     NativeAudioSourceHandle m_GunFireAudioHandle;
+    NativeAudioSourceHandle m_HitByBulletAudioHandle;
+    NativeAudioSourceHandle m_BulletHitAudioHandle;
 };

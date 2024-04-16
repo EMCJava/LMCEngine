@@ -136,8 +136,10 @@ Orientation::operator+=( const Orientation& Other )
     Coordinate += Other.Coordinate;
     Scale += Other.Scale;
     ActivateQuatRotation( );
-    REQUIRED( Other.IsUsingQuatRotation( ) )
-    SetQuat( m_Quat * Other.GetQuat( ) );
+    if ( Other.IsUsingQuatRotation( ) )
+        SetQuat( m_Quat * Other.GetQuat( ) );
+    else
+        SetQuat( m_Quat * glm::quat( Other.m_Rotation ) );
 
     return *this;
 }

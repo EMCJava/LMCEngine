@@ -103,6 +103,7 @@ public:
 
     void Apply( ) override
     {
+        if ( m_IsDead ) return;
         if ( m_DoReport )
         {
             if ( !m_Entity->HasMoved( ) ) return;
@@ -120,10 +121,28 @@ public:
         m_Entity->SetVelocity( NO.Velocity );
     }
 
+    void NotifyDeath( )
+    {
+        m_IsDead = true;
+        m_Connection->Post( SanguisNet::Message::FromStruct(
+            EntityNetOrientation {
+                .FootPosition = m_Entity->GetFootPosition( ),
+                .Velocity     = m_Entity->GetVelocity( ) },
+            SanguisNet::MessageHeader::ID_GAME_PLAYER_SELF_LAY_DOWN ) );
+    }
+
+    void EntityDied( )
+    {
+        Orientation Rotate;
+        Rotate.SetRotation( 3.1415926534f / 2, 0, 0 );
+        m_Entity->AlterOrientation( Rotate );
+    }
+
 protected:
     std::shared_ptr<SanguisNet::ClientGroupParticipant>& m_Connection;
     std::shared_ptr<PhyControllerEntity>                 m_Entity;
     bool                                                 m_DoReport = false;
+    bool                                                 m_IsDead   = false;
 };
 DEFINE_CONCEPT_DS( PostEntityUpdateWrapper )
 
@@ -208,18 +227,20 @@ GameScene::GameScene( std::shared_ptr<SanguisNet::ClientGroupParticipant> Connec
         FixedCamera->SetScale( 1 / 1.5F );
         FixedCamera->UpdateCameraMatrix( );
 
-        auto UICanvas = AddConcept<Canvas>( ).Get( );
-        UICanvas->SetRuntimeName( "UI Canvas" );
-        UICanvas->SetCanvasCamera( FixedCamera );
+        m_UICanvas = AddConcept<Canvas>( ).Get( );
+        m_UICanvas->SetRuntimeName( "UI Canvas" );
+        m_UICanvas->SetCanvasCamera( FixedCamera );
 
-        m_HealthText = UICanvas->AddConcept<Text>( "100" ).Get( );
+        m_HealthText = m_UICanvas->AddConcept<Text>( "100" ).Get( );
         m_HealthText->SetupSprite( );
         m_HealthText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
         m_HealthText->SetColor( glm::vec3 { 1 } );
         m_HealthText->SetCoordinate( glm::vec3 { -1400, 760, 0 } );
     }
 
-    m_GunFireAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/GunFire.ogg" );
+    m_GunFireAudioHandle     = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/GunFire.ogg" );
+    m_HitByBulletAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/HitByBullet.ogg" );
+    m_BulletHitAudioHandle   = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/BulletHit.ogg" );
 
     // 373
     m_Reticle = AddConcept<Reticle>( );
@@ -312,6 +333,7 @@ GameScene::Apply( )
                         const auto Name  = RTName.substr( 0, RTName.find( "_RemoteController" ) );
                         const auto Index = std::distance( m_PlayerStats.begin( ), std::find_if( m_PlayerStats.begin( ), m_PlayerStats.end( ), [ &Name ]( const auto& PlayerStat ) { return PlayerStat.Name == Name; } ) );
 
+                        Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( m_BulletHitAudioHandle );
                         DoDamage( Index, 20 );
                     }
                 }
@@ -320,11 +342,44 @@ GameScene::Apply( )
     }
 }
 
+class Updatable : public ConceptList
+{
+public:
+    void Update( ) { }
+
+    DECLARE_CONCEPT( Updatable, PureConcept );
+};
+Updatable::~Updatable(){}
+class Renderable : public ConceptList
+{
+public:
+    void Render( ) { }
+
+    DECLARE_CONCEPT( Renderable, PureConcept );
+};
+Renderable::~Renderable(){}
+class Bird : public ConceptList
+{
+public:
+    DECLARE_CONCEPT( Bird, PureConcept );
+};
+Bird::~Bird(){}
+
 void
 GameScene::ServerMessageCallback( SanguisNet::Message& Msg )
 {
+    auto Bird1 = PureConcept::CreateConcept<Bird>( );
+
+    std::vector<std::shared_ptr<Renderable>> ListOfRenderable;
+    Bird1->GetConcepts<Renderable>( ListOfRenderable );
+    for ( auto& Renderable : ListOfRenderable )
+    {
+        Renderable->Render( );
+    }
+
     switch ( Msg.header.id )
     {
+    case SanguisNet::MessageHeader::ID_GAME_PLAYER_LAY_DOWN:
     case SanguisNet::MessageHeader::ID_GAME_UPDATE_PLAYER_COORDINATES: {
         const auto PlayerData = SanguisNet::Game::Decoder<SanguisNet::MessageHeader::ID_GAME_PLAYER_STAT> { }( Msg );
         if ( m_PlayerControllers.size( ) <= PlayerData.PlayerIndex )
@@ -335,6 +390,10 @@ GameScene::ServerMessageCallback( SanguisNet::Message& Msg )
         auto ENO = Msg.ToStruct<PostEntityUpdateWrapper::EntityNetOrientation>( );
         // spdlog::info( "Player: {} move to {} with velocity: {}", PlayerData.PlayerIndex, ENO.FootPosition, ENO.Velocity );
         m_PlayerControllers[ PlayerData.PlayerIndex ]->SetNetOrientation( ENO );
+
+        if ( Msg.header.id == SanguisNet::MessageHeader::ID_GAME_PLAYER_LAY_DOWN )
+            m_PlayerControllers[ PlayerData.PlayerIndex ]->EntityDied( );
+
         break;
     }
     case SanguisNet::MessageHeader::ID_GAME_PLAYER_STAT: {
@@ -351,16 +410,36 @@ GameScene::ServerMessageCallback( SanguisNet::Message& Msg )
         std::from_chars( Data.data( ), Data.data( ) + Data.find( '\0' ), PlayerIndex );
         std::from_chars( Data.data( ) + Data.find( '\0' ) + 1, Data.data( ) + Data.size( ), Damage );
         spdlog::info( "Player: {}, Damage received: {}", PlayerIndex, Damage );
-        m_PlayerStats[ PlayerIndex ].Health -= Damage;
-        if ( m_PlayerStats[ PlayerIndex ].Name == m_UserName )
-            m_HealthText->GetText( ) = std::to_string( m_PlayerStats[ PlayerIndex ].Health );
+
+        auto& TargetPlayer = m_PlayerStats[ PlayerIndex ];
+
+        TargetPlayer.Health -= Damage;
+        if ( TargetPlayer.Name == m_UserName )
+        {
+            Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( m_HitByBulletAudioHandle );
+            m_HealthText->GetText( ) = std::to_string( TargetPlayer.Health );
+            if ( !m_IsDead && ( m_IsDead = TargetPlayer.Health <= 0 ) )
+            {
+                Engine::GetEngine( )->PushPostConceptUpdateCall( [ this, PlayerIndex ]( ) {
+                    m_PlayerControllers[ PlayerIndex ]->NotifyDeath( );
+                    auto GmeOverText = m_UICanvas->AddConcept<Text>( "Game Over" ).Get( );
+                    GmeOverText->SetupSprite( );
+                    GmeOverText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
+                    GmeOverText->SetColor( glm::vec3 { 1 } );
+                    GmeOverText->SetScale( 5 );
+                    GmeOverText->SetCenterAt( glm::vec3 { 0 } );
+
+                    m_CharController->SetEnabled( false );
+                } );
+            }
+        }
         break;
     }
     case SanguisNet::MessageHeader::ID_GAME_GUN_FIRE: {
         const auto FireData = SanguisNet::Game::Decoder<SanguisNet::MessageHeader::ID_GAME_GUN_FIRE> { }( Msg );
         auto       Ray      = Msg.ToStruct<RayCast>( );
         spdlog::info( "Player {} fired at {} dir {} with distance {}", m_PlayerStats[ FireData.PlayerIndex ].Name, Ray.RayToCast.RayOrigin, Ray.RayToCast.UnitDirection, Ray.RayToCast.MaxDistance );
-        Engine::GetEngine( )->GetAudioEngine( )->PlayAudio3D( m_GunFireAudioHandle, Ray.RayToCast.RayOrigin );
+        Engine::GetEngine( )->GetAudioEngine( )->PlayAudio3D( m_GunFireAudioHandle, Ray.RayToCast.RayOrigin / 5.f );
         break;
     }
     case SanguisNet::MessageHeader::ID_GAME_PLAYER_LIST:

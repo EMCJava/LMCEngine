@@ -32,6 +32,9 @@ public:
     SetFont( std::shared_ptr<class Font> Font ) { m_Font = Font; }
 
     void
+    SetScale( FloatTy Scale ) { m_Scale = Scale; }
+
+    void
     SetColor( const glm::vec3& Color ) { m_Color = Color; }
 
     uint32_t

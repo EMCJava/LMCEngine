@@ -31,6 +31,8 @@ struct MessageHeader {
                       ID_GAME_PLAYER_LIST,
                       ID_GAME_GUN_FIRE,
                       ID_GAME_PLAYER_STAT,
+                      ID_GAME_PLAYER_LAY_DOWN,
+                      ID_GAME_PLAYER_SELF_LAY_DOWN,
                       ID_GAME_PLAYER_RECEIVE_DAMAGE,
                       ID_GAME_UPDATE_SELF_COORDINATES,
                       ID_GAME_UPDATE_PLAYER_COORDINATES,

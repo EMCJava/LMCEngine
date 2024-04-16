@@ -56,6 +56,8 @@ PhyControllerEntityPlayer::PhyControllerEntityPlayer( std::shared_ptr<PureConcep
 void
 PhyControllerEntityPlayer::Apply( )
 {
+    if ( !m_Enabled ) return;
+
     auto* UserInputHandle = Engine::GetEngine( )->GetUserInputHandle( );
 
     int FrontMovement = 0;
