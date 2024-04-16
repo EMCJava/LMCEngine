@@ -1335,7 +1335,6 @@ GameManager::GameManager( )
         FixedCamera->UpdateCameraMatrix( );
 
         m_UICanvas = AddConcept<Canvas>( );
-        m_UICanvas = AddConcept<Canvas>( );
         m_UICanvas->SetRuntimeName( "UI Canvas" );
         m_UICanvas->SetCanvasCamera( FixedCamera );
     }
