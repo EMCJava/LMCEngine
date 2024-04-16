@@ -29,6 +29,8 @@ FirstPersonCameraController::~FirstPersonCameraController( )
 void
 FirstPersonCameraController::Apply( )
 {
+    if ( !m_Enabled ) return;
+
     const auto DeltaTime      = Engine::GetEngine( )->GetDeltaSecond( );
     auto       CameraPosition = m_Camera->GetCameraPosition( );
 
