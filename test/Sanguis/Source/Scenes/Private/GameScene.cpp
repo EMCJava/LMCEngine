@@ -257,6 +257,8 @@ GameScene::GameScene( std::shared_ptr<SanguisNet::ClientGroupParticipant> Connec
 void
 GameScene::Apply( )
 {
+    if ( m_IsDead ) return;
+
     auto* UserInput = Engine::GetEngine( )->GetUserInputHandle( );
 
     if ( !m_CameraZoomLerp.HasReachedEnd( ) )
@@ -349,7 +351,7 @@ public:
 
     DECLARE_CONCEPT( Updatable, PureConcept );
 };
-Updatable::~Updatable(){}
+Updatable::~Updatable( ) { }
 class Renderable : public ConceptList
 {
 public:
@@ -357,13 +359,13 @@ public:
 
     DECLARE_CONCEPT( Renderable, PureConcept );
 };
-Renderable::~Renderable(){}
+Renderable::~Renderable( ) { }
 class Bird : public ConceptList
 {
 public:
     DECLARE_CONCEPT( Bird, PureConcept );
 };
-Bird::~Bird(){}
+Bird::~Bird( ) { }
 
 void
 GameScene::ServerMessageCallback( SanguisNet::Message& Msg )
@@ -428,6 +430,9 @@ GameScene::ServerMessageCallback( SanguisNet::Message& Msg )
                     GmeOverText->SetColor( glm::vec3 { 1 } );
                     GmeOverText->SetScale( 5 );
                     GmeOverText->SetCenterAt( glm::vec3 { 0 } );
+
+                    // Make sure the UI is on top
+                    m_UICanvas->MoveToLastAsSubConcept( );
 
                     m_CharController->SetEnabled( false );
                 } );
