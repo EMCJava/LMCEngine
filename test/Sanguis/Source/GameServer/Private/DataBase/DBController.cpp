@@ -24,6 +24,7 @@ DBController::DBController( )
     m_Storage.replace( UserRelationship { 2, 1, UserRelationship::Friend } );
     m_Storage.replace( UserRelationship { 1, 3, UserRelationship::Block } );
     m_Storage.replace( UserRelationship { 1, 4, UserRelationship::Friend } );
+    m_Storage.replace( UserRelationship { 4, 1, UserRelationship::Friend } );
 
     m_Storage.remove_all<UserLogin>( );
     m_Storage.insert( into<UserLogin>( ),
