@@ -29,7 +29,11 @@ FirstPersonCameraController::~FirstPersonCameraController( )
 void
 FirstPersonCameraController::Apply( )
 {
-    if ( !m_Enabled ) return;
+    if ( !m_Enabled )
+    {
+        if ( m_MouseLocked ) Engine::GetEngine( )->GetUserInputHandle( )->LockCursor( ( m_MouseLocked = false ) );
+        return;
+    }
 
     const auto DeltaTime      = Engine::GetEngine( )->GetDeltaSecond( );
     auto       CameraPosition = m_Camera->GetCameraPosition( );
