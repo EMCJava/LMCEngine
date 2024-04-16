@@ -18,6 +18,10 @@ public:
     void
     Apply( ) override;
 
+
+    void
+    SetEnabled( bool enabled ) override;
+
     auto&
     GetCameraController( ) const noexcept { return m_CameraController; }
 

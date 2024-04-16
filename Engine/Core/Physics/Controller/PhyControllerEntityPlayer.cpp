@@ -34,6 +34,11 @@ public:
         m_Controller->GetCamera( )->SetCameraPosition( m_Orientation.GetCoordinate( ), true );
     }
 
+    void SetEnabled( bool Enabled ) override
+    {
+        m_Controller->SetEnabled( Enabled );
+    }
+
 protected:
     std::shared_ptr<FirstPersonCameraController> m_Controller;
 
@@ -112,6 +117,14 @@ PhyControllerEntityPlayer::Apply( )
     }
 
     PhyControllerEntity::Apply( );
+}
+
+void
+PhyControllerEntityPlayer::SetEnabled( bool enabled )
+{
+    PureConcept::SetEnabled( enabled );
+
+    GetConcept<FPSEntity>( )->SetEnabled( enabled );
 }
 
 PhyControllerEntityPlayer::operator PureConceptPerspectiveCamera*( ) const noexcept
