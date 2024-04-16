@@ -35,17 +35,24 @@ LobbyScene::LobbyScene( const std::shared_ptr<SanguisNet::ClientGroupParticipant
     m_UICanvas->SetRuntimeName( "Login Canvas" );
     m_UICanvas->SetCanvasCamera( FixedCamera );
 
-    auto LobbyText = m_UICanvas->AddConcept<Text>( "Lobby List" ).Get( );
-    LobbyText->SetupSprite( );
-    LobbyText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
-    LobbyText->SetColor( glm::vec3 { 1 } );
-    LobbyText->SetCenterAt( glm::vec3 { -500, 0, 0 } );
+    auto PlayerText = m_UICanvas->AddConcept<Text>( "Player List" ).Get( );
+    PlayerText->SetupSprite( );
+    PlayerText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
+    PlayerText->SetColor( glm::vec3 { 1 } );
+    PlayerText->SetCenterAt( glm::vec3 { -500, 0, 0 } );
 
     auto FriendText = m_UICanvas->AddConcept<Text>( "Friend List" ).Get( );
     FriendText->SetupSprite( );
     FriendText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
     FriendText->SetColor( glm::vec3 { 1 } );
     FriendText->SetCenterAt( glm::vec3 { 500, 0, 0 } );
+
+    auto LobbyText = m_UICanvas->AddConcept<Text>( "Lobby" ).Get( );
+    LobbyText->SetupSprite( );
+    LobbyText->SetFont( Engine::GetEngine( )->GetGlobalResourcePool( )->GetShared<Font>( "DefaultFont" ) );
+    LobbyText->SetColor( glm::vec3 { 1 } );
+    LobbyText->SetScale( 3 );
+    LobbyText->SetCenterAt( glm::vec3 { 0, 600, 0 } );
 
     m_ReadyButton = m_UICanvas->AddConcept<RectButton>( -25, 60 ).Get( );
     m_ReadyButton->SetPressReactColor( glm::vec4 { 0.9, 0.9, 0.9, 1 } );
