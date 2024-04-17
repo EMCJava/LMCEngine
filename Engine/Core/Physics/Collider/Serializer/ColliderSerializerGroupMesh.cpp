@@ -288,7 +288,7 @@ ColliderSerializerGroupMesh::CreateStaticRigidBodyFromCacheGroup( const physx::P
         REQUIRED( aShape != nullptr )
     }
 
-    if ( HitBoxFrame != nullptr ) *HitBoxFrame = PureConcept::CreateConcept<RenderableMeshHitBox>( Vertices, Indices );
+    // if ( HitBoxFrame != nullptr ) *HitBoxFrame = PureConcept::CreateConcept<RenderableMeshHitBox>( Vertices, Indices );
 
     return hfActor;
 }

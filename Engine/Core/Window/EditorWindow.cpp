@@ -1034,7 +1034,7 @@ EditorWindow::RenderImGuizmo( const auto& RenderRect )
     m_GizmoCameraView       = glm::value_ptr( PerspectiveCamera->GetViewMatrix( ) );
     m_GizmoCameraProjection = glm::value_ptr( PerspectiveCamera->GetProjectionMatrix( ) );
 
-    ImGuizmo::DrawGrid( m_GizmoCameraView, m_GizmoCameraProjection, glm::value_ptr( IdentityMatrix ), 100.f );
+    // ImGuizmo::DrawGrid( m_GizmoCameraView, m_GizmoCameraProjection, glm::value_ptr( IdentityMatrix ), 100.f );
 
     // Not selected or expired
     if ( m_ConceptInspectionCache.SelectedConcept.expired( ) ) return;
