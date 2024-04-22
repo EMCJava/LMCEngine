@@ -28,8 +28,10 @@ SanguisNet::ServerManager::Lunch( asio::io_context& ControlContext )
 
     for ( const auto& Section : m_ServerSections )
     {
+        asio::ip::address ip_address = asio::ip::make_address("192.168.111.222");
+
         auto Acceptor = asio::ip::tcp::acceptor( ControlContext,
-                                                 { asio::ip::tcp::v4( ), Section->GetSectionPort( ) },
+                                                 { ip_address, Section->GetSectionPort( ) },
                                                  true );
 
         co_spawn( ControlContext,
