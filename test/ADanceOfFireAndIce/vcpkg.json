@@ -22,5 +22,5 @@
       "$comment": "Upstream vcpkg updated to PhysX 5, which drops support for several target platforms. Stick with 4.1.2 for now. (From Plasma)"
     }
   ],
-  "builtin-baseline": "9f03078bdcbab3ad8c1e3927c40c3fb48e42501f"
+  "builtin-baseline": "c4467cb686f92671f0172aa8299a77d908175b4e"
 }

@@ -15,10 +15,10 @@ target_link_libraries(imgui.lib INTERFACE imgui::imgui)
 target_link_libraries(imgui.lib INTERFACE glfw.lib)
 
 ## -------------- ImGuizmo --------------
-find_package(imguizmo CONFIG REQUIRED)
+find_package(unofficial-imguizmo CONFIG REQUIRED)
 
 add_library(imguizmo.lib INTERFACE)
-target_link_libraries(imguizmo.lib INTERFACE imguizmo::imguizmo)
+target_link_libraries(imguizmo.lib INTERFACE unofficial::imguizmo::imguizmo)
 target_link_libraries(imguizmo.lib INTERFACE imgui.lib)
 
 ## -------------- GLAD --------------
@@ -95,63 +95,83 @@ if (NOT glm_POPULATED)
     add_subdirectory(${glm_SOURCE_DIR} ${glm_BINARY_DIR})
 endif ()
 
-## -------------- irrKlang --------------
-FetchContent_Declare(
-        irrklang
-        URL https://www.ambiera.at/downloads/irrKlang-64bit-1.6.0.zip
-)
+## -------------- miniaudio --------------
+find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h")
 
-FetchContent_MakeAvailable(irrklang)
-
-message("irrKlang_SOURCE_DIR: ${irrklang_SOURCE_DIR}")
-
-add_library(irrklang SHARED IMPORTED GLOBAL)
-target_include_directories(irrklang INTERFACE ${irrklang_SOURCE_DIR}/include)
-set_target_properties(irrklang PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${irrklang_SOURCE_DIR}/include)
-
-set(no_irrklang FALSE)
-
-if (WIN32)
-    set_target_properties(irrklang PROPERTIES
-            IMPORTED_IMPLIB ${irrklang_SOURCE_DIR}/lib/Winx64-visualStudio/irrKlang.lib
-            IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll)
-
-    add_custom_target(
-            populate_irrklang ALL
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}irrKlang.dll
-            COMMENT "Exporting irrKlang.dll into build tree"
-    )
-elseif (APPLE)
-    # message(FATAL_ERROR " CMAKE_OSX_ARCHITECTURES ${CMAKE_OSX_ARCHITECTURES} ")
-
-    EXECUTE_PROCESS(COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE)
-    if (${ARCHITECTURE} STREQUAL "arm64")
-        message("Not support for arm64 on apple ")
-
-        set(no_irrklang TRUE)
-    else ()
-        message("Not on arm64 apple (${ARCHITECTURE}), enabling irrklang")
-        set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/macosx-gcc/libirrklang.dylib)
-    endif ()
-
-    add_custom_target(populate_irrklang)
-elseif (UNIX)
-    set_target_properties(irrklang PROPERTIES
-            IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so
-            IMPORTED_NO_SONAME TRUE)
-
-    add_custom_target(
-            populate_irrklang ALL
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}libIrrKlang.so
-            COMMENT "Exporting libIrrKlang.so into build tree"
-    )
-else ()
-    message(FATAL_ERROR "No supported platform was detected ")
+add_library(miniaudio INTERFACE)
+target_include_directories(miniaudio INTERFACE ${MINIAUDIO_INCLUDE_DIRS})
+#target_compile_definitions(miniaudio INTERFACE MINIAUDIO_IMPLEMENTATION)
+if (APPLE)
+    target_compile_definitions(miniaudio INTERFACE MA_NO_RUNTIME_LINKING)
 endif ()
 
+set(use_miniaudio TRUE)
+
+## -------------- irrKlang --------------
+set(use_irrklang FALSE)
+
+if (NOT ${use_miniaudio})
+    FetchContent_Declare(
+            irrklang
+            URL https://www.ambiera.at/downloads/irrKlang-64bit-1.6.0.zip
+    )
+
+    FetchContent_MakeAvailable(irrklang)
+
+    message("irrKlang_SOURCE_DIR: ${irrklang_SOURCE_DIR}")
+
+    add_library(irrklang SHARED IMPORTED GLOBAL)
+    target_include_directories(irrklang INTERFACE ${irrklang_SOURCE_DIR}/include)
+    set_target_properties(irrklang PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${irrklang_SOURCE_DIR}/include)
+
+
+    if (WIN32)
+        set_target_properties(irrklang PROPERTIES
+                IMPORTED_IMPLIB ${irrklang_SOURCE_DIR}/lib/Winx64-visualStudio/irrKlang.lib
+                IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll)
+
+        add_custom_target(
+                populate_irrklang ALL
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${irrklang_SOURCE_DIR}/bin/winx64-visualStudio/irrKlang.dll ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}irrKlang.dll
+                COMMENT "Exporting irrKlang.dll into build tree"
+        )
+
+        set(use_irrklang TRUE)
+    elseif (APPLE)
+        # message(FATAL_ERROR " CMAKE_OSX_ARCHITECTURES ${CMAKE_OSX_ARCHITECTURES} ")
+
+        EXECUTE_PROCESS(COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE)
+        if (${ARCHITECTURE} STREQUAL "arm64")
+            message("Not irrklang support for arm64 on apple ")
+        else ()
+            message("Not on arm64 apple (${ARCHITECTURE}), enabling irrklang")
+            set_target_properties(irrklang PROPERTIES IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/macosx-gcc/libirrklang.dylib)
+
+            set(use_irrklang TRUE)
+        endif ()
+
+        add_custom_target(populate_irrklang)
+    elseif (UNIX)
+        set_target_properties(irrklang PROPERTIES
+                IMPORTED_LOCATION ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so
+                IMPORTED_NO_SONAME TRUE)
+
+        add_custom_target(
+                populate_irrklang ALL
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${irrklang_SOURCE_DIR}/bin/linux-gcc-64/libIrrKlang.so ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}libIrrKlang.so
+                COMMENT "Exporting libIrrKlang.so into build tree"
+        )
+
+        set(use_irrklang TRUE)
+    else ()
+        message(FATAL_ERROR "No supported platform was detected ")
+    endif ()
+endif ()
+
+## -------------- audio interface --------------
 add_library(audio.base.lib INTERFACE)
 
-if (NOT ${no_irrklang})
+if (${use_irrklang})
 
     target_link_libraries(audio.base.lib INTERFACE irrklang)
     add_dependencies(audio.base.lib populate_irrklang)
@@ -159,8 +179,14 @@ if (NOT ${no_irrklang})
     target_compile_definitions(audio.base.lib INTERFACE USE_IRRKLANG)
 
     message("Using irrklang")
+elseif (${use_miniaudio})
 
+    target_link_libraries(audio.base.lib INTERFACE miniaudio)
+    target_compile_definitions(audio.base.lib INTERFACE USE_MINIAUDIO)
+
+    message("Using miniaudio")
 else ()
+
     target_compile_definitions(audio.base.lib INTERFACE NO_AUDIO_ENGINE)
 endif ()
 

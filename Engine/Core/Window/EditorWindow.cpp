@@ -178,7 +178,7 @@ EditorWindow::UpdateImGui( )
     gl->Clear( GL_COLOR_BUFFER_BIT );
 
     const auto& ImGuiIO = ImGui::GetIO( );
-    ImGui::DockSpaceOverViewport( ImGui::GetMainViewport( ) );
+    ImGui::DockSpaceOverViewport( 0, ImGui::GetMainViewport( ) );
 
     if ( m_ShowImGuiDemoWindow )
     {
@@ -919,7 +919,7 @@ EditorWindow::RenderMenuBar( )
             {
                 spdlog::info( "Open project" );
                 const auto ProjectPath = OSFile::PickFile( {
-                    {"LMCEngine project file", "lmce"}
+                    { "LMCEngine project file", "lmce" }
                 } );
                 if ( ProjectPath.empty( ) )
                 {
@@ -968,7 +968,7 @@ EditorWindow::RenderMenuBar( )
                     }
 
                     const auto SaveLocation = OSFile::SaveFile( {
-                                                                    {"Layout init file", "ini"}
+                                                                    { "Layout init file", "ini" }
                     },
                                                                 DefaultPath );
                     if ( !SaveLocation.empty( ) )
@@ -981,7 +981,7 @@ EditorWindow::RenderMenuBar( )
                 if ( ImGui::MenuItem( "Load Layout" ) )
                 {
                     const auto LoadLocation = OSFile::PickFile( {
-                        {"Layout init file", "ini"}
+                        { "Layout init file", "ini" }
                     } );
                     if ( !LoadLocation.empty( ) )
                     {
