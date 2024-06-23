@@ -238,9 +238,9 @@ GameScene::GameScene( std::shared_ptr<SanguisNet::ClientGroupParticipant> Connec
         m_HealthText->SetCoordinate( glm::vec3 { -1400, 760, 0 } );
     }
 
-    m_GunFireAudioHandle     = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/GunFire.ogg" );
-    m_HitByBulletAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/HitByBullet.ogg" );
-    m_BulletHitAudioHandle   = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/BulletHit.ogg" );
+    m_GunFireAudioHandle     = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/GunFire.wav" );
+    m_HitByBulletAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/HitByBullet.wav" );
+    m_BulletHitAudioHandle   = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/BulletHit.wav" );
 
     // 373
     m_Reticle = AddConcept<Reticle>( );
@@ -344,41 +344,9 @@ GameScene::Apply( )
     }
 }
 
-class Updatable : public ConceptList
-{
-public:
-    void Update( ) { }
-
-    DECLARE_CONCEPT( Updatable, PureConcept );
-};
-Updatable::~Updatable( ) { }
-class Renderable : public ConceptList
-{
-public:
-    void Render( ) { }
-
-    DECLARE_CONCEPT( Renderable, PureConcept );
-};
-Renderable::~Renderable( ) { }
-class Bird : public ConceptList
-{
-public:
-    DECLARE_CONCEPT( Bird, PureConcept );
-};
-Bird::~Bird( ) { }
-
 void
 GameScene::ServerMessageCallback( SanguisNet::Message& Msg )
 {
-    auto Bird1 = PureConcept::CreateConcept<Bird>( );
-
-    std::vector<std::shared_ptr<Renderable>> ListOfRenderable;
-    Bird1->GetConcepts<Renderable>( ListOfRenderable );
-    for ( auto& Renderable : ListOfRenderable )
-    {
-        Renderable->Render( );
-    }
-
     switch ( Msg.header.id )
     {
     case SanguisNet::MessageHeader::ID_GAME_PLAYER_LAY_DOWN:

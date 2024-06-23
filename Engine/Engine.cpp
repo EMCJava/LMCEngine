@@ -132,7 +132,7 @@ Engine::Engine( )
 
     m_ImGuiGroupPanelLabelStack = new ImVector<ImRect>;
 
-    m_MainWindow = new PrimaryWindow( 1280, 720, "" );
+    m_MainWindow = new PrimaryWindow( 1920, 1080, "" );
     m_GLContext  = m_MainWindow->GetGLContext( );
 
     m_ActiveProject = new Project;

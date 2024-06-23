@@ -62,7 +62,7 @@ GameManager::GameManager( )
     m_IOContext = std::make_shared<asio::io_context>( );
 
     asio::ip::tcp::resolver resolver( *m_IOContext );
-    auto                    endpoints = resolver.resolve( "192.168.111.222", "8800" );
+    auto                    endpoints = resolver.resolve( "localhost", "8800" );
     m_ServerConnection                = std::make_shared<SanguisNet::ClientGroupParticipant>( *m_IOContext, endpoints );
     m_ServerConnection->SetConnectCallback( [ this ]( ) {
         Engine::GetEngine( )->PushPostConceptUpdateCall( [ this ]( ) {

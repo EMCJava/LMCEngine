@@ -1708,11 +1708,11 @@ GameManager::LoadAudio( )
 {
     m_PlayingSpeed = 1;
 
-    m_DelayCheckingSoundSource = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/Beats.ogg" );
+    m_DelayCheckingSoundSource = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/Beats.wav" );
 
     m_NoteHitSfxSource = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/NoteHit.wav" );
 
-    auto* MAC         = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/Papipupipupipa.ogg" );
+    auto MAC          = Engine::GetEngine( )->GetAudioEngine( )->CreateAudioHandle( "Assets/Audio/Papipupipupipa.wav" );
     m_MainAudioHandle = Engine::GetEngine( )->GetAudioEngine( )->PlayAudio( MAC, true, true );
     m_MainAudioHandle.SetSpeed( m_PlayingSpeed );
     m_MainAudioHandle.SetVolume( 0.2 );

@@ -6,6 +6,8 @@
 
 #ifdef USE_IRRKLANG
 #include "AudioHandleImpl/AudioHandle_irrKlang.inl"
+#elif defined( USE_MINIAUDIO )
+#    include "AudioHandleImpl/AudioHandle_miniaudio.inl"
 #elif defined( NO_AUDIO_ENGINE )
 #    include "AudioHandleImpl/AudioHandleNone.inl"
 #endif

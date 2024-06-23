@@ -13,6 +13,11 @@
 using NativeSoundHandle       = std::shared_ptr<irrklang::ISound>;
 using NativeAudioSourceHandle = irrklang::ISoundSource*;
 
+#elif defined( USE_MINIAUDIO )
+#include <string>
+using NativeSoundHandle       = std::shared_ptr<class ma_sound>;
+using NativeAudioSourceHandle = std::string;
+
 #elif defined( NO_AUDIO_ENGINE )
 
 using NativeSoundHandle       = void*;
