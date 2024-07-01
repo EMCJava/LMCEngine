@@ -38,9 +38,12 @@ AudioEngine::~AudioEngine( )
 {
     REQUIRED( g_AudioEngine == this )
 
-    ma_engine_uninit(BackendInstance);
-    delete BackendInstance;
-    m_BackendInstance = nullptr;
+    if ( m_BackendInstance != nullptr )
+    {
+        ma_engine_uninit( BackendInstance );
+        delete BackendInstance;
+        m_BackendInstance = nullptr;
+    }
 
     g_AudioEngine = nullptr;
 }
@@ -81,9 +84,9 @@ AudioEngine::PlayAudio( NativeAudioSourceHandle AudioHandle, bool TrackAudio, bo
         return NativeSoundHandle { };
     }
 
-    auto FullPath = std::filesystem::absolute( AudioHandle ).string();
-    auto Sound = std::shared_ptr<ma_sound>( new ma_sound, NativeSoundHandleDestructor { } );
-    Result     = ma_sound_init_from_file( BackendInstance, FullPath.c_str(), MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION, nullptr, nullptr, Sound.get( ) );
+    auto FullPath = std::filesystem::absolute( AudioHandle ).string( );
+    auto Sound    = std::shared_ptr<ma_sound>( new ma_sound, NativeSoundHandleDestructor { } );
+    Result        = ma_sound_init_from_file( BackendInstance, FullPath.c_str( ), MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION, nullptr, nullptr, Sound.get( ) );
     if ( Result != MA_SUCCESS )
     {
         spdlog::error( "Failed to play audio: {}({})", AudioHandle, ma_result_description( Result ) );
